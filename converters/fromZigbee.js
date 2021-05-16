@@ -4433,6 +4433,17 @@ const converters = {
             return {action: `button_${action}`};
         },
     },
+    Z809A_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('57346')) payload.power = msg.data['57346'];
+            if (msg.data.hasOwnProperty('57347')) payload.energy = msg.data['57347'];
+            if (msg.data.hasOwnProperty('57345')) payload.voltage = msg.data['57345'];
+            return payload;
+        },
+    },
     aqara_opple_move_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',

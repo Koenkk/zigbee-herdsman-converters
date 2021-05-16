@@ -10,7 +10,7 @@ module.exports = [
         model: 'Z809A',
         vendor: 'Netvox',
         description: 'Power socket with power consumption monitoring',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.Z809A_metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
