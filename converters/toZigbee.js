@@ -2054,7 +2054,7 @@ const converters = {
             await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
         },
     },
-    danfoss_mounted_mode: {
+    danfoss_mounted_mode_control: {
         key: ['mounted_mode_control'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4013: {value: (value ? 0x00: 0x01), type: 0x10}};

@@ -2580,8 +2580,8 @@ const converters = {
             if (typeof msg.data[0x4011] == 'number') {
                 result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
             }
-            if (typeof msg.data[0x4012] == 'number') {
-                result[postfixWithEndpointName('mounted_mode', msg, model)] = (msg.data[0x4012]==1);
+            if (typeof msg.data['viessmannAssemblyMode'] == 'number') {
+                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data['viessmannAssemblyMode']==1);
             }
             if (typeof msg.data[0x4013] == 'number') {
                 result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
