@@ -2589,8 +2589,8 @@ const converters = {
             if (typeof msg.data[0x4014] == 'number') {
                 result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
             }
-            if (typeof msg.data[0x4020] == 'number') {
-                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
+            if (typeof msg.data['viessmannCustom10'] == 'number') {
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data['viessmannCustom10'];
             }
             if (typeof msg.data[0x4030] == 'number') {
                 result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
