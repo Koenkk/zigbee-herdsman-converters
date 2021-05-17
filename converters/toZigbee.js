@@ -2043,6 +2043,17 @@ const converters = {
             return {state: {sensitivity: value}};
         },
     },
+    hue_wall_switch_device_mode: {
+        key: ['device_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const values = ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'];
+            utils.validateValue(value, values);
+            await entity.write('genBasic', {0x0034: {value: values.indexOf(value), type: 48}}, manufacturerOptions.hue);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
+        },
+    },
     danfoss_mounted_mode: {
         key: ['mounted_mode_control'],
         convertSet: async (entity, key, value, meta) => {
@@ -2071,17 +2082,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4020], manufacturerOptions.danfoss);
-        },
-    },
-    hue_wall_switch_device_mode: {
-        key: ['device_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const values = ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'];
-            utils.validateValue(value, values);
-            await entity.write('genBasic', {0x0034: {value: values.indexOf(value), type: 48}}, manufacturerOptions.hue);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
         },
     },
     danfoss_heat_available: {
