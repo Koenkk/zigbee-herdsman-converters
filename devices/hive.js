@@ -117,7 +117,7 @@ module.exports = [
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.danfoss_thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode,
             tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor, tz.danfoss_heat_available, tz.danfoss_day_of_week,
-            tz.danfoss_trigger_time, tz.danfoss_window_open, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
+            tz.danfoss_trigger_time, tz.danfoss_window_open_internal, tz.danfoss_window_open, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode', ea.STATE, true, false).withDescription(
                 'Is the unit in mounting mode. This is set to `false` for mounted (already on the radiator) or `true` for not mounted (after factory reset)'),
@@ -127,7 +127,7 @@ module.exports = [
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand(),
-            exposes.binary('window_open_internal', ea.STATE, 1, 0)
+            exposes.numeric('window_open_internal', ea.STATE).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('window_open_external', ea.ALL, true, false),
