@@ -2120,7 +2120,7 @@ const converters = {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.danfoss);
         },
     },
-    danfoss_window_open: {
+    danfoss_window_open_external: {
         key: ['window_open_external'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4003: {value: (value ? 0x01: 0x00), type: 0x10}};

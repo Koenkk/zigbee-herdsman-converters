@@ -2571,8 +2571,8 @@ const converters = {
             if (typeof msg.data['viessmannCustom0'] == 'number') {
                 result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data['viessmannCustom0']);
             }
-            if (typeof msg.data[0x4003] == 'number') {
-                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
+            if (typeof msg.data['viessmannWindowOpenForce'] == 'number') {
+                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data['viessmannWindowOpenForce'] == 0x01);
             }
             if (typeof msg.data[0x4010] == 'number') {
                 result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
