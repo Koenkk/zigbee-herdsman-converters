@@ -4984,14 +4984,9 @@ const converters = {
             return {state: {'calibrate_valve': value}};
         },
     },
-    wiser_zone_mode: {
+    wiser_sed_zone_mode: {
         key: ['zone_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
-            const zonemodeNum = lookup[value];
-            if (entity.getDevice().powerSource != 'Battery') {
-                await entity.write('hvacThermostat', {'wiserSmartZoneMode': zonemodeNum}, {disableDefaultResponse: true});
-            }
             return {state: {'zone_mode': value}};
         },
     },

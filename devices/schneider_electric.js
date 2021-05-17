@@ -257,7 +257,7 @@ module.exports = [
             fz.wiser_smart_thermostat, fz.wiser_smart_thermostat_client, fz.wiser_smart_setpoint_command_client],
         toZigbee: [tz.thermostat_local_temperature, tz.wiser_sed_thermostat_local_temperature_calibration,
             tz.wiser_sed_occupied_heating_setpoint, tz.wiser_sed_thermostat_keypad_lockout, tz.wiser_vact_calibrate_valve,
-            tz.wiser_zone_mode],
+            tz.wiser_sed_zone_mode],
         exposes: [e.battery(),
             exposes.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
                 .withDescription('Enables/disables physical input on the device'),
@@ -297,7 +297,7 @@ module.exports = [
         description: 'Wiser thermostat (RTS)',
         fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.battery, fz.hvac_user_interface,
             fz.wiser_smart_thermostat_client, fz.wiser_smart_setpoint_command_client, fz.temperature],
-        toZigbee: [tz.wiser_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
+        toZigbee: [tz.wiser_sed_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
         exposes: [e.battery(), e.temperature(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET),
             exposes.enum('zone_mode',

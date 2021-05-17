@@ -5578,16 +5578,11 @@ const converters = {
                 response['occupiedHeatingSetpoint'] = setpoint;
             } else if (msg.data[0] == 'systemMode') {
                 response['systemMode'] = 4;
-            } else if (msg.data[0] == 'wiserSmartPriorityLevel') {
-                response['wiserSmartPriorityLevel'] = 0xff;
-            } else if (msg.data[0] == 'wiserSmartMasterShortAddress') {
-                response['wiserSmartMasterShortAddress'] = 0x0000;
-            } else if (msg.data[0] == 'wiserSmartZoneMode') {
+            } else if (msg.data[0] == 0xe010) {
+                // Zone Mode
                 const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
                 const zonemodeNum = lookup[meta.state.zone_mode];
-                response['wiserSmartZoneMode'] = zonemodeNum;
-            } else if (msg.data[0] == 'wiserSmartHactConfig') {
-                response['wiserSmartHactConfig'] = 0x80;
+                response[0xe010] = {value: zonemodeNum, type: 0x30};
             } else {
                 meta.logger.warn(`'${meta.device.ieeeAddr}' read req from unsupported attribute from hvacThermostat '${msg.data[0]}'`);
             }
@@ -5603,16 +5598,19 @@ const converters = {
         convert: async (model, msg, publish, options, meta) => {
             const result = converters.thermostat.convert(model, msg, publish, options, meta);
 
-            if (msg.data.hasOwnProperty('wiserSmartValveCalibrationStatus')) {
-                const lookup = {0: 'ongoing', 1: 'successful', 2: 'uncalibrated', 3: 'failed_e1', 4: 'failed_e2', 5: 'failed_e3'};
-                result['valve_calibration_status'] = lookup[msg.data['wiserSmartValveCalibrationStatus']];
-            }
-            if (msg.data.hasOwnProperty('wiserSmartZoneMode')) {
+            if (msg.data.hasOwnProperty(0xe010)) {
+                // wiserSmartZoneMode
                 const lookup = {1: 'manual', 2: 'schedule', 3: 'energy_saver', 6: 'holiday'};
-                result['zone_mode'] = lookup[msg.data['wiserSmartZoneMode']];
+                result['zone_mode'] = lookup[msg.data[0xe010]];
             }
-            if (msg.data.hasOwnProperty('wiserSmartValvePosition')) {
-                result['pi_heating_demand'] = msg.data['wiserSmartValvePosition'];
+            if (msg.data.hasOwnProperty(0xe030)) {
+                // wiserSmartValvePosition
+                result['pi_heating_demand'] = msg.data[0xe030];
+            }
+            if (msg.data.hasOwnProperty(0xe031)) {
+                // wiserSmartValveCalibrationStatus
+                const lookup = {0: 'ongoing', 1: 'successful', 2: 'uncalibrated', 3: 'failed_e1', 4: 'failed_e2', 5: 'failed_e3'};
+                result['valve_calibration_status'] = lookup[msg.data[0xe031]];
             }
             // Radiator thermostats command changes from UI, but report value periodically for sync,
             // force an update of the value if it doesn't match the current existing value
