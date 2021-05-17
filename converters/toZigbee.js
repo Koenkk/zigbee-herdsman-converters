@@ -4978,6 +4978,43 @@ const converters = {
             }
         },
     },
+    wiser_vact_calibrate_valve: {
+        key: ['calibrate_valve'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {'calibrate_valve': value}};
+        },
+    },
+    wiser_zone_mode: {
+        key: ['zone_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
+            const zonemodeNum = lookup[value];
+            if (entity.getDevice().powerSource != 'Battery') {
+                await entity.write('hvacThermostat', {'wiserSmartZoneMode': zonemodeNum}, {disableDefaultResponse: true});
+            }
+            return {state: {'zone_mode': value}};
+        },
+    },
+    wiser_sed_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {'occupied_heating_setpoint': value}};
+        },
+    },
+    wiser_sed_thermostat_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            globalStore.putValue(entity, 'localTemperatureCalibrationUpdated', true);
+            return {state: {local_temperature_calibration: value}};
+        },
+    },
+    wiser_sed_thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            globalStore.putValue(entity, 'keypadLockoutUpdated', true);
+            return {state: {keypad_lockout: value}};
+        },
+    },
 
     // #endregion
 
