@@ -17,6 +17,7 @@ const {
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
+const libColor = require('../lib/color');
 
 const converters = {
     // #region Generic/recommended converters
@@ -556,7 +557,10 @@ const converters = {
                 result.color_options = {execute_if_off: ((msg.data.options & 1<<0) > 0)};
             }
 
-            return result;
+            // handle color property sync
+            // NOTE: this should the last thing we do, as we need to have processed all attributes,
+            //       we use assign here so we do not lose other attributes.
+            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
     metering: {

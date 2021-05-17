@@ -102,6 +102,14 @@ describe('lib/color.js', () => {
         });
 
         test.each([
+            ['red', {x: 0.7006, y: 0.2993}, {red: 1.0, green: 0, blue: 0}],
+            ['green', {x: 0.1724, y: 0.7468}, {red: 0, green: 1.0, blue: 0}],
+            ['blue', {x: 0.1355, y: 0.0399}, {red: 0, green: 0, blue: 1.0}],
+        ])('.toRGB() - %s', (_name, xy, rgb) => {
+            expect(libColor.ColorXY.fromObject(xy).toRGB().rounded(4).toObject()).toStrictEqual(rgb, 4);
+        });
+
+        test.each([
             [500],
             [370],
             [150],
