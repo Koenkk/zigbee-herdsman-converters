@@ -130,7 +130,9 @@ module.exports = [
             exposes.numeric('window_open_internal', ea.STATE).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
-            exposes.binary('window_open_external', ea.ALL, true, false),
+            exposes.binary('window_open_external', ea.ALL, true, false)
+                .withDescription('Set if the window is open or close. This setting will trigger a change in the internal ' +
+                    'window and heating demand. `false` (windows are closed) or `true` (windows are open)'),
             exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
             exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
