@@ -4060,11 +4060,7 @@ const converters = {
                             recalledState = addColorMode(recalledState);
                         }
 
-                        // XXX: meta.state is the groups state, we are leaking group state TO devices!
-                        //      e.g. 2 devices in the group, 1x state=ON, 2x state=OFF, we do a scene recall with just color data
-                        //           we now leaked either ON or OFF to both member devices
                         Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
-
                         membersState[member.getDevice().ieeeAddr] = recalledState;
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);

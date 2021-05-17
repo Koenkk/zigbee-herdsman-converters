@@ -558,8 +558,8 @@ const converters = {
             }
 
             // handle color property sync
-            // NOTE: this should the last thing we do so we would have processed all values
-            //       the assign here is important as we do not want to wipe out other attributes
+            // NOTE: this should the last thing we do, as we need to have processed all attributes,
+            //       we use assign here so we do not lose other attributes.
             return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
