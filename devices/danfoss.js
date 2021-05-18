@@ -15,12 +15,12 @@ module.exports = [
         vendor: 'Danfoss',
         description: 'Ally thermostat',
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.hvac_user_interface, fz.danfoss_thermostat],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_control,
-            tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor, tz.danfoss_heat_available, tz.danfoss_day_of_week,
-            tz.danfoss_trigger_time, tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_display_orientation,
-            tz.thermostat_keypad_lockout],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
+            tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
+            tz.danfoss_heat_available, tz.danfoss_day_of_week, tz.danfoss_trigger_time, tz.danfoss_window_open_internal,
+            tz.danfoss_window_open_external, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
-            exposes.binary('mounted_mode_active', ea.STATE, true, false)
+            exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
                     'the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('mounted_mode_control', ea.ALL, true, false)

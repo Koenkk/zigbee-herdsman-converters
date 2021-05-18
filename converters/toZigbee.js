@@ -2015,6 +2015,12 @@ const converters = {
             await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
         },
     },
+    danfoss_mounted_mode_active: {
+        key: ['mounted_mode_active'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4012], manufacturerOptions.danfoss);
+        },
+    },
     danfoss_mounted_mode_control: {
         key: ['mounted_mode_control'],
         convertSet: async (entity, key, value, meta) => {
