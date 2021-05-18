@@ -2572,11 +2572,11 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
-            if (typeof msg.data['viessmannCustom0'] == 'number') {
-                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data['viessmannCustom0']);
+            if (typeof msg.data[0x4000] == 'number') {
+                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
             }
-            if (typeof msg.data['viessmannWindowOpenForce'] == 'number') {
-                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data['viessmannWindowOpenForce'] == 0x01);
+            if (typeof msg.data[0x4003] == 'number') {
+                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
             }
             if (typeof msg.data[0x4010] == 'number') {
                 result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
@@ -2584,8 +2584,8 @@ const converters = {
             if (typeof msg.data[0x4011] == 'number') {
                 result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
             }
-            if (typeof msg.data['viessmannAssemblyMode'] == 'number') {
-                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data['viessmannAssemblyMode']==1);
+            if (typeof msg.data['0x4012'] == 'number') {
+                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data[0x4012]==1);
             }
             if (typeof msg.data[0x4013] == 'number') {
                 result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
@@ -2593,8 +2593,8 @@ const converters = {
             if (typeof msg.data[0x4014] == 'number') {
                 result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
             }
-            if (typeof msg.data['viessmannCustom10'] == 'number') {
-                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data['viessmannCustom10'];
+            if (typeof msg.data[0x4020] == 'number') {
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
             }
             if (typeof msg.data[0x4030] == 'number') {
                 result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
