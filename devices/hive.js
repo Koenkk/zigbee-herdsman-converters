@@ -120,12 +120,13 @@ module.exports = [
             tz.danfoss_trigger_time, tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_display_orientation,
             tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
-            exposes.binary('mounted_mode_active', ea.STATE, true, false).withDescription(
-                'Is the unit in mounting mode. This is set to `false` for mounted (already on the radiator) or `true` ' +
-                'for not mounted (after factory reset)'),
-            exposes.binary('mounted_mode_control', ea.ALL, true, false).withDescription(
-                'Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
-            exposes.binary('heat_required', ea.STATE, true, false).withDescription('Wether or not the unit needs warm water'),
+            exposes.binary('mounted_mode_active', ea.STATE, true, false)
+                .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
+                    'the radiator) or `true` for not mounted (after factory reset)'),
+            exposes.binary('mounted_mode_control', ea.ALL, true, false)
+                .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
+            exposes.binary('heat_required', ea.STATE, true, false)
+                .withDescription('Whether or not the unit needs warm water'),
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand(),
@@ -141,9 +142,8 @@ module.exports = [
                 .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined)'),
             exposes.binary('heat_available', ea.ALL, true, false),
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
-                .withDescription('Scale factor of setpoint filter timeconstant'+
-                ' ("aggressiveness" of control algorithm) 1= Quick ...  5=Moderate ... 10=Slow')],
-        meta: {configureKey: 4},
+                .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
+                    '1= Quick ...  5=Moderate ... 10=Slow')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1246};
