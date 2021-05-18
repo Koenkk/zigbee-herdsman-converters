@@ -284,4 +284,17 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
+    {
+        zigbeeModel: ['FLSZB-110'],
+        model: 'FLSZB-110',
+        vendor: 'Develco',
+        description: 'Flood alarm device ',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(38);
+            await reporting.temperature(endpoint);
+        },
+    },
 ];
