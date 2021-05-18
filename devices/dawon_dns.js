@@ -250,6 +250,6 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.switch(), e.voltage()],
+        exposes: [e.battery(), e.switch()],
     },
 ];
