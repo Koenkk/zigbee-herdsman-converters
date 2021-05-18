@@ -276,6 +276,11 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
+            // Insert default values for client requested attributes
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {minHeatSetpointLimit: 7*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {maxHeatSetpointLimit: 30*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: 20*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: 4});
             // VACT needs binding to endpoint 11 due to some hardcoding in the device
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(11);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat'];
@@ -306,6 +311,11 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
+            // Insert default values for client requested attributes
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {minHeatSetpointLimit: 7*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {maxHeatSetpointLimit: 30*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: 20*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: 4});
             // RTS needs binding to endpoint 11 due to some hardcoding in the device
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(11);
             const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genAlarms', 'genOta', 'hvacThermostat',

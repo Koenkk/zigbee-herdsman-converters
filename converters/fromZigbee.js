@@ -5565,30 +5565,13 @@ const converters = {
         type: 'read',
         convert: async (model, msg, publish, options, meta) => {
             const response = {};
-            let setpoint = 20*100;
-            if (meta.state.hasOwnProperty('occupied_heating_setpoint')) {
-                setpoint = (Math.round((meta.state.occupied_heating_setpoint * 2).toFixed(1)) / 2).toFixed(1) * 100;
-            }
-
-            if (msg.data[0] == 'minHeatSetpointLimit') {
-                response['minHeatSetpointLimit'] = 7*100;
-            } else if (msg.data[0] == 'maxHeatSetpointLimit') {
-                response['maxHeatSetpointLimit'] = 30*100;
-            } else if (msg.data[0] == 'occupiedHeatingSetpoint') {
-                response['occupiedHeatingSetpoint'] = setpoint;
-            } else if (msg.data[0] == 'systemMode') {
-                response['systemMode'] = 4;
-            } else if (msg.data[0] == 0xe010) {
+            if (msg.data[0] == 0xe010) {
                 // Zone Mode
                 const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
                 const zonemodeNum = lookup[meta.state.zone_mode];
                 response[0xe010] = {value: zonemodeNum, type: 0x30};
-            } else {
-                meta.logger.warn(`'${meta.device.ieeeAddr}' read req from unsupported attribute from hvacThermostat '${msg.data[0]}'`);
+                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
             }
-
-            await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
-
             converters.wiser_smart_vact_update_params.convert(model, msg, publish, options, meta);
         },
     },
@@ -5677,7 +5660,8 @@ const converters = {
             const attribute = {};
             const result = {};
 
-            // the UI client on the thermostat also updates the server, so no need to readback/send again on next sync
+            // The UI client on the thermostat also updates the server, so no need to readback/send again on next sync.
+            // This also ensures the next client read of setpoint is in sync with the latest commanded value.
             attribute['occupiedHeatingSetpoint'] = msg.data['setpoint'];
             msg.endpoint.saveClusterAttributeKeyValue('hvacThermostat', attribute);
 
