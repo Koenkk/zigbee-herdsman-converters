@@ -5568,7 +5568,7 @@ const converters = {
 
                 let screenAwake = globalStore.getValue(msg.endpoint, 'screenAwake');
                 screenAwake = screenAwake != undefined ? screenAwake : false;
-                let keypadLocked = globalStore.getValue(msg.endpoint, 'keypadLockout');
+                let keypadLocked = msg.endpoint.getClusterAttributeValue('hvacUserInterfaceCfg', 'keypadLockout');
                 keypadLocked = keypadLocked != undefined ? keypadLocked != 0 : false;
 
                 // Emulate UI temperature update
@@ -5577,8 +5577,8 @@ const converters = {
                 } else if (data[1] === 'ScreenSleep') {
                     globalStore.putValue(msg.endpoint, 'screenAwake', false);
                 } else if (screenAwake && !keypadLocked) {
-                    let occupiedHeatingSetpoint = globalStore.getValue(msg.endpoint, 'occupiedHeatingSetpoint');
-                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != undefined ? occupiedHeatingSetpoint : 400;
+                    let occupiedHeatingSetpoint = msg.endpoint.getClusterAttributeValue('hvacThermostat', 'occupiedHeatingSetpoint');
+                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
 
                     if (data[1] === 'ButtonPressMinusDown') {
                         occupiedHeatingSetpoint -= 50;
@@ -5586,12 +5586,11 @@ const converters = {
                         occupiedHeatingSetpoint += 50;
                     }
 
-                    globalStore.putValue(msg.endpoint, 'occupiedHeatingSetpoint', occupiedHeatingSetpoint);
+                    msg.endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
                     publish({occupied_heating_setpoint: occupiedHeatingSetpoint/100});
                 }
             }
-            }
-        },
+        }
     },
     schneider_temperature: {
         cluster: 'msTemperatureMeasurement',
