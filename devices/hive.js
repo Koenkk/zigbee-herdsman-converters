@@ -132,7 +132,7 @@ module.exports = [
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand(),
-            exposes.numeric('window_open_internal', ea.STATE).withValueMin(0).withValueMax(4)
+            exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('window_open_external', ea.ALL, true, false)
