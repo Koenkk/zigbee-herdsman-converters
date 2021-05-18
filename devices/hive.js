@@ -117,8 +117,9 @@ module.exports = [
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
-            tz.danfoss_heat_available, tz.danfoss_day_of_week, tz.danfoss_trigger_time, tz.danfoss_window_open_internal,
-            tz.danfoss_window_open_external, tz.danfoss_display_orientation, tz.thermostat_keypad_lockout],
+            tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
+            tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_display_orientation,
+            tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -127,7 +128,7 @@ module.exports = [
                 .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
-            exposes.binary('heat_required', ea.STATE, true, false)
+            exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
