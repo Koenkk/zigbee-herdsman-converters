@@ -659,4 +659,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['TY0202'],
+        model: 'HS1MS-EF',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];
