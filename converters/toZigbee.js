@@ -4862,7 +4862,7 @@ const converters = {
             if (systemMode === undefined) {
                 systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
             }
-            globalStore.putValue(entity, 'systemMode', systemMode);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: systemMode});
             return {state: {system_mode: value}};
         },
     },
@@ -4870,7 +4870,7 @@ const converters = {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
-            globalStore.putValue(entity, 'occupiedHeatingSetpoint', occupiedHeatingSetpoint);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
             return {state: {occupied_heating_setpoint: value}};
         },
     },
@@ -4881,14 +4881,14 @@ const converters = {
             if (val === undefined) {
                 val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             }
-            globalStore.putValue(entity, 'ctrlSeqeOfOper', val);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {ctrlSeqeOfOper: val});
             return {state: {control_sequence_of_operation: value}};
         },
     },
     schneider_thermostat_pi_heating_demand: {
         key: ['pi_heating_demand'],
         convertSet: async (entity, key, value, meta) => {
-            globalStore.putValue(entity, 'pIHeatingDemand', value);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {pIHeatingDemand: value});
             return {state: {pi_heating_demand: value}};
         },
     },
