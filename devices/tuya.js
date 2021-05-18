@@ -772,7 +772,7 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'},
-             {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}],
+            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
