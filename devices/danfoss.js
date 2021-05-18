@@ -41,7 +41,7 @@ module.exports = [
             exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
             exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
-                .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined)'),
+                .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
                 .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
                     '1= Quick ...  5=Moderate ... 10=Slow')],
