@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -196,11 +197,11 @@ module.exports = [
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode, tz.schneider_temperature_measured_value],
         exposes: [e.power(), e.energy(),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
             exposes.numeric('temperature_measured_value', ea.SET),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature().withPiHeatingDemand()],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -242,31 +243,6 @@ module.exports = [
         },
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'read') {
-                let payload = {};
-
-                let defaultValues = {
-                    'schneiderWiserSpecific': 0x01,
-                    'systemMode': 4,
-                    'ctrlSeqeOfOper': 2,
-                    'occupiedHeatingSetpoint': 400,
-                    'pIHeatingDemand': 0,
-                    'zclVersion': 3,
-                }
-
-                for (const key of data.data) {
-                     if (globalStore.hasValue(device.getEndpoint(1), key)) {
-                        payload[key] = globalStore.getValue(data.endpoint, key);
-                    } else if (key in defaultValues) {
-                        payload[key] = defaultValues[key];
-                    }
-                }
-
-                if (Object.keys(payload).length > 0) {
-                    await data.endpoint.readResponse(
-                        data.cluster,  data.meta.zclTransactionSequenceNumber, payload, {},
-                    );
-                }
-
                 // Device is awake perform the pending writes
                 while(pendingWrite = globalStore.popValue(device.getEndpoint(1), 'pending_writes')) {
                     await data.endpoint.write( pendingWrite.cluster,  pendingWrite.data );
