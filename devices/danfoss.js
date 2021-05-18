@@ -25,8 +25,10 @@ module.exports = [
                     'the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('mounted_mode_control', ea.ALL, true, false)
                 .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
+            exposes.binary('heat_available', ea.ALL, true, false)
+                .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE, true, false)
-                .withDescription('Whether or not the unit needs warm water'),
+                .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand(),
@@ -40,7 +42,6 @@ module.exports = [
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
             exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined)'),
-            exposes.binary('heat_available', ea.ALL, true, false),
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
                 .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
                     '1= Quick ...  5=Moderate ... 10=Slow')],
