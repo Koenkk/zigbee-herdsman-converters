@@ -2584,7 +2584,7 @@ const converters = {
             if (typeof msg.data[0x4011] == 'number') {
                 result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
             }
-            if (typeof msg.data['0x4012'] == 'number') {
+            if (typeof msg.data[0x4012] == 'number') {
                 result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data[0x4012]==1);
             }
             if (typeof msg.data[0x4013] == 'number') {
