@@ -761,7 +761,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0014', manufacturerName: '_TZ3000_jr2atpww'}, {modelID: 'TS0014', manufacturerName: '_TYZB01_dvakyzhd'},
-            {modelID: 'TS0014', manufacturerName: '_TZ3210_w3hl6rao'}],
+            {modelID: 'TS0014', manufacturerName: '_TZ3210_w3hl6rao'},{modelID: 'TS0014', manufacturerName: '_TYZB01_bagt1e4o'}],
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
@@ -771,7 +771,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
-        whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'}],
+        whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'}, {vendor: 'MakeGood', model: 'MG-ZG04W'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
