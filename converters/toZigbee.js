@@ -4859,9 +4859,6 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
-            if (systemMode === undefined) {
-                systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
-            }
             entity.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: systemMode});
             return {state: {system_mode: value}};
         },
