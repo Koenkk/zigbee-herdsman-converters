@@ -125,6 +125,8 @@ module.exports = [
                     'the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('mounted_mode_control', ea.ALL, true, false)
                 .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
+            exposes.binary('thermostat_orientation', ea.ALL, true, false)
+                .withDescription('Thermostat Orientation. `false` Horizontal or `true` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)

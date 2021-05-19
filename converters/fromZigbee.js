@@ -2591,7 +2591,7 @@ const converters = {
                 result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
             }
             if (typeof msg.data[0x4014] == 'number') {
-                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = msg.data[0x4014];
+                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = (msg.data[0x4014]==0x01);
             }
             if (typeof msg.data[0x4020] == 'number') {
                 result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
