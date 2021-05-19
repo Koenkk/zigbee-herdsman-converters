@@ -2015,6 +2015,20 @@ const converters = {
             await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
         },
     },
+    danfoss_thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                setpointType: 1,
+                setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
+            };
+            await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
+            // await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+        },
+    },
     danfoss_mounted_mode_active: {
         key: ['mounted_mode_active'],
         convertGet: async (entity, key, meta) => {
