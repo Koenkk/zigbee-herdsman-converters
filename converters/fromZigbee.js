@@ -5572,7 +5572,6 @@ const converters = {
                 response[0xe010] = {value: zonemodeNum, type: 0x30};
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
             }
-            converters.wiser_smart_vact_update_params.convert(model, msg, publish, options, meta);
         },
     },
     wiser_smart_thermostat: {
@@ -5618,38 +5617,6 @@ const converters = {
                 }
             } else {
                 publish(result);
-            }
-            converters.wiser_smart_vact_update_params.convert(model, msg, publish, options, meta);
-        },
-    },
-    wiser_smart_vact_update_params: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse', 'read'],
-        convert: async (model, msg, publish, options, meta) => {
-            const endpoint = msg.endpoint;
-
-            if (meta.state.hasOwnProperty('calibrate_valve')) {
-                if (meta.state.calibrate_valve == 'calibrate') {
-                    await endpoint.command('hvacThermostat', 'wiserSmartCalibrateValve', {srcEndpoint: 11, disableDefaultResponse: true});
-                    publish({calibrate_valve: 'idle'});
-                }
-            }
-            if (globalStore.hasValue(msg.endpoint, 'localTemperatureCalibrationUpdated')) {
-                if (globalStore.getValue(msg.endpoint, 'localTemperatureCalibrationUpdated')) {
-                    const localTemp = Math.round(meta.state.local_temperature_calibration * 10);
-                    await endpoint.write('hvacThermostat', {localTemperatureCalibration: localTemp},
-                        {srcEndpoint: 11, disableDefaultResponse: true});
-                    globalStore.putValue(msg.endpoint, 'localTemperatureCalibrationUpdated', false);
-                }
-            }
-            if (globalStore.hasValue(msg.endpoint, 'keypadLockoutUpdated')) {
-                if (globalStore.getValue(msg.endpoint, 'keypadLockoutUpdated')) {
-                    const keypadLockoutKey = getKey(constants.keypadLockoutMode,
-                        meta.state.keypad_lockout, meta.state.keypad_lockout, Number);
-                    await endpoint.write('hvacUserInterfaceCfg', {keypadLockout: keypadLockoutKey},
-                        {srcEndpoint: 11, disableDefaultResponse: true});
-                    globalStore.putValue(msg.endpoint, 'keypadLockoutUpdated', false);
-                }
             }
         },
     },
