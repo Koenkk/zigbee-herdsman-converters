@@ -2117,16 +2117,6 @@ const converters = {
             await entity.read('hvacThermostat', [0x4003], manufacturerOptions.danfoss);
         },
     },
-    danfoss_display_orientation: {
-        key: ['display_orientation'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4000: {value: value, type: 0x30}};
-            await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacUserInterfaceCfg', [0x4000], manufacturerOptions.danfoss);
-        },
-    },
     ZMCSW032D_cover_position: {
         key: ['position', 'tilt'],
         convertSet: async (entity, key, value, meta) => {
