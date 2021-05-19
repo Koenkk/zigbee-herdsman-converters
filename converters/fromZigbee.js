@@ -1809,12 +1809,12 @@ const converters = {
             //       what this value potentially means.
             delete result.pi_heating_demand;
 
-            // viessmannCustom0
+            // viessmannWindowOpenInternal
             // 0-2, 5: unknown
             // 3: window open (OO on display, no heating)
             // 4: window open (OO on display, heating)
-            if (msg.data.hasOwnProperty('viessmannCustom0')) {
-                result.window_open = ((msg.data['viessmannCustom0'] == 3) || (msg.data['viessmannCustom0'] == 4));
+            if (msg.data.hasOwnProperty('viessmannWindowOpenInternal')) {
+                result.window_open = ((msg.data['viessmannWindowOpenInternal'] == 3) || (msg.data['viessmannWindowOpenInternal'] == 4));
             }
 
             // viessmannWindowOpenForce (rw, bool)
