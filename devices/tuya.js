@@ -411,7 +411,10 @@ module.exports = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['TS0044'],
+        fingerprint: [
+            {modelID: 'TS0044'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'},
+        ],
         model: 'TS0044',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
