@@ -226,7 +226,6 @@ module.exports = [
                                      .withLocalTemperature()
                                      .withPiHeatingDemand(ea.SET),
                     e.keypad_lockout(ea.SET),
-                    e.temperature(),
                     e.humidity(),
                     e.battery(),
                     e.battery_voltage(),
