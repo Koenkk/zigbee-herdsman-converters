@@ -5597,10 +5597,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const property = postfixWithEndpointName('temperature', msg, model);
-            const property2 = postfixWithEndpointName('local_temperature', msg, model);
-            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature'),
-                    [property2]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            const property = postfixWithEndpointName('local_temperature', msg, model);
+            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
 
