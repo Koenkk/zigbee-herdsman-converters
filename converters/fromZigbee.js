@@ -5564,7 +5564,7 @@ const converters = {
 
             const data = msg.data['deviceInfo'].split(',');
             if(data[0] === 'UI' && data[1]) {
-                publish({action: data[1]});
+                let result = {action: data[1]};
 
                 let screenAwake = globalStore.getValue(msg.endpoint, 'screenAwake');
                 screenAwake = screenAwake != undefined ? screenAwake : false;
@@ -5587,8 +5587,10 @@ const converters = {
                     }
 
                     msg.endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
-                    publish({occupied_heating_setpoint: occupiedHeatingSetpoint/100});
+                    result.occupied_heating_setpoint =  occupiedHeatingSetpoint/100;
                 }
+                
+                return result;
             }
         }
     },
