@@ -53,6 +53,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.cwopcn01'],
+        model: 'XDD11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Opple MX960',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.cwopcn02'],
         model: 'XDD12LM',
         vendor: 'Xiaomi',
