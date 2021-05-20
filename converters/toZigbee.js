@@ -4874,10 +4874,7 @@ const converters = {
     schneider_thermostat_control_sequence_of_operation: {
         key: ['control_sequence_of_operation'],
         convertSet: async (entity, key, value, meta) => {
-            let val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, undefined, Number);
-            if (val === undefined) {
-                val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
-            }
+            const val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             entity.saveClusterAttributeKeyValue('hvacThermostat', {ctrlSeqeOfOper: val});
             return {state: {control_sequence_of_operation: value}};
         },
