@@ -4777,7 +4777,7 @@ const converters = {
     viessmann_window_open: {
         key: ['window_open'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['viessmannCustom0'], manufacturerOptions.viessmann);
+            await entity.read('hvacThermostat', ['viessmannWindowOpenInternal'], manufacturerOptions.viessmann);
         },
     },
     viessmann_window_open_force: {
