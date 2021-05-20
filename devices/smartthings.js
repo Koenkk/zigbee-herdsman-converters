@@ -414,7 +414,7 @@ module.exports = [
         zigbeeModel: ['F-ADT-WTR-1'],
         model: 'F-ADT-WTR-1',
         vendor: 'SmartThings',
-        description: 'SmartThings ADT Water Leak Detector',
+        description: 'ADT water leak detector',
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
