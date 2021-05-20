@@ -2572,35 +2572,38 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
-            if (typeof msg.data[0x4000] == 'number') {
-                result[postfixWithEndpointName('window_open_internal', msg, model)] = (msg.data[0x4000]);
+            if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
+                result[postfixWithEndpointName('window_open_internal', msg, model)] = msg.data['danfossWindowOpenInternal'];
             }
-            if (typeof msg.data[0x4003] == 'number') {
-                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data[0x4003] == 0x01);
+            if (msg.data.hasOwnProperty('danfossWindowOpenExternal')) {
+                result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data['danfossWindowOpenExternal'] === 1);
             }
-            if (typeof msg.data[0x4010] == 'number') {
-                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data[0x4010];
+            if (msg.data.hasOwnProperty('danfossDayOfWeek')) {
+                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data['danfossDayOfWeek'];
             }
-            if (typeof msg.data[0x4011] == 'number') {
-                result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data[0x4011];
+            if (msg.data.hasOwnProperty('danfossTriggerTime')) {
+                result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data['danfossTriggerTime'];
             }
-            if (typeof msg.data[0x4012] == 'number') {
-                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data[0x4012]==1);
+            if (msg.data.hasOwnProperty('danfossMountedModeActive')) {
+                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data['danfossMountedModeActive'] === 1);
             }
-            if (typeof msg.data[0x4013] == 'number') {
-                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data[0x4013]==0x00);
+            if (msg.data.hasOwnProperty('danfossMountedModeControl')) {
+                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data['danfossMountedModeControl'] === 0);
             }
-            if (typeof msg.data[0x4014] == 'number') {
-                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = (msg.data[0x4014]==0x01);
+            if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
+                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = (msg.data['danfossThermostatOrientation'] === 1);
             }
-            if (typeof msg.data[0x4020] == 'number') {
-                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data[0x4020];
+            if (msg.data.hasOwnProperty('danfossAlgorithmScaleFactor')) {
+                result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data['danfossAlgorithmScaleFactor'];
             }
-            if (typeof msg.data[0x4030] == 'number') {
-                result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data[0x4030]==0x01);
+            if (msg.data.hasOwnProperty('danfossHeatAvailable')) {
+                result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data['danfossHeatAvailable'] === 1);
             }
-            if (typeof msg.data[0x4031] == 'number') {
-                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data[0x4031]==0x01);
+            if (msg.data.hasOwnProperty('danfossHeatRequired')) {
+                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data['danfossHeatRequired'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
+                result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
             return result;
         },

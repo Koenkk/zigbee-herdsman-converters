@@ -118,7 +118,8 @@ module.exports = [
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
-            tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.thermostat_keypad_lockout],
+            tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
+            tz.thermostat_keypad_lockout],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -146,7 +147,9 @@ module.exports = [
                 .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
                 .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
-                    '1= Quick ...  5=Moderate ... 10=Slow')],
+                    '1= Quick ...  5=Moderate ... 10=Slow'),
+            exposes.numeric('load_estimate', ea.STATE_GET)
+                .withDescription('Load estimate on this radiator')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1246};
