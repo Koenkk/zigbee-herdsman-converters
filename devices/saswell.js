@@ -41,6 +41,6 @@ module.exports = [
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
+            .withAwayMode()],
     },
 ];
