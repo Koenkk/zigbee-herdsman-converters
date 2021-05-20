@@ -4981,7 +4981,7 @@ const converters = {
     wiser_vact_calibrate_valve: {
         key: ['calibrate_valve'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'wiserSmartCalibrateValve',
+            await entity.command('hvacThermostat', 'wiserSmartCalibrateValve', {},
                 {srcEndpoint: 11, disableDefaultResponse: true, sendWhenActive: true});
             return {state: {'calibrate_valve': value}};
         },
