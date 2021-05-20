@@ -142,4 +142,13 @@ module.exports = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        model: 'ZSS-ZK-THL',
+        vendor: 'Moes',
+        description: 'Smart temperature and humidity meter with display',
+        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+    },
 ];
