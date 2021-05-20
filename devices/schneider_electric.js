@@ -239,14 +239,10 @@ module.exports = [
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
+            endpoint1.saveClusterAttributeKeyValue('genBasic', {zclVersion: 3});
+            endpoint1.saveClusterAttributeKeyValue('hvacThermostat', {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
+            endpoint1.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout: 0});
         },
-        onEvent: async (type, data, device) => {
-            if (type === 'message' && data.type === 'read') {
-                // Device is awake perform the pending writes
-                while(pendingWrite = globalStore.popValue(device.getEndpoint(1), 'pending_writes')) {
-                    await data.endpoint.write( pendingWrite.cluster,  pendingWrite.data );
-                }
-            }
         },
     },
 ];
