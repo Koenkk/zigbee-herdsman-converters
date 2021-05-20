@@ -4893,13 +4893,9 @@ const converters = {
         key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+            entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhenActive: true});
+            entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
 
-            try {
-                await entity.write('hvacUserInterfaceCfg', {keypadLockout}, {timeout: 500});
-            } catch(e) {
-                // Will probably fail if device is not awake
-                globalStore.putValue(entity, 'pending_writes', {cluster: 'hvacUserInterfaceCfg', data: keypadLockout.keypadLockout},);
-            }
             return {state: {keypad_lockout: value}};
         },
     },
