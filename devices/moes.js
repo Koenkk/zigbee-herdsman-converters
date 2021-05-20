@@ -142,4 +142,13 @@ module.exports = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        model: 'ZSS-ZK-THL',
+        vendor: 'Moes',
+        description: 'E-Ink Brightness Thermostat',
+        fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux(), e.temperature(), e.humidity()],
+    },
 ];
