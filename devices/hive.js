@@ -162,14 +162,23 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
 
             // danfoss attributes
-            await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4012, type: 0x10}, minimumReportInterval: 0,
+            await endpoint.configureReporting('hvacThermostat', [{attribute: 'danfossMountedModeActive', minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MINUTES_10, reportableChange: 1}], options);
-            await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4000, type: 0x30}, minimumReportInterval: 0,
+            await endpoint.configureReporting('hvacThermostat', [{attribute: 'danfossWindowOpenInternal', minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}], options);
+            await endpoint.configureReporting('hvacThermostat', [{attribute: 'danfossHeatRequired', minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.MINUTES_10, reportableChange: 1}], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacThermostat', [0x4003, 0x4010, 0x4011, 0x4020], options);
+            await endpoint.read('hvacThermostat', [
+                'danfossWindowOpenExternal',
+                'danfossDayOfWeek',
+                'danfossTriggerTime',
+                'danfossAlgorithmScaleFactor',
+                'danfossHeatAvailable',
+                'danfossMountedModeControl'
+            ], options);
 
             // Seems that it is bug in Danfoss, device does not asks for the time with binding
             // So, we need to write time during configure (same as for HEIMAN devices)

@@ -2037,8 +2037,9 @@ const converters = {
     danfoss_mounted_mode_control: {
         key: ['mounted_mode_control'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossMountedModeControl': {value: (value ? 0x00: 0x01), type: 0x10}};
+            const payload = {'danfossMountedModeControl': (value ? 0 : 1)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'mounted_mode_control': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossMountedModeControl'], manufacturerOptions.danfoss);
@@ -2047,8 +2048,9 @@ const converters = {
     danfoss_thermostat_orientation: {
         key: ['thermostat_orientation'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossThermostatOrientation': {value: (value ? 0x01: 0x00), type: 0x10}};
+            const payload = {'danfossThermostatOrientation': (value ? 1: 0)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'thermostat_orientation': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);
@@ -2057,7 +2059,7 @@ const converters = {
     danfoss_algorithm_scale_factor: {
         key: ['algorithm_scale_factor'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossAlgorithmScaleFactor': {value: value, type: 0x20}};
+            const payload = {'danfossAlgorithmScaleFactor': value};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
         },
         convertGet: async (entity, key, meta) => {
@@ -2067,7 +2069,7 @@ const converters = {
     danfoss_heat_available: {
         key: ['heat_available'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossHeatAvailable': {value: (value ? 0x01: 0x00), type: 0x10}};
+            const payload = {'danfossHeatAvailable': (value ? 1: 0)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
         },
         convertGet: async (entity, key, meta) => {
@@ -2083,7 +2085,7 @@ const converters = {
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossDayOfWeek': {value: (Math.abs(value) < 7 ? Math.abs(value) : 7), type: 0x30}};
+            const payload = {'danfossDayOfWeek': (Math.abs(value) < 7 ? Math.abs(value) : 7)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
         },
         convertGet: async (entity, key, meta) => {
@@ -2093,7 +2095,7 @@ const converters = {
     danfoss_trigger_time: {
         key: ['trigger_time'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossTriggerTime': {value: value, type: 0x21}};
+            const payload = {'danfossTriggerTime': value};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
         },
         convertGet: async (entity, key, meta) => {
@@ -2109,8 +2111,9 @@ const converters = {
     danfoss_window_open_external: {
         key: ['window_open_external'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossWindowOpenExternal': {value: (value ? 0x01: 0x00), type: 0x10}};
+            const payload = {'danfossWindowOpenExternal': (value ? 1: 0)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'window_open_external': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossWindowOpenExternal'], manufacturerOptions.danfoss);
