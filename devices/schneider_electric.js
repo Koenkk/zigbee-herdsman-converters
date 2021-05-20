@@ -66,6 +66,7 @@ module.exports = [
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast')],
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(3);
@@ -80,6 +81,7 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
         extend: extend.switch(),
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07144'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
