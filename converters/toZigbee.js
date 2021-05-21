@@ -16,7 +16,13 @@ const manufacturerOptions = {
     danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
+    /*
+     * Ubisys doesn't accept a manufacturerCode on some commands
+     * This bug has been reported, but it has not been fixed:
+     * https://github.com/Koenkk/zigbee-herdsman/issues/52
+     */
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
+    ubisysNull: {manufacturerCode: null},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
     viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
@@ -862,10 +868,11 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
+            return {state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state, meta.options),
+                readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('lightingColorCtrl', ['colorTemperature']);
+            await entity.read('lightingColorCtrl', ['colorMode', 'colorTemperature']);
         },
     },
     light_colortemp_startup: {
@@ -976,41 +983,10 @@ const converters = {
             }
 
             await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
-            return {state: newState, readAfterWriteTime: zclData.transtime * 100};
+            return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            /**
-              * Not all bulbs suport the same features, we need to take care we read what is supported.
-              * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
-              * `enhancedHue` indicates support for enhancedCurrentHue
-              *
-              * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
-              *
-              * Additionally when we get a get payload, only request the fields included.
-             */
-            const attributes = [];
-
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('x'))) {
-                attributes.push('currentX');
-            }
-            if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('y'))) {
-                attributes.push('currentY');
-            }
-
-            if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('hue'))) {
-                    if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
-                        attributes.push('enhancedCurrentHue');
-                    } else {
-                        attributes.push('currentHue');
-                    }
-                }
-                if (!meta.message.color || (typeof meta.message.color === 'object' && meta.message.color.hasOwnProperty('saturation'))) {
-                    attributes.push('currentSaturation');
-                }
-            }
-
-            await entity.read('lightingColorCtrl', attributes);
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta));
         },
     },
     light_color_colortemp: {
@@ -1030,23 +1006,14 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
-                }
-
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
-                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
                 return result;
             }
         },
         convertGet: async (entity, key, meta) => {
-            if (key == 'color') {
-                await converters.light_color.convertGet(entity, key, meta);
-            } else if (key == 'color_temp') {
-                await converters.light_colortemp.convertGet(entity, key, meta);
-            }
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta, ['colorTemperature']));
         },
     },
     effect: {
@@ -1498,7 +1465,7 @@ const converters = {
                 meta.message.transition = meta.message.transition * 3.3;
             }
 
-            if (meta.mapped.model === 'GL-S-007ZS') {
+            if (meta.mapped.model === 'GL-S-007ZS' || meta.mapped.model === 'GL-C-009') {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/2757
                 // Device doesn't support ON with moveToLevelWithOnOff command
                 if (meta.message.hasOwnProperty('state') && meta.message.state.toLowerCase() === 'on') {
@@ -3040,14 +3007,15 @@ const converters = {
                 const phaseControl = value.toLowerCase();
                 const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
                 utils.validateValue(phaseControl, Object.keys(phaseControlValues));
-                await entity.write('manuSpecificUbisysDimmerSetup', {'mode': phaseControlValues[phaseControl]});
+                await entity.write('manuSpecificUbisysDimmerSetup',
+                    {'mode': phaseControlValues[phaseControl]}, manufacturerOptions.ubisysNull);
             }
             converters.ubisys_dimmer_setup.convertGet(entity, key, meta);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities']);
-            await entity.read('manuSpecificUbisysDimmerSetup', ['status']);
-            await entity.read('manuSpecificUbisysDimmerSetup', ['mode']);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
+            await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
         },
     },
     ubisys_device_setup: {
@@ -3057,14 +3025,20 @@ const converters = {
 
             if (value.hasOwnProperty('input_configurations')) {
                 // example: [0, 0, 0, 0]
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             if (value.hasOwnProperty('input_actions')) {
                 // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputActions': {elementType: 'octetStr', elements: value.input_actions}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: value.input_actions}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             if (value.hasOwnProperty('input_action_templates')) {
@@ -3245,8 +3219,11 @@ const converters = {
 
                 meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
                     JSON.stringify(resultingInputActions));
-                await devMgmtEp.write('manuSpecificUbisysDeviceSetup',
-                    {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}});
+                await devMgmtEp.write(
+                    'manuSpecificUbisysDeviceSetup',
+                    {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}},
+                    manufacturerOptions.ubisysNull,
+                );
             }
 
             // re-read effective settings and dump them to the log
@@ -3259,8 +3236,8 @@ const converters = {
                     `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
             };
             const devMgmtEp = meta.device.getEndpoint(232);
-            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations']));
-            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions']));
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'], manufacturerOptions.ubisysNull));
+            log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'], manufacturerOptions.ubisysNull));
         },
     },
     tint_scene: {
@@ -4075,6 +4052,16 @@ const converters = {
                 for (const member of entity.members) {
                     if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
                         membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
+
+                        let recalledState = member.meta.scenes[metaKey].state;
+
+                        // add color_mode if saved state does not contain it
+                        if (!recalledState.hasOwnProperty('color_mode')) {
+                            recalledState = addColorMode(recalledState);
+                        }
+
+                        Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+                        membersState[member.getDevice().ieeeAddr] = recalledState;
                     } else {
                         meta.logger.warn(`Unknown scene was recalled for ${member.getDevice().ieeeAddr}, can't restore state.`);
                         membersState[member.getDevice().ieeeAddr] = {};
@@ -4083,7 +4070,16 @@ const converters = {
                 return {membersState};
             } else {
                 if (entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    return {state: addColorMode(entity.meta.scenes[metaKey].state)};
+                    let recalledState = entity.meta.scenes[metaKey].state;
+
+                    // add color_mode if saved state does not contain it
+                    if (!recalledState.hasOwnProperty('color_mode')) {
+                        recalledState = addColorMode(recalledState);
+                    }
+
+                    Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
+
+                    return {state: recalledState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
                     return {state: {}};
@@ -4142,6 +4138,7 @@ const converters = {
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
+                    state['color_mode'] = constants.colorMode[2];
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -4161,6 +4158,7 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
+                        state['color_mode'] = constants.colorMode[1];
                         state['color'] = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
@@ -4188,7 +4186,8 @@ const converters = {
                                 },
                             );
                         }
-                        state['color'] = newColor.hsv.toObject(true);
+                        state['color_mode'] = constants.colorMode[0];
+                        state['color'] = newColor.hsv.toObject(false, false);
                     }
                 }
             }
@@ -4756,7 +4755,7 @@ const converters = {
     viessmann_window_open: {
         key: ['window_open'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['viessmannCustom0'], manufacturerOptions.viessmann);
+            await entity.read('hvacThermostat', ['viessmannWindowOpenInternal'], manufacturerOptions.viessmann);
         },
     },
     viessmann_window_open_force: {
@@ -4894,6 +4893,135 @@ const converters = {
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
 
             return {state: {keypad_lockout: value}};
+    },
+    ZNCJMB14LM: {
+        key: ['theme',
+            'standby_enabled',
+            'beep_volume',
+            'lcd_brightness',
+            'language',
+            'screen_saver_style',
+            'standby_time',
+            'font_size',
+            'lcd_auto_brightness_enabled',
+            'homepage',
+            'screen_saver_enabled',
+            'standby_lcd_brightness',
+            'available_switches',
+            'switch_1_text_icon',
+            'switch_2_text_icon',
+            'switch_3_text_icon',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'theme') {
+                const lookup = {'classic': 0, 'concise': 1};
+                await entity.write('aqaraOpple', {0x0215: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {theme: value}};
+            } else if (key === 'standby_enabled') {
+                await entity.write('aqaraOpple', {0x0213: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {standby_enabled: value}};
+            } else if (key === 'beep_volume') {
+                const lookup = {'mute': 0, 'low': 1, 'medium': 2, 'high': 3};
+                await entity.write('aqaraOpple', {0x0212: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {beep_volume: value}};
+            } else if (key === 'lcd_brightness') {
+                await entity.write('aqaraOpple', {0x0211: {value: value, type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {lcd_brightness: value}};
+            } else if (key === 'language') {
+                const lookup = {'chinese': 0, 'english': 1};
+                await entity.write('aqaraOpple', {0x0210: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {language: value}};
+            } else if (key === 'screen_saver_style') {
+                const lookup = {'classic': 1, 'analog clock': 2};
+                await entity.write('aqaraOpple', {0x0214: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {screen_saver_style: value}};
+            } else if (key === 'standby_time') {
+                await entity.write('aqaraOpple', {0x0216: {value: value, type: 0x23}}, manufacturerOptions.xiaomi);
+                return {state: {standby_time: value}};
+            } else if (key === 'font_size') {
+                const lookup = {'small': 3, 'medium': 4, 'large': 5};
+                await entity.write('aqaraOpple', {0x0217: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {font_size: value}};
+            } else if (key === 'lcd_auto_brightness_enabled') {
+                await entity.write('aqaraOpple', {0x0218: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {lcd_auto_brightness_enabled: value}};
+            } else if (key === 'homepage') {
+                const lookup = {'scene': 0, 'feel': 1, 'thermostat': 2, 'switch': 3};
+                await entity.write('aqaraOpple', {0x0219: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {homepage: value}};
+            } else if (key === 'screen_saver_enabled') {
+                await entity.write('aqaraOpple', {0x0221: {value: value, type: 0x10}}, manufacturerOptions.xiaomi);
+                return {state: {screen_saver_enabled: value}};
+            } else if (key === 'standby_lcd_brightness') {
+                await entity.write('aqaraOpple', {0x0222: {value: value, type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {standby_lcd_brightness: value}};
+            } else if (key === 'available_switches') {
+                const lookup = {'none': 0, '1': 1, '2': 2, '1 and 2': 3, '3': 4, '1 and 3': 5, '2 and 3': 6, 'all': 7};
+                await entity.write('aqaraOpple', {0x022b: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+                return {state: {available_switches: value}};
+            } else if (key === 'switch_1_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_1_icon')) {
+                    payload.push(lookup[value.switch_1_icon]);
+                    statearr.switch_1_icon = value.switch_1_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_1_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_1_text')) {
+                    payload.push(...value.switch_1_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_1_text = value.switch_1_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_1_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0223: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else if (key === 'switch_2_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_2_icon')) {
+                    payload.push(lookup[value.switch_2_icon]);
+                    statearr.switch_2_icon = value.switch_2_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_2_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_2_text')) {
+                    payload.push(...value.switch_2_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_2_text = value.switch_2_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_2_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0224: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else if (key === 'switch_3_text_icon') {
+                const lookup = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, '11': 11};
+                const payload = [];
+                const statearr = {};
+                if (value.hasOwnProperty('switch_3_icon')) {
+                    payload.push(lookup[value.switch_3_icon]);
+                    statearr.switch_3_icon = value.switch_3_icon;
+                } else {
+                    payload.push(1);
+                    statearr.switch_3_icon = '1';
+                }
+                if (value.hasOwnProperty('switch_3_text')) {
+                    payload.push(...value.switch_3_text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_3_text = value.switch_3_text;
+                } else {
+                    payload.push(...''.text.split('').map((c) => c.charCodeAt(0)));
+                    statearr.switch_3_text = '';
+                }
+                await entity.write('aqaraOpple', {0x0225: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
+                return {state: statearr};
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
         },
     },
 

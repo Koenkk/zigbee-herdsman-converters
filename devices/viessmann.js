@@ -37,7 +37,7 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 60, max: 3600, change: 1});
 
             // manufacturer attributes
-            await endpoint.configureReporting('hvacThermostat', [{attribute: 'viessmannCustom0', minimumReportInterval: 60,
+            await endpoint.configureReporting('hvacThermostat', [{attribute: 'viessmannWindowOpenInternal', minimumReportInterval: 60,
                 maximumReportInterval: 3600}], options);
 
             // read window_open_force, we don't need reporting as it cannot be set physically on the device

@@ -411,6 +411,22 @@ module.exports = [
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
+        zigbeeModel: ['F-ADT-WTR-1'],
+        model: 'F-ADT-WTR-1',
+        vendor: 'SmartThings',
+        description: 'ADT water leak detector',
+        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.battery()],
+    },
+    {
         zigbeeModel: ['button'],
         model: 'IM6001-BTP01',
         vendor: 'SmartThings',

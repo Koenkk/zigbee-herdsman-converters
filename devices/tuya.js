@@ -124,17 +124,6 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
-        model: 'R7060',
-        vendor: 'Woox',
-        description: 'Smart garden irrigation control',
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.woox_R7060],
-        toZigbee: [tz.on_off],
-        onEvent: tuya.onEventSetTime,
-        exposes: [e.switch()],
-        meta: {disableDefaultResponse: true},
-    },
-    {
         fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
         model: 'TS0108',
         vendor: 'TuYa',
@@ -211,7 +200,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_g1ib5ldv'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -628,6 +616,25 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'}],
+        model: 'TS011F_plug',
+        description: 'Smart EU plug',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'}],
         model: 'TS0601_din',
         vendor: 'TuYa',
@@ -754,7 +761,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0014', manufacturerName: '_TZ3000_jr2atpww'}, {modelID: 'TS0014', manufacturerName: '_TYZB01_dvakyzhd'},
-            {modelID: 'TS0014', manufacturerName: '_TZ3210_w3hl6rao'}],
+            {modelID: 'TS0014', manufacturerName: '_TZ3210_w3hl6rao'}, {modelID: 'TS0014', manufacturerName: '_TYZB01_bagt1e4o'},
+            {modelID: 'TS0014', manufacturerName: '_TZ3000_r0pmi2p3'}],
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
@@ -764,7 +772,8 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
-        whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'}],
+        whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'},
+            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {

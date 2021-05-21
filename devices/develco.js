@@ -148,7 +148,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
@@ -169,7 +169,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
@@ -246,8 +246,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint);
         },
     },
@@ -282,6 +282,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FLSZB-110'],
+        model: 'FLSZB-110',
+        vendor: 'Develco',
+        description: 'Flood alarm device ',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.temperature(endpoint38);
         },
     },
 ];

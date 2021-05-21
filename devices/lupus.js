@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -24,6 +25,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['PSMP5_00.00.03.11TC'],

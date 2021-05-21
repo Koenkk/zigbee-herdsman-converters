@@ -83,7 +83,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'SmokeSensor-EM', 'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0'],
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -97,7 +97,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0'],
+        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0', 'SmokeSensor-EM'],
         model: 'HS3SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -653,6 +653,15 @@ module.exports = [
     {
         zigbeeModel: ['PIR_TPV16'],
         model: 'HS1MS-M',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['TY0202'],
+        model: 'HS1MS-EF',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],

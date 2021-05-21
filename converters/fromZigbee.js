@@ -17,6 +17,7 @@ const {
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
+const libColor = require('../lib/color');
 
 const converters = {
     // #region Generic/recommended converters
@@ -556,7 +557,10 @@ const converters = {
                 result.color_options = {execute_if_off: ((msg.data.options & 1<<0) > 0)};
             }
 
-            return result;
+            // handle color property sync
+            // NOTE: this should the last thing we do, as we need to have processed all attributes,
+            //       we use assign here so we do not lose other attributes.
+            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
     metering: {
@@ -1805,12 +1809,12 @@ const converters = {
             //       what this value potentially means.
             delete result.pi_heating_demand;
 
-            // viessmannCustom0
+            // viessmannWindowOpenInternal
             // 0-2, 5: unknown
             // 3: window open (OO on display, no heating)
             // 4: window open (OO on display, heating)
-            if (msg.data.hasOwnProperty('viessmannCustom0')) {
-                result.window_open = ((msg.data['viessmannCustom0'] == 3) || (msg.data['viessmannCustom0'] == 4));
+            if (msg.data.hasOwnProperty('viessmannWindowOpenInternal')) {
+                result.window_open = ((msg.data['viessmannWindowOpenInternal'] == 3) || (msg.data['viessmannWindowOpenInternal'] == 4));
             }
 
             // viessmannWindowOpenForce (rw, bool)
@@ -5751,6 +5755,86 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandSetTimeRequest'],
         convert: (model, msg, publish, options, meta) => null,
+    },
+    ZNCJMB14LM: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0215)) {
+                const lookup = {0: 'classic', 1: 'concise'};
+                result.theme = lookup[msg.data[0x0215]];
+            }
+            if (msg.data.hasOwnProperty(0x0214)) {
+                const lookup = {1: 'classic', 2: 'analog clock'};
+                result.screen_saver_style = lookup[msg.data[0x0214]];
+            }
+            if (msg.data.hasOwnProperty(0x0213)) {
+                result.standby_enabled = msg.data[0x0213] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x0212)) {
+                const lookup = {0: 'mute', 1: 'low', 2: 'medium', 3: 'high'};
+                result.beep_volume = lookup[msg.data[0x0212]];
+            }
+            if (msg.data.hasOwnProperty(0x0211)) {
+                result.lcd_brightness = msg.data[0x0211];
+            }
+            if (msg.data.hasOwnProperty(0x022b)) {
+                const lookup = {0: 'none', 1: '1', 2: '2', 3: '1 and 2', 4: '3', 5: '1 and 3', 6: '2 and 3', 7: 'all'};
+                result.available_switches = lookup[msg.data[0x022b]];
+            }
+            if (msg.data.hasOwnProperty(0x217)) {
+                const lookup = {3: 'small', 4: 'medium', 5: 'large'};
+                result.font_size = lookup[msg.data[0x217]];
+            }
+            if (msg.data.hasOwnProperty(0x219)) {
+                const lookup = {0: 'scene', 1: 'feel', 2: 'thermostat', 3: 'switch'};
+                result.homepage = lookup[msg.data[0x219]];
+            }
+            if (msg.data.hasOwnProperty(0x210)) {
+                const lookup = {0: 'chinese', 1: 'english'};
+                result.language = lookup[msg.data[0x210]];
+            }
+            if (msg.data.hasOwnProperty(0x216)) {
+                result.standby_time = msg.data[0x216];
+            }
+            if (msg.data.hasOwnProperty(0x218)) {
+                result.lcd_auto_brightness_enabled = msg.data[0x218] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x221)) {
+                result.screen_saver_enabled = msg.data[0x221] & 1 ? true : false;
+            }
+            if (msg.data.hasOwnProperty(0x222)) {
+                result.standby_lcd_brightness = msg.data[0x222];
+            }
+            if (msg.data.hasOwnProperty(0x223)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
+                result.switch_1_icon = lookup[msg.data[0x223][0]];
+                result.switch_1_text = String.fromCharCode(...textarr);
+            }
+            if (msg.data.hasOwnProperty(0x224)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
+                result.switch_2_icon = lookup[msg.data[0x224][0]];
+                result.switch_2_text = String.fromCharCode(...textarr);
+            }
+            if (msg.data.hasOwnProperty(0x225)) {
+                const lookup = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: '11'};
+                const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
+                result.switch_3_icon = lookup[msg.data[0x225][0]];
+                result.switch_3_text = String.fromCharCode(...textarr);
+            }
+            return result;
+        },
+    },
+    rc_110_level_to_scene: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            const scenes = {2: '1', 52: '2', 102: '3', 153: '4', 194: '5', 254: '6'};
+            return {action: `scene_${scenes[msg.data.level]}`};
+        },
     },
     // #endregion
 };

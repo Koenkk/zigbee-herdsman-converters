@@ -735,8 +735,9 @@ module.exports = [
         fromZigbee: [fz.xiaomi_battery, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', ea.STATE),
-            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.battery_voltage(),
+            e.battery(), e.action(['vibration', 'tilt', 'drop']),
+            exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
         ],
     },
     {
@@ -991,6 +992,60 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.n4acn4'],
+        model: 'ZNCJMB14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara S1 smart touch panel',
+        fromZigbee: [fz.on_off, fz.ZNCJMB14LM],
+        toZigbee: [tz.on_off, tz.ZNCJMB14LM],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'),
+            exposes.binary('standby_enabled', ea.SET, true, false).withDescription('Enable standby'),
+            exposes.enum('theme', ea.SET, ['classic', 'concise']).withDescription('Display theme'),
+            exposes.enum('beep_volume', ea.SET, ['mute', 'low', 'medium', 'high']).withDescription('Beep volume'),
+            exposes.numeric('lcd_brightness', ea.SET).withValueMin(1).withValueMax(100).withUnit('%')
+                .withDescription('LCD brightness (will not persist if auto-brightness is enabled)'),
+            exposes.enum('language', ea.SET, ['chinese', 'english']).withDescription('Interface language'),
+            exposes.enum('screen_saver_style', ea.SET, ['classic', 'analog clock']).withDescription('Screen saver style'),
+            exposes.numeric('standby_time', ea.SET).withValueMin(0).withValueMax(65534).withUnit('s')
+                .withDescription('Display standby time'),
+            exposes.enum('font_size', ea.SET, ['small', 'medium', 'large']).withDescription('Display font size'),
+            exposes.binary('lcd_auto_brightness_enabled', ea.SET, true, false).withDescription('Enable LCD auto brightness'),
+            exposes.enum('homepage', ea.SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
+            exposes.binary('screen_saver_enabled', ea.SET, true, false).withDescription('Enable screen saver'),
+            exposes.numeric('standby_lcd_brightness', ea.SET).withValueMin(1).withValueMax(100).withUnit('%')
+                .withDescription('Standby LCD brightness'),
+            exposes.enum('available_switches', ea.SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
+                .withDescription('Control which switches are available in the switches screen (none disables switches screen)'),
+            exposes.composite('switch_1_text_icon', 'switch_1_text_icon').withDescription('Switch 1 text and icon')
+                .withFeature(exposes.enum('switch_1_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                    .withDescription('Icon'))
+                .withFeature(exposes.text('switch_1_text', ea.SET)
+                    .withDescription('Text')),
+            exposes.composite('switch_2_text_icon', 'switch_2_text_icon').withDescription('Switch 2 text and icon')
+                .withFeature(exposes.enum('switch_2_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                    .withDescription('Icon'))
+                .withFeature(exposes.text('switch_2_text', ea.SET)
+                    .withDescription('Text')),
+            exposes.composite('switch_3_text_icon', 'switch_3_text_icon').withDescription('Switch 3 text and icon')
+                .withFeature(exposes.enum('switch_3_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                    .withDescription('Icon'))
+                .withFeature(exposes.text('switch_3_text', ea.SET)
+                    .withDescription('Text'))],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            // await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
+            // await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
     },
 ];

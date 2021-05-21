@@ -98,53 +98,57 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_g1ib5ldv'}],
+        model: 'ZTS-EU_2gang',
+        vendor: 'Moes',
+        description: 'Wall touch light switch (2 gang)',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            // Endpoint selection is made in tuya_switch_state
+            return {'l1': 1, 'l2': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_tz32mtza'}],
         model: 'ZTS-EU_3gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (3 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1};
         },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
-        fingerprint: [{modelID: 'GbxAXL2\u0000', manufacturerName: '_TYST11_KGbxAXL2'},
-            {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
-            {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
-            {modelID: 'w7cahqs\u0000', manufacturerName: '_TYST11_yw7cahqs'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yw7cahqs'},
-            {modelId: 'TS0601', manufacturerName: '_TZE200_azqp6ssj'},
-        ],
-        model: 'SEA801-Zigbee/SEA802-Zigbee',
-        vendor: 'Saswell',
-        description: 'Thermostatic radiator valve',
-        whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}, {vendor: 'Hama', model: '00176592'},
-            {vendor: 'RTX', model: 'ZB-RT1'}],
-        fromZigbee: [fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule],
-        toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
-            tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
-            tz.saswell_thermostat_calibration, tz.saswell_thermostat_anti_scaling, tz.tuya_thermostat_weekly_schedule],
-        onEvent: tuya.onEventSetTime,
-        meta: {
-            thermostat: {
-                weeklyScheduleMaxTransitions: 4,
-                weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleConversion: 'saswell',
-            },
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
-            .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        model: 'ZSS-ZK-THL',
+        vendor: 'Moes',
+        description: 'Smart temperature and humidity meter with display',
+        fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
 ];
