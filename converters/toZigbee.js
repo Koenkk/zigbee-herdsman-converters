@@ -2061,6 +2061,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {'danfossAlgorithmScaleFactor': value};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'algorithm_scale_factor': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossAlgorithmScaleFactor'], manufacturerOptions.danfoss);
@@ -2071,6 +2072,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {'danfossHeatAvailable': (value ? 1: 0)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'heat_available': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossHeatAvailable'], manufacturerOptions.danfoss);
@@ -2087,6 +2089,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {'danfossDayOfWeek': (Math.abs(value) < 7 ? Math.abs(value) : 7)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'day_of_week': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossDayOfWeek'], manufacturerOptions.danfoss);
@@ -2097,6 +2100,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {'danfossTriggerTime': value};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'trigger_time': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossTriggerTime'], manufacturerOptions.danfoss);
