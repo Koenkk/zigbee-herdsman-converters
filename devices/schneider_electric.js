@@ -227,7 +227,8 @@ module.exports = [
             tz.schneider_thermostat_keypad_lockout],
         exposes: [e.keypad_lockout(ea.SET), e.humidity(), e.battery(), e.battery_voltage(),
             e.action(['screen_sleep', 'screen_wake', 'button_press_plus_down', 'button_press_center_down', 'button_press_minus_down']),
-            e.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature().withPiHeatingDemand(ea.SET)],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature()
+                .withPiHeatingDemand(ea.SET)],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
