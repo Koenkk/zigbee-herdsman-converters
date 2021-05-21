@@ -2590,8 +2590,8 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossMountedModeActive')) {
                 result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data['danfossMountedModeActive'] === 1);
             }
-            if (msg.data.hasOwnProperty('danfossMountedModeActive')) {
-                result[postfixWithEndpointName('mounted_mode_active', msg, model)] = (msg.data['danfossMountedModeActive'] === 1);
+            if (msg.data.hasOwnProperty('danfossMountedModeControl')) {
+                result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data['danfossMountedModeControl'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
                 result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model)] =
