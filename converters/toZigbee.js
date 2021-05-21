@@ -2045,11 +2045,11 @@ const converters = {
             await entity.read('hvacThermostat', ['danfossMountedModeControl'], manufacturerOptions.danfoss);
         },
     },
-    danfoss_thermostat_orientation: {
-        key: ['thermostat_orientation'],
+    danfoss_thermostat_vertical_orientation: {
+        key: ['thermostat_vertical_orientation'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {'danfossThermostatOrientation': value}, manufacturerOptions.danfoss);
-            return {readAfterWriteTime: 200, state: {'thermostat_orientation': value}};
+            return {readAfterWriteTime: 200, state: {'thermostat_vertical_orientation': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);

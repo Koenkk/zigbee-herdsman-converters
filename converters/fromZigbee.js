@@ -2591,7 +2591,8 @@ const converters = {
                 result[postfixWithEndpointName('mounted_mode_control', msg, model)] = (msg.data['danfossMountedModeControl'] === 0);
             }
             if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
-                result[postfixWithEndpointName('thermostat_orientation', msg, model)] = (msg.data['danfossThermostatOrientation'] === 1);
+                result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model)] =
+                    (msg.data['danfossThermostatOrientation'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
                 result[postfixWithEndpointName('viewing_direction', msg, model)] = msg.data['danfossViewingDirection'];

@@ -116,7 +116,7 @@ module.exports = [
         description: 'Radiator valve based on Danfos Ally',
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
-            tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_orientation, tz.danfoss_algorithm_scale_factor,
+            tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
             tz.danfoss_viewing_direction, tz.thermostat_keypad_lockout],
@@ -126,7 +126,7 @@ module.exports = [
                     'the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('mounted_mode_control', ea.ALL, true, false)
                 .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
-            exposes.binary('thermostat_orientation', ea.ALL, true, false)
+            exposes.binary('thermostat_vertical_orientation', ea.ALL, true, false)
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperatuea. ' +
                     '`false` Horizontal or `true` Vertical'),
             exposes.numeric('viewing_direction', ea.ALL).withValueMin(0).withValueMax(1)
