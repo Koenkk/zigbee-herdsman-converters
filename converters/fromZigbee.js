@@ -2573,7 +2573,10 @@ const converters = {
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
-                result[postfixWithEndpointName('window_open_internal', msg, model)] = msg.data['danfossWindowOpenInternal'];
+                result[postfixWithEndpointName('window_open_internal', msg, model)] =
+                    constants.danfossWindowOpen.hasOwnProperty(msg.data['danfossWindowOpenInternal']) ?
+                        constants.danfossWindowOpen[msg.data['danfossWindowOpenInternal']] :
+                        msg.data['danfossWindowOpenInternal'];
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenExternal')) {
                 result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data['danfossWindowOpenExternal'] === 1);
