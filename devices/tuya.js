@@ -106,7 +106,8 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'}],
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'}],
         model: 'TS0207_repeater',
         vendor: 'TuYa',
         description: 'Repeater',
