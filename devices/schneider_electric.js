@@ -4,7 +4,6 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -198,12 +197,14 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
-        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode, tz.schneider_temperature_measured_value],
+        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation,
+            tz.schneider_pilot_mode, tz.schneider_temperature_measured_value],
         exposes: [e.power(), e.energy(),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
             exposes.numeric('temperature_measured_value', ea.SET),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature().withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -221,30 +222,23 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Temperature/Humidity measurement with thermostat interface',
         fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fz.schneider_ui_action],
-        toZigbee: [tz.schneider_thermostat_system_mode, tz.schneider_thermostat_occupied_heating_setpoint, 
-                   tz.schneider_thermostat_control_sequence_of_operation, tz.schneider_thermostat_pi_heating_demand, tz.schneider_thermostat_keypad_lockout],
-        exposes: [
-                    exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET)
-                                     .withLocalTemperature()
-                                     .withPiHeatingDemand(ea.SET),
-                    e.keypad_lockout(ea.SET),
-                    e.humidity(),
-                    e.battery(),
-                    e.battery_voltage(),
-                    e.action(['ScreenSleep', 'ScreenWake', 'ButtonPressPlusDown', 'ButtonPressCenterDown', 'ButtonPressMinusDown'])
-                ],
+        toZigbee: [tz.schneider_thermostat_system_mode, tz.schneider_thermostat_occupied_heating_setpoint,
+            tz.schneider_thermostat_control_sequence_of_operation, tz.schneider_thermostat_pi_heating_demand,
+            tz.schneider_thermostat_keypad_lockout],
+        exposes: [e.keypad_lockout(ea.SET), e.humidity(), e.battery(), e.battery_voltage(),
+            e.action(['screen_sleep', 'screen_wake', 'button_press_plus_down', 'button_press_center_down', 'button_press_minus_down']),
+            e.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature().withPiHeatingDemand(ea.SET)],
         meta: {configureKey: 1, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            await reporting.bind(endpoint1, coordinatorEndpoint,
+                ['genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement', 'msRelativeHumidity']);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
             endpoint1.saveClusterAttributeKeyValue('genBasic', {zclVersion: 3});
             endpoint1.saveClusterAttributeKeyValue('hvacThermostat', {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
             endpoint1.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout: 0});
-        },
         },
     },
 ];
