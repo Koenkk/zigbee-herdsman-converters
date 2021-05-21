@@ -4891,7 +4891,6 @@ const converters = {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhenActive: true});
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
-
             return {state: {keypad_lockout: value}};
         },
     },
