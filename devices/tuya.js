@@ -63,7 +63,7 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'}, {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB+CCT',
