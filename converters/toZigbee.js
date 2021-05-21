@@ -4851,13 +4851,13 @@ const converters = {
     schneider_temperature_measured_value: {
         key: ['temperature_measured_value'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.report('msTemperatureMeasurement', {'measuredValue':Math.round(value*100)});
+            await entity.report('msTemperatureMeasurement', {'measuredValue': Math.round(value*100)});
         },
     },
     schneider_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+            const systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
             entity.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: systemMode});
             return {state: {system_mode: value}};
         },
@@ -4893,6 +4893,7 @@ const converters = {
             entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
 
             return {state: {keypad_lockout: value}};
+        },
     },
     ZNCJMB14LM: {
         key: ['theme',
