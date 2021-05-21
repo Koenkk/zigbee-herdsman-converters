@@ -18,6 +18,7 @@ const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
+const utils = require('../lib/utils');
 
 const converters = {
     // #region Generic/recommended converters
@@ -5567,8 +5568,8 @@ const converters = {
             if (hasAlreadyProcessedMessage(msg)) return;
 
             const data = msg.data['deviceInfo'].split(',');
-            if(data[0] === 'UI' && data[1]) {
-                let result = {action: data[1]};
+            if (data[0] === 'UI' && data[1]) {
+                const result = {action: utils.toSnakeCase(data[1])};
 
                 let screenAwake = globalStore.getValue(msg.endpoint, 'screenAwake');
                 screenAwake = screenAwake != undefined ? screenAwake : false;
@@ -5591,12 +5592,12 @@ const converters = {
                     }
 
                     msg.endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
-                    result.occupied_heating_setpoint =  occupiedHeatingSetpoint/100;
+                    result.occupied_heating_setpoint = occupiedHeatingSetpoint/100;
                 }
-                
+
                 return result;
             }
-        }
+        },
     },
     schneider_temperature: {
         cluster: 'msTemperatureMeasurement',
