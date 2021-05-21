@@ -125,7 +125,7 @@ module.exports = [
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
                     'the radiator) or `true` for not mounted (after factory reset)'),
             exposes.binary('mounted_mode_control', ea.ALL, true, false)
-                .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
+                .withDescription('Set the unit mounting mode. `false` Go to Mounted Mode or `true` Go to Mounting Mode'),
             exposes.binary('thermostat_vertical_orientation', ea.ALL, true, false)
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
                     '`false` Horizontal or `true` Vertical'),

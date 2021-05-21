@@ -2037,8 +2037,7 @@ const converters = {
     danfoss_mounted_mode_control: {
         key: ['mounted_mode_control'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossMountedModeControl': (value ? 0 : 1)};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossMountedModeControl': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'mounted_mode_control': value}};
         },
         convertGet: async (entity, key, meta) => {
