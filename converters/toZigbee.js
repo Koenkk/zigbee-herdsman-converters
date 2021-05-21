@@ -2048,8 +2048,7 @@ const converters = {
     danfoss_thermostat_orientation: {
         key: ['thermostat_orientation'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossThermostatOrientation': (value ? 1: 0)};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossThermostatOrientation': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'thermostat_orientation': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2059,8 +2058,7 @@ const converters = {
     danfoss_viewing_direction: {
         key: ['viewing_direction'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossViewingDirection': value};
-            await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacUserInterfaceCfg', {'danfossViewingDirection': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'viewing_direction': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2070,8 +2068,7 @@ const converters = {
     danfoss_algorithm_scale_factor: {
         key: ['algorithm_scale_factor'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossAlgorithmScaleFactor': value};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossAlgorithmScaleFactor': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'algorithm_scale_factor': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2081,8 +2078,7 @@ const converters = {
     danfoss_heat_available: {
         key: ['heat_available'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossHeatAvailable': (value ? 1: 0)};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossHeatAvailable': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'heat_available': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2109,8 +2105,7 @@ const converters = {
     danfoss_trigger_time: {
         key: ['trigger_time'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossTriggerTime': value};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossTriggerTime': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'trigger_time': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2126,8 +2121,7 @@ const converters = {
     danfoss_window_open_external: {
         key: ['window_open_external'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossWindowOpenExternal': (value ? 1: 0)};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossWindowOpenExternal': value}, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'window_open_external': value}};
         },
         convertGet: async (entity, key, meta) => {
