@@ -27,9 +27,10 @@ module.exports = [
             exposes.binary('mounted_mode_control', ea.ALL, true, false)
                 .withDescription('Set the unit mounting mode. `false` Go to Mounting Mode or `true` Go to Mounted Mode'),
             exposes.binary('thermostat_orientation', ea.ALL, true, false)
-                .withDescription('Thermostat Orientation. `false` Horizontal or `true` Vertical'),
+                .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperatuea. ' +
+                    '`false` Horizontal or `true` Vertical'),
             exposes.numeric('viewing_direction', ea.ALL).withValueMin(0).withValueMax(1)
-                .withDescription('Viewing Direction. `0` Horizontal or `1` Vertical'),
+                .withDescription('Viewing/Display Direction. `0` Horizontal or `1` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
