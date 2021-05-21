@@ -2593,6 +2593,9 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
                 result[postfixWithEndpointName('thermostat_orientation', msg, model)] = (msg.data['danfossThermostatOrientation'] === 1);
             }
+            if (msg.data.hasOwnProperty('danfossViewingDirection')) {
+                result[postfixWithEndpointName('viewing_direction', msg, model)] = msg.data['danfossViewingDirection'];
+            }
             if (msg.data.hasOwnProperty('danfossAlgorithmScaleFactor')) {
                 result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data['danfossAlgorithmScaleFactor'];
             }

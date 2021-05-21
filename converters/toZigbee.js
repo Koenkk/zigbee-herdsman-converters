@@ -2056,6 +2056,17 @@ const converters = {
             await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);
         },
     },
+    danfoss_viewing_direction: {
+        key: ['viewing_direction'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'danfossViewingDirection': value};
+            await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'viewing_direction': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['danfossViewingDirection'], manufacturerOptions.danfoss);
+        },
+    },
     danfoss_algorithm_scale_factor: {
         key: ['algorithm_scale_factor'],
         convertSet: async (entity, key, value, meta) => {
