@@ -480,6 +480,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
         ],
         model: 'TS0601_cover',
         vendor: 'TuYa',
@@ -496,6 +497,7 @@ module.exports = [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
             {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
             {vendor: 'Zemismart', model: 'AM43', description: 'Roller blind motor'},
+            {vendor: 'Zemismart', model: 'M2805EGBZTN', description: 'Tubular motor'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
