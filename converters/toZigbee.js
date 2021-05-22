@@ -2004,36 +2004,6 @@ const converters = {
             return {state: {sensitivity: value}};
         },
     },
-    danfoss_mounted_mode: {
-        key: ['mounted_mode_control'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4013: {value: (value ? 0x00: 0x01), type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4013], manufacturerOptions.danfoss);
-        },
-    },
-    danfoss_thermostat_orientation: {
-        key: ['thermostat_orientation'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4014: {value: (value ? 0x01: 0x00), type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4014], manufacturerOptions.danfoss);
-        },
-    },
-    danfoss_algorithm_scale_factor: {
-        key: ['algorithm_scale_factor'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4020: {value: value, type: 0x20}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4020], manufacturerOptions.danfoss);
-        },
-    },
     hue_wall_switch_device_mode: {
         key: ['device_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2045,54 +2015,122 @@ const converters = {
             await entity.read('genBasic', [0x0034], manufacturerOptions.hue);
         },
     },
+    danfoss_thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                setpointType: 1,
+                setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
+            };
+            await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+        },
+    },
+    danfoss_mounted_mode_active: {
+        key: ['mounted_mode_active'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossMountedModeActive'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_mounted_mode_control: {
+        key: ['mounted_mode_control'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossMountedModeControl': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'mounted_mode_control': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossMountedModeControl'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_thermostat_vertical_orientation: {
+        key: ['thermostat_vertical_orientation'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossThermostatOrientation': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'thermostat_vertical_orientation': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_viewing_direction: {
+        key: ['viewing_direction'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacUserInterfaceCfg', {'danfossViewingDirection': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'viewing_direction': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['danfossViewingDirection'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_algorithm_scale_factor: {
+        key: ['algorithm_scale_factor'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossAlgorithmScaleFactor': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'algorithm_scale_factor': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossAlgorithmScaleFactor'], manufacturerOptions.danfoss);
+        },
+    },
     danfoss_heat_available: {
         key: ['heat_available'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4030: {value: (value ? 0x01: 0x00), type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossHeatAvailable': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'heat_available': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4030], manufacturerOptions.danfoss);
+            await entity.read('hvacThermostat', ['danfossHeatAvailable'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_heat_required: {
+        key: ['heat_required'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossHeatRequired'], manufacturerOptions.danfoss);
         },
     },
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4010: {value: (Math.abs(value) < 7 ? Math.abs(value) : 7), type: 0x30}};
+            const payload = {'danfossDayOfWeek': (Math.abs(value) < 7 ? Math.abs(value) : 7)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'day_of_week': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4010], manufacturerOptions.danfoss);
+            await entity.read('hvacThermostat', ['danfossDayOfWeek'], manufacturerOptions.danfoss);
         },
     },
     danfoss_trigger_time: {
         key: ['trigger_time'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4011: {value: value, type: 0x21}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossTriggerTime': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'trigger_time': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4011], manufacturerOptions.danfoss);
+            await entity.read('hvacThermostat', ['danfossTriggerTime'], manufacturerOptions.danfoss);
         },
     },
-    danfoss_window_open: {
+    danfoss_window_open_internal: {
+        key: ['window_open_internal'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossWindowOpenInternal'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_window_open_external: {
         key: ['window_open_external'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4003: {value: (value ? 0x01: 0x00), type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            await entity.write('hvacThermostat', {'danfossWindowOpenExternal': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'window_open_external': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4003], manufacturerOptions.danfoss);
+            await entity.read('hvacThermostat', ['danfossWindowOpenExternal'], manufacturerOptions.danfoss);
         },
     },
-    danfoss_display_orientation: {
-        key: ['display_orientation'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4000: {value: value, type: 0x30}};
-            await entity.write('hvacUserInterfaceCfg', payload, manufacturerOptions.danfoss);
-        },
+    danfoss_load_estimate: {
+        key: ['load_estimate'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacUserInterfaceCfg', [0x4000], manufacturerOptions.danfoss);
+            await entity.read('hvacThermostat', ['danfossLoadEstimate'], manufacturerOptions.danfoss);
         },
     },
     ZMCSW032D_cover_position: {
