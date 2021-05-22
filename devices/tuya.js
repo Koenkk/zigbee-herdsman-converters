@@ -26,7 +26,7 @@ module.exports = [
         description: 'Air quality sensor',
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc()],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
