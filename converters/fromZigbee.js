@@ -2969,14 +2969,14 @@ const converters = {
             case tuya.dataPoints.tuyaSabTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tuyaSabHumidity:
-                return {humidity: calibrateAndPrecisionRoundOptions(value / 10 , options, 'humidity')};
+                return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
             case tuya.dataPoints.tuyaSabCO2:
-                return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')}
+                return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
             case tuya.dataPoints.tuyaSabVOC:
-                return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')}
+                return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
             case tuya.dataPoints.tuyaSabFormaldehyd:
                 // Not sure which unit this is, supposedly mg/m³, but the value seems way too high.
-                return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')}
+                return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
