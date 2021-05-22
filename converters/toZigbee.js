@@ -4886,6 +4886,52 @@ const converters = {
             await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
         },
     },
+    schneider_temperature_measured_value: {
+        key: ['temperature_measured_value'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.report('msTemperatureMeasurement', {'measuredValue': Math.round(value*100)});
+        },
+    },
+    schneider_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: systemMode});
+            return {state: {system_mode: value}};
+        },
+    },
+    schneider_thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
+            return {state: {occupied_heating_setpoint: value}};
+        },
+    },
+    schneider_thermostat_control_sequence_of_operation: {
+        key: ['control_sequence_of_operation'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {ctrlSeqeOfOper: val});
+            return {state: {control_sequence_of_operation: value}};
+        },
+    },
+    schneider_thermostat_pi_heating_demand: {
+        key: ['pi_heating_demand'],
+        convertSet: async (entity, key, value, meta) => {
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {pIHeatingDemand: value});
+            return {state: {pi_heating_demand: value}};
+        },
+    },
+    schneider_thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+            entity.write('hvacUserInterfaceCfg', {keypadLockout}, {sendWhenActive: true});
+            entity.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout});
+            return {state: {keypad_lockout: value}};
+        },
+    },
     ZNCJMB14LM: {
         key: ['theme',
             'standby_enabled',

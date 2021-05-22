@@ -18,6 +18,7 @@ const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
+const utils = require('../lib/utils');
 
 const converters = {
     // #region Generic/recommended converters
@@ -5568,6 +5569,53 @@ const converters = {
                 result.schneider_pilot_mode = lookup[msg.data['pilotMode']];
             }
             return result;
+        },
+    },
+    schneider_ui_action: {
+        cluster: 'wiserDeviceInfo',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg)) return;
+
+            const data = msg.data['deviceInfo'].split(',');
+            if (data[0] === 'UI' && data[1]) {
+                const result = {action: utils.toSnakeCase(data[1])};
+
+                let screenAwake = globalStore.getValue(msg.endpoint, 'screenAwake');
+                screenAwake = screenAwake != undefined ? screenAwake : false;
+                let keypadLocked = msg.endpoint.getClusterAttributeValue('hvacUserInterfaceCfg', 'keypadLockout');
+                keypadLocked = keypadLocked != undefined ? keypadLocked != 0 : false;
+
+                // Emulate UI temperature update
+                if (data[1] === 'ScreenWake') {
+                    globalStore.putValue(msg.endpoint, 'screenAwake', true);
+                } else if (data[1] === 'ScreenSleep') {
+                    globalStore.putValue(msg.endpoint, 'screenAwake', false);
+                } else if (screenAwake && !keypadLocked) {
+                    let occupiedHeatingSetpoint = msg.endpoint.getClusterAttributeValue('hvacThermostat', 'occupiedHeatingSetpoint');
+                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
+
+                    if (data[1] === 'ButtonPressMinusDown') {
+                        occupiedHeatingSetpoint -= 50;
+                    } else if (data[1] === 'ButtonPressPlusDown') {
+                        occupiedHeatingSetpoint += 50;
+                    }
+
+                    msg.endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
+                    result.occupied_heating_setpoint = occupiedHeatingSetpoint/100;
+                }
+
+                return result;
+            }
+        },
+    },
+    schneider_temperature: {
+        cluster: 'msTemperatureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            const property = postfixWithEndpointName('local_temperature', msg, model);
+            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
 
