@@ -796,7 +796,7 @@ module.exports = [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time')],
-        ota: ota.zigbeeOTA,
+        // TEMP DISABLED: https://github.com/Koenkk/zigbee2mqtt/issues/7112 ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
