@@ -45,7 +45,8 @@ module.exports = [
             exposes.binary('window_open_external', ea.ALL, true, false)
                 .withDescription('Set if the window is open or close. This setting will trigger a change in the internal ' +
                     'window and heating demand. `false` (windows are closed) or `true` (windows are open)'),
-            exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
+            exposes.enum('day_of_week', ea.ALL,
+                ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'away_or_vacation'])
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
             exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),
