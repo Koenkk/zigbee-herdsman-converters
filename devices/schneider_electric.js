@@ -229,7 +229,7 @@ module.exports = [
             e.action(['screen_sleep', 'screen_wake', 'button_press_plus_down', 'button_press_center_down', 'button_press_minus_down']),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature()
                 .withPiHeatingDemand(ea.SET)],
-        meta: {configureKey: 1, battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint,
