@@ -225,9 +225,9 @@ module.exports = [
         toZigbee: [tz.schneider_thermostat_system_mode, tz.schneider_thermostat_occupied_heating_setpoint,
             tz.schneider_thermostat_control_sequence_of_operation, tz.schneider_thermostat_pi_heating_demand,
             tz.schneider_thermostat_keypad_lockout],
-        exposes: [e.keypad_lockout(ea.SET), e.humidity(), e.battery(), e.battery_voltage(),
+        exposes: [e.keypad_lockout().withAccess(ea.STATE_SET), e.humidity(), e.battery(), e.battery_voltage(),
             e.action(['screen_sleep', 'screen_wake', 'button_press_plus_down', 'button_press_center_down', 'button_press_minus_down']),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5, ea.SET).withLocalTemperature(ea.STATE)
                 .withPiHeatingDemand(ea.SET)],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
