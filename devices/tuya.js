@@ -20,6 +20,15 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'}],
+        model: 'TS0601_air_quality_sensor',
+        vendor: 'Tuya',
+        description: 'Air QualitySensor',
+        fromZigbee: [fz.tuya_air_quality],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',

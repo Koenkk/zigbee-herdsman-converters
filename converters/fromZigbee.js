@@ -2959,6 +2959,30 @@ const converters = {
             }
         },
     },
+    tuya_air_quality: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.tuyaSabTemp:
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.tuyaSabHumidity:
+                return {humidity: calibrateAndPrecisionRoundOptions(value / 10 , options, 'humidity')};
+            case tuya.dataPoints.tuyaSabCO2:
+                return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')}
+            case tuya.dataPoints.tuyaSabVOC:
+                return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')}
+            case tuya.dataPoints.tuyaSabFormaldehyd:
+                // Not sure which unit this is, supposedly mg/m³, but the value seems way too high.
+                return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')}
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
