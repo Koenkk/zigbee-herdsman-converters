@@ -963,7 +963,7 @@ module.exports = [
         model: 'TS0210',
         vendor: 'TuYa',
         description: 'Vibration sensor',
-        fromZigbee: [fz.battery, fz.ias_vibration_alarm_1],
+        fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
