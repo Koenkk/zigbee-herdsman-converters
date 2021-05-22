@@ -270,7 +270,7 @@ module.exports = [
                 .withDescription('Icon shown on device displays'),
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE)
+                .withLocalTemperature(ea.STATE_GET)
                 .withLocalTemperatureCalibration(ea.STATE_SET)
                 .withPiHeatingDemand()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -335,7 +335,7 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Wiser H-Relay (HACT)',
         fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.wiser_zone_mode],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.wiser_sed_zone_mode],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
