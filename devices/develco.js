@@ -291,7 +291,7 @@ module.exports = [
         description: 'Flood alarm device ',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.voltage()],
+        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
