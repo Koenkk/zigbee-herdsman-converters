@@ -5062,6 +5062,45 @@ const converters = {
             }
         },
     },
+    wiser_vact_calibrate_valve: {
+        key: ['calibrate_valve'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('hvacThermostat', 'wiserSmartCalibrateValve', {},
+                {srcEndpoint: 11, disableDefaultResponse: true, sendWhenActive: true});
+            return {state: {'calibrate_valve': value}};
+        },
+    },
+    wiser_sed_zone_mode: {
+        key: ['zone_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {'zone_mode': value}};
+        },
+    },
+    wiser_sed_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            entity.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint});
+            return {state: {'occupied_heating_setpoint': value}};
+        },
+    },
+    wiser_sed_thermostat_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: (entity, key, value, meta) => {
+            entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
+                {srcEndpoint: 11, disableDefaultResponse: true, sendWhenActive: true});
+            return {state: {local_temperature_calibration: value}};
+        },
+    },
+    wiser_sed_thermostat_keypad_lockout: {
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout},
+                {srcEndpoint: 11, disableDefaultResponse: true, sendWhenActive: true});
+            return {state: {keypad_lockout: value}};
+        },
+    },
 
     // #endregion
 

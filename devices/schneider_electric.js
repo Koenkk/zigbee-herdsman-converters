@@ -242,4 +242,134 @@ module.exports = [
             endpoint1.saveClusterAttributeKeyValue('hvacUserInterfaceCfg', {keypadLockout: 0});
         },
     },
+    {
+        zigbeeModel: ['EH-ZB-SPD-V2'],
+        model: 'EER40030',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee smart plug with power meter',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            const options = {disableDefaultResponse: true};
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+            await endpoint.write('genBasic', {0xe050: {value: 1, type: 0x10}}, options);
+        },
+    },
+    {
+        zigbeeModel: ['EH-ZB-LMACT'],
+        model: 'EER42000',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee load actuator with power meter',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['EH-ZB-VACT'],
+        model: 'EER53000',
+        vendor: 'Schneider Electric',
+        description: 'Wiser radiator thermostat (VACT)',
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.battery, fz.hvac_user_interface,
+            fz.wiser_smart_thermostat, fz.wiser_smart_thermostat_client, fz.wiser_smart_setpoint_command_client],
+        toZigbee: [tz.wiser_sed_thermostat_local_temperature_calibration, tz.wiser_sed_occupied_heating_setpoint,
+            tz.wiser_sed_thermostat_keypad_lockout, tz.wiser_vact_calibrate_valve, tz.wiser_sed_zone_mode],
+        exposes: [e.battery(),
+            exposes.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
+                .withDescription('Enables/disables physical input on the device'),
+            exposes.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle')
+                .withDescription('Calibrates valve on next wakeup'),
+            exposes.enum('valve_calibration_status',
+                ea.STATE, ['ongoing', 'successful', 'uncalibrated', 'failed_e1', 'failed_e2', 'failed_e3']),
+            exposes.enum('zone_mode',
+                ea.STATE_SET, ['manual', 'schedule', 'energy_saver', 'holiday'])
+                .withDescription('Icon shown on device displays'),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(ea.STATE_SET)
+                .withPiHeatingDemand()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            // Insert default values for client requested attributes
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {minHeatSetpointLimit: 7*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {maxHeatSetpointLimit: 30*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: 20*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: 4});
+            // VACT needs binding to endpoint 11 due to some hardcoding in the device
+            const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(11);
+            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat'];
+            await reporting.bind(endpoint, coordinatorEndpointB, binds);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: constants.repInterval.MINUTE,
+                max: constants.repInterval.MINUTES_15, change: 50});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+            await endpoint.configureReporting('hvacUserInterfaceCfg', [{attribute: 'keypadLockout',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1}]);
+        },
+    },
+    {
+        zigbeeModel: ['EH-ZB-RTS'],
+        model: 'EER51000',
+        vendor: 'Schneider Electric',
+        description: 'Wiser thermostat (RTS)',
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.battery, fz.hvac_user_interface,
+            fz.wiser_smart_thermostat_client, fz.wiser_smart_setpoint_command_client, fz.schneider_temperature],
+        toZigbee: [tz.wiser_sed_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
+        exposes: [e.battery(), e.temperature(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            exposes.enum('zone_mode',
+                ea.STATE_SET, ['manual', 'schedule', 'energy_saver', 'holiday'])
+                .withDescription('Icon shown on device displays')],
+        meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            // Insert default values for client requested attributes
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {minHeatSetpointLimit: 7*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {maxHeatSetpointLimit: 30*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {occupiedHeatingSetpoint: 20*100});
+            endpoint.saveClusterAttributeKeyValue('hvacThermostat', {systemMode: 4});
+            // RTS needs binding to endpoint 11 due to some hardcoding in the device
+            const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(11);
+            const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genAlarms', 'genOta', 'hvacThermostat',
+                'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpointB, binds);
+            // Battery reports without config once a day, do the first read manually
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.configureReporting('msTemperatureMeasurement', [{attribute: 'measuredValue',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.MINUTES_10,
+                reportableChange: 50}]);
+        },
+    },
+    {
+        zigbeeModel: ['EH-ZB-HACT'],
+        model: 'EER50000',
+        vendor: 'Schneider Electric',
+        description: 'Wiser H-Relay (HACT)',
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+        },
+    },
 ];
