@@ -868,8 +868,13 @@ const converters = {
 
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-            return {state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state, meta.options),
-                readAfterWriteTime: payload.transtime * 100};
+
+            // skip state publish when color_publish_set is false
+            let state = {};
+            if ((meta.options && meta.options.hasOwnProperty('color_publish_set')) ? meta.options.color_publish_set : true) {
+                state = libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state, meta.options);
+            }
+            return {state: state, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['colorMode', 'colorTemperature']);
@@ -983,7 +988,13 @@ const converters = {
             }
 
             await entity.command('lightingColorCtrl', command, zclData, utils.getOptions(meta.mapped, entity));
-            return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
+
+            // skip state publish when color_publish_set is false
+            let state = {};
+            if ((meta.options && meta.options.hasOwnProperty('color_publish_set')) ? meta.options.color_publish_set : true) {
+                state = libColor.syncColorState(newState, meta.state, meta.options);
+            }
+            return {state: state, readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta));
