@@ -119,7 +119,7 @@ module.exports = [
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
-            tz.danfoss_viewing_direction, tz.thermostat_keypad_lockout],
+            tz.danfoss_viewing_direction, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -135,14 +135,16 @@ module.exports = [
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
+                .withSystemMode(['heat']),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('window_open_external', ea.ALL, true, false)
                 .withDescription('Set if the window is open or close. This setting will trigger a change in the internal ' +
                     'window and heating demand. `false` (windows are closed) or `true` (windows are open)'),
-            exposes.numeric('day_of_week', ea.ALL).withValueMin(0).withValueMax(7)
+            exposes.enum('day_of_week', ea.ALL,
+                ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'away_or_vacation'])
                 .withDescription('Exercise day of week: 0=Sun...6=Sat, 7=undefined'),
             exposes.numeric('trigger_time', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439'),

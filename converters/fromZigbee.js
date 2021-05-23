@@ -2611,7 +2611,10 @@ const converters = {
                 result[postfixWithEndpointName('window_open_external', msg, model)] = (msg.data['danfossWindowOpenExternal'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossDayOfWeek')) {
-                result[postfixWithEndpointName('day_of_week', msg, model)] = msg.data['danfossDayOfWeek'];
+                result[postfixWithEndpointName('day_of_week', msg, model)] =
+                    constants.dayOfWeek.hasOwnProperty(msg.data['danfossDayOfWeek']) ?
+                        constants.dayOfWeek[msg.data['danfossDayOfWeek']] :
+                        msg.data['danfossDayOfWeek'];
             }
             if (msg.data.hasOwnProperty('danfossTriggerTime')) {
                 result[postfixWithEndpointName('trigger_time', msg, model)] = msg.data['danfossTriggerTime'];
