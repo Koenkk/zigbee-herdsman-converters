@@ -557,4 +557,11 @@ module.exports = [
         description: 'TRADFRI LED bulb E14 470 lumen, opal, dimmable, white spectrum, color spectrum',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
     },
+    {
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm'],
+        model: 'LED1935C3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
 ];
