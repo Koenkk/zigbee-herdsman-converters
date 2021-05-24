@@ -1052,7 +1052,7 @@ module.exports = [
         zigbeeModel: ['lumi.remote.b28ac1'],
         model: 'WRS-R02',
         vendor: 'Xiaomi',
-        description: 'Aqara Wireless Remote Switch H1 (Double Rocker)',
+        description: 'Aqara wireless remote switch H1 (double rocker)',
         fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple_report, fz.command_toggle],
         exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
@@ -1066,7 +1066,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
-            // set "event" mode 
+            // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             // turn on the "multiple clicks" mode, otherwise the only "single click" events.
             // if value is 1 - there will be single clicks, 2 - multiple.
