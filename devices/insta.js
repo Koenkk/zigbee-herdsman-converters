@@ -16,7 +16,7 @@ module.exports = [
             {vendor: 'Jung', model: 'ZLLLS5004M'}, {vendor: 'Jung', model: 'ZLLA5004M'}, {vendor: 'Jung', model: 'ZLLHS4'}],
         fromZigbee: [fz.legacy.insta_scene_click, fz.command_on, fz.command_off_with_effect, fz.legacy.insta_down_hold,
             fz.legacy.insta_up_hold, fz.legacy.insta_stop],
-        exposes: [e.action(['select_*', 'on', 'off', 'down', 'up', 'stop'])],
+        exposes: [e.action(['select_0', 'select_1', 'select_2', 'select_3', 'select_4', 'select_5', 'on', 'off', 'down', 'up', 'stop'])],
         toZigbee: [],
         ota: ota.zigbeeOTA,
     },
