@@ -442,8 +442,8 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'},
         ],
-        fromZigbee: [fz.battery,fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
-        toZigbee: [], 
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
         meta: {},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
