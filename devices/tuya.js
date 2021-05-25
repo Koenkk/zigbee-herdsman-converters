@@ -440,7 +440,7 @@ module.exports = [
         whiteLabel: [{vendor: '_TZ3000_xabckq1v', model: 'TS004F'}],
         exposes: [
             e.battery(),
-            e.action(['1_single', '2_single', '3_single', '3_hold', '4_single', '4_hold'])
+            e.action()
         ],
         fingerprint: [
             {modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'},
