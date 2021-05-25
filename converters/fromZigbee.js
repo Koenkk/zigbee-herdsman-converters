@@ -1706,6 +1706,7 @@ const converters = {
         cluster: 'manuSpecificClusterAduroSmart',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, null, msg.device.ieeeAddr + 'action')) return;
             if (typeof msg.data['27'] === 'number') {
                 const direction = (msg.data['27'] > 0 ? 'clockwise' : 'counterclockwise');
                 const number = (Math.abs(msg.data['27']) / 12);
@@ -4246,6 +4247,7 @@ const converters = {
         cluster: 'manuSpecificClusterAduroSmart',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, null, msg.device.ieeeAddr + 'action')) return;
             // 13,40,18,104, 0,8,1 - single
             // 13,40,18,22,  0,17,1
             // 13,40,18,32,  0,18,1
