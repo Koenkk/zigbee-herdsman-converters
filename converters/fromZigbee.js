@@ -2069,6 +2069,42 @@ const converters = {
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
+    tuya_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options, meta) => {
+            if (model.model === 'TS004F') {
+                if (msg.type == 'commandOn') {
+                    return {action: '1_single'};
+                } else if (msg.type == 'commandOff') {
+                    return {action: '2_single'};
+                }
+            }
+        },
+    },
+    tuya_levelctrl: {
+        cluster: 'genLevelCtrl',
+        type: ['commandStep', 'commandMove', 'commandStop'],
+        convert: (model, msg, publish, options, meta) => {
+            if (model.model === 'TS004F') {
+                if (msg.type === 'commandStep') {
+                    if (msg.data.stepmode === 0) {
+                        return {action: '3_single'};
+                    } else if (msg.data.stepmode === 1) {
+                        return {action: '4_single'};
+                    }
+                } else if (msg.type === 'commandMove') {
+                    if (msg.data.movemode === 0) {
+                        return {action: '3_hold'};
+                    } else if (msg.data.movemode === 1) {
+                        return {action: '4_hold'};
+                    }
+                } else if (msg.type === 'commandStop') {
+                    return {action: 'release'};
+                }
+            }
+        },
+    },
     tuya_water_leak: {
         cluster: 'manuSpecificTuya',
         type: 'commandSetDataResponse',
