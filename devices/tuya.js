@@ -433,25 +433,20 @@ module.exports = [
         toZigbee: [],
     },
     {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'}],
         model: 'TS004F',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
-        whiteLabel: [{vendor: '_TZ3000_xabckq1v', model: 'TS004F'}],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_step_up',
-            'brightness_step_down', 'brightness_move_down', 'brightness_stop'])],
-        fingerprint: [
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'},
-        ],
+        exposes: [e.battery(), e.action(
+            ['on', 'off', 'brightness_move_up', 'brightness_step_up', 'brightness_step_down', 'brightness_move_down', 'brightness_stop'])],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
-        meta: {},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/6313 */
-            }
+            } catch (error) {/* Fails for some*/}
         },
     },
     {
