@@ -433,6 +433,41 @@ module.exports = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['TS004F'],
+        model: 'TS004F',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 4 buttons',
+        whiteLabel: [{vendor: '_TZ3000_xabckq1v', model: 'TS004F'}],
+        exposes: [
+            e.battery(),
+            e.action(['1_single', '2_single', '3_single', '3_hold', '4_single', '4_hold'])
+        ],
+        fingerprint: [
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'},
+        ],
+        fromZigbee: [fz.battery, fz.tuya_on_off_action, fz.tuya_levelctrl],
+        toZigbee: [],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+
+            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            const payload = [{
+                attribute: 'batteryPercentageRemaining',
+                minimumReportInterval: 0,
+                maximumReportInterval: 3600,
+                reportableChange: 1,
+            }, {
+                attribute: 'batteryVoltage',
+                minimumReportInterval: 0,
+                maximumReportInterval: 3600,
+                reportableChange: 1,
+            }];
+            await endpoint.configureReporting('genPowerCfg', payload);
+        },
+    },
+    {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
         vendor: 'TuYa',
