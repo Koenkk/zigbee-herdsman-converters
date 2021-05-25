@@ -450,21 +450,11 @@ module.exports = [
         meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            const payload = [{
-                attribute: 'batteryPercentageRemaining',
-                minimumReportInterval: 0,
-                maximumReportInterval: 3600,
-                reportableChange: 1,
-            }, {
-                attribute: 'batteryVoltage',
-                minimumReportInterval: 0,
-                maximumReportInterval: 3600,
-                reportableChange: 1,
-            }];
-            await endpoint.configureReporting('genPowerCfg', payload);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            try {
+                await reporting.batteryPercentageRemaining(endpoint);
+            } catch (error) {/* Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/6313 */
+            }
         },
     },
     {
