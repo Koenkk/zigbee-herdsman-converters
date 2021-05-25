@@ -919,7 +919,7 @@ module.exports = [
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state],
     },
     {
-        zigbeeModel: ['E220-KR4N0Z0-HA'],
+        zigbeeModel: ['E220-KR4N0Z0-HA', 'JZ-ZB-004'],
         model: 'E220-KR4N0Z0-HA',
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
