@@ -57,7 +57,7 @@ module.exports = [
         model: '0402946',
         vendor: 'Datek',
         description: 'Zigbee module for ID lock 150',
-        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.idlock],
+        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.idlock, fz.lock_programming_event, fz.lock_pin_code_response],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.idlock_master_pin_mode, tz.idlock_rfid_enable,
             tz.idlock_lock_mode, tz.idlock_relock_enabled],
         configure: async (device, coordinatorEndpoint, logger) => {
