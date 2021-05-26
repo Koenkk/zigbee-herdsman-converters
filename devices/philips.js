@@ -118,6 +118,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1745530P7'],
+        model: '1745530P7',
+        vendor: 'Philips',
+        description: 'Hue Nyro',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LDT001'],
         model: '5900131C5',
         vendor: 'Philips',
