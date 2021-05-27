@@ -647,7 +647,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'}],
         model: 'TS011F_plug',
         description: 'Smart EU plug',
         vendor: 'TuYa',
