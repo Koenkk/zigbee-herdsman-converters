@@ -2002,7 +2002,9 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('maxDuration')) result['duration'] = msg.data.maxDuration;
-            if (msg.data.hasOwnProperty('2')) result['volume'] = msg.data['2'];
+            if (msg.data.hasOwnProperty('2')) {
+                result['volume'] = mapNumberRange(msg.data['2'], 100, 10, 0, 100);
+            };
             if (msg.data.hasOwnProperty('61440')) {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
