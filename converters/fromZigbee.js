@@ -5605,7 +5605,8 @@ const converters = {
                 result.rfid_enable = msg.data[0x4001] == 1 ? true : false;
             }
             if (0x4003 in msg.data) {
-                const lookup = {0: 'deactivated', 1: 'random_pin_1x_use', 5: 'random_pin_1x_use', 6: 'random_pin_24_hours', 9: 'random_pin_24_hours'};
+                const lookup = {0: 'deactivated', 1: 'random_pin_1x_use', 5: 'random_pin_1x_use', 6: 'random_pin_24_hours',
+                9: 'random_pin_24_hours'};
                 result.service_mode = lookup[msg.data[0x4003]];
             }
             if (0x4004 in msg.data) {
