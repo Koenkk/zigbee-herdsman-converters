@@ -170,7 +170,7 @@ module.exports = [
     },
     {
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: '067775',
+        model: '067775/741811',
         vendor: 'Legrand',
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
