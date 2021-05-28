@@ -5604,12 +5604,27 @@ const converters = {
             if (0x4001 in msg.data) {
                 result.rfid_enable = msg.data[0x4001] == 1 ? true : false;
             }
+            if (0x4003 in msg.data) {
+                const lookup = {0: 'deactivated', 1: 'random_pin_1x_use', 5: 'random_pin_1x_use', 6: 'random_pin_24_hours', 9: 'random_pin_24_hours'};
+                result.service_mode = lookup[msg.data[0x4003]];
+            }
             if (0x4004 in msg.data) {
                 const lookup = {0: 'auto_off_away_off', 1: 'auto_on_away_off', 2: 'auto_off_away_on', 3: 'auto_on_away_on'};
                 result.lock_mode = lookup[msg.data[0x4004]];
             }
             if (0x4005 in msg.data) {
                 result.relock_enabled = msg.data[0x4005] == 1 ? true : false;
+            }
+            return result;
+        },
+    },
+    idlock_fw: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (0x5000 in msg.data) {
+                result.idlock_lock_fw = msg.data[0x5000];
             }
             return result;
         },

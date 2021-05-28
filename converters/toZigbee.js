@@ -4849,6 +4849,18 @@ const converters = {
             await entity.read('closuresDoorLock', [0x4001], {manufacturerCode: 4919});
         },
     },
+    idlock_service_mode: {
+        key: ['service_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'deactivated': 0, 'random_pin_1x_use': 5, 'random_pin_24_hours': 6};
+            await entity.write('closuresDoorLock', {0x4003: {value: lookup[value], type: 0x20}},
+                {manufacturerCode: 4919});
+            return {state: {service_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresDoorLock', [0x4003], {manufacturerCode: 4919});
+        },
+    },
     idlock_lock_mode: {
         key: ['lock_mode'],
         convertSet: async (entity, key, value, meta) => {
