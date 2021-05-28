@@ -280,7 +280,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRI control outlet'],
-        model: 'E1603/E1702',
+        model: 'E1603/E1702/E1708',
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: extend.switch(),
