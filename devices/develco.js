@@ -299,4 +299,25 @@ module.exports = [
             await reporting.temperature(endpoint38);
         },
     },
+    {
+        zigbeeModel: ['AQSZB-110'],
+        model: 'AQSZB-110',
+        vendor: 'Develco',
+        description: 'Air Quality Sensor',
+        fromZigbee: [fz.develco_voc_battery, fz.develco_voc, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_low(), e.voc(), e.temperature(), e.humidity()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(38);
+            const options = {manufacturerCode: 0x1015};
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['develcoSpecificAirQuality', 'msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await endpoint.configureReporting('develcoSpecificAirQuality', [{attribute: 'measuredValue', minimumReportInterval: 60,
+                maximumReportInterval: 3600, reportableChange: 10}], options);
+            await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
+            await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+        },
+    },
 ];
