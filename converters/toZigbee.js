@@ -4590,7 +4590,7 @@ const converters = {
     ts0216_volume: {
         key: ['volume'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('ssIasWd', {0x0002: {value: value, type: 0x20}});
+            await entity.write('ssIasWd', {0x0002: {value: utils.mapNumberRange(value, 0, 100, 100, 10), type: 0x20}});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('ssIasWd', [0x0002]);
