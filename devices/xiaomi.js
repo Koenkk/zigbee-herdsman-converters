@@ -57,7 +57,7 @@ module.exports = [
         model: 'XDD11LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX960',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
