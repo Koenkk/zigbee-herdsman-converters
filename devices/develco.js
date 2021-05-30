@@ -303,7 +303,7 @@ module.exports = [
         zigbeeModel: ['AQSZB-110'],
         model: 'AQSZB-110',
         vendor: 'Develco',
-        description: 'Air Quality Sensor',
+        description: 'Air quality sensor',
         fromZigbee: [fz.develco_voc_battery, fz.develco_voc, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.voc(), e.temperature(), e.humidity()],
