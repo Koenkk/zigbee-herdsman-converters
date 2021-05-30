@@ -334,6 +334,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4090431P9'],
+        model: '4090431P9',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance table light with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCG002'],
         model: '929001953101',
         vendor: 'Philips',
