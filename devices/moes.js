@@ -151,4 +151,20 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'}],    
+        model: 'ESW-0ZAA-EU',
+        vendor: 'Moes',
+        description: 'Wireless Scene Switch with 4 buttons',
+        exposes: [e.battery(), e.action(
+            ['on', 'off', 'brightness_move_up', 'brightness_step_up', 'brightness_step_down', 'brightness_move_down', 'brightness_stop'])],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            try {
+                await reporting.batteryPercentageRemaining(endpoint);
+            } catch (error) {/* Fails for some*/}
+    },
 ];
