@@ -11,15 +11,15 @@ module.exports = [
         model: 'GR-ZB01-W',
         vendor: 'AXIS',
         description: 'Gear window shade motor',
-        fromZigbee: [fz.cover_position_via_brightness, fz.battery],
-        toZigbee: [tz.cover_via_brightness],
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
-            await reporting.brightness(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
+        exposes: [e.cover_position(), e.battery()],
     },
 ];
