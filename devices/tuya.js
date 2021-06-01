@@ -438,6 +438,7 @@ module.exports = [
         model: 'TS004F',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
+        whiteLabel: [{vendor: 'Moes', model: 'ESW-0ZAA-EU'}],
         exposes: [e.battery(), e.action(
             ['on', 'off', 'brightness_move_up', 'brightness_step_up', 'brightness_step_down', 'brightness_move_down', 'brightness_stop'])],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
