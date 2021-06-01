@@ -222,7 +222,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c'],
+        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c', 'b2e57a0f606546cd879a1a54790827d6'],
         model: 'SN10ZW',
         vendor: 'ORVIBO',
         description: 'Occupancy sensor',
