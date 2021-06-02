@@ -9,7 +9,7 @@ module.exports = [
         zigbeeModel: ['E-Wand'],
         model: 'CP180335E-01',
         vendor: 'Current Products Corp',
-        description: 'Gen. 2 Hybrid E-Wand',
+        description: 'Gen. 2 hybrid E-Wand',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
