@@ -10,8 +10,8 @@ module.exports = [
         model: 'QZR-ZIG2400',
         vendor: 'Qmotion',
         description: '5 channel remote',
-        fromZigbee: [fz.identify, fz.cover_position_tilt],
-        exposes: [e.action(['identify']), exposes.numeric('position', ea.STATE)],
+        fromZigbee: [fz.identify],
+        exposes: [e.action(['identify'])],
         toZigbee: [],
     },
     {
@@ -26,7 +26,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
-        }
+        },
         exposes: [e.cover_position(), e.battery()],
     },
 ];
