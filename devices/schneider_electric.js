@@ -264,6 +264,20 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['FLS/AIRLINK/4'],
+        model: '550D6001',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless battery 4 button switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Currently all four front switches operate out of ep21 for some reason
+            const buttonEndpoint = device.getEndpoint(21);
+            await reporting.bind(buttonEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'CCTFR6700', manufacturerName: 'Schneider Electric'}],
         model: 'CCTFR6700',
         vendor: 'Schneider Electric',
