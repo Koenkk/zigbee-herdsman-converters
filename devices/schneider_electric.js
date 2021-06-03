@@ -108,6 +108,25 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CH/DIMMER/1'],
+        model: '41EPBDWCLMZ/354PBDMBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module Dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
