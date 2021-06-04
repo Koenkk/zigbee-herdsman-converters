@@ -2218,6 +2218,124 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
         },
     },
+    // ############################### toZigbee.js moesS ############################################
+    // moesSsystemMode: 1,
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSsystemMode, value);
+            switch (value) {
+            case 'auto':
+                // return {system_mode: 'auto'};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 0 /* auto */);
+                break;
+            case 'manual':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 1 /* manual */);
+                break;
+            case 'temphand':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 2 /* temphand */);
+                break;
+            case 'holiday':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 3 /* holiday */);
+                break;
+            }
+        },
+    },
+    // moesSheatingSetpoint: 2,
+    moesS_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSheatingSetpoint, value);
+        },
+    },
+    // moesSboostHeating: 4,
+    moesS_thermostat_boost_heating: {
+        key: ['boost_heating'],
+        convertSet: async (entity, key, value, meta) => {
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value);
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'OFF');
+        },
+    },
+    // moesSboostHeatingCountdown: 5,
+    moesS_thermostat_boost_heating_countdown: {
+        key: ['boost_heating_countdown'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdown, value);
+        },
+    },
+    // moesSwindowDetection: 9,
+    moesS_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSwindowDetection, [value === 'ON' ? 1 : 0]);
+        },
+    },
+    // moesSchildLock: 13,
+    moesS_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value);
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value === 'LOCK');
+        },
+    },
+    // moesSboostHeatingCountdownTimeSet: 103,
+    moesS_thermostat_boostHeatingCountdownTimeSet: {
+        key: ['boost_time'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdownTimeSet, value);
+        },
+    },
+    // moesScompensationTempSet: 105,
+    moesS_thermostat_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            let temp = Math.round(value * 1);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesScompensationTempSet, temp);
+        },
+    },
+    // moesSecoMode: 106,
+    moesS_thermostat_moesSecoMode: {
+        key: ['eco_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSwindowDetection,[value === 'ON' ? 1 : 0]);
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value);
+            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value === 'OFF');
+        },
+    },
+    // moesSecoModeTempSet: 107,
+    moesS_thermostat_eco_temperature: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSecoModeTempSet, value);
+        },
+    },
+    // moesSmaxTempSet: 108,
+    moesS_thermostat_max_temperature: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSmaxTempSet, value);
+        },
+    },
+    // moesSminTempSet: 109,
+    moesS_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            // const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, value);
+        },
+    },
+    // ########################### toZigbee.js ende moesS #########################################
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
