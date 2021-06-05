@@ -587,7 +587,7 @@ module.exports = [
             e.battery(), e.child_lock(),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET).withSystemMode(['auto', 'manual', 'temphand', 'holiday'], ea.STATE_SET),
+                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['auto', 'manual', 'temphand', 'holiday'], ea.STATE_SET),
             exposes.text('schedule', ea.STATE).withDescription('MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                 'PROGRAMMING MODE ⏱ -In this mode, the device executes a preset week programming temperature time and temperature. ' +
