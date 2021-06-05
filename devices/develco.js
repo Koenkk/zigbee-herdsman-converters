@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -306,7 +307,14 @@ module.exports = [
         description: 'Air quality sensor',
         fromZigbee: [fz.develco_voc_battery, fz.develco_voc, fz.temperature, fz.humidity],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_low(), e.voc(), e.temperature(), e.humidity()],
+        exposes: [
+            e.voc(), e.temperature(), e.humidity(),
+            e.battery(), e.battery_low(),
+            exposes.enum('air_quality', ea.STATE, [
+                'excellent', 'good', 'moderate',
+                'poor', 'unhealthy', 'out_of_range',
+                'unknown']).withDescription('Measured air quality'),
+        ],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
