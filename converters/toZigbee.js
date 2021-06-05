@@ -2221,12 +2221,12 @@ const converters = {
     // ############################### toZigbee.js moesS ############################################
     // moesSsystemMode: 1,
     moesS_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSsystemMode, value);
             switch (value) {
             case 'auto':
-                // return {system_mode: 'auto'};
+                // return {preset: 'auto'};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 0 /* auto */);
                 break;
             case 'manual':
