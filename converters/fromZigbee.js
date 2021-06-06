@@ -3058,41 +3058,32 @@ const converters = {
             case tuya.dataPoints.moesSsystemMode:
                 switch (value) {
                 case 0:
-                    return {preset: 'auto'};
+                    return {mode_selection: 'PROGRAMMING'};
                 case 1:
-                    return {preset: 'manual'};
+                    return {mode_selection: 'MANUAL'};
                 case 2:
-                    return {preset: 'temphand'};
+                    return {mode_selection: 'TEMPORARY_MANUAL'};
                 case 3:
-                    return {preset: 'holiday'};
+                    return {mode_selection: 'HOLIDAY'};
                 }
                 break;
             case tuya.dataPoints.moesSheatingSetpoint:
                 // return {current_heating_setpoint: (value / 10).toFixed(1)};
                 return {current_heating_setpoint: value};
-
             case tuya.dataPoints.moesSlocalTemp:
                 return {local_temperature: (value / 10)};
-
             case tuya.dataPoints.moesSboostHeating:
                 return {boost_heating: value ? 'ON' : 'OFF'};
-
             case tuya.dataPoints.moesSboostHeatingCountdown:
                 return {boost_heating_countdown: value};
-
             case tuya.dataPoints.moesSreset:
                 break;
-
             case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
                 return {window_detection: value ? 'ON' : 'OFF'};
-
             case tuya.dataPoints.moesSwindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
-
             case tuya.dataPoints.moesSchildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-                // return {lock: value ? 'LOCK' : 'UNLOCK'};
-
             case tuya.dataPoints.moesSbattery:
                 // return {battery: (value).toFixed(1)}; // 00,0%
                 return {battery: value};
@@ -3110,7 +3101,7 @@ const converters = {
 
             case tuya.dataPoints.moesSschedule:
                 return {
-                    schedule: {
+                    programming_mode: {
                         weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
                                 ',  ' + value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C' +
                                 ',  ' + value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C' +
@@ -3125,28 +3116,20 @@ const converters = {
                                 ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C ',
                     },
                 };
-
             case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
-                return {boost_time: (value)};
-
+                return {boost_time_set: (value)};
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
-
             case tuya.dataPoints.moesScompensationTempSet:
                 return {local_temperature_calibration: value};
-
             case tuya.dataPoints.moesSecoMode:
                 return {eco_mode: value ? 'ON' : 'OFF'};
-
             case tuya.dataPoints.moesSecoModeTempSet:
                 return {eco_temperature: value};
-
             case tuya.dataPoints.moesSmaxTempSet:
                 return {max_temperature: value};
-
             case tuya.dataPoints.moesSminTempSet:
                 return {min_temperature: value};
-
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
