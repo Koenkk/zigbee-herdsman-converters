@@ -380,7 +380,7 @@ const converters = {
                 'closuresWindowCovering',
                 'goToTiltPercentage',
                 {percentagetiltvalue: position},
-                utils.getOptions(meta.mapped, entity)
+                utils.getOptions(meta.mapped, entity),
             );
 
             return {state: {[isPosition ? 'position' : 'tilt']: value}};
