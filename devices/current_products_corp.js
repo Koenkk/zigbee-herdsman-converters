@@ -20,6 +20,6 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.cover_position_tilt().setAccess('position', ea.STATE) ],
+        exposes: [e.battery(), e.cover_position_tilt().setAccess('position', ea.STATE_SET) ],
     },
 ];
