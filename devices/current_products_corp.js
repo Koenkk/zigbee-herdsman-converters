@@ -11,7 +11,7 @@ module.exports = [
         vendor: 'Current Products Corp',
         description: 'Gen. 2 hybrid E-Wand',
         fromZigbee: [fz.battery, fz.cover_state_via_onoff, fz.cover_tilt],
-        toZigbee: [tz.cover_position_tilt,tz.cover_state],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering', 'genOnOff', 'genPowerCfg']);
