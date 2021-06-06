@@ -376,7 +376,12 @@ const converters = {
                 !meta.options.invert_cover : meta.options.invert_cover);
             const position = invert ? 100 - value : value;
 
-            await entity.command('closuresWindowCovering', 'goToTiltPercentage', {percentagetiltvalue: position}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+		    'closuresWindowCovering',
+		    'goToTiltPercentage',
+		    {percentagetiltvalue: position},
+		    utils.getOptions(meta.mapped, entity)
+	    );
 
             return {state: {[isPosition ? 'position' : 'tilt']: value}};
         },
