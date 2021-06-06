@@ -3,6 +3,7 @@ const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -19,6 +20,6 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.cover_tilt()],
+        exposes: [e.battery(), e.cover_position_tilt().setAccess('position', ea.STATE) ],
     },
 ];
