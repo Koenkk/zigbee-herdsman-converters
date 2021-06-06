@@ -564,47 +564,6 @@ module.exports = [
             e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
     },
     {
-        zigbeeModel: ['TS0601_TZE200_b6wax7g0'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'},],
-        model: 'BRT-100_TRV',
-        vendor: 'Moes',
-        description: 'Thermostatic Radiator Valve',
-        whiteLabel: [{vendor: 'Moes', model: 'BRT-100_TRV'}],
-        supports: 'thermostat, temperature',
-        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes5},
-        ota: ota.zigbeeOTA,
-        onEvent: tuya.onEventSetLocalTime,
-        supports: 'thermostat, temperature',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.moesS_thermostat,],
-        toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
-            tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
-            tz.moesS_thermostat_temperature_calibration, tz.moesS_thermostat_system_mode,
-            tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
-            tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature, tz.moesS_thermostat_min_temperature,
-            tz.moesS_thermostat_schedule, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_boost_heating_countdown,],
-        exposes: [
-            e.battery(), e.child_lock(),
-            exposes.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['auto', 'manual', 'temphand', 'holiday'], ea.STATE_SET),
-            exposes.text('schedule', ea.STATE).withDescription('MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
-                'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                'PROGRAMMING MODE ⏱ -In this mode, the device executes a preset week programming temperature time and temperature. ' +
-                'HOLIDAY MODE ⛱ - In this mode, for example, the vacation mode is set for 10 days and the temperature is set' +
-                'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
-                'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set temperature' +
-                'and returns to the weekly programming mode in the next time period. '),
-            exposes.text('boost_heating', ea.STATE).withDescription('Boost Heating: Press and hold "+" for 3 seconds, the device will' +
-                'enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.text('boost_heating_countdown', ea.STATE).withDescription('countdown in minutes'),
-            e.boost_time( 300, 900, 10, ea.STATE_SET).withUnit('sec'),
-            exposes.text('eco_mode', ea.STATE).withDescription('ON/OFF state ECO MODE'), e.eco_temperature(),
-            e.max_temperature(), e.min_temperature(), e.window_detection(), e.position(),
-            // e.boost_heating(), e.eco_mode(),
-            ],
-    },
-    {
         fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
         model: 'HT-08',
         vendor: 'ETOP',
