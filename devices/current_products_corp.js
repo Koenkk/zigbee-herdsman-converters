@@ -3,7 +3,6 @@ const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
@@ -12,7 +11,7 @@ module.exports = [
         vendor: 'Current Products Corp',
         description: 'Gen. 2 hybrid E-Wand',
         fromZigbee: [fz.battery, fz.cover_state_via_onoff, fz.cover_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        toZigbee: [tz.cover_tilt, tz.cover_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering', 'genOnOff', 'genPowerCfg']);
@@ -20,6 +19,6 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.cover_position_tilt().setAccess('position', ea.STATE_SET) ],
+        exposes: [e.battery(), e.cover_position()],
     },
 ];
