@@ -5716,7 +5716,7 @@ const converters = {
             const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
             const lookup = {1: 'RC', 2: 'RL'};
             if (msg.data.hasOwnProperty(0xe000)) {
-                result.schneider_dimmer_mode = lookup[msg.data[0xe000]];
+                result.dimmer_mode = lookup[msg.data[0xe000]];
             }
             return result;
         },

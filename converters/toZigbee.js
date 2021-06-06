@@ -4899,13 +4899,13 @@ const converters = {
         },
     },
     schneider_dimmer_mode: {
-        key: ['schneider_dimmer_mode'],
+        key: ['dimmer_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'RC': 1, 'RL': 2};
             utils.validateValue(value, Object.keys(lookup));
             const mode = lookup[value];
             await entity.write('lightingBallastCfg', {0xe000: {value: mode, type: 0x30}}, {manufacturerCode: 0x105e});
-            return {state: {schneider_dimmer_mode: value}};
+            return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: 0x105e});
