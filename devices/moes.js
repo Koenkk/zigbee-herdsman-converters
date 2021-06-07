@@ -157,7 +157,7 @@ module.exports = [
         model: 'BRT-100_TRV',
         vendor: 'Moes',
         description: 'Thermostatic Radiator Valve',
-        whiteLabel: [{vendor: 'Moes', model: 'BRT-100_TRV'}],
+        // whiteLabel: [{vendor: 'Moes', model: 'BRT-100_TRV'}],
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         supports: 'thermostat, temperature',
