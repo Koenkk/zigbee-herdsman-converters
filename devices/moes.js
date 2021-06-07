@@ -154,7 +154,7 @@ module.exports = [
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
     {
-        zigbeeModel: ['b6wax7g0'],
+        // zigbeeModel: ['b6wax7g0'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
