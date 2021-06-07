@@ -2224,17 +2224,17 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSsystemMode, value);
             switch (value) {
-            case 'PROGRAMMING':
+            case 'programming':
                 // return {system_mode: 'auto'};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 0 /* PROGRAMMING */);
                 break;
-            case 'MANUAL':
+            case 'manual':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 1 /* MANUAL */);
                 break;
-            case 'TEMPORARY_MANUAL':
+            case 'temporary_manual':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 2 /* TEMPORARY_MANUAL */);
                 break;
-            case 'HOLIDAY':
+            case 'holiday':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 3 /* HOLIDAY */);
                 break;
             }
