@@ -176,7 +176,7 @@ module.exports = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(ea.STATE_SET),
-            exposes.enum('mode_selection', ea.STATE_SET, ['PROGRAMMING', 'MANUAL', 'TEMPORARY_MANUAL', 'HOLIDAY'])
+            exposes.enum('mode_selection', ea.STATE_SET, ['programming', 'manual', 'temporary_manual', 'holiday'])
                 .withDescription('MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                 'PROGRAMMING MODE ⏱ -In this mode, the device executes a preset week programming temperature time and temperature. ' +
