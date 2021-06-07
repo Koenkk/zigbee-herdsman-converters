@@ -5709,6 +5709,18 @@ const converters = {
             return result;
         },
     },
+    schneider_lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const lookup = {1: 'RC', 2: 'RL'};
+            if (msg.data.hasOwnProperty(0xe000)) {
+                result.dimmer_mode = lookup[msg.data[0xe000]];
+            }
+            return result;
+        },
+    },
     schneider_ui_action: {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
