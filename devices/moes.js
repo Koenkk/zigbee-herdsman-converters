@@ -154,11 +154,12 @@ module.exports = [
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
     {
+        zigbeeModel: ['TS0601_TZE200_b6wax7g0'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
         model: 'BRT-100_TRV',
         vendor: 'Moes',
         description: 'Thermostatic Radiator Valve',
-        // whiteLabel: [{vendor: 'Moes', model: 'BRT-100_TRV'}],
+        whiteLabel: [{vendor: 'Moes', model: 'BRT-100_TRV'}],
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         supports: 'thermostat, temperature',
@@ -167,9 +168,9 @@ module.exports = [
             tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
             tz.moesS_thermostat_temperature_calibration, tz.moesS_thermostat_system_mode,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
-            tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature, tz.moesS_thermostat_min_temperature,
-            tz.moesS_thermostat_schedule, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_boost_heating_countdown],
+            tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature, 
+            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_schedule, 
+            tz.moesS_thermostat_moesSecoMode, tz.moesS_thermostat_boost_heating_countdown],
         exposes: [
             e.battery(), e.child_lock(),
             exposes.climate()
@@ -181,8 +182,8 @@ module.exports = [
                 'PROGRAMMING MODE ⏱ -In this mode, the device executes a preset week programming temperature time and temperature. ' +
                 'HOLIDAY MODE ⛱ - In this mode, for example, the vacation mode is set for 10 days and the temperature is set' +
                 'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
-                'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set temperature' +
-                'and returns to the weekly programming mode in the next time period. '),
+                'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set ' +
+                'temperature and returns to the weekly programming mode in the next time period. '),
             exposes.enum('programming_mode', ea.STATE).withDescription('PROGRAMMING MODE ⏱ -In this mode, the device executes a ' +
                 'preset week programming temperature time and temperature. '),
             exposes.binary('boost_heating', ea.STATE).withDescription('Boost Heating: Press and hold "+" for 3 seconds, the device will' +
