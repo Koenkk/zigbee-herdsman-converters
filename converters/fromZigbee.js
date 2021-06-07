@@ -3710,6 +3710,22 @@ const converters = {
             }
         },
     },
+	tuya_wooxr7049: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.wooxr7049battery:
+                return {battery_low: value === 0 ? true : false};
+			case tuya.dataPoints.state:
+                return {smoke: value === 0 ? true : false};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],
