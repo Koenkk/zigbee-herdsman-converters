@@ -108,6 +108,25 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CH/DIMMER/1'],
+        model: '41EPBDWCLMZ/354PBDMBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module Dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
@@ -202,9 +221,8 @@ module.exports = [
             tz.schneider_pilot_mode, tz.schneider_temperature_measured_value],
         exposes: [e.power(), e.energy(),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
-            exposes.numeric('temperature_measured_value', ea.SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+                .withSystemMode(['off', 'auto', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
