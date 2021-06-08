@@ -3047,28 +3047,17 @@ const converters = {
             }
         },
     },
-    // ############################## fromZigbee.js moesS #######################################
     moesS_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp; // First we get the data point ID
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
             case tuya.dataPoints.moesSsystemMode:
-                switch (value) {
-                case 0:
-                    return {preset: 'programming'};
-                case 1:
-                    return {preset: 'manual'};
-                case 2:
-                    return {preset: 'temporary_manual'};
-                case 3:
-                    return {preset: 'holiday'};
-                }
-                break;
+                return {preset: presetLookup[value]};
             case tuya.dataPoints.moesSheatingSetpoint:
-                // return {current_heating_setpoint: (value / 10).toFixed(1)};
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:
                 return {local_temperature: (value / 10)};
@@ -3085,20 +3074,7 @@ const converters = {
             case tuya.dataPoints.moesSchildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesSbattery:
-                // return {battery: (value).toFixed(1)}; // 00,0%
                 return {battery: value};
-
-                // if (value === 0 - 100){
-                //  return {battery_low: true };
-                //  payload.battery_low = true;
-                // }
-                // return payload;
-
-                // if (value !== 10 - 100){
-                // return {battery_low: 0 };
-                // return {battery_low: (value = 0).toFixed(1)};
-                // const    msg.data.batteray === 0 - 100 ;
-
             case tuya.dataPoints.moesSschedule:
                 return {
                     programming_mode: {
@@ -3136,7 +3112,6 @@ const converters = {
             }
         },
     },
-    // ########################### fromZigbee.js ende moesS #########################################
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
