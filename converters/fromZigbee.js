@@ -3704,23 +3704,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             switch (dp) {
             case tuya.dataPoints.state:
-                return {smoke: value === 0};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
-            }
-        },
-    },
-    tuya_woox_smoke: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            switch (dp) {
-            case tuya.dataPoints.wooxBattery:
-                return {battery_low: value === 0};
-            case tuya.dataPoints.state:
-                return {smoke: value === 0};
+                return {smoke: value === 0 ? true : false};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
             }
