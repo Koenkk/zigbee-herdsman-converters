@@ -21,7 +21,7 @@ module.exports = [
         zigbeeModel: ['ITCMDR_Click'],
         model: 'ITCMDR_Click',
         vendor: 'IT Commander',
-        description: 'button by IT Commander',
+        description: 'Button by IT Commander',
         fromZigbee: [fz.ignore_basic_report, fz.ptvo_multistate_action,],
         toZigbee: [],
         exposes: [e.action(['single', 'double', 'triple', 'hold', 'release']),e.battery(),]
