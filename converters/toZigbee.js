@@ -2218,7 +2218,6 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
         },
     },
-    // ############################### toZigbee.js moesS ############################################
     moesS_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -2243,22 +2242,18 @@ const converters = {
     moesS_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSheatingSetpoint, value);
         },
     },
     moesS_thermostat_boost_heating: {
         key: ['boost_heating'],
         convertSet: async (entity, key, value, meta) => {
-            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value);
-            // await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value === 'LOCK');
             await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'OFF');
         },
     },
     moesS_thermostat_boost_heating_countdown: {
         key: ['boost_heating_countdown'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdown, value);
         },
     },
@@ -2277,7 +2272,6 @@ const converters = {
     moesS_thermostat_boostHeatingCountdownTimeSet: {
         key: ['boost_time_set'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdownTimeSet, value);
         },
     },
@@ -2300,25 +2294,21 @@ const converters = {
     moesS_thermostat_eco_temperature: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSecoModeTempSet, value);
         },
     },
     moesS_thermostat_max_temperature: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSmaxTempSet, value);
         },
     },
     moesS_thermostat_min_temperature: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            // const temp = Math.round(value * 10);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, value);
         },
     },
-    // ########################### toZigbee.js ende moesS #########################################
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
