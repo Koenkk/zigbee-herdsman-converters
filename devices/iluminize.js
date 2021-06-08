@@ -38,7 +38,7 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-	
+	{
         zigbeeModel: ['5120.1110'],
         model: '5120.1110',
         vendor: 'Iluminize',
