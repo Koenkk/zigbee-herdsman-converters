@@ -3058,13 +3058,13 @@ const converters = {
             case tuya.dataPoints.moesSsystemMode:
                 switch (value) {
                 case 0:
-                    return {mode_selection: 'programming'};
+                    return {preset: 'programming'};
                 case 1:
-                    return {mode_selection: 'manual'};
+                    return {preset: 'manual'};
                 case 2:
-                    return {mode_selection: 'temporary_manual'};
+                    return {preset: 'temporary_manual'};
                 case 3:
-                    return {mode_selection: 'holiday'};
+                    return {preset: 'holiday'};
                 }
                 break;
             case tuya.dataPoints.moesSheatingSetpoint:
