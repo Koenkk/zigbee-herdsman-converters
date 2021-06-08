@@ -2220,7 +2220,7 @@ const converters = {
     },
     // ############################### toZigbee.js moesS ############################################
     moesS_thermostat_system_mode: {
-        key: ['mode_selection'],
+        key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSsystemMode, value);
             switch (value) {
