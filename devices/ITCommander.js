@@ -11,9 +11,9 @@ module.exports = [
     {
         zigbeeModel: ['ITCMDR_Contact'],
         model: 'ITCMDR_Contact',
-        vendor: 'sumju.net',
+        vendor: 'IT Commander',
         description: 'Contact Sensor by IT Commander',
-        fromZigbee: ['fz.contact'],
+        fromZigbee: [fz.contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact()]
     },
