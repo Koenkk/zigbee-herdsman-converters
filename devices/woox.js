@@ -25,14 +25,4 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
         meta: {applyRedFix: true},
     },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aycxwiau'}],
-        model: 'R7049',
-        vendor: 'Woox',
-        description: 'Smart smoke alarm',
-        fromZigbee: [fz.tuya_woox_smoke, fz.ignore_tuya_set_time],
-        toZigbee: [],
-        onEvent: tuya.onEventsetTime,
-        exposes: [e.smoke(), e.battery_low()],
-    },
 ];
