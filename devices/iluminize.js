@@ -50,7 +50,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
-	},
+    },
     {
         zigbeeModel: ['511.010'],
         model: '511.010',
