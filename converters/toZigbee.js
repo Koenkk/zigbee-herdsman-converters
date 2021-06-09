@@ -2262,61 +2262,111 @@ const converters = {
         },
     },
     tuya_led_control: {
-        key: ['color', 'brightness', 'color_temp'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp') {
-                value = Number(value);
-                const mappedValue = utils.mapNumberRange(value, 500, 154, 0, 254);
-                const payload = {colortemp: mappedValue, transtime: 0};
-                // disable tuya rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-                return {state: {color_temp: mappedValue}};
-            }
-            // transtime is ignored
-            const payload = {
-                transtime: 0,
-                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
-                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
-                brightness: meta.state.brightness || 255,
-            };
-            if (value.h) {
-                payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
-            }
-            if (value.s) {
-                payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
-            }
-            if (value.b) {
-                payload.brightness = value.b;
-            }
-            if (value.brightness) {
-                payload.brightness = value.brightness;
-            }
-            if (typeof value === 'number') {
-                payload.brightness = value;
-            }
-            if (meta.state.tuyaMode === 0 && payload.brightness) {
-                await entity.command('genLevelCtrl',
-                    'moveToLevel',
-                    {transtime: 0, level: payload.brightness},
-                    {disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                return {state: {brightness: payload.brightness}};
-            }
+      key: ['brightness', 'color', 'color_temp'],
+      convertSet: async (entity, key, value, meta) => {
+          if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] && !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
+              const payload = { level: value, transtime: 0 };
 
-            // if key is color -> make sure to switch to rgb mode
-            await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
-            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
-            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
-        },
-        convertGet: async (entity, key, meta) => {
-            if (key === 'color') {
-                await entity.read('lightingColorCtrl', [
-                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
-                ]);
-            }
-        },
+              await entity.command('genLevelCtrl', 'moveToLevel', payload, utils.getOptions(meta.mapped, entity));
+
+              globalStore.putValue(entity, 'brightness', payload.level);
+
+              return { state: { brightness: payload.level } };
+          }
+
+          if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
+              const payload = { colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0 };
+              const payload_brightness = { level: value, transtime: 0 };
+
+              await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
+              await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+              await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
+
+              globalStore.putValue(entity, 'brightness', value);
+
+              return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: meta.message.color_temp } };
+          }
+    
+          if (key === 'color_temp') {
+              const payload = { colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0 };
+              const payload_brightness = { level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0 };
+
+              await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
+              await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+              await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
+
+              return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: value } };
+          }
+
+          const payload = {
+              brightness: globalStore.getValue(entity, 'brightness') || 100,
+              hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
+              saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
+              transtime: 0,
+          };
+
+          if (value.h) {
+              payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+          }
+          if (value.hue) {
+              payload.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
+          }
+          if (value.s) {
+              payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+          }
+          if (value.saturation) {
+              payload.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
+          }
+          if (value.b) {
+              payload.brightness = value.b;
+          }
+          if (value.brightness) {
+              payload.brightness = value.brightness;
+          }
+          if (typeof value === 'number') {
+              payload.brightness = value;
+          }
+
+          if(meta.message.hasOwnProperty('color')) {
+              if (meta.message.color.h) {
+                  payload.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
+              }
+              if (meta.message.color.s) {
+                  payload.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
+              }
+              if (meta.message.color.b) {
+                  payload.brightness = meta.message.color.b;
+              }
+              if (meta.message.color.brightness) {
+                  payload.brightness = meta.message.color.brightness;
+              }
+          }
+    
+          await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 1 }, {}, { disableDefaultResponse: true });         
+          await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, utils.getOptions(meta.mapped, entity));
+
+          globalStore.putValue(entity, 'brightness', payload.brightness);
+
+          return {
+              state: {
+                  brightness: payload.brightness,
+                  color: { 
+                      h: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
+                      hue: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
+                      s: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100), 
+                      saturation: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100)
+                  },
+                  color_mode: constants.colorMode[0]
+              }
+          };
+      },
+      convertGet: async (entity, key, meta) => {
+          if (key === 'color') {
+              await entity.read('lightingColorCtrl', [
+                  'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaRgbMode', 'colorTemperature',
+              ]);
+          }
+      },
     },
     tuya_led_controller: {
         key: ['state', 'color'],
