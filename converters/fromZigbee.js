@@ -1642,31 +1642,36 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-
+      
             if (msg.data.hasOwnProperty('colorTemperature')) {
                 const value = Number(msg.data['colorTemperature']);
-                // Mapping from
-                // Warmwhite 0 -> 255 Coldwhite
-                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
                 result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
             }
-
+      
             if (msg.data.hasOwnProperty('tuyaBrightness')) {
                 result.brightness = msg.data['tuyaBrightness'];
             }
-
+      
+            if (msg.data.hasOwnProperty('tuyaRgbMode')) {
+                if (msg.data['tuyaRgbMode'] === 1) {
+                    result.color_mode = constants.colorMode[0];
+                } else {
+                    result.color_mode = constants.colorMode[2];
+                }
+            }
+      
             result.color = {};
-
+      
             if (msg.data.hasOwnProperty('currentHue')) {
                 result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360);
-                result.color.h = result.color.hue; // deprecated
+                result.color.h = result.color.hue;
             }
-
+      
             if (msg.data.hasOwnProperty('currentSaturation')) {
                 result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
-                result.color.s = result.color.saturation; // deprecated
+                result.color.s = result.color.saturation;
             }
-
+      
             return result;
         },
     },
