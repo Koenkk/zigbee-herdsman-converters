@@ -12,7 +12,7 @@ module.exports = [
         zigbeeModel: ['ITCMDR_Contact'],
         model: 'ITCMDR_Contact',
         vendor: 'IT Commander',
-        description: 'Contact Sensor https://sumju.net',
+        description: 'Contact Sensor',
         fromZigbee: [fz.contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact()]
@@ -21,7 +21,7 @@ module.exports = [
         zigbeeModel: ['ITCMDR_Click'],
         model: 'ITCMDR_Click',
         vendor: 'IT Commander',
-        description: 'Button https://sumju.net',
+        description: 'Button',
         fromZigbee: [fz.ignore_basic_report, fz.ptvo_multistate_action,],
         toZigbee: [],
         exposes: [e.action(['single', 'double', 'triple', 'hold', 'release']),e.battery(),]
