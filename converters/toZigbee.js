@@ -2264,101 +2264,101 @@ const converters = {
     tuya_led_control: {
         key: ['brightness', 'color', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
-          if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] && !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
-              const payload = { level: value, transtime: 0 };
+            if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] && !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
+                const payload = { level: value, transtime: 0 };
 
-              await entity.command('genLevelCtrl', 'moveToLevel', payload, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', payload, utils.getOptions(meta.mapped, entity));
 
-              globalStore.putValue(entity, 'brightness', payload.level);
+                globalStore.putValue(entity, 'brightness', payload.level);
 
-              return { state: { brightness: payload.level } };
-          }
+                return { state: { brightness: payload.level } };
+            }
 
-          if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
-              const payload = { colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0 };
-              const payload_brightness = { level: value, transtime: 0 };
+            if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
+                const payload = { colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0 };
+                const payload_brightness = { level: value, transtime: 0 };
 
-              await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
-              await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-              await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
 
-              globalStore.putValue(entity, 'brightness', value);
+                globalStore.putValue(entity, 'brightness', value);
 
-              return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: meta.message.color_temp } };
-          }
+                return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: meta.message.color_temp } };
+            }
 
-          if (key === 'color_temp') {
-              const payload = { colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0 };
-              const payload_brightness = { level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0 };
+            if (key === 'color_temp') {
+                const payload = { colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0 };
+                const payload_brightness = { level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0 };
 
-              await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
-              await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-              await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 0 }, {}, { disableDefaultResponse: true });
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', payload_brightness, utils.getOptions(meta.mapped, entity));
 
-              return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: value } };
-          }
+                return { state: { brightness: payload_brightness.level, color_mode: constants.colorMode[2], color_temp: value } };
+            }
 
-          const payload = {
-              brightness: globalStore.getValue(entity, 'brightness') || 100,
-              hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
-              saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
-              transtime: 0,
-          };
+            const payload = {
+                brightness: globalStore.getValue(entity, 'brightness') || 100,
+                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
+                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
+                transtime: 0,
+            };
 
-          if (value.h) {
-              payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
-          }
-          if (value.hue) {
-              payload.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
-          }
-          if (value.s) {
-              payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
-          }
-          if (value.saturation) {
-              payload.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
-          }
-          if (value.b) {
-              payload.brightness = value.b;
-          }
-          if (value.brightness) {
-              payload.brightness = value.brightness;
-          }
-          if (typeof value === 'number') {
-              payload.brightness = value;
-          }
+            if (value.h) {
+                payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+            }
+            if (value.hue) {
+                payload.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
+            }
+            if (value.s) {
+                payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+            }
+            if (value.saturation) {
+                payload.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
+            }
+            if (value.b) {
+                payload.brightness = value.b;
+            }
+            if (value.brightness) {
+                payload.brightness = value.brightness;
+            }
+            if (typeof value === 'number') {
+                payload.brightness = value;
+            }
 
-          if(meta.message.hasOwnProperty('color')) {
-              if (meta.message.color.h) {
-                  payload.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
-              }
-              if (meta.message.color.s) {
-                  payload.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
-              }
-              if (meta.message.color.b) {
-                  payload.brightness = meta.message.color.b;
-              }
-              if (meta.message.color.brightness) {
-                  payload.brightness = meta.message.color.brightness;
-              }
-          }
+            if(meta.message.hasOwnProperty('color')) {
+                if (meta.message.color.h) {
+                    payload.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
+                }
+                if (meta.message.color.s) {
+                    payload.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
+                }
+                if (meta.message.color.b) {
+                    payload.brightness = meta.message.color.b;
+                }
+                if (meta.message.color.brightness) {
+                    payload.brightness = meta.message.color.brightness;
+                }
+            }
 
-          await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 1 }, {}, { disableDefaultResponse: true });         
-          await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, utils.getOptions(meta.mapped, entity));
+            await entity.command('lightingColorCtrl', 'tuyaRgbMode', { enable: 1 }, {}, { disableDefaultResponse: true });         
+            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, utils.getOptions(meta.mapped, entity));
 
-          globalStore.putValue(entity, 'brightness', payload.brightness);
+            globalStore.putValue(entity, 'brightness', payload.brightness);
 
-          return {
-              state: {
-                  brightness: payload.brightness,
-                  color: { 
-                      h: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
-                      hue: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
-                      s: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100), 
-                      saturation: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100)
-                  },
-                  color_mode: constants.colorMode[0]
-              }
-          };
+            return {
+                state: {
+                    brightness: payload.brightness,
+                    color: { 
+                        h: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
+                        hue: utils.mapNumberRange(payload.hue, 0, 254, 0, 360),
+                        s: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100), 
+                        saturation: utils.mapNumberRange(payload.saturation, 0, 254, 0, 100)
+                    },
+                    color_mode: constants.colorMode[0]
+                }
+            };
         },
         convertGet: async (entity, key, meta) => {
           if (key === 'color') {
