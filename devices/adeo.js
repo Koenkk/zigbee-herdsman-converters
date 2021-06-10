@@ -44,4 +44,11 @@ module.exports = [
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
+    {
+        zigbeeModel: ['LXEK-7'],
+        model: '9CZA-A806ST-Q1Z',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED WHITE',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),  
+    },   
 ];
