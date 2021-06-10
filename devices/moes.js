@@ -185,6 +185,6 @@ module.exports = [
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
             exposes.numeric('boost_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)'),
-            exposes.binary('eco_mode', ea.STATE).withDescription('ECO mode')],
+            exposes.binary('eco_mode', ea.STATE_SET).withDescription('ECO mode')],
     },
 ];
