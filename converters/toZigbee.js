@@ -2221,21 +2221,8 @@ const converters = {
     moesS_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            switch (value) {
-            case 'programming':
-                // return {system_mode: 'auto'};
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 0 /* PROGRAMMING */);
-                break;
-            case 'manual':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 1 /* MANUAL */);
-                break;
-            case 'temporary_manual':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 2 /* TEMPORARY_MANUAL */);
-                break;
-            case 'holiday':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, 3 /* HOLIDAY */);
-                break;
-            }
+            const lookup = {'programming': 0, 'manual': 1, 'temporary_manual': 2, 'holiday': 3};
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, lookup[value]);
         },
     },
     moesS_thermostat_current_heating_setpoint: {
