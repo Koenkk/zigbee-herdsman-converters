@@ -72,6 +72,14 @@ module.exports = [
         extend: extend.switch(),
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_1hwjutgo'}],
+        model: 'TS011F_circuit_breaker',
+        vendor: 'TuYa',
+        description: 'Circuit breaker',
+        extend: extend.switch(),
+        whiteLabel: [{vendor: 'Mumubiz', model: 'ZJSB9-80Z'}],
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'}],
         model: 'TS0505B',
