@@ -153,6 +153,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['NHPB/SWITCH/1'],
+        model: 'NHPB/SWITCH/1',
+        vendor: 'Schneider Electric',
+        description: 'Odace Connectable Relay Switch 10A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U202SRY2KWZB'],
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
