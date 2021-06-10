@@ -1,11 +1,6 @@
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
@@ -15,15 +10,15 @@ module.exports = [
         description: 'Contact Sensor',
         fromZigbee: [fz.contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact()]
+        exposes: [e.battery(), e.contact()],
     },
     {
         zigbeeModel: ['ITCMDR_Click'],
         model: 'ITCMDR_Click',
         vendor: 'IT Commander',
         description: 'Button',
-        fromZigbee: [fz.ignore_basic_report, fz.ptvo_multistate_action,],
+        fromZigbee: [fz.ignore_basic_report, fz.ptvo_multistate_action],
         toZigbee: [],
-        exposes: [e.action(['single', 'double', 'triple', 'hold', 'release']),e.battery(),]
+        exposes: [e.action(['single', 'double', 'triple', 'hold', 'release']), e.battery()],
     },
-]
+];
