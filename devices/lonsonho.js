@@ -141,7 +141,8 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZB-RGBCW'],
-        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'}, {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}],
+        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'}, 
+            {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
