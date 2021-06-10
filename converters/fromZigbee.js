@@ -3055,7 +3055,7 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
-                case tuya.dataPoints.moesSsystemMode:
+            case tuya.dataPoints.moesSsystemMode:
                 return {preset: presetLookup[value]};
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
