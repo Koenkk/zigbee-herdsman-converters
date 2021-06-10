@@ -3053,10 +3053,20 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp; // First we get the data point ID
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
+            // const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
             case tuya.dataPoints.moesSsystemMode:
-                return {preset: presetLookup[value]};
+                switch (value) {
+                case 0:
+                    return {preset: 'programming'};
+                case 1:
+                    return {preset: 'manual'};
+                case 2:
+                    return {preset: 'temporary_manual'};
+                case 3:
+                    return {preset: 'holiday'};
+                }
+                break;
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:
