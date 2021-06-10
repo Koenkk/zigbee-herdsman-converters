@@ -154,7 +154,6 @@ module.exports = [
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
     {
-        // zigbeeModel: ['b6wax7g0'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_b6wax7g0'}],
         model: 'BRT-100-TRV',
         vendor: 'Moes',
@@ -175,8 +174,7 @@ module.exports = [
             e.battery(), e.child_lock(),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET),
-            e.preset('preset', ea.STATE_SET, ['programming', 'manual', 'temporary_manual', 'holiday'])
+                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['programming', 'manual', 'temporary_manual', 'holiday'])
                 .withDescription('MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                 'PROGRAMMING MODE ⏱ -In this mode, the device executes a preset week programming temperature time and temperature. ' +
