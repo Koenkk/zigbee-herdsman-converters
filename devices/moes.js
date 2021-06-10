@@ -162,11 +162,10 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.moesS_thermostat],
         toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
             tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
-            tz.moesS_thermostat_temperature_calibration, tz.moesS_thermostat_system_mode,
+            tz.moesS_thermostat_boost_heating_countdown, tz.moesS_thermostat_system_mode,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
-            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_schedule,
-            tz.moesS_thermostat_moesSecoMode, tz.moesS_thermostat_boost_heating_countdown],
+            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_temperature(), e.max_temperature(), e.min_temperature(), e.window_detection(), e.position(),
             exposes.climate()
