@@ -3047,6 +3047,71 @@ const converters = {
             }
         },
     },
+    moesS_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
+            switch (dp) {
+            case tuya.dataPoints.moesSsystemMode:
+                return {preset: presetLookup[value]};
+            case tuya.dataPoints.moesSheatingSetpoint:
+                return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesSlocalTemp:
+                return {local_temperature: (value / 10)};
+            case tuya.dataPoints.moesSboostHeating:
+                return {boost_heating: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSboostHeatingCountdown:
+                return {boost_heating_countdown: value};
+            case tuya.dataPoints.moesSreset:
+                break;
+            case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSwindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSchildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.moesSbattery:
+                return {battery: value};
+            case tuya.dataPoints.moesSschedule:
+                return {
+                    programming_mode: {
+                        weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
+                                ',  ' + value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C' +
+                                ',  ' + value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C' +
+                                ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C ',
+                        saturday: '' + value[12] + 'h:' + value[13] + 'm ' + value[14]/2 + '°C' +
+                                ',  ' + value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C' +
+                                ',   ' + value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C' +
+                                ',  ' + value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C ',
+                        sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
+                                ',  ' + value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C' +
+                                ',  ' + value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C' +
+                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C ',
+                    },
+                };
+            case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
+                return {boost_time_set: (value)};
+            case tuya.dataPoints.moesSvalvePosition:
+                return {position: value};
+            case tuya.dataPoints.moesScompensationTempSet:
+                return {local_temperature_calibration: value};
+            case tuya.dataPoints.moesSecoMode:
+                return {eco_mode: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSecoModeTempSet:
+                return {eco_temperature: value};
+            case tuya.dataPoints.moesSmaxTempSet:
+                return {max_temperature: value};
+            case tuya.dataPoints.moesSminTempSet:
+                return {min_temperature: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
