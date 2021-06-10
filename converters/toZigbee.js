@@ -2280,7 +2280,7 @@ const converters = {
     moesS_thermostat_eco_temperature: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSecoModeTempSet, value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSecoModeTempSet, value);
         },
     },
     moesS_thermostat_max_temperature: {
