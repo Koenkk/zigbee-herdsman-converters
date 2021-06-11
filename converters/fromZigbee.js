@@ -1672,7 +1672,7 @@ const converters = {
                 result.color.s = result.color.saturation;
             }
 
-            return result;
+            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
     tuya_cover: {
