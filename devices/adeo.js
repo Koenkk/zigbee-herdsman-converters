@@ -49,6 +49,6 @@ module.exports = [
         model: '9CZA-A806ST-Q1Z',
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 LED white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),  
-    },   
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
 ];
