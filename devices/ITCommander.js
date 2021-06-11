@@ -21,17 +21,6 @@ const withEpPreffix = (converter) => ({
     },
 });
 
-const contactDiscovery = {
-    type: 'binary_sensor',
-    object_id: 'contact',
-    discovery_payload: {
-        payload_on: true,
-        payload_off: false,
-        value_template: '{{ value_json.contact }}',
-    },
-};
-
-
 module.exports = [
     {
         zigbeeModel: ['ITCMDR_Contact'],
