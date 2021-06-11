@@ -2348,7 +2348,7 @@ const converters = {
                     zclData.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
                 }
                 if (meta.message.color.b) {
-                    zclData.brightness = meta.message.color.b;
+                    zclData.brightness = Number(meta.message.color.b);
                 }
                 if (meta.message.color.brightness) {
                     zclData.brightness = Number(meta.message.color.brightness);
