@@ -1346,6 +1346,7 @@ const converters = {
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result.position = invert ? value : 100 - value;
+                result.state = options.invert_cover ? (value > 0 ? 'OPEN' : 'CLOSE') : (value > 0 ? 'CLOSE' : 'OPEN');
                 result.tilt = invert ? value : 100 - value;
             }
             return result;
