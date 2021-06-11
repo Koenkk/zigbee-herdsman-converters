@@ -2339,60 +2339,122 @@ const converters = {
         },
     },
     tuya_led_control: {
-        key: ['color', 'brightness', 'color_temp'],
+        key: ['brightness', 'color', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp') {
-                value = Number(value);
-                const mappedValue = utils.mapNumberRange(value, 500, 154, 0, 254);
-                const payload = {colortemp: mappedValue, transtime: 0};
-                // disable tuya rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-                return {state: {color_temp: mappedValue}};
-            }
-            // transtime is ignored
-            const payload = {
-                transtime: 0,
-                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
-                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
-                brightness: meta.state.brightness || 255,
-            };
-            if (value.h) {
-                payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
-            }
-            if (value.s) {
-                payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
-            }
-            if (value.b) {
-                payload.brightness = value.b;
-            }
-            if (value.brightness) {
-                payload.brightness = value.brightness;
-            }
-            if (typeof value === 'number') {
-                payload.brightness = value;
-            }
-            if (meta.state.tuyaMode === 0 && payload.brightness) {
-                await entity.command('genLevelCtrl',
-                    'moveToLevel',
-                    {transtime: 0, level: payload.brightness},
-                    {disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                return {state: {brightness: payload.brightness}};
+            if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
+                !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
+                const zclData = {level: Number(value), transtime: 0};
+
+                await entity.command('genLevelCtrl', 'moveToLevel', zclData, utils.getOptions(meta.mapped, entity));
+
+                globalStore.putValue(entity, 'brightness', zclData.level);
+
+                return {state: {brightness: zclData.level}};
             }
 
-            // if key is color -> make sure to switch to rgb mode
+            if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
+                const zclData = {colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0};
+                const zclDataBrightness = {level: Number(value), transtime: 0};
+
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
+
+                globalStore.putValue(entity, 'brightness', zclDataBrightness.level);
+
+                const newState = {
+                    brightness: zclDataBrightness.level,
+                    color_mode: constants.colorMode[2],
+                    color_temp: meta.message.color_temp,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
+            }
+
+            if (key === 'color_temp') {
+                const zclData = {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0};
+                const zclDataBrightness = {level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0};
+
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
+
+                const newState = {
+                    brightness: zclDataBrightness.level,
+                    color_mode: constants.colorMode[2],
+                    color_temp: value,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
+            }
+
+            const zclData = {
+                brightness: globalStore.getValue(entity, 'brightness') || 100,
+                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254) || 100,
+                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254) || 100,
+                transtime: 0,
+            };
+
+            if (value.h) {
+                zclData.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+            }
+            if (value.hue) {
+                zclData.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
+            }
+            if (value.s) {
+                zclData.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+            }
+            if (value.saturation) {
+                zclData.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
+            }
+            if (value.b) {
+                zclData.brightness = Number(value.b);
+            }
+            if (value.brightness) {
+                zclData.brightness = Number(value.brightness);
+            }
+            if (typeof value === 'number') {
+                zclData.brightness = value;
+            }
+
+            if (meta.message.hasOwnProperty('color')) {
+                if (meta.message.color.h) {
+                    zclData.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
+                }
+                if (meta.message.color.s) {
+                    zclData.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
+                }
+                if (meta.message.color.b) {
+                    zclData.brightness = Number(meta.message.color.b);
+                }
+                if (meta.message.color.brightness) {
+                    zclData.brightness = Number(meta.message.color.brightness);
+                }
+            }
+
             await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
-            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
-            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
+            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness',
+                zclData, utils.getOptions(meta.mapped, entity));
+
+            globalStore.putValue(entity, 'brightness', zclData.brightness);
+
+            const newState = {
+                brightness: zclData.brightness,
+                color: {
+                    h: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    hue: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    s: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                    saturation: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                },
+                color_mode: constants.colorMode[0],
+            };
+
+            return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            if (key === 'color') {
-                await entity.read('lightingColorCtrl', [
-                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
-                ]);
-            }
+            await entity.read('lightingColorCtrl', [
+                'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaRgbMode', 'colorTemperature',
+            ]);
         },
     },
     tuya_led_controller: {
