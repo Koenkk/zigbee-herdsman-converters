@@ -2234,7 +2234,7 @@ const converters = {
     moesS_thermostat_boost_heating: {
         key: ['boost_heating'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'OFF');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'ON');
         },
     },
     moesS_thermostat_boost_heating_countdown: {
@@ -2256,7 +2256,7 @@ const converters = {
         },
     },
     moesS_thermostat_boostHeatingCountdownTimeSet: {
-        key: ['boost_time_set'],
+        key: ['boost_heating_countdown_time_set'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdownTimeSet, value);
         },
@@ -2274,7 +2274,7 @@ const converters = {
     moesS_thermostat_moesSecoMode: {
         key: ['eco_mode'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value === 'OFF');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value === 'ON');
         },
     },
     moesS_thermostat_eco_temperature: {

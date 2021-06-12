@@ -3098,7 +3098,7 @@ const converters = {
                     },
                 };
             case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
-                return {boost_time_set: (value)};
+                return {boost_heating_countdown_time_set: (value)};
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
             case tuya.dataPoints.moesScompensationTempSet:

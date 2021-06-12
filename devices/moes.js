@@ -167,7 +167,8 @@ module.exports = [
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_temperature(), e.max_temperature(), e.min_temperature(), e.window_detection(), e.position(),
+            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
+            e.window_detection(), e.position(),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
@@ -180,11 +181,10 @@ module.exports = [
                 'temperature and returns to the weekly programming mode in the next time period. '),
             exposes.enum('programming_mode', ea.STATE).withDescription('PROGRAMMING MODE ⏱ - In this mode, the device executes a ' +
                 'preset week programming temperature time and temperature. '),
-            exposes.binary('boost_heating', ea.STATE_SET).withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
+            exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
-            exposes.numeric('boost_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)'),
-            exposes.binary('eco_mode', ea.STATE_SET).withDescription('ECO mode')],
+            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
     },
 ];
