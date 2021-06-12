@@ -154,9 +154,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['NHPB/SWITCH/1'],
-        model: 'NHPB/SWITCH/1',
+        model: 'S520530W',
         vendor: 'Schneider Electric',
-        description: 'Odace Connectable Relay Switch 10A',
+        description: 'Odace connectable relay switch 10A',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
