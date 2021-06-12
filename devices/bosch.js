@@ -10,7 +10,7 @@ module.exports = [
         model: 'RADON TriTech ZB',
         vendor: 'Bosch',
         description: 'Wireless motion detector',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -18,8 +18,9 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await reporting.illuminance(endpoint);
         },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux()],
     },
     {
         zigbeeModel: ['ISW-ZPR1-WP13'],

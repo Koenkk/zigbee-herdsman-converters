@@ -22,7 +22,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryAlarmState(endpoint);
         },
-        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0', 'PIR_TPV13'],
@@ -94,7 +94,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0', 'SmokeSensor-EM'],
@@ -108,7 +108,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['GASSensor-N'],
@@ -255,7 +255,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],

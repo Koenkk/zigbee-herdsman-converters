@@ -1645,9 +1645,6 @@ const converters = {
 
             if (msg.data.hasOwnProperty('colorTemperature')) {
                 const value = Number(msg.data['colorTemperature']);
-                // Mapping from
-                // Warmwhite 0 -> 255 Coldwhite
-                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
                 result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
             }
 
@@ -1655,19 +1652,27 @@ const converters = {
                 result.brightness = msg.data['tuyaBrightness'];
             }
 
+            if (msg.data.hasOwnProperty('tuyaRgbMode')) {
+                if (msg.data['tuyaRgbMode'] === 1) {
+                    result.color_mode = constants.colorMode[0];
+                } else {
+                    result.color_mode = constants.colorMode[2];
+                }
+            }
+
             result.color = {};
 
             if (msg.data.hasOwnProperty('currentHue')) {
                 result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360);
-                result.color.h = result.color.hue; // deprecated
+                result.color.h = result.color.hue;
             }
 
             if (msg.data.hasOwnProperty('currentSaturation')) {
                 result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
-                result.color.s = result.color.saturation; // deprecated
+                result.color.s = result.color.saturation;
             }
 
-            return result;
+            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
     tuya_cover: {
@@ -3769,7 +3774,23 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             switch (dp) {
             case tuya.dataPoints.state:
-                return {smoke: value === 0 ? true : false};
+                return {smoke: value === 0};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    tuya_woox_smoke: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.wooxBattery:
+                return {battery_low: value === 0};
+            case tuya.dataPoints.state:
+                return {smoke: value === 0};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
             }
@@ -5770,6 +5791,18 @@ const converters = {
             const lookup = {1: 'contactor', 3: 'pilot'};
             if ('pilotMode' in msg.data) {
                 result.schneider_pilot_mode = lookup[msg.data['pilotMode']];
+            }
+            return result;
+        },
+    },
+    schneider_lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const lookup = {1: 'RC', 2: 'RL'};
+            if (msg.data.hasOwnProperty(0xe000)) {
+                result.dimmer_mode = lookup[msg.data[0xe000]];
             }
             return result;
         },
