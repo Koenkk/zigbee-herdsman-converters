@@ -53,7 +53,7 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
-        {
+    {
         zigbeeModel: ['LXN56-SS27LX1.1'],
         model: 'LXN56-SS27LX1.1',
         vendor: 'Zemismart',
