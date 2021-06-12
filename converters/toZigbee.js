@@ -150,37 +150,25 @@ const converters = {
         key: ['pin_code'],
         convertSet: async (entity, key, value, meta) => {
             const user = value.user;
+            const userType = value.user_type || 'unrestricted';
+            const userEnabled = value.hasOwnProperty('user_enabled') ? value.user_enabled : true;
             const pinCode = value.pin_code;
-            if ( isNaN(user) ) {
-                throw new Error('user must be numbers');
-            }
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                throw new Error('user must be in range for device');
-            }
-            if (pinCode === undefined || pinCode === null) {
-                await entity.command(
-                    'closuresDoorLock',
-                    'clearPinCode',
-                    {
-                        'userid': user,
-                    },
-                    utils.getOptions(meta.mapped),
-                );
+            if (isNaN(user)) throw new Error('user must be numbers');
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) throw new Error('user must be in range for device');
+
+            if (pinCode == null) {
+                await entity.command('closuresDoorLock', 'clearPinCode', {'userid': user}, utils.getOptions(meta.mapped));
             } else {
-                if (isNaN(pinCode)) {
-                    throw new Error('pinCode must be a number or pinCode');
-                }
-                await entity.command(
-                    'closuresDoorLock',
-                    'setPinCode',
-                    {
-                        'userid': user,
-                        'userstatus': 1,
-                        'usertype': 0,
-                        'pincodevalue': pinCode.toString(),
-                    },
-                    utils.getOptions(meta.mapped),
-                );
+                if (isNaN(pinCode)) throw new Error('pinCode must be a number');
+                const typeLookup = {'unrestricted': 0, 'year_day_schedule': 1, 'week_day_schedule': 2, 'master': 3, 'non_access': 4};
+                utils.validateValue(userType, Object.keys(typeLookup));
+                const payload = {
+                    'userid': user,
+                    'userstatus': userEnabled ? 1 : 3,
+                    'usertype': typeLookup[userType],
+                    'pincodevalue': pinCode.toString(),
+                };
+                await entity.command('closuresDoorLock', 'setPinCode', payload, utils.getOptions(meta.mapped));
             }
         },
         convertGet: async (entity, key, meta) => {

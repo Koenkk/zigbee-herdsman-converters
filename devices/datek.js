@@ -116,7 +116,7 @@ module.exports = [
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
-        exposes: [e.lock(), e.battery(),
+        exposes: [e.lock(), e.battery(), e.pincode(),
             exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
             exposes.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),
