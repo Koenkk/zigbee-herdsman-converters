@@ -7,6 +7,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['Outdoor Plug'],
+        model: 'AC26940',
+        vendor: 'LEDVANCE',
+        description: 'Smart Zigbee Outdoor Plug',
+        fromZigbee: [fz.on_off],
+        toZigbee: [fz.on_off],
+        exposes: [e.switch()],
+    },
+    {
         zigbeeModel: ['Gardenspot RGB'],
         model: '73699',
         vendor: 'OSRAM',
