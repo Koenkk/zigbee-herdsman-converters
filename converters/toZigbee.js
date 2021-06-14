@@ -2234,7 +2234,7 @@ const converters = {
     moesS_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSwindowDetection, [value === 'ON' ? 1 : 0]);
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSwindowDetectionFunktion_A2, value === 'ON');
         },
     },
     moesS_thermostat_child_lock: {

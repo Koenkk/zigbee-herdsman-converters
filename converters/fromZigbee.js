@@ -3075,7 +3075,7 @@ const converters = {
             case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSwindowDetection:
-                return {window_detection: value ? 'ON' : 'OFF'};
+                return {window: value ? 'CLOSED' : 'OPEN'};
             case tuya.dataPoints.moesSchildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesSbattery:

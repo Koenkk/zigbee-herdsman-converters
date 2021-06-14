@@ -168,7 +168,8 @@ module.exports = [
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
-            e.window_detection(), e.position(),
+            e.position(), e.window_detection(),
+            exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
