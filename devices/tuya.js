@@ -679,6 +679,20 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
+        zigbeeModel: ['5p1vj8r'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t5p1vj8r'}],
+        model: 'TS0601_smoke',
+        vendor: 'TuYa',
+        description: 'Smoke sensor',
+        fromZigbee: [fz.tuya_smoke],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.smoke(), e.battery_low()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'}],
         model: 'TS0601_din',
