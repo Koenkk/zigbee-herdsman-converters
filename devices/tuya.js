@@ -679,7 +679,8 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'}],
         model: 'TS0601_din',
         vendor: 'TuYa',
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
