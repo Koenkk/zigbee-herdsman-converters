@@ -353,6 +353,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'}],
+        model: 'TS0502B',
+        vendor: 'TuYa',
+        description: 'Light controller',
+        extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
         fingerprint: [{modelID: 'TS0504A', manufacturerName: '_TZ3000_nzbm4ad4'}],
         model: 'TS0504A',
         vendor: 'TuYa',
