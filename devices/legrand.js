@@ -106,7 +106,7 @@ module.exports = [
         // led blink RED when battery is low
         description: 'Wireless remote switch',
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
-        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
