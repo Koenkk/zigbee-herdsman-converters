@@ -7,6 +7,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['3RSS009Z'], 
+        model: '3RSS009Z',
+        vendor: 'Third Reality, Inc', 
+        description: 'Smart Switch Gen3', 
+        fromZigbee: [fz.on_off], 
+        toZigbee: [tz.on_off, tz.ignore_transition], 
+        exposes: [e.switch()], 
+    },
+    {
         zigbeeModel: ['3RSS008Z'],
         model: '3RSS008Z',
         vendor: 'Third Reality',
