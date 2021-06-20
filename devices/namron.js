@@ -122,7 +122,7 @@ module.exports = [
         zigbeeModel: ['4512726'],
         model: '4512726',
         vendor: 'Namron',
-        description: 'ZigBee 4 in 1 dimmer',
+        description: 'Zigbee 4 in 1 dimmer',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
