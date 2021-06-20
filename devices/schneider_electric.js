@@ -153,6 +153,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['NHPB/SWITCH/1'],
+        model: 'S520530W',
+        vendor: 'Schneider Electric',
+        description: 'Odace connectable relay switch 10A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U202SRY2KWZB'],
         model: 'U202SRY2KWZB',
         vendor: 'Schneider Electric',
@@ -211,6 +223,73 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['LK Dimmer'],
+        model: '545D6102',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.schneider_lighting_ballast_configuration, fz.command_recall,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.schneider_dimmer_mode],
+        endpoint: (device) => {
+            return {'l1': 3, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
+        },
+        exposes: [e.light_brightness().withLevelConfig().withEndpoint('l1'),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast')
+                .withEndpoint('l1'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')
+                .withEndpoint('l1'),
+            exposes.enum('dimmer_mode', ea.ALL, ['RC', 'RL']).withDescription('Controls Capacitive or Inductive Dimming Mode')
+                .withEndpoint('l1'),
+            e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'recall_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Configure the dimmer actuator endpoint
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            // Configure the four front switches
+            device.endpoints.forEach(async (ep) => {
+                if (21 <= ep.ID && ep.ID <= 22) {
+                    await reporting.bind(ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+                } else if (23 <= ep.ID && ep.ID <= 24) {
+                    await reporting.bind(ep, coordinatorEndpoint, ['genScenes']);
+                }
+            });
+        },
+        onEvent: async (type, data, device) => {
+            // Record the factory default bindings for easy removal/change after deviceInterview
+            if (type === 'deviceInterview') {
+                const dimmer = device.getEndpoint(3);
+                device.endpoints.forEach(async (ep) => {
+                    if (21 <= ep.ID && ep.ID <= 22) {
+                        ep.addBinding('genOnOff', dimmer);
+                        ep.addBinding('genLevelCtrl', dimmer);
+                    }
+                    if (23 <= ep.ID && ep.ID <= 24) {
+                        ep.addBinding('genScenes', dimmer);
+                    }
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ['FLS/AIRLINK/4'],
+        model: '550D6001',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless battery 4 button switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Currently all four front switches operate out of ep21 for some reason
+            const buttonEndpoint = device.getEndpoint(21);
+            await reporting.bind(buttonEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'CCTFR6700', manufacturerName: 'Schneider Electric'}],
         model: 'CCTFR6700',
         vendor: 'Schneider Electric',
@@ -221,9 +300,8 @@ module.exports = [
             tz.schneider_pilot_mode, tz.schneider_temperature_measured_value],
         exposes: [e.power(), e.energy(),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
-            exposes.numeric('temperature_measured_value', ea.SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+                .withSystemMode(['off', 'auto', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);

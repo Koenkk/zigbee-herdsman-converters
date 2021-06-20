@@ -46,4 +46,20 @@ module.exports = [
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
     },
+    {
+        zigbeeModel: ['Connectable motion sensor,Zigbee'],
+        model: '552-80401',
+        vendor: 'Niko',
+        description: 'Wireless motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.occupancy(), e.battery_low(), e.battery()],
+    },
 ];

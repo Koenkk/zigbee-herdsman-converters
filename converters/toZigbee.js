@@ -150,37 +150,25 @@ const converters = {
         key: ['pin_code'],
         convertSet: async (entity, key, value, meta) => {
             const user = value.user;
+            const userType = value.user_type || 'unrestricted';
+            const userEnabled = value.hasOwnProperty('user_enabled') ? value.user_enabled : true;
             const pinCode = value.pin_code;
-            if ( isNaN(user) ) {
-                throw new Error('user must be numbers');
-            }
-            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) {
-                throw new Error('user must be in range for device');
-            }
-            if (pinCode === undefined || pinCode === null) {
-                await entity.command(
-                    'closuresDoorLock',
-                    'clearPinCode',
-                    {
-                        'userid': user,
-                    },
-                    utils.getOptions(meta.mapped),
-                );
+            if (isNaN(user)) throw new Error('user must be numbers');
+            if (!utils.isInRange(0, meta.mapped.meta.pinCodeCount - 1, user)) throw new Error('user must be in range for device');
+
+            if (pinCode == null) {
+                await entity.command('closuresDoorLock', 'clearPinCode', {'userid': user}, utils.getOptions(meta.mapped));
             } else {
-                if (isNaN(pinCode)) {
-                    throw new Error('pinCode must be a number or pinCode');
-                }
-                await entity.command(
-                    'closuresDoorLock',
-                    'setPinCode',
-                    {
-                        'userid': user,
-                        'userstatus': 1,
-                        'usertype': 0,
-                        'pincodevalue': pinCode.toString(),
-                    },
-                    utils.getOptions(meta.mapped),
-                );
+                if (isNaN(pinCode)) throw new Error('pinCode must be a number');
+                const typeLookup = {'unrestricted': 0, 'year_day_schedule': 1, 'week_day_schedule': 2, 'master': 3, 'non_access': 4};
+                utils.validateValue(userType, Object.keys(typeLookup));
+                const payload = {
+                    'userid': user,
+                    'userstatus': userEnabled ? 1 : 3,
+                    'usertype': typeLookup[userType],
+                    'pincodevalue': pinCode.toString(),
+                };
+                await entity.command('closuresDoorLock', 'setPinCode', payload, utils.getOptions(meta.mapped));
             }
         },
         convertGet: async (entity, key, meta) => {
@@ -2218,6 +2206,83 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
         },
     },
+    moesS_thermostat_system_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'programming': 0, 'manual': 1, 'temporary_manual': 2, 'holiday': 3};
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesSsystemMode, lookup[value]);
+        },
+    },
+    moesS_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSheatingSetpoint, value);
+        },
+    },
+    moesS_thermostat_boost_heating: {
+        key: ['boost_heating'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'ON');
+        },
+    },
+    moesS_thermostat_boost_heating_countdown: {
+        key: ['boost_heating_countdown'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdown, value);
+        },
+    },
+    moesS_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSwindowDetectionFunktion_A2, value === 'ON');
+        },
+    },
+    moesS_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSchildLock, value === 'LOCK');
+        },
+    },
+    moesS_thermostat_boostHeatingCountdownTimeSet: {
+        key: ['boost_heating_countdown_time_set'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdownTimeSet, value);
+        },
+    },
+    moesS_thermostat_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            let temp = Math.round(value * 1);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesScompensationTempSet, temp);
+        },
+    },
+    moesS_thermostat_moesSecoMode: {
+        key: ['eco_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSecoMode, value === 'ON');
+        },
+    },
+    moesS_thermostat_eco_temperature: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSecoModeTempSet, value);
+        },
+    },
+    moesS_thermostat_max_temperature: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSmaxTempSet, value);
+        },
+    },
+    moesS_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, value);
+        },
+    },
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2262,60 +2327,122 @@ const converters = {
         },
     },
     tuya_led_control: {
-        key: ['color', 'brightness', 'color_temp'],
+        key: ['brightness', 'color', 'color_temp'],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'color_temp') {
-                value = Number(value);
-                const mappedValue = utils.mapNumberRange(value, 500, 154, 0, 254);
-                const payload = {colortemp: mappedValue, transtime: 0};
-                // disable tuya rgb mode
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
-                return {state: {color_temp: mappedValue}};
-            }
-            // transtime is ignored
-            const payload = {
-                transtime: 0,
-                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254),
-                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254),
-                brightness: meta.state.brightness || 255,
-            };
-            if (value.h) {
-                payload.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
-            }
-            if (value.s) {
-                payload.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
-            }
-            if (value.b) {
-                payload.brightness = value.b;
-            }
-            if (value.brightness) {
-                payload.brightness = value.brightness;
-            }
-            if (typeof value === 'number') {
-                payload.brightness = value;
-            }
-            if (meta.state.tuyaMode === 0 && payload.brightness) {
-                await entity.command('genLevelCtrl',
-                    'moveToLevel',
-                    {transtime: 0, level: payload.brightness},
-                    {disableResponse: true, disableDefaultResponse: true});
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
-                return {state: {brightness: payload.brightness}};
+            if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
+                !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
+                const zclData = {level: Number(value), transtime: 0};
+
+                await entity.command('genLevelCtrl', 'moveToLevel', zclData, utils.getOptions(meta.mapped, entity));
+
+                globalStore.putValue(entity, 'brightness', zclData.level);
+
+                return {state: {brightness: zclData.level}};
             }
 
-            // if key is color -> make sure to switch to rgb mode
+            if (key === 'brightness' && meta.message.hasOwnProperty('color_temp')) {
+                const zclData = {colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0};
+                const zclDataBrightness = {level: Number(value), transtime: 0};
+
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
+
+                globalStore.putValue(entity, 'brightness', zclDataBrightness.level);
+
+                const newState = {
+                    brightness: zclDataBrightness.level,
+                    color_mode: constants.colorMode[2],
+                    color_temp: meta.message.color_temp,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
+            }
+
+            if (key === 'color_temp') {
+                const zclData = {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0};
+                const zclDataBrightness = {level: globalStore.getValue(entity, 'brightness') || 100, transtime: 0};
+
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 0}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                await entity.command('genLevelCtrl', 'moveToLevel', zclDataBrightness, utils.getOptions(meta.mapped, entity));
+
+                const newState = {
+                    brightness: zclDataBrightness.level,
+                    color_mode: constants.colorMode[2],
+                    color_temp: value,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
+            }
+
+            const zclData = {
+                brightness: globalStore.getValue(entity, 'brightness') || 100,
+                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254) || 100,
+                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254) || 100,
+                transtime: 0,
+            };
+
+            if (value.h) {
+                zclData.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+            }
+            if (value.hue) {
+                zclData.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
+            }
+            if (value.s) {
+                zclData.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+            }
+            if (value.saturation) {
+                zclData.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
+            }
+            if (value.b) {
+                zclData.brightness = Number(value.b);
+            }
+            if (value.brightness) {
+                zclData.brightness = Number(value.brightness);
+            }
+            if (typeof value === 'number') {
+                zclData.brightness = value;
+            }
+
+            if (meta.message.hasOwnProperty('color')) {
+                if (meta.message.color.h) {
+                    zclData.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
+                }
+                if (meta.message.color.s) {
+                    zclData.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
+                }
+                if (meta.message.color.b) {
+                    zclData.brightness = Number(meta.message.color.b);
+                }
+                if (meta.message.color.brightness) {
+                    zclData.brightness = Number(meta.message.color.brightness);
+                }
+            }
+
             await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness', payload, {disableDefaultResponse: true});
-            // transtime cannot be set on these devices. They seem to have a default one of about 1500ms!
-            return {state: {color_temp: value, brightness: payload.brightness}, readAfterWriteTime: payload.transtime * 100};
+            await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness',
+                zclData, utils.getOptions(meta.mapped, entity));
+
+            globalStore.putValue(entity, 'brightness', zclData.brightness);
+
+            const newState = {
+                brightness: zclData.brightness,
+                color: {
+                    h: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    hue: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    s: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                    saturation: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                },
+                color_mode: constants.colorMode[0],
+            };
+
+            return {state: libColor.syncColorState(newState, meta.state, meta.options), readAfterWriteTime: zclData.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
-            if (key === 'color') {
-                await entity.read('lightingColorCtrl', [
-                    'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaMode', 'colorTemperature',
-                ]);
-            }
+            await entity.read('lightingColorCtrl', [
+                'currentHue', 'currentSaturation', 'tuyaBrightness', 'tuyaRgbMode', 'colorTemperature',
+            ]);
         },
     },
     tuya_led_controller: {
@@ -4896,6 +5023,19 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('schneiderSpecificPilotMode', ['pilotMode'], {manufacturerCode: 0x105e});
+        },
+    },
+    schneider_dimmer_mode: {
+        key: ['dimmer_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'RC': 1, 'RL': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            const mode = lookup[value];
+            await entity.write('lightingBallastCfg', {0xe000: {value: mode, type: 0x30}}, {manufacturerCode: 0x105e});
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: 0x105e});
         },
     },
     schneider_temperature_measured_value: {

@@ -65,7 +65,7 @@ module.exports = [
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -73,7 +73,7 @@ module.exports = [
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {

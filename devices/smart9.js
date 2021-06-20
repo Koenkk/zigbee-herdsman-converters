@@ -24,17 +24,4 @@ module.exports = [
             }
         },
     },
-    {
-        zigbeeModel: ['5p1vj8r'],
-        model: '5p1vj8r',
-        vendor: 'Smart9',
-        description: 'Smoke sensor',
-        fromZigbee: [fz.tuya_smoke],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.smoke(), e.battery_low()],
-    },
 ];

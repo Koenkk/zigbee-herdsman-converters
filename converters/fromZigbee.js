@@ -1645,9 +1645,6 @@ const converters = {
 
             if (msg.data.hasOwnProperty('colorTemperature')) {
                 const value = Number(msg.data['colorTemperature']);
-                // Mapping from
-                // Warmwhite 0 -> 255 Coldwhite
-                // to Homeassistant: Coldwhite 153 -> 500 Warmwight
                 result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
             }
 
@@ -1655,19 +1652,27 @@ const converters = {
                 result.brightness = msg.data['tuyaBrightness'];
             }
 
+            if (msg.data.hasOwnProperty('tuyaRgbMode')) {
+                if (msg.data['tuyaRgbMode'] === 1) {
+                    result.color_mode = constants.colorMode[0];
+                } else {
+                    result.color_mode = constants.colorMode[2];
+                }
+            }
+
             result.color = {};
 
             if (msg.data.hasOwnProperty('currentHue')) {
                 result.color.hue = mapNumberRange(msg.data['currentHue'], 0, 254, 0, 360);
-                result.color.h = result.color.hue; // deprecated
+                result.color.h = result.color.hue;
             }
 
             if (msg.data.hasOwnProperty('currentSaturation')) {
                 result.color.saturation = mapNumberRange(msg.data['currentSaturation'], 0, 254, 0, 100);
-                result.color.s = result.color.saturation; // deprecated
+                result.color.s = result.color.saturation;
             }
 
-            return result;
+            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
     tuya_cover: {
@@ -3047,6 +3052,71 @@ const converters = {
             }
         },
     },
+    moesS_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
+            switch (dp) {
+            case tuya.dataPoints.moesSsystemMode:
+                return {preset: presetLookup[value]};
+            case tuya.dataPoints.moesSheatingSetpoint:
+                return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesSlocalTemp:
+                return {local_temperature: (value / 10)};
+            case tuya.dataPoints.moesSboostHeating:
+                return {boost_heating: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSboostHeatingCountdown:
+                return {boost_heating_countdown: value};
+            case tuya.dataPoints.moesSreset:
+                break;
+            case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSwindowDetection:
+                return {window: value ? 'CLOSED' : 'OPEN'};
+            case tuya.dataPoints.moesSchildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.moesSbattery:
+                return {battery: value};
+            case tuya.dataPoints.moesSschedule:
+                return {
+                    programming_mode: {
+                        weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
+                                ',  ' + value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C' +
+                                ',  ' + value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C' +
+                                ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C ',
+                        saturday: '' + value[12] + 'h:' + value[13] + 'm ' + value[14]/2 + '°C' +
+                                ',  ' + value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C' +
+                                ',   ' + value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C' +
+                                ',  ' + value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C ',
+                        sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
+                                ',  ' + value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C' +
+                                ',  ' + value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C' +
+                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C ',
+                    },
+                };
+            case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
+                return {boost_heating_countdown_time_set: (value)};
+            case tuya.dataPoints.moesSvalvePosition:
+                return {position: value};
+            case tuya.dataPoints.moesScompensationTempSet:
+                return {local_temperature_calibration: value};
+            case tuya.dataPoints.moesSecoMode:
+                return {eco_mode: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.moesSecoModeTempSet:
+                return {eco_temperature: value};
+            case tuya.dataPoints.moesSmaxTempSet:
+                return {max_temperature: value};
+            case tuya.dataPoints.moesSminTempSet:
+                return {min_temperature: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
@@ -3704,7 +3774,23 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             switch (dp) {
             case tuya.dataPoints.state:
-                return {smoke: value === 0 ? true : false};
+                return {smoke: value === 0};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    tuya_woox_smoke: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.wooxBattery:
+                return {battery_low: value === 0};
+            case tuya.dataPoints.state:
+                return {smoke: value === 0};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
             }
@@ -5705,6 +5791,18 @@ const converters = {
             const lookup = {1: 'contactor', 3: 'pilot'};
             if ('pilotMode' in msg.data) {
                 result.schneider_pilot_mode = lookup[msg.data['pilotMode']];
+            }
+            return result;
+        },
+    },
+    schneider_lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            const lookup = {1: 'RC', 2: 'RL'};
+            if (msg.data.hasOwnProperty(0xe000)) {
+                result.dimmer_mode = lookup[msg.data[0xe000]];
             }
             return result;
         },
