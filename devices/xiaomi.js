@@ -1113,7 +1113,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, 
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
                 disableDefaultResponse: true, disableResponse: true});
         },
     },
