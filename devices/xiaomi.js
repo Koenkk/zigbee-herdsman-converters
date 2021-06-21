@@ -1092,7 +1092,7 @@ module.exports = [
         vendor: 'Aqara',
         description: 'Aqara E1 2 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1106,6 +1106,8 @@ module.exports = [
                 {state: 'decoupled'}).withEndpoint('right')
                 .withDescription('Decoupled mode for right button'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
+            e.power_outage_memory().withEndpoint('left'),
+            e.power_outage_memory().withEndpoint('right'),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
