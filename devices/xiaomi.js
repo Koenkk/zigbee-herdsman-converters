@@ -1099,10 +1099,10 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            exposes.binary('operation_mode', ea.SET, {state: 'control_relay'},
+            exposes.binary('operation_mode', ea.ALL, {state: 'control_relay'},
                 {state: 'decoupled'}).withEndpoint('left')
                 .withDescription('Decoupled mode for left button'),
-            exposes.binary('operation_mode', ea.SET, {state: 'control_relay'},
+            exposes.binary('operation_mode', ea.ALL, {state: 'control_relay'},
                 {state: 'decoupled'}).withEndpoint('right')
                 .withDescription('Decoupled mode for right button'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
