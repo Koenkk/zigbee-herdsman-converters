@@ -1086,4 +1086,33 @@ module.exports = [
             // the "toggleCommand" always arrives from the first endpoint
         },
     },
+    {
+        zigbeeModel: ['lumi.switch.b2lc04'],
+        model: 'QBKG39LM',
+        vendor: 'Aqara',
+        description: 'Aqara E1 2 gang switch (without neutral)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            exposes.binary('operation_mode', ea.SET, {state: 'control_relay'},
+                {state: 'decoupled'}).withEndpoint('left')
+                .withDescription('Decoupled mode for left button'),
+            exposes.binary('operation_mode', ea.SET, {state: 'control_relay'},
+                {state: 'decoupled'}).withEndpoint('right')
+                .withDescription('Decoupled mode for right button'),
+            e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, 
+                disableDefaultResponse: true, disableResponse: true});
+        },
+    },
 ];

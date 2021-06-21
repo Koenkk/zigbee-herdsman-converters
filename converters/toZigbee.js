@@ -1761,7 +1761,7 @@ const converters = {
                 payload[lookupAttrId[button]] = {value: lookupState[value.state], type: 0x20};
                 await entity.write('genBasic', payload, manufacturerOptions.xiaomi);
                 return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
-            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
+            } else if (['QBKG25LM', 'QBKG26LM', 'QBKG39LM'].includes(meta.mapped.model)) {
                 const lookupState = {control_relay: 0x01, decoupled: 0x00};
                 await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, manufacturerOptions.xiaomi);
                 return {state: {operation_mode: value.state}};
@@ -1775,7 +1775,7 @@ const converters = {
                 const lookupAttrId = {single: 0xFF22, left: 0xFF22, right: 0xFF23};
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
-            } else if (['QBKG25LM', 'QBKG26LM'].includes(meta.mapped.model)) {
+            } else if (['QBKG25LM', 'QBKG26LM', 'QBKG39LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', 0x0200, manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
