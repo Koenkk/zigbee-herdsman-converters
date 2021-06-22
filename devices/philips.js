@@ -472,7 +472,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance pendant light',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -867,7 +867,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Sana',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
