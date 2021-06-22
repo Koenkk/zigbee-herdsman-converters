@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -148,7 +149,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
@@ -169,7 +170,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
         },
         endpoint: (device) => {
             return {default: 35};
@@ -246,8 +247,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
-            await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint);
         },
     },
@@ -282,6 +283,49 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FLSZB-110'],
+        model: 'FLSZB-110',
+        vendor: 'Develco',
+        description: 'Flood alarm device ',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.temperature(endpoint38);
+        },
+    },
+    {
+        zigbeeModel: ['AQSZB-110'],
+        model: 'AQSZB-110',
+        vendor: 'Develco',
+        description: 'Air quality sensor',
+        fromZigbee: [fz.develco_voc_battery, fz.develco_voc, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [
+            e.voc(), e.temperature(), e.humidity(),
+            e.battery(), e.battery_low(),
+            exposes.enum('air_quality', ea.STATE, [
+                'excellent', 'good', 'moderate',
+                'poor', 'unhealthy', 'out_of_range',
+                'unknown']).withDescription('Measured air quality'),
+        ],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(38);
+            const options = {manufacturerCode: 0x1015};
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['develcoSpecificAirQuality', 'msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await endpoint.configureReporting('develcoSpecificAirQuality', [{attribute: 'measuredValue', minimumReportInterval: 60,
+                maximumReportInterval: 3600, reportableChange: 10}], options);
+            await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+            await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
+            await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
         },
     },
 ];

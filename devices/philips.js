@@ -118,6 +118,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1745530P7'],
+        model: '1745530P7',
+        vendor: 'Philips',
+        description: 'Hue Nyro',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LDT001'],
         model: '5900131C5',
         vendor: 'Philips',
@@ -160,6 +169,15 @@ module.exports = [
         description: 'Hue Ensis',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4090330P9_01', '4090330P9_02'],
+        model: '4090330P9',
+        vendor: 'Philips',
+        description: 'Hue Ensis',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -313,6 +331,15 @@ module.exports = [
         description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4090431P9'],
+        model: '4090431P9',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance table light with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -907,6 +934,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3261331P6'],
+        model: '3261331P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Still',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC003'],
         model: '3261331P7',
         vendor: 'Philips',
@@ -957,7 +993,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1592,6 +1628,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1742830P7'],
+        model: '1742830P7',
+        vendor: 'Philips',
+        description: 'Hue Lily outdoor spot light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1741530P7', '1741430P7'],
         model: '1741530P7',
         vendor: 'Philips',
@@ -1664,7 +1709,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5041131P9'],
+        zigbeeModel: ['5041131P9', '5041148P9'],
         model: '5041131P9',
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin',

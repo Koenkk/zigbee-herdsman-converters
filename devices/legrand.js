@@ -105,8 +105,9 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
-        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
+            'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -170,7 +171,7 @@ module.exports = [
     },
     {
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: '067775',
+        model: '067775/741811',
         vendor: 'Legrand',
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],

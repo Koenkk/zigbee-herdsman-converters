@@ -115,7 +115,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ['898ca74409a740b28d5841661e72268d'],
+        zigbeeModel: ['898ca74409a740b28d5841661e72268d', '50938c4c3c0b4049923cd5afbc151bde'],
         model: 'ST30',
         vendor: 'ORVIBO',
         description: 'Temperature & humidity sensor',
@@ -222,7 +222,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c'],
+        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c', 'b2e57a0f606546cd879a1a54790827d6'],
         model: 'SN10ZW',
         vendor: 'ORVIBO',
         description: 'Occupancy sensor',

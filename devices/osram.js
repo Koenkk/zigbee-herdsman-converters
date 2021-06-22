@@ -67,9 +67,9 @@ module.exports = [
         model: 'AC03645',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED CLA60 E27 RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
         ota: ota.ledvance,
-        exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
     },
     {
         zigbeeModel: ['CLA60 TW OSRAM'],
@@ -244,7 +244,8 @@ module.exports = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
     {
@@ -268,7 +269,8 @@ module.exports = [
         model: 'AC08559',
         vendor: 'OSRAM',
         description: 'SMART+ Spot GU10 Multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
     {

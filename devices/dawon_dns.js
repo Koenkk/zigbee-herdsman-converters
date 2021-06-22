@@ -248,9 +248,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.onOff(endpoint);
-            await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.battery(), e.switch(), e.voltage()],
+        exposes: [e.battery(), e.switch()],
     },
 ];

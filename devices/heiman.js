@@ -22,7 +22,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryAlarmState(endpoint);
         },
-        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0', 'PIR_TPV13'],
@@ -83,7 +83,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0'],
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -94,7 +94,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0', 'SmokeSensor-EM'],
@@ -108,7 +108,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['GASSensor-N'],
@@ -255,7 +255,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
@@ -653,6 +653,15 @@ module.exports = [
     {
         zigbeeModel: ['PIR_TPV16'],
         model: 'HS1MS-M',
+        vendor: 'HEIMAN',
+        description: 'Smart motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['TY0202'],
+        model: 'HS1MS-EF',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],

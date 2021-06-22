@@ -53,11 +53,19 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.cwopcn01'],
+        model: 'XDD11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Opple MX960',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.cwopcn02'],
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -65,7 +73,7 @@ module.exports = [
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp(),
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -735,8 +743,9 @@ module.exports = [
         fromZigbee: [fz.xiaomi_battery, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.action(['vibration', 'tilt', 'drop']), exposes.numeric('strength', ea.STATE),
-            exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']), e.battery_voltage(),
+            e.battery(), e.action(['vibration', 'tilt', 'drop']),
+            exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
+            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
         ],
     },
     {
@@ -795,7 +804,7 @@ module.exports = [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time')],
-        ota: ota.zigbeeOTA,
+        // TEMP DISABLED: https://github.com/Koenkk/zigbee2mqtt/issues/7112 ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
@@ -1045,6 +1054,36 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(1));
             // await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
             // await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
+        },
+    },
+    {
+        zigbeeModel: ['lumi.remote.b28ac1'],
+        model: 'WRS-R02',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch H1 (double rocker)',
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple_report, fz.command_toggle],
+        exposes: [e.battery(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+            'toggle_1',
+        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+            .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
+        toZigbee: [tz.aqara_opple_operation_mode],
+        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(3);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+            // turn on the "multiple clicks" mode, otherwise the only "single click" events.
+            // if value is 1 - there will be single clicks, 2 - multiple.
+            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            // TODO/BUG:
+            // Did not understand how to separate the left and right keys in command mode -
+            // the "toggleCommand" always arrives from the first endpoint
         },
     },
 ];

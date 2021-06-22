@@ -7,6 +7,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['HK-ZD-CCT-A'],
+        model: 'HK-ZD-CCT-A',
+        vendor: 'Sunricher',
+        description: '50W Zigbee CCT LED driver (constant current)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
         zigbeeModel: ['ZGRC-KEY-007'],
         model: 'SR-ZG9001K2-DIM2',
         vendor: 'Sunricher',
