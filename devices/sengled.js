@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
@@ -154,7 +154,7 @@ module.exports = [
         zigbeeModel: ['E1C-NB7'],
         model: 'E1C-NB7',
         vendor: 'Sengled',
-        description: 'Smart Plug with Energy Tracker',
+        description: 'Smart plug with energy tracker',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
