@@ -51,4 +51,13 @@ module.exports = [
         description: 'Smart light BR30',
         extend: extend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['3RWS18BZ'],
+        model: '3RWS18BZ',
+        vendor: 'Third Reality',
+        description: 'Water sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.battery()],
+    },
 ];
