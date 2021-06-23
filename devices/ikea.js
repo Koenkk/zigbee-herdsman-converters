@@ -320,7 +320,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['Remote Control N2'],
-        model: 'W2049',
+        model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control N2',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,

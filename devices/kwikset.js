@@ -51,7 +51,7 @@ module.exports = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.pincode()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5_L'],
