@@ -23,7 +23,7 @@ const fzclick = {
                 255: 'release',
             };
             const clicks = msg.data['presentValue'];
-            const action = lookup[clicks] ? lookup[clicks] : `many_${clicks}`;
+            const action = lookup[clicks] ? lookup[clicks] : `many`;
             return {
                 action: `${action}`,
             };
