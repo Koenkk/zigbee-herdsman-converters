@@ -58,14 +58,14 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             device.endpoints.forEach(async (ep) => {
-            await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
-        });
+                await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
+            });
         },
         endpoint: (device) => {
-        return {
-            button_1: 1,
-        };
-    },
-        exposes: [e.battery(), e.action(),e.voltage()]
+            return {
+                button_1: 1,
+            };
+        },
+        exposes: [e.battery(), e.action(), e.voltage()],
     },
 ];
