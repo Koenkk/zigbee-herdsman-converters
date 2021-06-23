@@ -61,9 +61,6 @@ module.exports = [
         supports: 'single, double, triple, quadruple, many, hold/release',
         fromZigbee: [fzclick.diyruz_freepad_clicks, fz.battery],
         toZigbee: [],
-        meta: {
-            configureKey: 1,
-        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
