@@ -20,7 +20,6 @@ const fzclick = {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
             const lookup = {
                 0: 'hold',
                 1: 'single',
