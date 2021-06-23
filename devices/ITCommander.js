@@ -3,12 +3,6 @@ const exposes = require('../lib/exposes');
 const e = exposes.presets;
 const reporting = require('../lib/reporting');
 
-const getKey = (object, value) => {
-    for (const key in object) {
-        if (object[key] == value) return key;
-    }
-};
-
 const bind = async (endpoint, target, clusters) => {
     for (const cluster of clusters) {
         await endpoint.bind(cluster, target);
