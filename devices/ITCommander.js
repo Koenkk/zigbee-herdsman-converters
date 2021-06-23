@@ -76,6 +76,6 @@ module.exports = [
             button_1: 1,
         };
     },
-        exposes: [e.battery(), e.action()]
+        exposes: [e.battery(), e.action(),e.voltage()]
     },
 ];
