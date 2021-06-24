@@ -130,7 +130,7 @@ module.exports = [
         zigbeeModel: ['SMARTPLUG/1'],
         model: 'CCT711119',
         vendor: 'Schneider Electric',
-        description: 'Wiser Smart Plug',
+        description: 'Wiser smart plug',
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch()],
