@@ -127,6 +127,20 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SMARTPLUG/1'],
+        model: 'CCT711119',
+        vendor: 'Schneider Electric',
+        description: 'Wiser Smart Plug',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
