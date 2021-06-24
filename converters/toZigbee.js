@@ -2216,7 +2216,8 @@ const converters = {
     moesS_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSheatingSetpoint, value);
+            const temp = Math.round(value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSheatingSetpoint, temp);
         },
     },
     moesS_thermostat_boost_heating: {
