@@ -989,7 +989,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 5, max: 600, change: 10});
             await reporting.deviceTemperature(endpoint);
             device.powerSource = 'Mains (single phase)';
-            device.save();            
+            device.save();
         },
     },
     {
