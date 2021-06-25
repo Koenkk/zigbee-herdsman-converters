@@ -8,6 +8,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['E21-N1EA'], 
+        model: 'E21-N1EA', 
+        vendor: 'Sengled', 
+        description: 'Sengled Smart LED Multicolor A19 Bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
+    },
+    {
         zigbeeModel: ['E12-N1E'],
         model: 'E12-N1E',
         vendor: 'Sengled',
