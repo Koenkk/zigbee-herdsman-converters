@@ -210,11 +210,15 @@ module.exports = [
         model: 'SP2600ZB',
         vendor: 'Sinope',
         description: 'Zigbee smart plug',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {min: 10, change: 1});
         },
     },
     {
