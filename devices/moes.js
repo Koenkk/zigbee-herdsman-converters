@@ -182,9 +182,9 @@ module.exports = [
                 'temperature and returns to the weekly programming mode in the next time period. '),
             exposes.composite('programming_mode').withDescription('PROGRAMMING MODE ⏱ - In this mode, ' +
                 'the device executes a preset week programming temperature time and temperature. ')
-                .withFeature(exposes.text('prog_weekday', ea.STATE))
-                .withFeature(exposes.text('prog_saturday', ea.STATE))
-                .withFeature(exposes.text('prog_sunday', ea.STATE)),
+                .withFeature(exposes.text('program_weekday', ea.STATE))
+                .withFeature(exposes.text('program_saturday', ea.STATE))
+                .withFeature(exposes.text('program_sunday', ea.STATE)),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
