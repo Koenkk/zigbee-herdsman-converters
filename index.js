@@ -20,7 +20,12 @@ function arrayEquals(as, bs) {
 }
 
 function addToLookup(zigbeeModel, definition) {
-    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (zigbeeModel) {
+        zigbeeModel = String(zigbeeModel);
+        zigbeeModel.toLowerCase();
+    } else {
+        zigbeeModel = null;
+    }
     if (!lookup.has(zigbeeModel)) {
         lookup.set(zigbeeModel, []);
     }
@@ -31,7 +36,12 @@ function addToLookup(zigbeeModel, definition) {
 }
 
 function getFromLookup(zigbeeModel) {
-    zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
+    if (zigbeeModel) {
+        zigbeeModel = String(zigbeeModel);
+        zigbeeModel.toLowerCase();
+    } else {
+        zigbeeModel = null;
+    }
     if (lookup.has(zigbeeModel)) {
         return lookup.get(zigbeeModel);
     }
