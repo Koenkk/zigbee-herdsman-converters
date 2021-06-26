@@ -186,7 +186,7 @@ module.exports = [
         zigbeeModel: ['E11-N1G'],
         model: 'E11-N1G',
         vendor: 'Sengled',
-        description: 'Vintage LED Edison Bulb (ST19)',
+        description: 'Vintage LED edison bulb (ST19)',
         extend: extend.light_onoff_brightness(),
     },
 ];
