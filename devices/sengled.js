@@ -8,6 +8,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['E21-N1EA'],
+        model: 'E21-N1EA',
+        vendor: 'Sengled',
+        description: 'Sengled smart LED multicolor A19 bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
+    },
+    {
         zigbeeModel: ['E12-N1E'],
         model: 'E12-N1E',
         vendor: 'Sengled',
@@ -174,5 +181,12 @@ module.exports = [
         fromZigbee: [fz.E1E_G7F_action],
         exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['E11-N1G'],
+        model: 'E11-N1G',
+        vendor: 'Sengled',
+        description: 'Vintage LED edison bulb (ST19)',
+        extend: extend.light_onoff_brightness(),
     },
 ];

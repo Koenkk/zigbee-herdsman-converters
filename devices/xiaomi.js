@@ -400,6 +400,7 @@ module.exports = [
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -988,6 +989,8 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
             await reporting.activePower(endpoint, {min: 5, max: 600, change: 10});
             await reporting.deviceTemperature(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
@@ -1084,6 +1087,39 @@ module.exports = [
             // TODO/BUG:
             // Did not understand how to separate the left and right keys in command mode -
             // the "toggleCommand" always arrives from the first endpoint
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.b2lc04'],
+        model: 'QBKG39LM',
+        vendor: 'Aqara',
+        description: 'Aqara E1 2 gang switch (without neutral)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            exposes.composite('operation_mode', 'operation_mode')
+                .withDescription('Decoupled mode for left button')
+                .withFeature(exposes.enum('state', ea.STATE_SET, ['control_relay', 'decoupled']))
+                .withEndpoint('left'),
+            exposes.composite('operation_mode', 'operation_mode')
+                .withDescription('Decoupled mode for right button')
+                .withFeature(exposes.enum('state', ea.STATE_SET, ['control_relay', 'decoupled']))
+                .withEndpoint('right'),
+            e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
+            e.power_outage_memory().withEndpoint('left'),
+            e.power_outage_memory().withEndpoint('right'),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
+                disableDefaultResponse: true, disableResponse: true});
         },
     },
 ];
