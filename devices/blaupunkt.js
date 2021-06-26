@@ -11,8 +11,8 @@ module.exports = [
         model: 'SCM-S1',
         vendor: 'Blaupunkt',
         description: 'Roller shutter',
-        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
-        toZigbee: [tz.cover_via_brightness],
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.level_config],
+        toZigbee: [tz.cover_via_brightness, tz.level_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
