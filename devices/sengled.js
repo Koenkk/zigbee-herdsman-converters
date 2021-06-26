@@ -182,4 +182,11 @@ module.exports = [
         exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
     },
+    {
+        zigbeeModel: ['E11-N1G'],
+        model: 'E11-N1G',
+        vendor: 'Sengled',
+        description: 'Vintage LED edison bulb (ST19)',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
