@@ -3096,7 +3096,7 @@ const converters = {
                         {sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
                                 ',  ' + value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C' +
                                 ',  ' + value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C' +
-                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C ' },
+                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C '},
                 };
             case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
                 return {boost_heating_countdown_time_set: (value)};
