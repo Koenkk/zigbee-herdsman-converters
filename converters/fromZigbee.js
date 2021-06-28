@@ -4509,7 +4509,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (!msg.data.hasOwnProperty('512')) {
-                console.log("aqaraOpple missing 512 property.", msg.data)
+                console.log('aqaraOpple missing 512 property.', msg.data);
                 return;
             }
             const mappingMode = {
@@ -4517,7 +4517,7 @@ const converters = {
                 0x00: 'decoupled',
             };
             if (meta.multiEndpoint) {
-                const endpointNames = model.endpoint(meta.device)
+                const endpointNames = model.endpoint(meta.device);
                 for (const [name, id] of Object.entries(endpointNames)) {
                     if (id === msg.endpoint.ID) {
                         const mode = mappingMode[msg.data['512']];

@@ -1763,8 +1763,8 @@ const converters = {
                 return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
             } else if (['QBKG25LM', 'QBKG26LM', 'QBKG39LM'].includes(meta.mapped.model)) {
                 const lookupState = {control_relay: 0x01, decoupled: 0x00};
-                //Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = value.hasOwnProperty("state") ? value.state : value
+                // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
+                const targetValue = value.hasOwnProperty('state') ? value.state : value;
                 await entity.write('aqaraOpple', {0x0200: {value: lookupState[targetValue], type: 0x20}}, manufacturerOptions.xiaomi);
                 if (meta.mapped.meta.multiEndpoint) {
                     const state = {};
