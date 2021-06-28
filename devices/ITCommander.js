@@ -24,7 +24,7 @@ module.exports = [
         vendor: 'IT Commander',
         description: 'Button])',
         supports: 'single, double, triple, quadruple, many, hold/release',
-        fromZigbee: [fzclick.diyruz_freepad_clicks, fz.battery],
+        fromZigbee: [fz.itcmdr_clicks, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
