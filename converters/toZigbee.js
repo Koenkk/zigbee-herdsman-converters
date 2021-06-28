@@ -1763,8 +1763,16 @@ const converters = {
                 return {state: {[`operation_mode${button !== 'single' ? `_${button}` : ''}`]: value.state}};
             } else if (['QBKG25LM', 'QBKG26LM', 'QBKG39LM'].includes(meta.mapped.model)) {
                 const lookupState = {control_relay: 0x01, decoupled: 0x00};
-                await entity.write('aqaraOpple', {0x0200: {value: lookupState[value.state], type: 0x20}}, manufacturerOptions.xiaomi);
-                return {state: {operation_mode: value.state}};
+                //Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
+                const targetValue = value.hasOwnProperty("state") ? value.state : value
+                await entity.write('aqaraOpple', {0x0200: {value: lookupState[targetValue], type: 0x20}}, manufacturerOptions.xiaomi);
+                if (meta.mapped.meta.multiEndpoint) {
+                    const state = {};
+                    state[`operation_mode_${meta.endpoint_name}`] = targetValue;
+                    return {state: state};
+                } else {
+                    return {state: {operation_mode: targetValue}};
+                }
             } else {
                 throw new Error('Not supported');
             }
@@ -1776,7 +1784,7 @@ const converters = {
                 const button = meta.message[key].hasOwnProperty('button') ? meta.message[key].button : 'single';
                 await entity.read('genBasic', [lookupAttrId[button]], manufacturerOptions.xiaomi);
             } else if (['QBKG25LM', 'QBKG26LM', 'QBKG39LM'].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', 0x0200, manufacturerOptions.xiaomi);
+                await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }

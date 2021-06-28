@@ -4508,22 +4508,29 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const mappingButton = {
-                1: 'left',
-                2: 'center',
-                3: 'right',
-            };
+            if (!msg.data.hasOwnProperty('512')) {
+                console.log("aqaraOpple missing 512 property.", msg.data)
+                return;
+            }
             const mappingMode = {
                 0x01: 'control_relay',
                 0x00: 'decoupled',
             };
-            for (const key in mappingButton) {
-                if (msg.endpoint.ID == key && msg.data.hasOwnProperty('512')) {
-                    const payload = {};
-                    const mode = mappingMode['512'];
-                    payload[`operation_mode_${mappingButton[key]}`] = mode;
-                    return payload;
+            if (meta.multiEndpoint) {
+                const endpointNames = model.endpoint(meta.device)
+                for (const [name, id] of Object.entries(endpointNames)) {
+                    if (id === msg.endpoint.ID) {
+                        const mode = mappingMode[msg.data['512']];
+                        const payload = {};
+                        payload[`operation_mode_${name}`] = mode;
+                        return payload;
+                    }
                 }
+            } else {
+                const mode = mappingMode[msg.data['512']];
+                const payload = {};
+                payload[`operation_mode`] = mode;
+                return payload;
             }
         },
     },
