@@ -416,7 +416,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), 
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.action([
                 'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
                 'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
