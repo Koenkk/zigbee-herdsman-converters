@@ -416,17 +416,19 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'), e.action([
-            'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
-            'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
-            'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
-        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            e.power().withAccess(ea.STATE), e.action([
+                'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
+                'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
+                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
+        fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action, fz.xiaomi_power],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
