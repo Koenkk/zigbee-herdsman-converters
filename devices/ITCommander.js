@@ -8,7 +8,7 @@ module.exports = [
         zigbeeModel: ['ITCMDR_Contact'],
         model: 'ITCMDR_Contact',
         vendor: 'IT Commander',
-        description: 'Contact Sensor]\',
+        description: 'Contact Sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.voltage()],
