@@ -23,7 +23,7 @@ module.exports = [
         model: 'ITCMDR_Click',
         vendor: 'IT Commander',
         description: 'Button',
-        supports: 'single, double, triple, quadruple, many, hold/release',
+        exposes: [e.action(['single', 'double', 'triple', 'hold', 'release', 'many']), e.battery()],
         fromZigbee: [fz.itcmdr_clicks, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -32,11 +32,6 @@ module.exports = [
             device.endpoints.forEach(async (ep) => {
                 await reporting.bind(ep, coordinatorEndpoint, ['genMultistateInput']);
             });
-        },
-        endpoint: (device) => {
-            return {
-                button_1: 1,
-            };
         },
         exposes: [e.battery(), e.action(), e.voltage()],
     },
