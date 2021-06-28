@@ -3,12 +3,6 @@ const exposes = require('../lib/exposes');
 const e = exposes.presets;
 const reporting = require('../lib/reporting');
 
-const bind = async (endpoint, target, clusters) => {
-    for (const cluster of clusters) {
-        await endpoint.bind(cluster, target);
-    }
-};
-
 const fzclick = {
     diyruz_freepad_clicks: {
         cluster: 'genMultistateInput',
@@ -56,9 +50,9 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind (endpoint, coordinatorEndpoint, ['genPowerCfg']);
             device.endpoints.forEach(async (ep) => {
-                await bind(ep, coordinatorEndpoint, ['genMultistateInput']);
+                await reporting.bind(ep, coordinatorEndpoint, ['genMultistateInput']);
             });
         },
         endpoint: (device) => {
