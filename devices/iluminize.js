@@ -6,6 +6,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['511.050'],
+        model: '511.050',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED controller for 5in1 RGB+CCT LEDs',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [155, 450]}),
+    },
+    {
         zigbeeModel: ['DIM Lighting'],
         model: '511.10',
         vendor: 'Iluminize',

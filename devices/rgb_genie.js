@@ -34,23 +34,6 @@ module.exports = [
             'color_temperature_move_up', 'color_temperature_move_down'])],
     },
     {
-        zigbeeModel: ['ZGRC-KEY-013'],
-        model: 'ZGRC-KEY-013',
-        vendor: 'RGB Genie',
-        description: '3 Zone remote and dimmer',
-        fromZigbee: [fz.battery, fz.command_move, fz.legacy.ZGRC013_brightness_onoff,
-            fz.legacy.ZGRC013_brightness, fz.command_stop, fz.legacy.ZGRC013_brightness_stop, fz.command_on,
-            fz.legacy.ZGRC013_cmdOn, fz.command_off, fz.legacy.ZGRC013_cmdOff, fz.command_recall],
-        exposes: [e.battery(), e.action(['brightness_move_up', 'brightness_move_down', 'brightness_stop', 'on', 'off', 'recall_*'])],
-        toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-    },
-    {
         zigbeeModel: ['RGBgenie ZB-5028'],
         model: 'ZB-5028',
         vendor: 'RGB Genie',

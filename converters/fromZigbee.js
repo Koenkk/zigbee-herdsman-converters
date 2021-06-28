@@ -4172,6 +4172,7 @@ const converters = {
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
+            if (['QBKG39LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
@@ -5649,6 +5650,17 @@ const converters = {
                     mode_phase_control: phaseControlValues[phaseControl],
                 };
             }
+        },
+    },
+    itcmdr_clicks: {
+        cluster: 'genMultistateInput',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple',
+                4: 'quadruple', 255: 'release'};
+            const clicks = msg.data['presentValue'];
+            const action = lookup[clicks] ? lookup[clicks] : `many`;
+            return {action};
         },
     },
     ZB003X: {
