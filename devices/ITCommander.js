@@ -3,28 +3,6 @@ const exposes = require('../lib/exposes');
 const e = exposes.presets;
 const reporting = require('../lib/reporting');
 
-const fzclick = {
-    diyruz_freepad_clicks: {
-        cluster: 'genMultistateInput',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {
-                0: 'hold',
-                1: 'single',
-                2: 'double',
-                3: 'triple',
-                4: 'quadruple',
-                255: 'release',
-            };
-            const clicks = msg.data['presentValue'];
-            const action = lookup[clicks] ? lookup[clicks] : `many`;
-            return {
-                action: `${action}`,
-            };
-        },
-    },
-};
-
 module.exports = [
     {
         zigbeeModel: ['ITCMDR_Contact'],
