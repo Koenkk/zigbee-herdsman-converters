@@ -91,6 +91,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['TRADFRI bulb E27 opal 470lm', 'TRADFRI bulb E27 W opal 470lm'],
+        model: 'LED1937T5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 470 lumen, dimmable, opal white',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
@@ -128,6 +135,13 @@ module.exports = [
     {
         zigbeeModel: ['TRADFRI bulb E27 WW clear 250lm', 'TRADFRI bulb E26 WW clear 250lm'],
         model: 'LED1842G3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbE27WWclear250lm'],
+        model: 'LED1934G3',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
@@ -320,7 +334,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['Remote Control N2'],
-        model: 'W2049',
+        model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control N2',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,

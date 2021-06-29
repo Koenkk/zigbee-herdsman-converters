@@ -34,6 +34,10 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
             await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
 
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
+
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
             try {
@@ -80,6 +84,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -137,6 +145,10 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
 
             try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
+
+            try {
                 await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
@@ -169,6 +181,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
+
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Do nothing*/}
         },
     },
     {
@@ -191,6 +207,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
+
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Do nothing*/}
         },
     },
     {
@@ -210,11 +230,15 @@ module.exports = [
         model: 'SP2600ZB',
         vendor: 'Sinope',
         description: 'Zigbee smart plug',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {min: 10, change: 1});
         },
     },
     {

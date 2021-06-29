@@ -564,6 +564,19 @@ const converters = {
             return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
+    metering_datek: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.metering.convert(model, msg, publish, options, meta);
+            // Filter incorrect 0 energy values reported by the device:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/7852
+            if (result.energy === 0) {
+                delete result.energy;
+            }
+            return result;
+        },
+    },
     metering: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -3082,20 +3095,21 @@ const converters = {
                 return {battery: value};
             case tuya.dataPoints.moesSschedule:
                 return {
-                    programming_mode: {
-                        weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
+                    program_weekday:
+                        {weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
                                 ',  ' + value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C' +
                                 ',  ' + value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C' +
-                                ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C ',
-                        saturday: '' + value[12] + 'h:' + value[13] + 'm ' + value[14]/2 + '°C' +
+                                ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C '},
+                    program_saturday:
+                        {saturday: '' + value[12] + 'h:' + value[13] + 'm ' + value[14]/2 + '°C' +
                                 ',  ' + value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C' +
                                 ',   ' + value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C' +
-                                ',  ' + value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C ',
-                        sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
+                                ',  ' + value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C '},
+                    program_sunday:
+                        {sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
                                 ',  ' + value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C' +
                                 ',  ' + value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C' +
-                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C ',
-                    },
+                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C '},
                 };
             case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
                 return {boost_heating_countdown_time_set: (value)};
@@ -4171,6 +4185,7 @@ const converters = {
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
+            if (['QBKG39LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
@@ -5648,6 +5663,17 @@ const converters = {
                     mode_phase_control: phaseControlValues[phaseControl],
                 };
             }
+        },
+    },
+    itcmdr_clicks: {
+        cluster: 'genMultistateInput',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple',
+                4: 'quadruple', 255: 'release'};
+            const clicks = msg.data['presentValue'];
+            const action = lookup[clicks] ? lookup[clicks] : `many`;
+            return {action};
         },
     },
     ZB003X: {

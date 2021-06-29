@@ -20,7 +20,8 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'Tuya',
         description: 'Air quality sensor',
@@ -116,7 +117,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'},
-            {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'}],
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'}],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1014,6 +1016,9 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
         },
     },
     {

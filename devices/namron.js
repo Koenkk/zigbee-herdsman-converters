@@ -17,6 +17,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP'}],
     },
     {
         zigbeeModel: ['4512704'],
@@ -29,6 +30,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9101SAC-HP-Switch'}],
     },
     {
         zigbeeModel: ['1402755'],
@@ -60,6 +62,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
         zigbeeModel: ['4512721'],
@@ -77,6 +80,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
         zigbeeModel: ['4512701'],
@@ -86,6 +90,7 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K2-DIM'}],
     },
     {
         zigbeeModel: ['4512702'],
@@ -96,6 +101,7 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_step_up', 'brightness_step_down'])],
         toZigbee: [],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM'}],
     },
     {
         zigbeeModel: ['4512719'],
@@ -110,6 +116,17 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
+    },
+    {
+        zigbeeModel: ['4512726'],
+        model: '4512726',
+        vendor: 'Namron',
+        description: 'Zigbee 4 in 1 dimmer',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
     },
     {
         zigbeeModel: ['4512729'],
@@ -124,6 +141,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K4-DIM2'}],
     },
     {
         zigbeeModel: ['4512706'],
@@ -139,6 +157,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2868'}],
     },
     {
         zigbeeModel: ['4512705'],
@@ -157,6 +176,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K12-DIM-Z4'}],
     },
     {
         zigbeeModel: ['3802962'],
@@ -180,5 +200,6 @@ module.exports = [
         description: 'LED Strip RGB+W (5m) IP20',
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp_color(),
+        whiteLabel: [{vendor: 'Sunricher', model: 'DIY-ZG9101-RGBW'}],
     },
 ];
