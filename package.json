@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asgothian/zigbee-herdsman-converters.git"
+    "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
   },
   "keywords": [
     "xiaomi",
@@ -38,8 +38,7 @@
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^5.0.0",
     "tar-stream": "^2.2.0",
-
-    "zigbee-herdsman": "^0.13.115"
+    "zigbee-herdsman": "^0.13.117"
   },
   "devDependencies": {
     "eslint": "*",
