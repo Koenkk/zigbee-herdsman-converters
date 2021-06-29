@@ -1,12 +1,8 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
-const constants = require('../lib/constants');
-const {repInterval} = require('../lib/constants');
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
