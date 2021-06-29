@@ -805,6 +805,20 @@ const converters = {
             };
         },
     },
+    ias_smoke_alarm_1_develco: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                smoke: (zoneStatus & 1) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+            };
+        },
+    },
     ias_contact_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -6036,6 +6050,17 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const scenes = {2: '1', 52: '2', 102: '3', 153: '4', 194: '5', 254: '6'};
             return {action: `scene_${scenes[msg.data.level]}`};
+        },
+    },
+    smszb120_fw: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (0x8000 in msg.data) {
+                result.current_firmware = msg.data[0x8000].join(".");
+            }
+            return result;
         },
     },
     // #endregion
