@@ -4509,7 +4509,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (!msg.data.hasOwnProperty('512')) {
-                console.log('aqaraOpple missing 512 property.', msg.data);
                 return;
             }
             const mappingMode = {
