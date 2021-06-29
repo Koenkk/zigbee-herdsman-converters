@@ -220,13 +220,13 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
         model: 'PSBZS A1',
-        vendor: 'Parkside',
-        description: 'Smart Watering Timer',
+        vendor: 'Lidl',
+        description: 'Parkside smart watering timer',
         supports: 'switch, timer',
         fromZigbee: [fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.lidl_watering_timer],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {},
-        exposes: [],
+        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1).withUnit('min').withDescription('Auto off after specific time.')],
     },
 ];
