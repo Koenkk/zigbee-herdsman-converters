@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -227,5 +228,5 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {},
         exposes: [],
-    }
+    },
 ];
