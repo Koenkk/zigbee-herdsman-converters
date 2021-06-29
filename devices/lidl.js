@@ -216,4 +216,16 @@ module.exports = [
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
+        model: 'PSBZS A1',
+        vendor: 'Parkside',
+        description: 'Smart Watering Timer',
+        supports: 'switch, timer',
+        fromZigbee: [fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.lidl_watering_timer],
+        onEvent: tuya.onEventSetTime,
+        configure: async (device, coordinatorEndpoint, logger) => {},
+        exposes: [],
+    }
 ];
