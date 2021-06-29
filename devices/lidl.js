@@ -227,6 +227,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.lidl_watering_timer],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {},
-        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1).withUnit('min').withDescription('Auto off after specific time.')],
+        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1)
+            .withUnit('min').withDescription('Auto off after specific time.')],
     },
 ];
