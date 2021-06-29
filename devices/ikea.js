@@ -145,7 +145,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
-    },    
+    },
     {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
