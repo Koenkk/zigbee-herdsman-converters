@@ -564,6 +564,19 @@ const converters = {
             return Object.assign(result, libColor.syncColorState(result, meta.state, options));
         },
     },
+    metering_datek: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.metering.convert(model, msg, publish, options, meta);
+            // Filter incorrect 0 energy values reported by the device:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/7852
+            if (result.energy === 0) {
+                delete result.energy;
+            }
+            return result;
+        },
+    },
     metering: {
         /**
          * When using this converter also add the following to the configure method of the device:
