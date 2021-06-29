@@ -6058,7 +6058,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (0x8000 in msg.data) {
-                result.current_firmware = msg.data[0x8000].join(".");
+                result.current_firmware = msg.data[0x8000].join('.');
             }
             return result;
         },
