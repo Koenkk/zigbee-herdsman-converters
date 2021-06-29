@@ -2269,19 +2269,22 @@ const converters = {
     moesS_thermostat_eco_temperature: {
         key: ['eco_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSecoModeTempSet, value);
+            const temp = Math.round(value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSecoModeTempSet, temp);
         },
     },
     moesS_thermostat_max_temperature: {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSmaxTempSet, value);
+            const temp = Math.round(value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSmaxTempSet, temp);
         },
     },
     moesS_thermostat_min_temperature: {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, value);
+            const temp = Math.round(value);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, temp);
         },
     },
     hgkg_thermostat_standby: {
