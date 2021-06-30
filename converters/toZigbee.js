@@ -1891,10 +1891,7 @@ const converters = {
     lidl_watering_timer: {
         key: ['timer'],
         convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointRaw(
-                entity,
-                tuya.dataPoints.lidlTimer,
-                tuya.convertDecimalValueTo4ByteHexArray(value));
+            tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
         },
     },
     SPZ01_power_outage_memory: {
