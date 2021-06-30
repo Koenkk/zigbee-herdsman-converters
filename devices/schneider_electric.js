@@ -296,11 +296,17 @@ module.exports = [
         description: 'LK FUGA wiser wireless battery 4 button switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_*'])],
+        endpoint: (device) => {
+            return {'top': 21, 'bottom': 22};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [e.action(['on_*', 'off_*', 'brightness_*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
-            // Currently all four front switches operate out of ep21 for some reason
-            const buttonEndpoint = device.getEndpoint(21);
-            await reporting.bind(buttonEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
+            const topButtonsEndpoint = device.getEndpoint(21);
+            await reporting.bind(topButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const bottomButtonsEndpoint = device.getEndpoint(22);
+            await reporting.bind(bottomButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
