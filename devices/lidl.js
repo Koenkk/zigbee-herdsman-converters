@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -215,5 +216,17 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
+        model: 'PSBZS A1',
+        vendor: 'Lidl',
+        description: 'Parkside smart watering timer',
+        fromZigbee: [fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.lidl_watering_timer],
+        onEvent: tuya.onEventSetTime,
+        configure: async (device, coordinatorEndpoint, logger) => {},
+        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1)
+            .withUnit('min').withDescription('Auto off after specific time.')],
     },
 ];
