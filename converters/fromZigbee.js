@@ -4515,22 +4515,10 @@ const converters = {
                 0x01: 'control_relay',
                 0x00: 'decoupled',
             };
-            if (meta.multiEndpoint) {
-                const endpointNames = model.endpoint(meta.device);
-                for (const [name, id] of Object.entries(endpointNames)) {
-                    if (id === msg.endpoint.ID) {
-                        const mode = mappingMode[msg.data['512']];
-                        const payload = {};
-                        payload[`operation_mode_${name}`] = mode;
-                        return payload;
-                    }
-                }
-            } else {
-                const mode = mappingMode[msg.data['512']];
-                const payload = {};
-                payload[`operation_mode`] = mode;
-                return payload;
-            }
+            const mode = mappingMode[msg.data['512']];
+            const payload = {};
+            payload[postfixWithEndpointName('operation_mode', msg, model)] = mode;
+            return payload;
         },
     },
     qlwz_letv8key_switch: {

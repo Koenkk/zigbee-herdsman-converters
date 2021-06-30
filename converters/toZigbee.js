@@ -1766,13 +1766,10 @@ const converters = {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
                 const targetValue = value.hasOwnProperty('state') ? value.state : value;
                 await entity.write('aqaraOpple', {0x0200: {value: lookupState[targetValue], type: 0x20}}, manufacturerOptions.xiaomi);
-                if (meta.mapped.meta.multiEndpoint) {
-                    const state = {};
-                    state[`operation_mode_${meta.endpoint_name}`] = targetValue;
-                    return {state: state};
-                } else {
-                    return {state: {operation_mode: targetValue}};
-                }
+
+                const state = {};
+                state[`operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`] = targetValue;
+                return state;
             } else {
                 throw new Error('Not supported');
             }
