@@ -222,7 +222,6 @@ module.exports = [
         model: 'PSBZS A1',
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
-        supports: 'switch, timer',
         fromZigbee: [fz.ignore_basic_report],
         toZigbee: [tz.on_off, tz.lidl_watering_timer],
         onEvent: tuya.onEventSetTime,
