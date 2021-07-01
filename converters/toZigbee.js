@@ -1767,9 +1767,7 @@ const converters = {
                 const targetValue = value.hasOwnProperty('state') ? value.state : value;
                 await entity.write('aqaraOpple', {0x0200: {value: lookupState[targetValue], type: 0x20}}, manufacturerOptions.xiaomi);
 
-                const state = {};
-                state[`operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`] = targetValue;
-                return state;
+                return {state: {operation_mode: targetValue}};
             } else {
                 throw new Error('Not supported');
             }
