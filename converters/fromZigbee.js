@@ -4117,13 +4117,6 @@ const converters = {
             return payload;
         },
     },
-    xiaomi_voc: {
-        cluster: 'genAnalogInput',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options, meta) => {
-            return {voc: msg.data.presentValue};
-        },
-    },
     xiaomi_battery: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
