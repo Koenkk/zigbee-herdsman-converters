@@ -9,7 +9,7 @@ module.exports = [
         zigbeeModel: ['HC-SLM-1'],
         model: 'HC-SLM-1',
         vendor: 'Home Control AS',
-        description: 'Heimgard (Wattle) Door Lock Pro',
+        description: 'Heimgard (Wattle) door lock pro',
         fromZigbee: [fz.lock, fz.battery],
         toZigbee: [tz.lock],
         configure: async (device, coordinatorEndpoint, logger) => {
