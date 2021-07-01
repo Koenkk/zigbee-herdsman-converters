@@ -40,6 +40,25 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.airmonitor.acn01'],
+        model: 'AAQS-S01',
+        vendor: 'Xiaomi',
+        description: 'TVOC air quality monitor',
+        fromZigbee: [fz.xiaomi_voc, fz.xiaomi_battery, fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.voc()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
