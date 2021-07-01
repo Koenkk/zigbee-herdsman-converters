@@ -77,7 +77,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
-        model: 'CCT5011-0001/MEG5011-0001',
+        model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
         extend: extend.switch(),
