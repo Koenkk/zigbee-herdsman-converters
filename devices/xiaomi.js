@@ -1094,7 +1094,7 @@ module.exports = [
     {
         zigbeeModel: ['lumi.switch.b2lc04'],
         model: 'QBKG39LM',
-        vendor: 'Aqara',
+        vendor: 'Xiaomi',
         description: 'Aqara E1 2 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory],
