@@ -5269,40 +5269,39 @@ const converters = {
             meta.logger.debug(`to moes_105z_dimmer key=[${key}], value=[${value}]`);
 
             switch (key) {
+            case 'state':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+                break;
 
-                case 'state':
-                    await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+            case 'level':
+                if (value >= 0 && value <= 1000) {
+                    const newValue = Math.round(Number(value));
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
                     break;
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
 
-                case 'level':
-                    if (value >= 0 && value <= 1000) {
-                        const newValue = Math.round(Number(value));
-                        await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
-                        break;
-                    } else {
-                        throw new Error('Dimmer level is out of range 0..1000');
-                    }
+            case 'brightness':
+                if (value >= 0 && value <= 254) {
+                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
+                    break;
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..245');
+                }
 
-                case 'brightness':
-                    if (value >= 0 && value <= 254) {
-                        const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-                        await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
-                        break;
-                    } else {
-                        throw new Error('Dimmer brightness is out of range 0..245');
-                    }
+            case 'percentage':
+                if (value >= 0 && value <= 100) {
+                    const newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
+                    break;
+                } else {
+                    throw new Error('Dimmer percentage is out of range 0..100');
+                }
 
-                case 'percentage':
-                    if (value >= 0 && value <= 100) {
-                        const newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
-                        await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
-                        break;
-                    } else {
-                        throw new Error('Dimmer percentage is out of range 0..100');
-                    }
-
-                default:
-                    throw new Error(`Unsupported Key=[${key}]`);
+            default:
+                throw new Error(`Unsupported Key=[${key}]`);
             }
         },
     },

@@ -1448,16 +1448,17 @@ const converters = {
             meta.logger.debug(`from moes_105z_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
 
             switch (dp) {
-                case tuya.dataPoints.state:
-                    return {state: value ? 'ON': 'OFF'}
-                case tuya.dataPoints.moes105zDimmerLevel:
-                    return {
-                        brightness: mapNumberRange(value, 0, 1000, 0, 254),
-                        percentage: mapNumberRange(value, 0, 1000, 0, 100),
-                        level: value,
-                    };
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:moes_105z_dimmer: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            case tuya.dataPoints.state:
+                return {state: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.moes105zDimmerLevel:
+                return {
+                    brightness: mapNumberRange(value, 0, 1000, 0, 254),
+                    percentage: mapNumberRange(value, 0, 1000, 0, 100),
+                    level: value,
+                };
+            default:
+                meta.logger.debug(`zigbee-herdsman-converters:moes_105z_dimmer:` +
+                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
     },
