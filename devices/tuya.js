@@ -1055,23 +1055,19 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
         model: 'MS-105Z',
-        vendor: 'Tuya',
+        vendor: 'Moes',
         description: '1 Gang 2 Way ZigBee Dimmer Switch',
         fromZigbee: [fz.moes_105z_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.moes_105z_dimmer],
         meta: {turnsOffAtBrightness1: true},
         whiteLabel: [
-            {vendor: 'Moes', model: 'MS-105Z', description: '1 Gang 2 Way ZigBee Dimmer Switch'},
+            {vendor: 'Tuya', model: 'MS-105Z', description: '1 Gang 2 Way ZigBee Dimmer Switch'},
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         exposes: [
             e.switch().setAccess('state', ea.STATE_SET),
-            exposes.numeric('brightness', ea.STATE_SET).withValueMin(0).withValueMax(254)
-                .withUnit('cd').withDescription('Dimmer Brightness Level'),
-            exposes.numeric('level', ea.STATE_SET).withValueMin(0).withValueMax(1000)
-                .withUnit('point').withDescription('Dimmer Level'),
             exposes.numeric('percentage', ea.STATE_SET).withValueMin(0).withValueMax(100)
                 .withUnit('%').withDescription('Dimmer Percentage Level'),
         ],
