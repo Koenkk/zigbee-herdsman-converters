@@ -284,4 +284,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['WL4200S'],
+        model: 'WL4200S',
+        vendor: 'Sinope',
+        description: 'Zigbee smart water leak detector',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
 ];
