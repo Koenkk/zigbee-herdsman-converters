@@ -6,14 +6,14 @@ module.exports = [
         model: 'A9A19A60WESDZ02',
         vendor: 'EcoSmart',
         description: 'Tuneable white (A19)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['Ecosmart-ZBT-BR30-CCT-Bulb'],
         model: 'A9BR3065WESDZ02',
         vendor: 'EcoSmart',
         description: 'Tuneable white (BR30)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['zhaRGBW'],
