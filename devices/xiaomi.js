@@ -258,7 +258,7 @@ module.exports = [
             fz.xiaomi_operation_mode_basic],
         exposes: [
             e.switch(), e.action(['single', 'release', 'hold']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode')
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
@@ -284,7 +284,7 @@ module.exports = [
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(),
             e.action(['single', 'double', 'release', 'hold']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode')
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
@@ -306,10 +306,10 @@ module.exports = [
             e.switch().withEndpoint('right'),
             e.temperature(),
             e.action(['single_left', 'single_right', 'single_both']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right')
         ],
@@ -341,10 +341,10 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right')
         ],
@@ -383,7 +383,7 @@ module.exports = [
         exposes: [
             e.switch(),
             e.action(['single', 'hold', 'release']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode')
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
@@ -408,10 +408,10 @@ module.exports = [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.action(['single_left', 'single_right', 'single_both']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right')
         ],
@@ -539,10 +539,10 @@ module.exports = [
             e.action([
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
             'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both']),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.STATE_SET, ['control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_right_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right')
         ],
