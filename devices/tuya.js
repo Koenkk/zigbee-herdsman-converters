@@ -518,7 +518,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cowvfni3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rddyvrci'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nueqqe6k'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'},
@@ -529,6 +528,7 @@ module.exports = [
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
         ],
         model: 'TS0601_cover',
         vendor: 'TuYa',
