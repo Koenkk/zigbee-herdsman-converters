@@ -1451,7 +1451,7 @@ const converters = {
             case tuya.dataPoints.state:
                 return {state: value ? 'ON': 'OFF'};
             case tuya.dataPoints.moes105zDimmerLevel:
-                return {percentage: mapNumberRange(value, 0, 1000, 0, 100)};
+                return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
             default:
                 meta.logger.debug(`zigbee-herdsman-converters:moes_105z_dimmer:` +
                     `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);

@@ -5264,7 +5264,7 @@ const converters = {
         },
     },
     moes_105z_dimmer: {
-        key: ['state', 'percentage'],
+        key: ['state', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
             meta.logger.debug(`to moes_105z_dimmer key=[${key}], value=[${value}]`);
 
@@ -5273,9 +5273,9 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
                 break;
 
-            case 'percentage':
-                if (value >= 0 && value <= 100) {
-                    const newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
+            case 'brightness':
+                if (value >= 0 && value <= 254) {
+                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                     if (newValue === 0) {
                         await tuya.sendDataPointBool(entity, tuya.dataPoints.state, false, 'setData', 1);
                     } else {
@@ -5284,7 +5284,7 @@ const converters = {
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
                     break;
                 } else {
-                    throw new Error('Dimmer percentage is out of range 0..100');
+                    throw new Error('Dimmer brightness is out of range 0..254');
                 }
 
             default:

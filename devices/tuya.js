@@ -1066,10 +1066,6 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
-        exposes: [
-            e.switch().setAccess('state', ea.STATE_SET),
-            exposes.numeric('percentage', ea.STATE_SET).withValueMin(0).withValueMax(100)
-                .withUnit('%').withDescription('Dimmer Percentage Level'),
-        ],
+        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
 ];
