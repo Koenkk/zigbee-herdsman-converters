@@ -3980,7 +3980,7 @@ const converters = {
             };
             await entity.write('genOnOffSwitchCfg', payloads[key]);
 
-            return {state: {[`${key}_${meta.endpoint_name}`]: value}};
+            return {state: {[`${key}`]: value}};
         },
     },
     TYZB01_on_off: {
