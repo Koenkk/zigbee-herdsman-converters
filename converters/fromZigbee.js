@@ -4482,23 +4482,21 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM'].includes(model.model)) {
+
+            if (!model.meta.multiEndpoint) {
                 const mappingMode = {0x12: 'control_relay', 0xFE: 'decoupled'};
-                const key = '65314';
+                const key = 0xFF22;
                 if (msg.data.hasOwnProperty(key)) {
                     payload.operation_mode = mappingMode[msg.data[key]];
                 }
-            } else if (['QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model)) {
-                const mappingButton = {'65314': 'left', '65315': 'right'};
+            } else {
+                const mappingButton = {0xFF22: 'left', 0xFF23: 'right'};
                 const mappingMode = {0x12: 'control_left_relay', 0x22: 'control_right_relay', 0xFE: 'decoupled'};
                 for (const key in mappingButton) {
                     if (msg.data.hasOwnProperty(key)) {
-                        const mode = mappingMode[msg.data[key]];
-                        payload[`operation_mode_${mappingButton[key]}`] = mode;
+                        payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key]];
                     }
                 }
-            } else {
-                throw new Error('Not supported');
             }
 
             return payload;

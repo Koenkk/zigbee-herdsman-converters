@@ -257,7 +257,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -278,7 +278,7 @@ module.exports = [
             fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic,
             fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(), e.action(['single', 'double', 'release', 'hold'])],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         endpoint: (device) => {
             return {'system': 1};
         },
@@ -294,7 +294,7 @@ module.exports = [
             fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
             'single_left', 'single_right', 'single_both'])],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
@@ -319,7 +319,7 @@ module.exports = [
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both'])],
         meta: {multiEndpoint: true},
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
@@ -351,7 +351,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -370,7 +370,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG03LM_QBKG12LM_click,
             fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};
@@ -388,7 +388,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -441,7 +441,7 @@ module.exports = [
                 'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
                 'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
         fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
@@ -463,7 +463,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 1 gang smart wall switch (with neutral wire)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1};
         },
@@ -477,7 +477,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (with neutral wire)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
@@ -1116,7 +1116,7 @@ module.exports = [
         vendor: 'Aqara',
         description: 'Aqara E1 2 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
