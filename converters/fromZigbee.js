@@ -1438,6 +1438,26 @@ const converters = {
             return {presence: true};
         },
     },
+    moes_105z_dimmer: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            meta.logger.debug(`from moes_105z_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+
+            switch (dp) {
+            case tuya.dataPoints.state:
+                return {state: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.moes105zDimmerLevel:
+                return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
+            default:
+                meta.logger.debug(`zigbee-herdsman-converters:moes_105z_dimmer:` +
+                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
