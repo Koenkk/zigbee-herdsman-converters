@@ -11,9 +11,9 @@ module.exports = [
         model: '3RSS009Z',
         vendor: 'Third Reality',
         description: 'Smart switch Gen3',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch()],
+        exposes: [e.switch(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['3RSS008Z'],
