@@ -256,7 +256,11 @@ module.exports = [
         description: 'Aqara single key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
-        exposes: [e.switch(), e.action(['single', 'release', 'hold'])],
+        exposes: [
+            e.switch(), e.action(['single', 'release', 'hold']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode')
+        ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
@@ -277,7 +281,12 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
             fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic,
             fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(), e.action(['single', 'double', 'release', 'hold'])],
+        exposes: [
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(),
+            e.action(['single', 'double', 'release', 'hold']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode')
+        ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         endpoint: (device) => {
             return {'system': 1};
@@ -292,8 +301,18 @@ module.exports = [
         description: 'Aqara double key wired wall switch without neutral wire. Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.legacy.QBKG03LM_QBKG12LM_click,
             fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic, fz.xiaomi_switch_basic],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.action([
-            'single_left', 'single_right', 'single_both'])],
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.temperature(),
+            e.action(['single_left', 'single_right', 'single_both']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for right button')
+                .withEndpoint('right')
+        ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -315,9 +334,20 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_on_off_ignore_endpoint_4_5_6,
             fz.legacy.QBKG03LM_QBKG12LM_click, fz.xiaomi_switch_basic, fz.xiaomi_operation_mode_basic, fz.legacy.QBKG12LM_click,
             fz.xiaomi_power],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(), e.power().withAccess(ea.STATE_GET),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.temperature(),
+            e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
-                'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both'])],
+                'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for right button')
+                .withEndpoint('right')
+        ],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         endpoint: (device) => {
@@ -350,7 +380,12 @@ module.exports = [
         description: 'Aqara D1 single gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
-        exposes: [e.switch(), e.action(['single', 'hold', 'release'])],
+        exposes: [
+            e.switch(),
+            e.action(['single', 'hold', 'release']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode')
+        ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
@@ -369,7 +404,17 @@ module.exports = [
         description: 'Aqara D1 2 gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG03LM_QBKG12LM_click,
             fz.legacy.QBKG03LM_buttons, fz.xiaomi_operation_mode_basic],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.action(['single'])],
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.action(['single_left', 'single_right', 'single_both']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
+                .withDescription('Operation mode for right button')
+                .withEndpoint('right')
+        ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -468,23 +513,39 @@ module.exports = [
             return {'system': 1};
         },
         onEvent: preventReset,
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE), e.action(['single', 'release'])],
+        exposes: [
+            e.switch(), e.power().withAccess(ea.STATE_GET),
+            e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.action(['single', 'release']),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode')
+        ],
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
         model: 'QBKG24LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 2 gang smart wall switch (with neutral wire)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_operation_mode_basic],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2, 'system': 1};
         },
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE_GET), e.action([
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.power().withAccess(ea.STATE_GET),
+            e.action([
             'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
-            'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both'])],
+            'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_right_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right')
+        ],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
