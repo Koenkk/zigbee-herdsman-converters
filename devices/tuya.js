@@ -1052,20 +1052,4 @@ module.exports = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
-        model: 'MS-105Z',
-        vendor: 'Moes',
-        description: '1 Gang 2 Way ZigBee Dimmer Switch',
-        fromZigbee: [fz.moes_105z_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105z_dimmer],
-        meta: {turnsOffAtBrightness1: true},
-        whiteLabel: [
-            {vendor: 'Tuya', model: 'MS-105Z', description: '1 Gang 2 Way ZigBee Dimmer Switch'},
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-    },
 ];
