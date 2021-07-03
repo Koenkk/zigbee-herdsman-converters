@@ -259,7 +259,7 @@ module.exports = [
         exposes: [
             e.switch(), e.action(['single', 'release', 'hold']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode')
+                .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
@@ -285,7 +285,7 @@ module.exports = [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(),
             e.action(['single', 'double', 'release', 'hold']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode')
+                .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         endpoint: (device) => {
@@ -311,7 +311,7 @@ module.exports = [
                 .withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
-                .withEndpoint('right')
+                .withEndpoint('right'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
         meta: {multiEndpoint: true},
@@ -346,7 +346,7 @@ module.exports = [
                 .withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
-                .withEndpoint('right')
+                .withEndpoint('right'),
         ],
         meta: {multiEndpoint: true},
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
@@ -384,7 +384,7 @@ module.exports = [
             e.switch(),
             e.action(['single', 'hold', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode')
+                .withDescription('Decoupled mode'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         endpoint: (device) => {
@@ -413,7 +413,7 @@ module.exports = [
                 .withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
-                .withEndpoint('right')
+                .withEndpoint('right'),
         ],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
         meta: {multiEndpoint: true},
@@ -438,7 +438,8 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
-        exposes: [e.switch().withEndpoint('left'), e.power_outage_memory(), e.switch().withEndpoint('center'),
+        exposes: [
+            e.switch().withEndpoint('left'), e.power_outage_memory(), e.switch().withEndpoint('center'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -451,7 +452,8 @@ module.exports = [
             e.switch().withEndpoint('right'), e.action([
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
-                'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release'])],
+                'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release']),
+        ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
@@ -471,7 +473,9 @@ module.exports = [
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
         extend: extend.switch(),
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -484,7 +488,8 @@ module.exports = [
             e.power().withAccess(ea.STATE), e.action([
                 'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
                 'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
-                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right'])],
+                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right']),
+        ],
         fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action, fz.xiaomi_power],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple],
         meta: {multiEndpoint: true},
@@ -518,7 +523,7 @@ module.exports = [
             e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.action(['single', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode')
+                .withDescription('Decoupled mode'),
         ],
     },
     {
@@ -537,14 +542,15 @@ module.exports = [
             e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE_GET),
             e.action([
-            'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
-            'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both']),
+                'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
+                'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both',
+            ]),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_right_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
-                .withEndpoint('right')
+                .withEndpoint('right'),
         ],
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
@@ -1147,13 +1153,16 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless remote switch H1 (double rocker)',
         fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple_report, fz.command_toggle],
-        exposes: [e.battery(), e.action([
-            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
-            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
-            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
-            'toggle_1',
-        ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
-            .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
+        exposes: [
+            e.battery(), e.action([
+                'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+                'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+                'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+                'toggle_1',
+            ]),
+            exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+                .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
+        ],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {

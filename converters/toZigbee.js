@@ -1773,11 +1773,11 @@ const converters = {
             let attrValue;
             if (meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
-                //Allow usage of control_relay for 2 gang switches by mapping it to the default side.
+                // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
                 if (targetValue === 'control_relay') {
-                    targetValue = `control_${meta.endpoint_name}_relay`
+                    targetValue = `control_${meta.endpoint_name}_relay`;
                 }
-                attrValue = {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE}[targetValue]
+                attrValue = {control_left_relay: 0x12, control_right_relay: 0x22, decoupled: 0xFE}[targetValue];
 
                 if (attrId == null) {
                     throw new Error(`Unsupported endpoint ${meta.endpoint_name} for changing operation_mode.`);
@@ -1815,14 +1815,14 @@ const converters = {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            let targetValue = value.hasOwnProperty('state') ? value.state : value;
+            const targetValue = value.hasOwnProperty('state') ? value.state : value;
             // Switches using aqaraOpple 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write('aqaraOpple', {0x0200: {value: lookupState[targetValue], type: 0x20}}, manufacturerOptions.xiaomi);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
-        }
+        },
     },
     xiaomi_switch_do_not_disturb: {
         key: ['do_not_disturb'],
