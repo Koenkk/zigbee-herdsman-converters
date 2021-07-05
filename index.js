@@ -26,7 +26,7 @@ function addToLookup(zigbeeModel, definition) {
     }
 
     if (!lookup.get(zigbeeModel).includes(definition)) {
-        lookup.get(zigbeeModel).push(definition);
+        lookup.get(zigbeeModel).splice(0, 0, definition);
     }
 }
 
@@ -84,7 +84,7 @@ function addDefinition(definition) {
     }
 
     validateDefinition(definition);
-    definitions.push(definition);
+    definitions.splice(0, 0, definition);
 
     if (definition.hasOwnProperty('fingerprint')) {
         for (const fingerprint of definition.fingerprint) {
@@ -128,11 +128,8 @@ function findByDevice(device) {
     } else if (candidates.length === 1 && candidates[0].hasOwnProperty('zigbeeModel')) {
         return candidates[0];
     } else {
-        // Multiple candidates possible, to use external converters in priority, reverse the order of candidates before searching.
-        const reversedCandidates = candidates.reverse();
-
         // First try to match based on fingerprint, return the first matching one.
-        for (const candidate of reversedCandidates) {
+        for (const candidate of candidates) {
             if (candidate.hasOwnProperty('fingerprint')) {
                 for (const fingerprint of candidate.fingerprint) {
                     if (fingerprintMatch(fingerprint, device)) {
@@ -143,7 +140,7 @@ function findByDevice(device) {
         }
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel
-        for (const candidate of reversedCandidates) {
+        for (const candidate of candidates) {
             if (candidate.hasOwnProperty('zigbeeModel') && candidate.zigbeeModel.includes(device.modelID)) {
                 return candidate;
             }
