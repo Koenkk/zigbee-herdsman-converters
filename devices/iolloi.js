@@ -5,8 +5,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'HZC'}],
         model: 'ID-UK21FW09',
-        vendor: 'iolloi',
-        description: 'Zigbee LED Smart Dimmer Switch',
+        vendor: 'Iolloi',
+        description: 'Zigbee LED smart dimmer switch',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
