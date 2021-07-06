@@ -183,6 +183,7 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
+        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}],
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
