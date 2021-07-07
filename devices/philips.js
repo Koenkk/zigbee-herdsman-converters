@@ -1664,7 +1664,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1746230V7'],
+        zigbeeModel: ['1746230V7', '1746230P7'],
         model: '1746230V7',
         vendor: 'Philips',
         description: 'Hue Lily XL outdoor spot light',
