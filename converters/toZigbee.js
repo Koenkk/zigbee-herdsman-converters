@@ -610,7 +610,15 @@ const converters = {
                 message.brightness = deviceState.brightness;
             }
 
-            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+            value = Number(value);
+
+            // ensure value within range
+            value = light.clampColorTemp(value, colorTempMin, colorTempMax, meta.logger);
+
+            const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
+            await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
+            //RS://return {state: {color_temp: value, color_mode: constants.colorMode[2]}, readAfterWriteTime: payload.transtime * 100};
+            return {state: {color_temp: value, color_mode: constants.colorMode[2], mode: 'ct'}, readAfterWriteTime: payload.transtime * 100};
         },
         convertGet: async (entity, key, meta) => {
             return await converters.light_onoff_brightness.convertGet(entity, key, meta);
@@ -665,7 +673,8 @@ const converters = {
                 value.y = xy.y;
             } else if (value.hasOwnProperty('hex') || (typeof value === 'string' && value.startsWith('#'))) {
                 const xy = utils.hexToXY(typeof value === 'string' && value.startsWith('#') ? value : value.hex);
-                value = {x: xy.x, y: xy.y};
+                //RS://value = {x: xy.x, y: xy.y};
+                value = {hex: value.hex, x: xy.x, y: xy.y};
             } else if (value.hasOwnProperty('h') && value.hasOwnProperty('s') && value.hasOwnProperty('l')) {
                 newState.color = {h: value.h, s: value.s, l: value.l};
                 const hsv = utils.gammaCorrectHSV(...Object.values(
@@ -809,6 +818,9 @@ const converters = {
 
             switch (cmd) {
             case 'enhancedMoveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -821,15 +833,23 @@ const converters = {
                 cmd = 'enhancedMoveToHueAndSaturation';
                 break;
             case 'enhancedMoveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.enhancehue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'enhancedMoveToHue':
+                newState.color_mode = constants.colorMode[0];
+                newState.mode = 'xy';
                 zclData.enhancehue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHueAndSaturationAndBrightness':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 await entity.command(
                     'genLevelCtrl',
                     'moveToLevelWithOnOff',
@@ -842,15 +862,24 @@ const converters = {
                 cmd = 'moveToHueAndSaturation';
                 break;
             case 'moveToHueAndSaturation':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.hue = value.hue;
                 zclData.saturation = value.saturation;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToHue':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.hue = value.hue;
                 zclData.direction = value.direction || 0;
                 break;
             case 'moveToSaturation':
+                newState.color_mode = constants.colorMode[0];
+                //RS://
+                newState.mode = 'xy';
                 zclData.saturation = value.saturation;
                 break;
 
@@ -867,10 +896,13 @@ const converters = {
                     value.y = 0.2993;
                 }
 
+                //RS://newState.color = {x: value.x, y: value.y};
                 newState.color = {hex: value.hex, x: value.x, y: value.y};
-                newState.mode = { mode: value.mode };
-                zclData.colorx = Math.round(value.x * 65535);
-                zclData.colory = Math.round(value.y * 65535);
+                newState.color_mode = constants.colorMode[1];
+                //RS://
+                newState.mode = 'xy';
+                zclData.colorx = utils.mapNumberRange(value.x, 0, 1, 0, 65535);
+                zclData.colory = utils.mapNumberRange(value.y, 0, 1, 0, 65535);
             }
             await entity.command('lightingColorCtrl', cmd, zclData, getOptions(meta.mapped, entity));
             return {state: newState, readAfterWriteTime: zclData.transtime * 100};
@@ -912,14 +944,16 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
-                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
-                    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
-                }
-
+                //RS://
+                //if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                //    result.state.color_temp = utils.xyToMireds(result.state.color.x, result.state.color.y);
+                //}
+                result.state.mode = 'xy';
                 return result;
             } else if (key == 'color_temp' || key == 'color_temp_percent') {
                 const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
                 result.state.color = utils.miredsToXY(result.state.color_temp);
+                //RS://
                 result.state.mode = 'ct';
                 return result;
             }
@@ -3312,7 +3346,27 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const groupid = entity.constructor.name === 'Group' ? entity.groupID : 0;
             const sceneid = value;
-            await entity.command('genScenes', 'recall', {groupid, sceneid}, getOptions(meta.mapped));
+            await entity.command('genScenes', 'recall', {groupid, sceneid}, utils.getOptions(meta.mapped));
+
+            const addColorMode = (newState) => {
+                if (newState.hasOwnProperty('color_temp')) {
+                    newState.color_mode = constants.colorMode[2];
+                    //RS://
+                    newState.mode = 'ct';
+                } else if (newState.hasOwnProperty('color')) {
+                    if (newState.color.hasOwnProperty('x')) {
+                        newState.color_mode = constants.colorMode[1];
+                        //RS://
+                        newState.mode = 'xy';
+                    } else {
+                        newState.color_mode = constants.colorMode[0];
+                        //RS://
+                        newState.mode = 'ct';
+                    }
+                }
+
+                return newState;
+            };
 
             const isGroup = entity.constructor.name === 'Group';
             const metaKey = `${sceneid}_${groupid}`;
@@ -3357,15 +3411,88 @@ const converters = {
                 } else if (attribute === 'color_temp') {
                     extensionfieldsets.push({'clstId': 768, 'len': 13, 'extField': [0, 0, 0, 0, 0, 0, 0, val]});
                     state['color_temp'] = val;
+                    //RS://
+                    state['mode'] = 'ct';
                 } else if (attribute === 'color') {
                     try {
                         val = JSON.parse(val);
                     } catch (e) {
                         e;
                     }
-                    const xy = typeof val === 'string' ? utils.hexToXY(val) : val;
-                    extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [Math.round(xy.x * 65535), Math.round(xy.y * 65535)]});
-                    state['color'] = xy;
+                    const color = typeof val === 'string' ? utils.hexToXY(val) : val;
+                    if (color.hasOwnProperty('x') && color.hasOwnProperty('y')) {
+                        const xScaled = utils.mapNumberRange(color.x, 0, 1, 0, 65535);
+                        const yScaled = utils.mapNumberRange(color.y, 0, 1, 0, 65535);
+                        extensionfieldsets.push(
+                            {
+                                'clstId': 768,
+                                'len': 4,
+                                'extField': [xScaled, yScaled],
+                            },
+                        );
+                        //RS://
+                        state['color'] = {hex: value.hex, x: color.x, y: color.y};
+                        state['mode'] = 'xy';
+                    } else if (color.hasOwnProperty('hue') && color.hasOwnProperty('saturation')) {
+                        if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                            const hsv = utils.gammaCorrectHSV(utils.correctHue(color.hue, meta), color.saturation, 100);
+                            const hScaled = utils.mapNumberRange(hsv.h % 360, 0, 360, 0, 65535);
+                            const sScaled = utils.mapNumberRange(hsv.s, 0, 100, 0, 254);
+                            extensionfieldsets.push(
+                                {
+                                    'clstId': 768,
+                                    'len': 13,
+                                    'extField': [0, 0, hScaled, sScaled, 0, 0, 0, 0],
+                                },
+                            );
+                        } else {
+                            // The extensionFieldSet is always EnhancedCurrentHue according to ZCL
+                            // When the bulb or all bulbs in a group do not support enhanchedHue,
+                            // a fallback to XY is done by converting HSV -> RGB -> XY
+                            const colorXY = utils.rgbToXY(...Object.values(utils.hsvToRgb(color.hue, color.saturation, 100)));
+                            const xScaled = utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535);
+                            const yScaled = utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535);
+                            extensionfieldsets.push(
+                                {
+                                    'clstId': 768,
+                                    'len': 4,
+                                    'extField': [xScaled, yScaled],
+                                },
+                            );
+                        }
+                        state['color'] = {hue: color.hue, saturation: color.saturation};
+                    }
+                }
+            }
+
+            /*
+             * Remove scene first
+             *
+             * Multiple add scene calls will result in the current and previous
+             * payloads to be merged. Resulting in unexpected behavior when
+             * trying to replace a scene.
+             *
+             * We accept a SUCESS or NOT_FOUND as a result of the remove call.
+             */
+            const removeresp = await entity.command(
+                'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
+            );
+
+            if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
+                const response = await entity.command(
+                    'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
+                );
+
+                if (isGroup) {
+                    if (meta.membersState) {
+                        for (const member of entity.members) {
+                            utils.saveSceneState(member, sceneid, groupid, state);
+                        }
+                    }
+                } else if (response.status === 0) {
+                    utils.saveSceneState(entity, sceneid, groupid, state);
+                } else {
+                    throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
                 }
             }
 
