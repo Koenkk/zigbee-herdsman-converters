@@ -1193,13 +1193,11 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            exposes.composite('operation_mode', 'operation_mode')
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
-                .withFeature(exposes.enum('state', ea.STATE_SET, ['control_relay', 'decoupled']))
                 .withEndpoint('left'),
-            exposes.composite('operation_mode', 'operation_mode')
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
-                .withFeature(exposes.enum('state', ea.STATE_SET, ['control_relay', 'decoupled']))
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(),
