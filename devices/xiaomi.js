@@ -1202,8 +1202,7 @@ module.exports = [
                 .withFeature(exposes.enum('state', ea.STATE_SET, ['control_relay', 'decoupled']))
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.power_outage_memory().withEndpoint('left'),
-            e.power_outage_memory().withEndpoint('right'),
+            e.power_outage_memory(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
