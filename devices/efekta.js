@@ -27,5 +27,4 @@ module.exports = [
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature()],
     },
-	
-	];
+];
