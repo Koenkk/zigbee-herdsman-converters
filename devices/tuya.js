@@ -59,6 +59,7 @@ module.exports = [
         description: '2 gang wall outlet',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
