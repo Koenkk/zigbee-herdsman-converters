@@ -1263,7 +1263,7 @@ const converters = {
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
             const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
-            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model); 
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
             addActionGroup(payload, msg, model);
             return payload;
