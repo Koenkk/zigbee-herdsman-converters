@@ -709,6 +709,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3417831P6'],
+        model: '3417831P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore spotlight with Bluetooth (1 spot)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['3418131P6'],
         model: '3418131P6',
         vendor: 'Philips',
