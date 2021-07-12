@@ -674,10 +674,12 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'}],
         model: 'TS011F_plug',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1057,130 +1059,5 @@ module.exports = [
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
-        model: 'TS011F',
-        description: 'LELLKI Smart plug (with power monitoring)',
-        vendor: 'LELLKI',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            device.save();
-        },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
-    },
-    {
-        zigbeeModel: ['JZ-ZB-005'],
-        model: ' ',
-        vendor: 'LELLKI',
-        description: 'LELLKI Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
-        extend: extend.switch(),
-        exposes: [
-            e.switch().withEndpoint('l1'), 
-            e.switch().withEndpoint('l2'), 
-            e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), 
-	    e.switch().withEndpoint('l5')],
-        whiteLabel: [{vendor: 'LEELKI', model: 'WP33-EU'}],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4,l5: 5};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-	    await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-	fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}],
-        model: 'TS011F',
-        vendor: 'LELLKI',
-        description: 'LELLKI Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        whiteLabel: [{vendor: 'LELLKI', model: 'WP33-EU'}]
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        zigbeeModel: ['JZ-ZB-001'],
-        model: 'JZ-ZB-001',
-        description: 'LELLKI Smart plug (without power monitoring)',
-        vendor: 'LELLKI',
-        fromZigbee: [fz.on_off, tz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.switch(), exposes.enum(ea.STATE_SET, ['on', 'off', 'restore'])
-            .withDescription('Recover state after power outage')],
-    },
-    {
-        zigbeeModel: ['JZ-ZB-003'],
-        model: 'JZ-ZB-003',
-        vendor: 'LELLKI',
-        description: 'LELLKI 3 gang switch',
-        whiteLabel: [{vendor: 'LELLKI', model: 'JZ-ZB-003_switch'}],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),e.switch().withEndpoint('l3')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3':3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-	    await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        zigbeeModel: ['JZ-ZB-002'],
-        model: 'JZ-ZB-002',
-        vendor: 'LELLKI',
-        description: 'LELLKI 2 gang touch switch',
-        whiteLabel: [{vendor: 'LELLKI', model: 'JZ-ZB-002_TouchSwitch'}],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_twqctvna'}],
-        model: 'TS011F',
-        vendor: 'LELLKI',
-        description: 'LELLKI Circuit Switch',
-        extend: extend.switch(),
-        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F'}],
     },
 ];
