@@ -31,7 +31,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop', 'recall_*', 'hue_move', 'color_temperature_move', 'color_move',
-            'color_temperature_move_up', 'color_temperature_move_down'])],
+            'color_temperature_move_up', 'color_temperature_move_down', 'hue_stop'])],
     },
     {
         zigbeeModel: ['RGBgenie ZB-5028'],

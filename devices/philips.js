@@ -1780,4 +1780,22 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5309331P6'],
+        model: '5309331P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner triple spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5309230P6'],
+        model: '5309230P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner double spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];

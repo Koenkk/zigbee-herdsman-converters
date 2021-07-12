@@ -182,7 +182,7 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation'])],
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -200,7 +200,7 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
-            'color_loop_set', 'enhanced_move_to_hue_and_saturation'])],
+            'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
