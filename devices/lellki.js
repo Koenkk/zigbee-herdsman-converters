@@ -33,7 +33,7 @@ module.exports = [
         model: 'JZ-ZB-001',
         description: 'Smart plug (without power monitoring)',
         vendor: 'LELLKI',
-        fromZigbee: [fz.on_off, tz.tuya_switch_power_outage_memory],
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
