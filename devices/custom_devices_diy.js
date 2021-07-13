@@ -183,7 +183,7 @@ module.exports = [
         description: '[Plant Wattering Sensor]',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
-		meta: {configureKey: 1, disableDefaultResponse: true},
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
