@@ -10,7 +10,7 @@ module.exports = [
         model: 'Eco-Dim.07',
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer ',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
