@@ -5245,10 +5245,10 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty(0x0050)) {
-                result.state = ['Idle', 'Ring', 'Talk', 'Open', 'Drop'][msg.data[0x0050]];
+                result.state = ['idle', 'ring', 'talk', 'open', 'drop'][msg.data[0x0050]];
             }
             if (msg.data.hasOwnProperty(0x0051)) {
-                result.mode = ['Never', 'Once', 'Always', 'Drop'][msg.data[0x0051]];
+                result.mode = ['never', 'once', 'always', 'drop'][msg.data[0x0051]];
             }
             if (msg.data.hasOwnProperty(0x0052)) {
                 result.sound = ['OFF', 'ON'][msg.data[0x0052]];
