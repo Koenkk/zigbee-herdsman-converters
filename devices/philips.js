@@ -30,6 +30,14 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['3418931P6'],
+        model: '3418931P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Struana bathroom ceiling with bluetooth 2400lm',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWU001'],
         model: '9290024406',
         vendor: 'Philips',
