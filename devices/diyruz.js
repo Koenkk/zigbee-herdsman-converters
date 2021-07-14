@@ -256,4 +256,50 @@ module.exports = [
             exposes.numeric('humidity_offset', ea.ALL).withUnit('%').withDescription('Adjust humidity'),
             exposes.numeric('pressure_offset', ea.ALL).withUnit('hPa').withDescription('Adjust pressure')],
     },
+    {
+        zigbeeModel: ['DIY_Zintercom'],
+        model: 'DIYRuZ_Zintercom',
+        vendor: 'DIYRuZ',
+        description: '[Matrix intercom auto opener](https://diyruz.github.io/posts/zintercom/)',
+        fromZigbee: [
+            fz.battery,
+            fz.diyruz_zintercom_config,
+        ],
+        toZigbee: [
+            tz.factory_reset,
+            tz.diyruz_zintercom_config,
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            const payload1 = [{
+                attribute: 'batteryPercentageRemaining', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0,
+            }, {
+                attribute: 'batteryVoltage', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0,
+            }];
+            await firstEndpoint.configureReporting('genPowerCfg', payload1);
+            const payload2 = [{ attribute: {ID: 0x0050, type: 0x30},
+                               minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await firstEndpoint.configureReporting('closuresDoorLock', payload2);
+        },
+        exposes: [
+            exposes.enum('state', ea.STATE_GET, ['Idle', 'Ring', 'Talk', 'Open', 'Drop'])
+                .withDescription('Current state'),
+            exposes.enum('mode', ea.ALL, ['Never', 'Once', 'Always', 'Drop'])
+                .withDescription('Select open mode'),
+            exposes.binary('sound', ea.ALL, 'ON', 'OFF').withProperty('sound')
+                .withDescription('Enable or disable sound'),
+            exposes.numeric('time_ring', ea.ALL).withUnit('sec')
+                .withDescription('Time to ring before answer'),
+            exposes.numeric('time_talk', ea.ALL).withUnit('sec')
+                .withDescription('Time to hold before open'),
+            exposes.numeric('time_open', ea.ALL).withUnit('sec')
+                .withDescription('Time to open before end'),
+            exposes.numeric('time_bell', ea.ALL).withUnit('sec')
+                .withDescription('Time after last bell to finish ring'),
+            exposes.numeric('time_report', ea.ALL).withUnit('min')
+                .withDescription('Reporting interval'),
+            e.battery(),
+        ],
+    },
 ];
