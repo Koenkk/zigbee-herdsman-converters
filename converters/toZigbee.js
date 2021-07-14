@@ -4140,7 +4140,7 @@ const converters = {
         key: ['mode', 'sound', 'time_ring', 'time_talk', 'time_open', 'time_bell', 'time_report'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
-            const modeOpenLookup = {'Never': '0', 'Once': '1', 'Always': '2', 'Drop': '3'};
+            const modeOpenLookup = {'never': '0', 'once': '1', 'always': '2', 'drop': '3'};
             let value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             if (key == 'mode') {
                 value = modeOpenLookup.hasOwnProperty(rawValue) ? modeOpenLookup[rawValue] : parseInt(rawValue, 10);

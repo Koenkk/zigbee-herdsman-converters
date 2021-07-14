@@ -275,9 +275,9 @@ module.exports = [
             await firstEndpoint.configureReporting('closuresDoorLock', payload2);
         },
         exposes: [
-            exposes.enum('state', ea.STATE, ['Idle', 'Ring', 'Talk', 'Open', 'Drop'])
+            exposes.enum('state', ea.STATE, ['idle', 'ring', 'talk', 'open', 'drop'])
                 .withDescription('Current state'),
-            exposes.enum('mode', ea.ALL, ['Never', 'Once', 'Always', 'Drop'])
+            exposes.enum('mode', ea.ALL, ['never', 'once', 'always', 'drop'])
                 .withDescription('Select open mode'),
             exposes.binary('sound', ea.ALL, 'ON', 'OFF').withProperty('sound')
                 .withDescription('Enable or disable sound'),
