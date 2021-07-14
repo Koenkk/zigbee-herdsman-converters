@@ -278,8 +278,8 @@ module.exports = [
                 attribute: 'batteryVoltage', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0,
             }];
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
-            const payload2 = [{ attribute: {ID: 0x0050, type: 0x30},
-                               minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload2 = [{attribute: {ID: 0x0050, type: 0x30},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await firstEndpoint.configureReporting('closuresDoorLock', payload2);
         },
         exposes: [
