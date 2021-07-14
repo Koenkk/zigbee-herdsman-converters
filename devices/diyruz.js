@@ -261,22 +261,14 @@ module.exports = [
         model: 'DIYRuZ_Zintercom',
         vendor: 'DIYRuZ',
         description: '[Matrix intercom auto opener](https://diyruz.github.io/posts/zintercom/)',
-        fromZigbee: [
-            fz.battery,
-            fz.diyruz_zintercom_config,
-        ],
-        toZigbee: [
-            tz.factory_reset,
-            tz.diyruz_zintercom_config,
-        ],
+        fromZigbee: [fz.battery, fz.diyruz_zintercom_config],
+        toZigbee: [tz.factory_reset, tz.diyruz_zintercom_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
-            const payload1 = [{
-                attribute: 'batteryPercentageRemaining', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0,
-            }, {
-                attribute: 'batteryVoltage', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0,
-            }];
+            const payload1 = [
+                {attribute: 'batteryPercentageRemaining', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                {attribute: 'batteryVoltage', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
             const payload2 = [{attribute: {ID: 0x0050, type: 0x30},
                 minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
