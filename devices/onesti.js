@@ -6,13 +6,12 @@ const e = exposes.presets;
 const ea = exposes.access;
 const constants = require('../lib/constants');
 
-
 module.exports = [
     {
         zigbeeModel: ['easyCodeTouch_v1'],
-        model: 'e-life easyCode v1',
+        model: 'easyCodeTouch_v1',
         vendor: 'Onesti Products AS',
-        description: 'Zigbee module for EasyAccess Code Touch Series',
+        description: 'Zigbee module for EasyAccess code touch series',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_programming_event],
         toZigbee: [tz.lock, tz.lock_sound_volume],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -21,10 +20,8 @@ module.exports = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
-
-
         },
         exposes: [e.lock(), e.battery(),
-        exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock')],
+            exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock')],
     },
 ];
