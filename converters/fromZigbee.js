@@ -5239,6 +5239,38 @@ const converters = {
             return result;
         },
     },
+    diyruz_zintercom_config: {
+        cluster: 'closuresDoorLock',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0050)) {
+                result.state = ['Idle', 'Ring', 'Talk', 'Open', 'Drop'][msg.data[0x0050]];
+            }
+            if (msg.data.hasOwnProperty(0x0051)) {
+                result.mode = ['Never', 'Once', 'Always', 'Drop'][msg.data[0x0051]];
+            }
+            if (msg.data.hasOwnProperty(0x0052)) {
+                result.sound = ['OFF', 'ON'][msg.data[0x0052]];
+            }
+            if (msg.data.hasOwnProperty(0x0053)) {
+                result.time_ring = msg.data[0x0053];
+            }
+            if (msg.data.hasOwnProperty(0x0054)) {
+                result.time_talk = msg.data[0x0054];
+            }
+            if (msg.data.hasOwnProperty(0x0055)) {
+                result.time_open = msg.data[0x0055];
+            }
+            if (msg.data.hasOwnProperty(0x0057)) {
+                result.time_bell = msg.data[0x0057];
+            }
+            if (msg.data.hasOwnProperty(0x0056)) {
+                result.time_report = msg.data[0x0056];
+            }
+            return result;
+        },
+    },
     JTQJBF01LMBW_gas_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],

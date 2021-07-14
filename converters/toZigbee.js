@@ -4136,6 +4136,43 @@ const converters = {
             await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
+    diyruz_zintercom_config: {
+        key: ['state', 'mode', 'sound', 'time_ring', 'time_talk', 'time_open', 'time_bell', 'time_report'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
+            const modeOpenLookup = {'Never': '0', 'Once': '1', 'Always': '2', 'Drop': '3'};
+            let value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            if (key == 'mode') {
+                value = modeOpenLookup.hasOwnProperty(rawValue) ? modeOpenLookup[rawValue] : parseInt(rawValue, 10);
+            }
+            const payloads = {
+                mode: {0x0051: {value, type: 0x30}},
+                sound: {0x0052: {value, type: 0x10}},
+                time_ring: {0x0053: {value, type: 0x20}},
+                time_talk: {0x0054: {value, type: 0x20}},
+                time_open: {0x0055: {value, type: 0x20}},
+                time_bell: {0x0057: {value, type: 0x20}},
+                time_report: {0x0056: {value, type: 0x20}},
+            };
+            await entity.write('closuresDoorLock', payloads[key]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                state: ['closuresDoorLock', 0x0050],
+                mode: ['closuresDoorLock', 0x0051],
+                sound: ['closuresDoorLock', 0x0052],
+                time_ring: ['closuresDoorLock', 0x0053],
+                time_talk: ['closuresDoorLock', 0x0054],
+                time_open: ['closuresDoorLock', 0x0055],
+                time_bell: ['closuresDoorLock', 0x0057],
+                time_report: ['closuresDoorLock', 0x0056],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
+        },
+    },
     neo_t_h_alarm: {
         key: [
             'alarm', 'melody', 'volume', 'duration',
