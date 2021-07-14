@@ -4137,7 +4137,7 @@ const converters = {
         },
     },
     diyruz_zintercom_config: {
-        key: ['state', 'mode', 'sound', 'time_ring', 'time_talk', 'time_open', 'time_bell', 'time_report'],
+        key: ['mode', 'sound', 'time_ring', 'time_talk', 'time_open', 'time_bell', 'time_report'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
             const modeOpenLookup = {'Never': '0', 'Once': '1', 'Always': '2', 'Drop': '3'};
@@ -4161,7 +4161,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             const payloads = {
-                state: ['closuresDoorLock', 0x0050],
                 mode: ['closuresDoorLock', 0x0051],
                 sound: ['closuresDoorLock', 0x0052],
                 time_ring: ['closuresDoorLock', 0x0053],
