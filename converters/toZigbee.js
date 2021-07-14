@@ -5368,6 +5368,23 @@ const converters = {
             }
         },
     },
+    tuya_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
+            return {state: {do_not_disturb: value}};
+        },
+    },
+    tuya_color_power_on_behavior: {
+        key: ['tuya_color_power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
+                mode: lookup[value]*256, data: [0,0,0,0,0,0,0,0,0,0]});
+            return {state: {power_on_behavior: value}};
+        },
+    },
 
     // #endregion
 
