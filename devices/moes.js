@@ -204,4 +204,21 @@ module.exports = [
         },
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'}],
+        model: 'ZLD-RCW',
+        vendor: 'Moes',
+        description: 'RGB+CCT Zigbee LED Controller',
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
+        ]),
+        meta: {applyRedFix: true, enhancedHue: false},
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color().exposes.concat([
+            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
+                .withDescription('Do not disturb mode'),
+            exposes.enum('tuya_color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+                .withDescription('Power on behavior state'),
+        ]),
+    },
 ];
