@@ -73,6 +73,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TWCLBulb01UK'],
+        model: 'HV-CE14CXZB6',
+        vendor: 'Hive',
+        description: 'Active light, warm to cool white (E14)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
         model: '1613V',
         vendor: 'Hive',

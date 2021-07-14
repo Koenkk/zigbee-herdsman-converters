@@ -30,6 +30,14 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['3418931P6'],
+        model: '3418931P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Struana bathroom ceiling with bluetooth 2400lm',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWU001'],
         model: '9290024406',
         vendor: 'Philips',
@@ -213,7 +221,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white E12',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -467,6 +475,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4090631P9'],
+        model: '4090631P9',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance pendant light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWB010'],
         model: '8718696449691',
         vendor: 'Philips',
@@ -700,6 +717,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3417831P6'],
+        model: '3417831P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore spotlight with Bluetooth (1 spot)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['3418131P6'],
         model: '3418131P6',
         vendor: 'Philips',
@@ -850,6 +876,15 @@ module.exports = [
         description: 'Hue Sana',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4090130P9'],
+        model: '4090130P9',
+        vendor: 'Philips',
+        description: 'Hue Sana',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1051,7 +1086,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LWF002', 'LWW001'],
+        zigbeeModel: ['LWF001', 'LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27',
@@ -1646,7 +1681,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1746230V7'],
+        zigbeeModel: ['1746230V7', '1746230P7'],
         model: '1746230V7',
         vendor: 'Philips',
         description: 'Hue Lily XL outdoor spot light',
@@ -1749,6 +1784,33 @@ module.exports = [
         model: '3418631P6',
         vendor: 'Philips',
         description: 'Hue Adore bathroom mirror',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCX002'],
+        model: '929002422801',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip 65',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5309331P6'],
+        model: '5309331P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner triple spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5309230P6'],
+        model: '5309230P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner double spotlight',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,

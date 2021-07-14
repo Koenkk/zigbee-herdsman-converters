@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -140,13 +141,16 @@ module.exports = [
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1, fz.ignore_basic_report, fz.ignore_genOta],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.smszb120_fw],
         toZigbee: [tz.warning],
+        ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
+            await endpoint.read('genBasic', [0x8000], options);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});

@@ -206,7 +206,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b', '83b9b27d5ffb4830bf35be5b1023623e'],
+        zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b', '83b9b27d5ffb4830bf35be5b1023623e', '2810c2403b9c4a5db62cc62d1030d95e'],
         model: 'R20W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',

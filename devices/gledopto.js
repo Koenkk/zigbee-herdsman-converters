@@ -24,7 +24,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_color: (options={}) => ({
-        ...extend.light_onoff_brightness_color(options),
+        ...extend.light_onoff_brightness_color({...options, supportsHS: true}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color],
@@ -32,7 +32,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp_color: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp_color(options),
+        ...extend.light_onoff_brightness_colortemp_color({...options, supportsHS: true}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color_colortemp],
