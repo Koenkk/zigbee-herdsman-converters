@@ -5381,7 +5381,7 @@ const converters = {
             const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
             utils.validateValue(value, Object.keys(lookup));
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
-                mode: lookup[value]*256, data: [0,0,0,0,0,0,0,0,0,0]});
+                mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {power_on_behavior: value}};
         },
     },
