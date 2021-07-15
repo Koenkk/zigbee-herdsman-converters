@@ -214,7 +214,7 @@ module.exports = [
         ]),
         meta: {applyRedFix: true, enhancedHue: false},
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color().exposes.concat([
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
             exposes.enum('tuya_color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
