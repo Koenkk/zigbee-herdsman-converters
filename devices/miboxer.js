@@ -15,7 +15,7 @@ module.exports = [
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup'),
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
-            exposes.enum('tuya_color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
                 .withDescription('Power on behavior state'),
         ],
     },

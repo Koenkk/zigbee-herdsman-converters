@@ -5376,13 +5376,13 @@ const converters = {
         },
     },
     tuya_color_power_on_behavior: {
-        key: ['tuya_color_power_on_behavior'],
+        key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
             utils.validateValue(value, Object.keys(lookup));
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
                 mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
-            return {state: {power_on_behavior: value}};
+            return {state: {color_power_on_behavior: value}};
         },
     },
 
