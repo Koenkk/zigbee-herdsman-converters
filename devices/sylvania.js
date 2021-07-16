@@ -20,7 +20,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
         },
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()]
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
     },
     {
         zigbeeModel: ['LIGHTIFY Dimming Switch'],
