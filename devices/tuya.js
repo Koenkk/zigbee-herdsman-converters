@@ -210,6 +210,19 @@ module.exports = [
         whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, {vendor: 'ClickSmart+', model: 'CMA30035'}],
     },
     {
+        fingerprint: [{modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'}],
+        model: 'S-LUX-ZB',
+        vendor: 'TuYa',
+        description: 'Light sensor',
+        fromZigbee: [fz.SLUXZB],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.battery(), e.illuminance_lux(), e.battery_low()],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
