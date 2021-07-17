@@ -1347,6 +1347,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5063330P7'],
+        model: '5063330P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato black (3 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063431P7'],
         model: '5063431P7',
         vendor: 'Philips',
