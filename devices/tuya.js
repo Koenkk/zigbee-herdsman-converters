@@ -20,7 +20,8 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'Tuya',
         description: 'Air quality sensor',
@@ -58,6 +59,7 @@ module.exports = [
         description: '2 gang wall outlet',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -81,10 +83,13 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_5snkkrxw'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'}],
         model: 'TS0505B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB+CCT',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [{vendor: 'Mercator ikuü', model: 'SMD4106W-RGB-ZB'}],
         extend: extend.light_onoff_brightness_colortemp_color(),
         meta: {applyRedFix: true, enhancedHue: false},
     },
@@ -92,7 +97,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'}],
         model: 'TS0503B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB',
+        description: 'Zigbee RGB light',
         extend: extend.light_onoff_brightness_color(),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
         meta: {applyRedFix: true, enhancedHue: false},
@@ -101,14 +106,14 @@ module.exports = [
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'}],
         model: 'TS0504B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGBW',
+        description: 'Zigbee RGBW light',
         extend: extend.light_onoff_brightness_color(),
         meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'}],
         model: 'TS0501B',
-        description: 'Zigbee smart mini led strip controller single color',
+        description: 'Zigbee light',
         vendor: 'TuYa',
         extend: extend.light_onoff_brightness(),
     },
@@ -116,7 +121,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'},
-            {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'}],
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'}],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -126,7 +132,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'},
-            {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'}],
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'}],
         model: 'TS0207_repeater',
         vendor: 'TuYa',
         description: 'Repeater',
@@ -194,12 +201,13 @@ module.exports = [
         whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
+            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'}],
         model: 'TS011F_wall_outlet',
         vendor: 'TuYa',
         description: 'In-wall outlet',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}],
+        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, {vendor: 'ClickSmart+', model: 'CMA30035'}],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -524,6 +532,7 @@ module.exports = [
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
         ],
         model: 'TS0601_cover',
         vendor: 'TuYa',
@@ -541,6 +550,7 @@ module.exports = [
             {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
             {vendor: 'Zemismart', model: 'AM43', description: 'Roller blind motor'},
             {vendor: 'Zemismart', model: 'M2805EGBZTN', description: 'Tubular motor'},
+            {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
@@ -664,10 +674,13 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'}],
         model: 'TS011F_plug',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1014,6 +1027,9 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            // Device advertises itself as Router but is an EndDevice
+            device.type = 'EndDevice';
+            device.save();
         },
     },
     {

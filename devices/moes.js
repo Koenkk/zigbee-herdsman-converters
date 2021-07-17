@@ -180,12 +180,45 @@ module.exports = [
                 'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
                 'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set ' +
                 'temperature and returns to the weekly programming mode in the next time period. '),
-            exposes.enum('programming_mode', ea.STATE).withDescription('PROGRAMMING MODE ⏱ - In this mode, the device executes a ' +
-                'preset week programming temperature time and temperature. '),
+            exposes.composite('programming_mode').withDescription('PROGRAMMING MODE ⏱ - In this mode, ' +
+                'the device executes a preset week programming temperature time and temperature. ')
+                .withFeature(exposes.text('program_weekday', ea.STATE))
+                .withFeature(exposes.text('program_saturday', ea.STATE))
+                .withFeature(exposes.text('program_sunday', ea.STATE)),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
+        model: 'MS-105Z',
+        vendor: 'Moes',
+        description: '1 gang 2 way Zigbee dimmer switch',
+        fromZigbee: [fz.moes_105z_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.moes_105z_dimmer],
+        meta: {turnsOffAtBrightness1: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'}],
+        model: 'ZLD-RCW',
+        vendor: 'Moes',
+        description: 'RGB+CCT Zigbee LED Controller',
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
+        ]),
+        meta: {applyRedFix: true, enhancedHue: false},
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
+            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
+                .withDescription('Do not disturb mode'),
+            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+                .withDescription('Power on behavior state'),
+        ]),
     },
 ];
