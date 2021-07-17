@@ -1343,7 +1343,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato white (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1352,7 +1352,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato black (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1361,7 +1361,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Fugato white (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1370,7 +1370,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Bluetooth White & Color Ambiance spot Fugato black (4 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
