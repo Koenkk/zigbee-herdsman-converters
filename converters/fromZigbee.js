@@ -4532,7 +4532,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
 
-            if (!model.meta.multiEndpoint) {
+            if (model.meta && !model.meta.multiEndpoint) {
                 const mappingMode = {0x12: 'control_relay', 0xFE: 'decoupled'};
                 const key = 0xFF22;
                 if (msg.data.hasOwnProperty(key)) {
