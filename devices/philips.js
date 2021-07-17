@@ -1330,7 +1330,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['5063230P7'],
-        model: '5063231P7',
+        model: '5063230P7',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance spot Fugato black (2 spots)',
         meta: {turnsOffAtBrightness1: true},
