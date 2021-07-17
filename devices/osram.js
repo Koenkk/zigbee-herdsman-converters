@@ -192,6 +192,13 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['LIGHTIFY PAR38 ON/OFF/DIM'],
+        model: '73889',
+        vendor: 'OSRAM',
+        description: 'Smart home soft white PAR38 outdoor bulb',
+        extend: extend.ledvance.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['Plug Z3'],
         model: 'AC10691',
         description: 'Smart+ plug',

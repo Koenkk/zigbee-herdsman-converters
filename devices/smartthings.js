@@ -187,6 +187,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
@@ -391,6 +393,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.temperature()],
     },

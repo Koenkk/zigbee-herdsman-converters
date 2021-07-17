@@ -5736,6 +5736,24 @@ const converters = {
             return {action};
         },
     },
+    SLUXZB: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case 2:
+                return {illuminance_lux: value.toFixed(0)};
+            case 4:
+                return {battery: value.toFixed(1)};
+            case 1:
+                return {battery_low: value.toFixed(1)};
+            default:
+                meta.logger.warn(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     ZB003X: {
         cluster: 'manuSpecificTuya',
         type: ['commandActiveStatusReport'],
