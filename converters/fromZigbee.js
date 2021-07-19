@@ -1485,11 +1485,11 @@ const converters = {
             const iasCieAddr = msg.data.iasCieAddr;
             const zoneId = msg.data.zoneId;
 
-        return {
-            enrolled: zoneState,
-            IASCIEAddress: iasCieAddr,
-            zoneID: zoneId,
-            };    
+            return {
+                enrolled: zoneState,
+                IASCIEAddress: iasCieAddr,
+                zoneID: zoneId,
+            };
         },
     },
     develco_duration: {
