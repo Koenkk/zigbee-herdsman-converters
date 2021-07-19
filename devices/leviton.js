@@ -34,7 +34,7 @@ module.exports = [
         zigbeeModel: ['DG15A'],
         model: 'DG15A-1BW',
         vendor: 'Leviton',
-        description: 'Indoor Decora Smart Zigbee 3.0 Certified Plug-in Outlet',
+        description: 'Indoor Decora smart Zigbee 3.0 certified plug-in outlet',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
