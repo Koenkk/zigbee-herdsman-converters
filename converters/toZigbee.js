@@ -5385,7 +5385,32 @@ const converters = {
             return {state: {color_power_on_behavior: value}};
         },
     },
-
+    develco_duration: {
+        key: ['maxDuration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasWd', {'maxDuration': value});
+            return {state: {maxDuration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasWd', ['maxDuration']);
+        },
+    },
+    develco_alarm: {
+        key: ['alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
+            const info = (3 << 4) + ((alarmState) << 2);
+            const values = {
+                duration: value.hasOwnProperty('maxDuration') ? value.duration : 300,
+            };
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: values.duration},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    },
     // #endregion
 
     // #region Ignore converters
