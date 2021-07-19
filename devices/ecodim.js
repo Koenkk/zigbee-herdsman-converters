@@ -6,10 +6,30 @@ const extend = require('../lib/extend');
 
 module.exports = [
     {
+        zigbeeModel: ['EcoDim-Zigbee3.0'],
+        model: 'Eco-Dim.05',
+        vendor: 'EcoDim',
+        description: 'LED dimmer duo 2x 0-100W',
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        exposes: [e.light_brightness().withEndpoint('left'), e.light_brightness().withEndpoint('right')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            for (const ep of [1, 2]) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+                await reporting.onOff(endpoint);
+                await reporting.brightness(endpoint);
+            }
+        },
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+    },
+    {
         zigbeeModel: ['Dimmer-Switch-ZB3.0'],
         model: 'Eco-Dim.07',
         vendor: 'EcoDim',
-        description: 'Zigbee & Z-wave dimmer ',
+        description: 'Zigbee & Z-wave dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
