@@ -5271,6 +5271,43 @@ const converters = {
             return result;
         },
     },
+    ZVG1: {
+        cluster: 'manuSpecificTuya',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options, meta) => {
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dp = msg.data.dp;
+            switch (dp) {
+            case tuya.dataPoints.state: {
+                return {state: value ? 'ON': 'OFF'};
+            }
+            case 5: {
+                // Assume value is reported in fl. oz., converter to litres
+                return {water_consumed: (value / 33.8140226).toFixed(2)};
+            }
+            case 7: {
+                return {battery: value};
+            }
+            case 11: {
+                // value reported in seconds
+                return {timer_time_left: value / 60};
+            }
+            case 12: {
+                if (value === 0) return {timer_state: 'disabled'};
+                else if (value === 1) return {timer_state: 'active'};
+                else return {timer_state: 'enabled'};
+            }
+            case 15: {
+                // value reported in seconds
+                return {last_valve_open_duration: value / 60};
+            }
+            default: {
+                meta.logger.warn(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
+                    `#${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+            }
+        },
+    },
     JTQJBF01LMBW_gas_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],

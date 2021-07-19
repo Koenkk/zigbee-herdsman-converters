@@ -2654,6 +2654,26 @@ const converters = {
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
         },
     },
+    ZVG1_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await tuya.sendDataPointValue(entity, 11, timer, 'setData', 1);
+            return {state: {timer: value}};
+        },
+    },
+    ZVG1_timer_state: {
+        key: ['timer_state'],
+        convertSet: async (entity, key, value, meta) => {
+            let timerState = 2;
+            if (value === 'disabled') timerState = 0;
+            else if (value === 'active') timerState = 1;
+            await tuya.sendDataPointValue(entity, 11, timerState, 'setData', 1);
+            return {state: {timer_state: value}};
+        },
+    },
     EMIZB_132_mode: {
         key: ['interface_mode'],
         convertSet: async (entity, key, value, meta) => {
