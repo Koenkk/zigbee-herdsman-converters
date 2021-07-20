@@ -1210,4 +1210,24 @@ module.exports = [
                 disableDefaultResponse: true, disableResponse: true});
         },
     },
+    {
+        zigbeeModel: ['lumi.airmonitor.acn01'],
+        model: 'VOCKQJK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara TVOC air quality monitor',
+        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.voc()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.temperature(endpoint);
+            const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
+            await endpoint.configureReporting('genAnalogInput', payload);
+        },
+    },
 ];

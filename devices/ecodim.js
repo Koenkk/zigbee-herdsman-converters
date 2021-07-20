@@ -6,7 +6,7 @@ const extend = require('../lib/extend');
 
 module.exports = [
     {
-        zigbeeModel: ['EcoDim-Zigbee3.0'],
+        zigbeeModel: ['EcoDim-Zigbee 3.0'],
         model: 'Eco-Dim.05',
         vendor: 'EcoDim',
         description: 'LED dimmer duo 2x 0-100W',
