@@ -1226,7 +1226,8 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await reporting.humidity(endpoint);
             await reporting.temperature(endpoint);
-            await reporting.xiaomi_tvoc(endpoint);
+            const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
+            await endpoint.configureReporting('genAnalogInput', payload);
         },
     },
 ];
