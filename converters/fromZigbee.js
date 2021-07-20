@@ -1453,30 +1453,18 @@ const converters = {
             const state = value ? 'ON': 'OFF';
             const brightness = mapNumberRange(value, 0, 1000, 0, 254);
 
-            if (multiEndpoint) {
-                switch (dp) {
-                case tuya.dataPoints.moes105DimmerState1:
-                    return {state_l1: state};
-                case tuya.dataPoints.moes105DimmerState2:
-                    return {state_l2: state};
-                case tuya.dataPoints.moes105DimmerLevel1:
-                    return {brightness_l1: brightness};
-                case tuya.dataPoints.moes105DimmerLevel2:
-                    return {brightness_l2: brightness};
-                default:
-                    meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
-                        `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
-                }
-            } else {
-                switch (dp) {
-                case tuya.dataPoints.moes105DimmerState1:
-                    return {state: state};
-                case tuya.dataPoints.moes105DimmerLevel1:
-                    return {brightness: brightness};
-                default:
-                    meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
-                        `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
-                }
+            switch (dp) {
+            case tuya.dataPoints.moes105DimmerState1:
+                return {[multiEndpoint ? 'state_l1' : 'state']: state};
+            case tuya.dataPoints.moes105DimmerLevel1:
+                return {[multiEndpoint ? 'brightness_l1' : 'brightness']: brightness};
+            case tuya.dataPoints.moes105DimmerState2:
+                return {state_l2: state};
+            case tuya.dataPoints.moes105DimmerLevel2:
+                return {brightness_l2: brightness};
+            default:
+                meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
+                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
     },
