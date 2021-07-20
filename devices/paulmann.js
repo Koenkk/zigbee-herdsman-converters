@@ -108,4 +108,27 @@ module.exports = [
             'on', 'off', 'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_move', 'color_move', 'brightness_stop',
             'brightness_move_down', 'brightness_move_up', 'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'scene_*'])],
     },
+    {
+        zigbeeModel: ['RGBCW_LIGHT'],
+        model: '501.2',
+        vendor: 'Paulmann',
+        description: 'Paulmann Light',
+        fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
+        toZigbee: [
+            tz.light_onoff_brightness, tz.light_color_colortemp, tz.ignore_transition, tz.ignore_rate,
+            tz.effect, tz.light_brightness_move, tz.light_colortemp_move, tz.light_brightness_step,
+            tz.light_colortemp_step, tz.light_hue_saturation_move, tz.light_hue_saturation_step,
+            tz.light_colortemp_startup, tz.level_config,
+        ],
+        exposes: [e.light_brightness_colortemp_colorxy(), e.effect()],
+        meta: {configureKey: 2},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+                try {
+                    await light.readColorCapabilities(endpoint);
+                    await light.readColorTempMinMax(endpoint);
+                } catch (e) {/* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */}
+            }
+        },
+    }
 ];
