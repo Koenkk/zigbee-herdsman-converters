@@ -5359,25 +5359,31 @@ const converters = {
             return {state: {keypad_lockout: value}};
         },
     },
-    moes_105z_dimmer: {
+    moes_105_dimmer: {
         key: ['state', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`to moes_105z_dimmer key=[${key}], value=[${value}]`);
+            meta.logger.debug(`to moes_105_dimmer key=[${key}], value=[${value}]`);
+
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
+            const lookupState = {l1: tuya.dataPoints.moes105DimmerState1, l2: tuya.dataPoints.moes105DimmerState2};
+            const lookupBrightness = {l1: tuya.dataPoints.moes105DimmerLevel1, l2: tuya.dataPoints.moes105DimmerLevel2};
+            const stateKeyId = multiEndpoint ? lookupState[meta.endpoint_name] : lookupState.l1;
+            const brightnessKeyId = multiEndpoint ? lookupBrightness[meta.endpoint_name] : lookupBrightness.l1;
 
             switch (key) {
             case 'state':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'setData', 1);
                 break;
 
             case 'brightness':
                 if (value >= 0 && value <= 254) {
                     const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                     if (newValue === 0) {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, false, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'setData', 1);
                     } else {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'setData', 1);
                     }
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
+                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'setData', 1);
                     break;
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..254');
