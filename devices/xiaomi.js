@@ -1214,7 +1214,7 @@ module.exports = [
         zigbeeModel: ['lumi.airmonitor.acn01'],
         model: 'VOCKQJK11LM',
         vendor: 'Xiaomi',
-        description: 'Aqara TVOC Air Quality Monitor',
+        description: 'Aqara TVOC air quality monitor',
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
