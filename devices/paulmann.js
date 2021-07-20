@@ -110,7 +110,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['RGBCW_LIGHT'],
-        model: '501.2',
+        model: '501.27',
         vendor: 'Paulmann',
         description: 'Paulmann Light',
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report],
