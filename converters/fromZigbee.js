@@ -6166,11 +6166,9 @@ const converters = {
     },
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {
-                voc: msg.data.presentValue
-            };
+            return {voc: msg.data.presentValue};
         },
     },
     // #endregion
