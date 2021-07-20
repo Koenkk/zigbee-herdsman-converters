@@ -6164,6 +6164,15 @@ const converters = {
             return result;
         },
     },
+    xiaomi_tvoc: {
+        cluster: 'genAnalogInput',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                voc: msg.data.presentValue
+            };
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
