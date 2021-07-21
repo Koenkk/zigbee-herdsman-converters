@@ -1440,22 +1440,30 @@ const converters = {
             return {presence: true};
         },
     },
-    moes_105z_dimmer: {
+    moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
-            meta.logger.debug(`from moes_105z_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+            meta.logger.debug(`from moes_105_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+
+            const state = value ? 'ON': 'OFF';
+            const brightness = mapNumberRange(value, 0, 1000, 0, 254);
 
             switch (dp) {
-            case tuya.dataPoints.state:
-                return {state: value ? 'ON': 'OFF'};
-            case tuya.dataPoints.moes105zDimmerLevel:
-                return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
+            case tuya.dataPoints.moes105DimmerState1:
+                return {[multiEndpoint ? 'state_l1' : 'state']: state};
+            case tuya.dataPoints.moes105DimmerLevel1:
+                return {[multiEndpoint ? 'brightness_l1' : 'brightness']: brightness};
+            case tuya.dataPoints.moes105DimmerState2:
+                return {state_l2: state};
+            case tuya.dataPoints.moes105DimmerLevel2:
+                return {brightness_l2: brightness};
             default:
-                meta.logger.debug(`zigbee-herdsman-converters:moes_105z_dimmer:` +
+                meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
                     `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
