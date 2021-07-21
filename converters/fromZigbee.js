@@ -2254,6 +2254,9 @@ const converters = {
                 if (msg.data[10] === 7) {
                     const status = msg.data[14];
                     return {state: status & 1 ? 'ON' : 'OFF'};
+                } else if (msg.data[10] === 13) {
+                    const status = msg.data[13];
+                    return {state: status & 1 ? 'ON' : 'OFF'};
                 } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
                     const value = msg.data[14] * 10;
                     return {
