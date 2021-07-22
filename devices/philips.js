@@ -324,6 +324,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1740293P0'],
+        model: '1740293P0',
+        vendor: 'Philips',
+        description: 'Hue Lucca Pedestal',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCC001'],
         model: '4090531P7',
         vendor: 'Philips',
