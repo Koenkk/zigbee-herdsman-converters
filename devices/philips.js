@@ -1842,4 +1842,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5063430P7', '5063430P7', '5063430P7', '5063430P7'],
+        model: '5063430P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Fugato ceiling light black (4 spots)',
+        meta: { turnsOffAtBrightness1: true },
+        extend: hueExtend.light_onoff_brightness_colortemp_color({ colorTempRange: [153, 500] }),
+        ota: ota.zigbeeOTA,
+    },
 ];
