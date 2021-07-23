@@ -7,6 +7,22 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['Contact Sensor-A'],
+        model: '74388',
+        vendor: 'Sylvania',
+        description: 'Smart+ contact and temperature sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint);
+        },
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+    },
+    {
         zigbeeModel: ['LIGHTIFY Dimming Switch'],
         model: '73743',
         vendor: 'Sylvania',

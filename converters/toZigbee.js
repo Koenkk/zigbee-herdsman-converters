@@ -1692,7 +1692,7 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1708,7 +1708,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -2652,6 +2652,26 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+        },
+    },
+    ZVG1_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await tuya.sendDataPointValue(entity, 11, timer, 'setData', 1);
+            return {state: {timer: value}};
+        },
+    },
+    ZVG1_timer_state: {
+        key: ['timer_state'],
+        convertSet: async (entity, key, value, meta) => {
+            let timerState = 2;
+            if (value === 'disabled') timerState = 0;
+            else if (value === 'active') timerState = 1;
+            await tuya.sendDataPointValue(entity, 11, timerState, 'setData', 1);
+            return {state: {timer_state: value}};
         },
     },
     EMIZB_132_mode: {
@@ -4136,6 +4156,42 @@ const converters = {
             await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
+    diyruz_zintercom_config: {
+        key: ['mode', 'sound', 'time_ring', 'time_talk', 'time_open', 'time_bell', 'time_report'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
+            const modeOpenLookup = {'never': '0', 'once': '1', 'always': '2', 'drop': '3'};
+            let value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            if (key == 'mode') {
+                value = modeOpenLookup.hasOwnProperty(rawValue) ? modeOpenLookup[rawValue] : parseInt(rawValue, 10);
+            }
+            const payloads = {
+                mode: {0x0051: {value, type: 0x30}},
+                sound: {0x0052: {value, type: 0x10}},
+                time_ring: {0x0053: {value, type: 0x20}},
+                time_talk: {0x0054: {value, type: 0x20}},
+                time_open: {0x0055: {value, type: 0x20}},
+                time_bell: {0x0057: {value, type: 0x20}},
+                time_report: {0x0056: {value, type: 0x20}},
+            };
+            await entity.write('closuresDoorLock', payloads[key]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+                mode: ['closuresDoorLock', 0x0051],
+                sound: ['closuresDoorLock', 0x0052],
+                time_ring: ['closuresDoorLock', 0x0053],
+                time_talk: ['closuresDoorLock', 0x0054],
+                time_open: ['closuresDoorLock', 0x0055],
+                time_bell: ['closuresDoorLock', 0x0057],
+                time_report: ['closuresDoorLock', 0x0056],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
+        },
+    },
     neo_t_h_alarm: {
         key: [
             'alarm', 'melody', 'volume', 'duration',
@@ -5303,25 +5359,31 @@ const converters = {
             return {state: {keypad_lockout: value}};
         },
     },
-    moes_105z_dimmer: {
+    moes_105_dimmer: {
         key: ['state', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`to moes_105z_dimmer key=[${key}], value=[${value}]`);
+            meta.logger.debug(`to moes_105_dimmer key=[${key}], value=[${value}]`);
+
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
+            const lookupState = {l1: tuya.dataPoints.moes105DimmerState1, l2: tuya.dataPoints.moes105DimmerState2};
+            const lookupBrightness = {l1: tuya.dataPoints.moes105DimmerLevel1, l2: tuya.dataPoints.moes105DimmerLevel2};
+            const stateKeyId = multiEndpoint ? lookupState[meta.endpoint_name] : lookupState.l1;
+            const brightnessKeyId = multiEndpoint ? lookupBrightness[meta.endpoint_name] : lookupBrightness.l1;
 
             switch (key) {
             case 'state':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'setData', 1);
                 break;
 
             case 'brightness':
                 if (value >= 0 && value <= 254) {
                     const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                     if (newValue === 0) {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, false, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'setData', 1);
                     } else {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'setData', 1);
                     }
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
+                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'setData', 1);
                     break;
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..254');
@@ -5330,6 +5392,23 @@ const converters = {
             default:
                 throw new Error(`Unsupported Key=[${key}]`);
             }
+        },
+    },
+    tuya_do_not_disturb: {
+        key: ['do_not_disturb'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
+            return {state: {do_not_disturb: value}};
+        },
+    },
+    tuya_color_power_on_behavior: {
+        key: ['color_power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
+                mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
+            return {state: {color_power_on_behavior: value}};
         },
     },
 

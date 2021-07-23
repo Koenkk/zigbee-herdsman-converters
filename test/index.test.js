@@ -301,6 +301,23 @@ describe('index.js', () => {
         expect(device.model).toBe(mockDevice.model);
     });
 
+    it('Verify addDeviceDefinition overwrite existing', () => {
+        const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
+        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+
+        const overwriteDefinition = {
+            model: 'mock-model',
+            vendor: 'other-vendor',
+            zigbeeModel: ['lumi.light.aqcn02'],
+            description: '',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
+        index.addDeviceDefinition(overwriteDefinition);
+        expect(index.findByDevice(device).vendor).toBe('other-vendor');
+    });
+
     it('Exposes light with endpoint', () => {
         const expected = {
             "type":"light",
