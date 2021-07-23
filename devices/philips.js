@@ -1780,4 +1780,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5047430P6', '5047430P6', '5047430P6', '5047430P6'],
+        model: '5047430P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Buckram quadruple spotlight',
+        meta: { turnsOffAtBrightness1: true },
+        extend: hueExtend.light_onoff_brightness_colortemp({ colorTempRange: [153, 454] }),
+        ota: ota.zigbeeOTA,
+    }
 ];
