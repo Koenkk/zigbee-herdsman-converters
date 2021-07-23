@@ -8,10 +8,19 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['E13-N11'],
+        model: 'E13-N11',
+        vendor: 'Sengled',
+        description: 'Flood light with motion sensor light outdoor',
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.ias_occupancy_alarm_1]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
+        exposes: [e.occupancy(), e.light_brightness()],
+    },
+    {
         zigbeeModel: ['E21-N1EA'],
         model: 'E21-N1EA',
         vendor: 'Sengled',
-        description: 'Sengled smart LED multicolor A19 bulb',
+        description: 'Smart LED multicolor A19 bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
     },
     {

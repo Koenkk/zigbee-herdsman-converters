@@ -187,6 +187,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
@@ -290,13 +292,13 @@ module.exports = [
             await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
         },
         exposes: [
@@ -391,6 +393,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.temperature()],
     },
