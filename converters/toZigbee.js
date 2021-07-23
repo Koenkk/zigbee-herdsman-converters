@@ -4241,25 +4241,28 @@ const converters = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
+            const options = {
+                manufacturerCode: null,
+                ...utils.getOptions(meta.mapped, entity),
+            };
             switch (key) {
             case 'send_key':
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
-                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']},
-                    utils.getOptions(meta.mapped, entity));
+                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'get_list':
-                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, utils.getOptions(meta.mapped, entity));
+                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, options);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
