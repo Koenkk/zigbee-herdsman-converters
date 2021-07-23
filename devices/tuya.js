@@ -59,6 +59,7 @@ module.exports = [
         description: '2 gang wall outlet',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -83,10 +84,12 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_5snkkrxw'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_5snkkrxw'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'}],
         model: 'TS0505B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB+CCT',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [{vendor: 'Mercator ikuü', model: 'SMD4106W-RGB-ZB'}],
         extend: extend.light_onoff_brightness_colortemp_color(),
         meta: {applyRedFix: true, enhancedHue: false},
     },
@@ -94,7 +97,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'}],
         model: 'TS0503B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGB',
+        description: 'Zigbee RGB light',
         extend: extend.light_onoff_brightness_color(),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
         meta: {applyRedFix: true, enhancedHue: false},
@@ -103,14 +106,14 @@ module.exports = [
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'}],
         model: 'TS0504B',
         vendor: 'TuYa',
-        description: 'Zigbee smart mini led strip controller 5V/12V/24V RGBW',
+        description: 'Zigbee RGBW light',
         extend: extend.light_onoff_brightness_color(),
         meta: {applyRedFix: true},
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'}],
         model: 'TS0501B',
-        description: 'Zigbee smart mini led strip controller single color',
+        description: 'Zigbee light',
         vendor: 'TuYa',
         extend: extend.light_onoff_brightness(),
     },
@@ -198,12 +201,26 @@ module.exports = [
         whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
+            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'}],
         model: 'TS011F_wall_outlet',
         vendor: 'TuYa',
         description: 'In-wall outlet',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}],
+        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, {vendor: 'ClickSmart+', model: 'CMA30035'}],
+    },
+    {
+        fingerprint: [{modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'}],
+        model: 'S-LUX-ZB',
+        vendor: 'TuYa',
+        description: 'Light sensor',
+        fromZigbee: [fz.SLUXZB],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.battery(), e.illuminance_lux(), e.battery_low()],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -670,10 +687,13 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'}],
         model: 'TS011F_plug',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {

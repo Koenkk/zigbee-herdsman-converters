@@ -91,7 +91,14 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 opal 470lm', 'TRADFRI bulb E27 W opal 470lm'],
+        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm'],
+        model: 'LED1936G5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED globe-bulb E27 470 lumen, dimmable, white spectrum, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E27 opal 470lm', 'TRADFRI bulb E27 W opal 470lm', 'TRADFRIbulbT120E27WSopal470lm'],
         model: 'LED1937T5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 470 lumen, dimmable, opal white',
