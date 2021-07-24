@@ -324,6 +324,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1740293P0'],
+        model: '1740293P0',
+        vendor: 'Philips',
+        description: 'Hue Lucca Pedestal',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCC001'],
         model: '4090531P7',
         vendor: 'Philips',
@@ -1239,6 +1248,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
+        model: '5060830P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (3 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
         model: '5061031P7',
         vendor: 'Philips',
@@ -1850,5 +1868,14 @@ module.exports = [
         meta: { turnsOffAtBrightness1: true },
         extend: hueExtend.light_onoff_brightness_colortemp({ colorTempRange: [153, 454] }),
         ota: ota.zigbeeOTA,
-    }
+    },
+    {
+        zigbeeModel: ['5633030P6'],
+        model: '5633030P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Pillar spotlamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
