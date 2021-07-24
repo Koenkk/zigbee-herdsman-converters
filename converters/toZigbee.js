@@ -4242,6 +4242,8 @@ const converters = {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
             const options = {
+                // Don't send a manufacturerCode (otherwise set in herdsman):
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
                 manufacturerCode: null,
                 ...utils.getOptions(meta.mapped, entity),
             };
