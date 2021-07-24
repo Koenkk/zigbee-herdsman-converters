@@ -1860,4 +1860,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5633030P6'],
+        model: '5633030P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Pillar spotlamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
