@@ -1761,7 +1761,7 @@ const converters = {
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
             let attrValue;
-            if (meta.mapped.meta.multiEndpoint) {
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
                 if (targetValue === 'control_relay') {
@@ -1790,7 +1790,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             let attrId;
-            if (meta.mapped.meta.multiEndpoint) {
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 if (attrId == null) {
                     throw new Error(`Unsupported endpoint ${meta.endpoint_name} for getting operation_mode.`);
