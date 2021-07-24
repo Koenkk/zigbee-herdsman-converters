@@ -417,6 +417,15 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
+        fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
+        model: 'SM0201',
+        vendor: 'Tuya',
+        description: 'Temperature & humidity sensor with LED screen',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['TS0041'],
         model: 'TS0041',
         vendor: 'TuYa',
