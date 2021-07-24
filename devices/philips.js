@@ -1227,7 +1227,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (3 spots)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color({ colorTempRange: [153, 500] }),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
