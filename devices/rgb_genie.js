@@ -5,6 +5,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['RGBgenie ZB-5001'],
+        model: 'ZB-5001',
+        vendor: 'RGB Genie',
+        description: 'Zigbee 3.0 remote control',
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['RGBgenie ZB-5121'],
         model: 'ZB-5121',
         vendor: 'RGB Genie',
