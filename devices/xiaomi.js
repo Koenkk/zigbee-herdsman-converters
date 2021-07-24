@@ -1261,4 +1261,16 @@ module.exports = [
                 disableDefaultResponse: true, disableResponse: true});
         },
     },
+    {
+        zigbeeModel: ['lumi.plug.macn01'],
+        model: 'ZNCZ15LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 power plug ZigBee',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
 ];
