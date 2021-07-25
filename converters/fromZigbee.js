@@ -1493,8 +1493,8 @@ const converters = {
             const iasCieAddr = msg.data.iasCieAddr;
             const zoneId = msg.data.zoneId;
             return {
-                enrolled: zoneState,
-                iascie_address: iasCieAddr,
+                enrolled: zoneState !== 0,
+                ias_cie_address: iasCieAddr,
                 zone_id: zoneId,
             };
         },

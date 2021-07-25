@@ -165,7 +165,7 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
     },
     {
         zigbeeModel: ['HESZB-120'],
