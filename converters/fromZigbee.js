@@ -5035,12 +5035,12 @@ const converters = {
     D10110_cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 // The Yookee D10110 SENDs it's position reversed, relative to the spec.
                 msg.data['currentPositionLiftPercentage'] = 100 - (msg.data['currentPositionLiftPercentage'] + 1);
             }
-            return await converters.cover_position_tilt.convert(model, msg, publish, options, meta);
+            return converters.cover_position_tilt.convert(model, msg, publish, options, meta);
         },
     },
     PGC410EU_presence: {
