@@ -1485,6 +1485,29 @@ const converters = {
             };
         },
     },
+    ias_enroll: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneState = msg.data.zoneState;
+            const iasCieAddr = msg.data.iasCieAddr;
+            const zoneId = msg.data.zoneId;
+            return {
+                enrolled: zoneState,
+                iascie_address: iasCieAddr,
+                zone_id: zoneId,
+            };
+        },
+    },
+    ias_wd: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
+            return result;
+        },
+    },
     command_on_presence: {
         cluster: 'genOnOff',
         type: 'commandOn',

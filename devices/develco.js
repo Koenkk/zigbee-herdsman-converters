@@ -141,16 +141,21 @@ module.exports = [
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.smszb120_fw],
-        toZigbee: [tz.warning],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
+            fz.smszb120_fw, fz.ias_enroll, fz.ias_wd],
+        toZigbee: [tz.warning, tz.ias_wd, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'genBasic']);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('ssIasWd', ['maxDuration']);
+
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
@@ -158,7 +163,9 @@ module.exports = [
         endpoint: (device) => {
             return {default: 35};
         },
-        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(), e.warning()],
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
+            exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
+            exposes.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual Start of Siren')],
     },
     {
         zigbeeModel: ['HESZB-120'],
