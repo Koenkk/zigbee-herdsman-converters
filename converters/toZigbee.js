@@ -335,7 +335,7 @@ const converters = {
     warning_simple: {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
+            const alarmState = (value === 'OFF' ? 0 : 1);
             const info = (3 << 4) + ((alarmState) << 2);
             const values = {
                 duration: value.hasOwnProperty('maxDuration') ? value.duration : 300,
