@@ -117,22 +117,22 @@ module.exports = [
         onEvent: readInitialBatteryState,
     },
     {
-        zigbeeModel: [' Double gangs remote switch', 'Double gangs remote switch'],
+        zigbeeModel: [' Double gangs remote switch\u0000\u0000\u0000\u0000'],
         model: '067774',
-        vendor: 'Legrand',
+        vendor: '  Legrand',
         description: 'Wireless double remote switch',
-        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {left: 1, right: 2};
-        },
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+        },
+        endpoint: (device) => {
+            return {left: 1, right: 2};
         },
         onEvent: readInitialBatteryState,
     },
