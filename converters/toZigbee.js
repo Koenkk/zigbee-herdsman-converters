@@ -322,7 +322,7 @@ const converters = {
             );
         },
     },
-    ias_wd: {
+    ias_max_duration: {
         key: ['max_duration'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('ssIasWd', {'maxDuration': value});
