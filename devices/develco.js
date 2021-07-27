@@ -143,7 +143,7 @@ module.exports = [
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.smszb120_fw, fz.ias_enroll, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_wd, tz.warning_simple],
+        toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
