@@ -1440,6 +1440,32 @@ const converters = {
             return {presence: true};
         },
     },
+    ias_enroll: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneState = msg.data.zoneState;
+            const iasCieAddr = msg.data.iasCieAddr;
+            const zoneId = msg.data.zoneId;
+            return {
+                enrolled: zoneState !== 0,
+                ias_cie_address: iasCieAddr,
+                zone_id: zoneId,
+            };
+        },
+    },
+    ias_wd: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
+            return result;
+        },
+    },
+    // #endregion
+
+    // #region Non-generic converters
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -1468,9 +1494,6 @@ const converters = {
             }
         },
     },
-    // #endregion
-
-    // #region Non-generic converters
     ias_smoke_alarm_1_develco: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

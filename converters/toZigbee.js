@@ -322,6 +322,32 @@ const converters = {
             );
         },
     },
+    ias_max_duration: {
+        key: ['max_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasWd', {'maxDuration': value});
+            return {state: {max_duration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasWd', ['maxDuration']);
+        },
+    },
+    warning_simple: {
+        key: ['alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const alarmState = (value === 'OFF' ? 0 : 1);
+            const info = (3 << 4) + ((alarmState) << 2);
+            const values = {
+                duration: value.hasOwnProperty('maxDuration') ? value.duration : 300,
+            };
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: values.duration},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    },
     cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
