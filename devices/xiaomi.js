@@ -1375,7 +1375,7 @@ module.exports = [
         zigbeeModel: ['lumi.remote.b1acn02'],
         model: 'WXKG13LM',
         vendor: 'Xiaomi',
-        description: 'Aqara T1 Wireless Mini Switch',
+        description: 'Aqara T1 wireless mini switch',
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple_report],
         toZigbee: [],
