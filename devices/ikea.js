@@ -102,7 +102,7 @@ module.exports = [
         model: 'LED1937T5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 470 lumen, dimmable, opal white',
-        extend: tradfriExtend.light_onoff_brightness(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],

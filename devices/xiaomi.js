@@ -250,6 +250,50 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.l1aeu1'],
+        model: 'WS-EUK01',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 EU (no neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
+                disableDefaultResponse: true, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.l2aeu1'],
+        model: 'WS-EUK02',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 EU (no neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic,
+            fz.xiaomi_operation_mode_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        meta: {multiEndpoint: true},
+        endpoint: (_device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power_outage_memory(),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
+                disableDefaultResponse: true, disableResponse: true});
+        },
+    },
+    {
         zigbeeModel: ['lumi.ctrl_neutral1'],
         model: 'QBKG04LM',
         vendor: 'Xiaomi',

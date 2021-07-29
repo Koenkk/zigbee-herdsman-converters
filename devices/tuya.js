@@ -11,6 +11,16 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_xph99wvr'}],
+        model: 'TS0203',
+        vendor: 'TuYa',
+        description: 'Door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+        whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0203'}],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'Tuya',

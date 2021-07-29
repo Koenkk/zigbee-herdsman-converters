@@ -1440,6 +1440,32 @@ const converters = {
             return {presence: true};
         },
     },
+    ias_enroll: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneState = msg.data.zoneState;
+            const iasCieAddr = msg.data.iasCieAddr;
+            const zoneId = msg.data.zoneId;
+            return {
+                enrolled: zoneState !== 0,
+                ias_cie_address: iasCieAddr,
+                zone_id: zoneId,
+            };
+        },
+    },
+    ias_wd: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
+            return result;
+        },
+    },
+    // #endregion
+
+    // #region Non-generic converters
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -1468,9 +1494,6 @@ const converters = {
             }
         },
     },
-    // #endregion
-
-    // #region Non-generic converters
     ias_smoke_alarm_1_develco: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -4232,7 +4255,7 @@ const converters = {
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
-            if (['QBKG39LM', 'QBKG41LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02'].includes(model.model)) buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
