@@ -779,6 +779,43 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.plug.macn01'],
+        model: 'ZNCZ15LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 power plug ZigBee',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.plug.aq1'],
+        model: 'ZNCZ11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara power plug ZigBee',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_power_outage_memory, tz.xiaomi_auto_off],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(),
+            e.voltage().withAccess(ea.STATE), e.power_outage_memory().withAccess(ea.STATE_SET),
+            e.led_disabled_night().withAccess(ea.STATE_SET),
+            exposes.binary('auto_off', ea.STATE_SET, true, false)],
+        onEvent: async (type, data, device) => {
+            device.skipTimeResponse = true;
+            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
+                const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const timeUTC = Math.round(((new Date()).getTime() - OneJanuary2000) / 1000);
+                const localTime = timeUTC - (new Date()).getTimezoneOffset() * 60;
+                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: localTime});
+                console.log("\n\nCODE TRIGGERED\n\n");
+            }
+        },  
+    },
+    {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
         model: 'QBCZ11LM',
         description: 'Aqara socket Zigbee',
@@ -1270,33 +1307,6 @@ module.exports = [
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
                 disableDefaultResponse: true, disableResponse: true});
         },
-    },
-    {
-        zigbeeModel: ['lumi.plug.macn01'],
-        model: 'ZNCZ15LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara T1 power plug ZigBee',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
-            e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET)],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
-    },
-    {
-        zigbeeModel: ['lumi.plug.aq1'],
-        model: 'ZNCZ11LM',
-        vendor: 'Xiaomi',
-        description: 'Aqara power plug ZigBee',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_ZNCZ11LM_led_disabled_night,
-            tz.xiaomi_ZNCZ11LM_power_outage_memory, tz.xiaomi_ZNCZ11LM_auto_off],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(),
-            e.voltage().withAccess(ea.STATE), e.power_outage_memory().withAccess(ea.STATE_SET),
-            e.led_disabled_night().withAccess(ea.STATE_SET),
-            exposes.binary('auto_off', ea.STATE_SET, true, false)],
     },
     {
         zigbeeModel: ['lumi.switch.b1nc01'],
