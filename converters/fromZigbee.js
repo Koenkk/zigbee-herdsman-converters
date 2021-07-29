@@ -2207,6 +2207,7 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]);
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
