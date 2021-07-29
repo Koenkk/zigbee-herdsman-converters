@@ -823,6 +823,31 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.plug.aq1'],
+        model: 'ZNCZ11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara power plug ZigBee',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.power_outage_memory(),
+            e.voltage().withAccess(ea.STATE), e.led_disabled_night().withAccess(ea.STATE_SET),
+            exposes.binary('auto_off', ea.STATE_SET, true, false)],
+        onEvent: async (type, data, device) => {
+            device.skipTimeResponse = true;
+            // According to the Zigbee the genTime.time should be the seconds since 1 January 2020 UTC
+            // However the device expects this to be the seconds since 1 January in the local time zone.
+            // Disable the responses of zigbee-herdsman and respond here instead.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2843#issuecomment-888532667
+            if (type === 'message' && data.type === 'read' && data.cluster === 'genTime') {
+                const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+                const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+                const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+                device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
+            }
+        },
+    },
+    {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
         model: 'QBCZ11LM',
         description: 'Aqara socket Zigbee',
