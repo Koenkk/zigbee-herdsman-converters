@@ -32,9 +32,9 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
 
             try {
+                await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
                 await reporting.thermostatRunningState(endpoint);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
