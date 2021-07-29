@@ -4641,20 +4641,22 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
-            const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple'};
+            const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
             const button = msg.endpoint.ID;
             const value = msg.data.presentValue;
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-
-            // 0 = hold
-            if (value === 0) {
-                // Aqara Opple does not generate a release event when pressed for more than 5 seconds
-                // After 5 seconds of not releasing we assume release.
-                const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
-                globalStore.putValue(msg.endpoint, 'timer', timer);
+            if (model.model === 'WXKG13LM') {
+                return {action: `${actionLookup[value]}`};
+            } else {
+                // 0 = hold
+                if (value === 0) {
+                    // Aqara Opple does not generate a release event when pressed for more than 5 seconds
+                    // After 5 seconds of not releasing we assume release.
+                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 10000);
+                    globalStore.putValue(msg.endpoint, 'timer', timer);
+                }
+                return {action: `button_${button}_${actionLookup[value]}`};
             }
-
-            return {action: `button_${button}_${actionLookup[value]}`};
         },
     },
     aqara_opple_on: {

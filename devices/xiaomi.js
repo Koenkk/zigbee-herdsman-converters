@@ -1371,4 +1371,18 @@ module.exports = [
                 disableDefaultResponse: true, disableResponse: true});
         },
     },
+    {
+        zigbeeModel: ['lumi.remote.b1acn02'],
+        model: 'WXKG13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 Wireless Mini Switch',
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple_report],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quintuple', 'hold', 'release', 'many'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
+        },
+    },
 ];
