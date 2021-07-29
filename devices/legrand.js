@@ -122,7 +122,8 @@ module.exports = [
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
         fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
+        exposes: [e.battery(),
+            e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
