@@ -801,7 +801,7 @@ module.exports = [
                 const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
                 device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
             }
-        },  
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_86plug', 'lumi.ctrl_86plug.aq1'],
