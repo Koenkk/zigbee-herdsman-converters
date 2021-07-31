@@ -1619,8 +1619,8 @@ const converters = {
                             await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
                         }
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        const xy = utils.hexToXY(meta.message.hue_power_on_color);
-                        value = {x: utils.mapNumberRange(xy.x, 0, 1, 0, 65535), y: utils.mapNumberRange(xy.y, 0, 1, 0, 65535)};
+                        const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
+                        value = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
 
                         // Set colortemp to default
                         if (supports.colorTemperature) {

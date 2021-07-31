@@ -2207,6 +2207,10 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
+            // Send the defaultResponse here, otherwise the second button click delays.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
+            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]);
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
