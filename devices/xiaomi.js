@@ -500,13 +500,7 @@ module.exports = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f});
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         ota: ota.zigbeeOTA,
     },
