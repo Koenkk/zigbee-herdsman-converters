@@ -39,7 +39,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
-        exposes: [e.switch(), exposes.enum(ea.STATE_SET, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
+        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            .withDescription('Recover state after power outage')],
     },
     {
         zigbeeModel: ['JZ-ZB-003'],
