@@ -1379,4 +1379,20 @@ module.exports = [
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
+    {
+        zigbeeModel: ['lumi.sen_ill.agl01'],
+        model: 'GZCGQ11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 light intensity sensor',
+        fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple_report],
+        toZigbee: [tz.GZCGQ11LM_detection_period],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
+            exposes.numeric('detection_period', exposes.access.ALL,).withValueMin(1).withValueMax(59).withUnit('s')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
+        },
+    },
 ];
