@@ -1781,6 +1781,17 @@ const converters = {
             return {state: {auto_off: value}};
         },
     },
+    GZCGQ11LM_detection_period: {
+        key: ['detection_period'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            await entity.write('aqaraOpple', {0x0000: {value: [value], type: 0x21}}, manufacturerOptions.xiaomi);
+            return {state: {detection_period: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
