@@ -6211,6 +6211,15 @@ const converters = {
             return {voc: msg.data.presentValue};
         },
     },
+    GZCGQ11LM_detection_period: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0000)) {
+                return {detection_period: msg.data[0x0000]};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

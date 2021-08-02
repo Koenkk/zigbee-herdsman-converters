@@ -1384,7 +1384,7 @@ module.exports = [
         model: 'GZCGQ11LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple_report],
+        fromZigbee: [fz.battery, fz.illuminance, fz.GZCGQ11LM_detection_period, fz.aqara_opple_report],
         toZigbee: [tz.GZCGQ11LM_detection_period],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
