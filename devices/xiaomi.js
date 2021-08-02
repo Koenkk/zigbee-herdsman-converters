@@ -1388,7 +1388,7 @@ module.exports = [
         toZigbee: [tz.GZCGQ11LM_detection_period],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(),
-            exposes.numeric('detection_period', exposes.access.ALL).withValueMin(1).withValueMax(59).withUnit('s')],
+            exposes.numeric('detection_period', exposes.access.ALL).withValueMin(1).withValueMax(59).withUnit('s').withDescription('Time interval in seconds to Report after light changes')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
