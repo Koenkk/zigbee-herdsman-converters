@@ -12,7 +12,8 @@ const ea = exposes.access;
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_xph99wvr'},
-            {modelID: 'TS0203', manufacturerName: '_TZ3000_fab7r7mc'}],
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_fab7r7mc'},
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_6jeesvrt'}],
         model: 'TS0203',
         vendor: 'TuYa',
         description: 'Door sensor',
