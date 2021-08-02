@@ -220,16 +220,17 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
-            await reporting.thermostatRunningState(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
             await reporting.thermostatTemperatureSetpointHold(endpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
         },
