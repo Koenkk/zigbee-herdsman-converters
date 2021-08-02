@@ -356,18 +356,28 @@ module.exports = [
         model: 'SLT3',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
-        fromZigbee: [],
+        fromZigbee: [fz.battery],
         toZigbee: [],
-        exposes: [],
+        exposes: [e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+        },
     },
     {
         zigbeeModel: ['SLT3B'],
         model: 'SLT3B',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
-        fromZigbee: [],
+        fromZigbee: [fz.battery],
         toZigbee: [],
-        exposes: [],
+        exposes: [e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+        },
     },
     {
         zigbeeModel: ['SLB2'],
