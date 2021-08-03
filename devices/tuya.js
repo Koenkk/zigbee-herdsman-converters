@@ -11,7 +11,11 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_xph99wvr'}],
+        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_xph99wvr'},
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_fab7r7mc'},
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_6jeesvrt'},
+            {modelID: 'TS0203', manufacturerName: '_TYZB01_ncdapbwy'},
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_psqjayrd'}],
         model: 'TS0203',
         vendor: 'TuYa',
         description: 'Door sensor',
@@ -132,10 +136,12 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'}],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
+        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'}],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
