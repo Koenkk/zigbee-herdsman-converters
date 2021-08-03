@@ -305,19 +305,23 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
             const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+            const strobeLevel = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
 
             const values = {
                 mode: value.mode || 'emergency',
                 level: value.level || 'medium',
                 strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
                 duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
             const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: values.duration},
+                {startwarninginfo: info, warningduration: values.duration,
+                    strobedutycycle: values.strobeDutyCycle, strobelevel: values.strobeLevel},
                 utils.getOptions(meta.mapped, entity),
             );
         },
@@ -337,13 +341,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const alarmState = (value === 'OFF' ? 0 : 1);
             const info = (3 << 4) + ((alarmState) << 2);
-            const values = {
-                duration: value.hasOwnProperty('maxDuration') ? value.duration : 300,
-            };
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: values.duration},
+                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 3},
                 utils.getOptions(meta.mapped, entity),
             );
         },
@@ -4898,7 +4899,7 @@ const converters = {
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: 0},
+                {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 3},
                 utils.getOptions(meta.mapped, entity),
             );
         },
