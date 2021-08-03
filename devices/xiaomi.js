@@ -952,6 +952,16 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.acn002'],
+        model: 'ZNJLBL01LM',
+        description: 'Aqara roller shade companion  E1',
+        vendor: 'LUMI',
+        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Xiaomi',
