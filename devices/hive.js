@@ -166,10 +166,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
 
             // standard ZCL attributes
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
 
             // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{
@@ -227,12 +227,12 @@ module.exports = [
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(endpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
         },
     },
     {
@@ -251,12 +251,12 @@ module.exports = [
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(endpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatRunningState(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
         },
     },
     {
@@ -279,18 +279,18 @@ module.exports = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
             ];
             await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
+            await reporting.thermostatTemperature(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(waterEndpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
+            await reporting.thermostatRunningState(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
         },
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
@@ -318,18 +318,18 @@ module.exports = [
                 'genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat',
             ];
             await reporting.bind(heatEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
+            await reporting.thermostatTemperature(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatRunningState(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatSystemMode(heatEndpoint, {min: 0, max: constants.repInterval.MINUTE, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(heatEndpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatTemperatureSetpointHold(waterEndpoint);
-            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
+            await reporting.thermostatRunningState(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatSystemMode(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperatureSetpointHold(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint, {min: 0, max: constants.repInterval.HOUR, change: 1});
         },
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
@@ -348,7 +348,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -362,7 +362,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -376,7 +376,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -390,7 +390,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
