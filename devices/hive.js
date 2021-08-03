@@ -220,7 +220,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -244,7 +244,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -293,9 +293,9 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
     },
     {
@@ -332,9 +332,9 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHoldDuration(waterEndpoint);
         },
         exposes: [
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand().withEndpoint('water')],
     },
     {
