@@ -160,7 +160,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['Micro Smart OnOff'],
+        zigbeeModel: ['Micro Smart OnOff', 'HK-SL-RELAY-A'],
         model: 'SR-ZG9100A-S',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch single-line',
