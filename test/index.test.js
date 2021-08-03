@@ -1,8 +1,9 @@
 const index = require('../index');
-const devices = require('../devices');
 const exposes = require('../lib/exposes');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
+const fs = require('fs');
+const path = require('path');
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -162,7 +163,7 @@ describe('index.js', () => {
         expect(definition.model).toBe("SNZB-02");
     });
 
-    it('Verify devices.js definitions', () => {
+    it('Verify definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
                 if (!actual.includes(key)) {
@@ -175,7 +176,7 @@ describe('index.js', () => {
         let foundModels = [];
         let foundFingerprints = [];
 
-        devices.forEach((device) => {
+        index.definitions.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
                 ['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'],
@@ -258,11 +259,6 @@ describe('index.js', () => {
                 }
             }
 
-            // Verify meta
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
-            }
-
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
                     containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
@@ -270,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'thermostat'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -283,17 +279,43 @@ describe('index.js', () => {
 
     it('Verify addDeviceDefinition', () => {
         const mockZigbeeModel = 'my-mock-device';
-        const mockDevice = {
-            zigbeeModel: [mockZigbeeModel],
-            model: 'mock-model'
-        };
+        let mockDevice = {toZigbee: []};
         const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
         expect(undefinedDevice).toBeNull();
         const beforeAdditionDeviceCount = index.devices.length;
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        mockDevice.model = 'mock-model';
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        mockDevice = {
+            model: 'mock-model',
+            vendor: 'dummy',
+            zigbeeModel: [mockZigbeeModel],
+            description: 'dummy',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
         index.addDeviceDefinition(mockDevice);
         expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
         const device = index.findByZigbeeModel(mockZigbeeModel);
         expect(device.model).toBe(mockDevice.model);
+    });
+
+    it('Verify addDeviceDefinition overwrite existing', () => {
+        const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
+        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+
+        const overwriteDefinition = {
+            model: 'mock-model',
+            vendor: 'other-vendor',
+            zigbeeModel: ['lumi.light.aqcn02'],
+            description: '',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
+        index.addDeviceDefinition(overwriteDefinition);
+        expect(index.findByDevice(device).vendor).toBe('other-vendor');
     });
 
     it('Exposes light with endpoint', () => {
@@ -347,5 +369,87 @@ describe('index.js', () => {
         };
         const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
         expect(expected).toStrictEqual(deepClone(actual));
+    });
+
+    it('Exposes access matches toZigbee', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                const toCheck = [];
+                for (const expose of device.exposes) {
+                    if (expose.hasOwnProperty('access')) {
+                        toCheck.push(expose)
+                    } else if (expose.features && expose.type !== 'composite') {
+                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                    }
+                }
+
+                for (const expose of toCheck) {
+                    let property = expose.property;
+                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
+                    }
+
+                    const toZigbee = device.toZigbee.find(item => item.key.includes(property));
+
+                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
+                    }
+
+                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                    }
+                }
+            }
+        });
+    });
+
+    it('Check if all exposes have a color temp range', () => {
+        const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
+        for (const definition of index.definitions) {
+            for (const expose of definition.exposes.filter(e => e.type === 'light')) {
+                const colorTemp = expose.features.find(f => f.name === 'color_temp');
+                if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
+                    throw new Error(`'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`);
+                }
+            }
+        }
+    });
+
+    it('Calculate configure key', () => {
+        const definition = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition)).toBe(-1738355762);
+    });
+
+    it('Calculate configure key whitespace shouldnt matter', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition1)).toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure diff', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');
+            console.log('bye mars');
+        }}
+        expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure key legacy', () => {
+        const definition = index.findByZigbeeModel('WaterSensor-N');
+        expect(index.getConfigureKey(definition)).toBe(1);
     });
 });
