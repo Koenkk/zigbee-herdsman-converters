@@ -288,7 +288,50 @@ module.exports = [
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both'])],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
+                disableDefaultResponse: true, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.n1aeu1'],
+        model: 'WS-EUK03',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 EU (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic, fz.xiaomi_operation_mode_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE_GET), e.energy(),
+            e.power_outage_memory(), e.temperature().withAccess(ea.STATE),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
+            // set "event" mode
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
+                disableDefaultResponse: true, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.n2aeu1'],
+        model: 'WS-EUK04',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 EU (with neutral, double rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic, fz.xiaomi_operation_mode_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE_GET), e.energy(),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
+            e.temperature().withAccess(ea.STATE), e.power_outage_memory()],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
                 disableDefaultResponse: true, disableResponse: true});
         },
