@@ -15,6 +15,7 @@ module.exports = [
             {modelID: 'TS0203', manufacturerName: '_TZ3000_fab7r7mc'},
             {modelID: 'TS0203', manufacturerName: '_TZ3000_6jeesvrt'},
             {modelID: 'TS0203', manufacturerName: '_TYZB01_ncdapbwy'},
+            {modelID: 'TS0203', manufacturerName: '_TZ3000_ebar6ljy'},
             {modelID: 'TS0203', manufacturerName: '_TZ3000_psqjayrd'}],
         model: 'TS0203',
         vendor: 'TuYa',
