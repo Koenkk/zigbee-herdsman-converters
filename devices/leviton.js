@@ -52,8 +52,8 @@ module.exports = [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_running_state,
-            tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_setpoint_hold_duration, tz.fan_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);
@@ -67,8 +67,7 @@ module.exports = [
         },
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
-                .withFanMode(['auto', 'on', 'smart']).withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration().withPiHeatingDemand()],
+                .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
+                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration().withPiHeatingDemand()],
     },
 ];
