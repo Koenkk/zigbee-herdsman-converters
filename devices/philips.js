@@ -1887,4 +1887,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LCG001'],
+        model: '9290019532',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
