@@ -4658,7 +4658,7 @@ const converters = {
                 if (value === 0) {
                     // Aqara Opple does not generate a release event when pressed for more than 5 seconds
                     // After 5 seconds of not releasing we assume release.
-                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 10000);
+                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
                     globalStore.putValue(msg.endpoint, 'timer', timer);
                 }
                 return {action: `button_${button}_${actionLookup[value]}`};
