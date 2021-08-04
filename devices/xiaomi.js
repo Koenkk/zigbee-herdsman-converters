@@ -250,6 +250,37 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.n2acn1'],
+        model: 'QBKG31LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 Pro (with neutral, double rocker)',
+        extend: extend.switch(),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.power().withAccess(ea.STATE), 
+            e.action(['single_left', 'double_left', 'single_right', 'double_right']),
+            e.power_outage_memory(),
+        ],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2, 'system': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.l1aeu1'],
         model: 'WS-EUK01',
         vendor: 'Xiaomi',
