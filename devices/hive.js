@@ -356,13 +356,14 @@ module.exports = [
         model: 'SLT2',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
     },
     {
