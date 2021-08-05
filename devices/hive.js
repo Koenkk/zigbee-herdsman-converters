@@ -220,8 +220,12 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -244,8 +248,12 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])],
+        exposes: [
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -295,8 +303,14 @@ module.exports = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('heat')
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water')],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes')],
     },
     {
         zigbeeModel: ['SLR2b'],
@@ -334,8 +348,14 @@ module.exports = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('heat')
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water')],
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
+                .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
+                    ' or `true` for all other system_modes')],
     },
     {
         zigbeeModel: ['WPT1'],
