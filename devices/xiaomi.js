@@ -256,7 +256,7 @@ module.exports = [
         description: 'Aqara smart wall switch H1 Pro (with neutral, double rocker)',
         extend: extend.switch(),
         exposes: [e.power_outage_memory(), e.action(['single_left', 'double_left', 'single_right', 'double_right']),
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withAccess(ea.STATE_GET),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
