@@ -295,7 +295,7 @@ module.exports = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1, ea.STATE).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water')],
     },
     {
@@ -334,7 +334,7 @@ module.exports = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('heat'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1, ea.STATE).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water')],
     },
     {
