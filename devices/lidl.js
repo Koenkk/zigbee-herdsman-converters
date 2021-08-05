@@ -31,7 +31,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HG06668',
         vendor: 'Lidl',
-        description: 'Silvercrest smart wireless door bell',
+        description: 'Silvercrest smart wireless door bell button',
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
