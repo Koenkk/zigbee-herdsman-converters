@@ -225,7 +225,10 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
-                    ' or `true` for all other system_modes')],
+                    ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -253,7 +256,10 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
-                    ' or `true` for all other system_modes')],
+                    ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -306,11 +312,17 @@ module.exports = [
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('heat')
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
                     ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
-                    ' or `true` for all other system_modes')],
+                    ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439').withEndpoint('water')],
     },
     {
         zigbeeModel: ['SLR2b'],
@@ -351,11 +363,17 @@ module.exports = [
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('heat')
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
                     ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
                 .withDescription('Set if the occupied_heating_setpoint is active or not. Must be set to `false` when system_mode off' +
-                    ' or `true` for all other system_modes')],
+                    ' or `true` for all other system_modes'),
+            exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat).' +
+                    ' Range 0 to 1439').withEndpoint('water'),],
     },
     {
         zigbeeModel: ['WPT1'],
