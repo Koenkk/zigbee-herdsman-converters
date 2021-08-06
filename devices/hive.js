@@ -228,7 +228,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439')],
+                    '. Range 0 to 360')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -259,7 +259,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439')],
+                    '. Range 0 to 360')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -314,7 +314,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439').withEndpoint('heat'),
+                    '. Range 0 to 360').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
@@ -322,7 +322,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439').withEndpoint('water')],
+                    '. Range 0 to 360').withEndpoint('water')],
     },
     {
         zigbeeModel: ['SLR2b'],
@@ -365,7 +365,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439').withEndpoint('heat'),
+                    '. Range 0 to 360').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false).withEndpoint('water')
@@ -373,7 +373,7 @@ module.exports = [
                     ' or `true` for all other system_modes'),
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Set the duration of the setpoint. Used in boost. Minutes remaining (65535 used when system_mode = heat)' +
-                    '. Range 0 to 1439').withEndpoint('water')],
+                    '. Range 0 to 360').withEndpoint('water')],
     },
     {
         zigbeeModel: ['WPT1'],
