@@ -43,6 +43,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['DG15S'],
+        model: 'DG15S-1BW',
+        vendor: 'Leviton',
+        description: 'Decora smart Zigbee 3.0 certified 15A switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['65A01-1'],
         model: 'RC-2000WH',
         vendor: 'Leviton',
