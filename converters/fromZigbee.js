@@ -2876,12 +2876,12 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
             }
 
-            const last_temp = globalStore.getValue(msg.endpoint, 'last_color_temp');
+            const lastTemp = globalStore.getValue(msg.endpoint, 'last_color_temp');
             globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
             let direction = 'down';
-            if (last_temp > msg.data.colortemp) {
+            if (lastTemp > msg.data.colortemp) {
                 direction = 'up';
-            } else if (last_temp < msg.data.colortemp) {
+            } else if (lastTemp < msg.data.colortemp) {
                 direction = 'down';
             } else if (msg.data.colortemp == 370 || msg.data.colortemp == 555) {
                 // The remote goes up to 370 in steps and emits 555 on down button hold.
@@ -2899,7 +2899,7 @@ const converters = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    },   
+    },
     ZNMS11LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
