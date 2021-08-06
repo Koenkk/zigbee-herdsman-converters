@@ -3060,14 +3060,14 @@ const converters = {
     ptvo_switch_analog_input: {
         key: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8', 'l9', 'l10', 'l11', 'l12', 'l13', 'l14', 'l15', 'l16'],
         convertGet: async (entity, key, meta) => {
-            const epId = parseInt(key.substr(1, 1));
+            const epId = parseInt(key.substr(1, 2));
             if (utils.hasEndpoints(meta.device, [epId])) {
                 const endpoint = meta.device.getEndpoint(epId);
                 await endpoint.read('genAnalogInput', ['presentValue', 'description']);
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            const epId = parseInt(key.substr(1, 1));
+            const epId = parseInt(key.substr(1, 2));
             if (utils.hasEndpoints(meta.device, [epId])) {
                 const endpoint = meta.device.getEndpoint(epId);
                 let cluster = 'genLevelCtrl';
