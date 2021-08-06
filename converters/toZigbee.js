@@ -305,19 +305,46 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
             const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+            const strobeLevel = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
 
             const values = {
                 mode: value.mode || 'emergency',
                 level: value.level || 'medium',
                 strobe: value.hasOwnProperty('strobe') ? value.strobe : true,
                 duration: value.hasOwnProperty('duration') ? value.duration : 10,
+                strobeDutyCycle: value.hasOwnProperty('strobe_duty_cycle') ? value.strobe_duty_cycle * 10 : 0,
+                strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
             const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: values.duration},
+                {startwarninginfo: info, warningduration: values.duration,
+                    strobedutycycle: values.strobeDutyCycle, strobelevel: values.strobeLevel},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    },
+    ias_max_duration: {
+        key: ['max_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasWd', {'maxDuration': value});
+            return {state: {max_duration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasWd', ['maxDuration']);
+        },
+    },
+    warning_simple: {
+        key: ['alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const alarmState = (value === 'OFF' ? 0 : 1);
+            const info = (3 << 4) + ((alarmState) << 2);
+            await entity.command(
+                'ssIasWd',
+                'startWarning',
+                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 3},
                 utils.getOptions(meta.mapped, entity),
             );
         },
@@ -1593,8 +1620,8 @@ const converters = {
                             await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions.hue);
                         }
                     } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
-                        const xy = utils.hexToXY(meta.message.hue_power_on_color);
-                        value = {x: utils.mapNumberRange(xy.x, 0, 1, 0, 65535), y: utils.mapNumberRange(xy.y, 0, 1, 0, 65535)};
+                        const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
+                        value = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
 
                         // Set colortemp to default
                         if (supports.colorTemperature) {
@@ -1692,7 +1719,8 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1701,14 +1729,20 @@ const converters = {
 
                 await entity.write('genBasic', {0xFFF0: {value: payload[0], type: 0x41}}, manufacturerOptions.xiaomi);
                 await entity.write('genBasic', {0xFFF0: {value: payload[1], type: 0x41}}, manufacturerOptions.xiaomi);
+            } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x01, 0x10, 0x01] :
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x01, 0x10, 0x00];
+
+                await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
-
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -1736,17 +1770,40 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0202: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x02, 0x10, 0x01] :
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x02, 0x10, 0x00];
+
+                await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
             return {state: {auto_off: value}};
         },
     },
+    GZCGQ11LM_detection_period: {
+        key: ['detection_period'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            await entity.write('aqaraOpple', {0x0000: {value: [value], type: 0x21}}, manufacturerOptions.xiaomi);
+            return {state: {detection_period: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
+            } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
+                const payload = value ?
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x00, 0x03, 0x10, 0x00] :
+                    [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x01, 0x03, 0x10, 0x01];
+
+                await entity.write('genBasic', {0xFFF0: {value: payload, type: 0x41}}, manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
@@ -1761,7 +1818,7 @@ const converters = {
             // 1/2 gang switches using genBasic on endpoint 1.
             let attrId;
             let attrValue;
-            if (meta.mapped.meta.multiEndpoint) {
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 // Allow usage of control_relay for 2 gang switches by mapping it to the default side.
                 if (targetValue === 'control_relay') {
@@ -1790,7 +1847,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             let attrId;
-            if (meta.mapped.meta.multiEndpoint) {
+            if (meta.mapped.meta && meta.mapped.meta.multiEndpoint) {
                 attrId = {left: 0xFF22, right: 0xFF23}[meta.endpoint_name];
                 if (attrId == null) {
                     throw new Error(`Unsupported endpoint ${meta.endpoint_name} for getting operation_mode.`);
@@ -2652,6 +2709,26 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             await endpoint.read('aqaraOpple', ['mode'], {manufacturerCode: 0x115f});
+        },
+    },
+    ZVG1_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await tuya.sendDataPointValue(entity, 11, timer, 'setData', 1);
+            return {state: {timer: value}};
+        },
+    },
+    ZVG1_timer_state: {
+        key: ['timer_state'],
+        convertSet: async (entity, key, value, meta) => {
+            let timerState = 2;
+            if (value === 'disabled') timerState = 0;
+            else if (value === 'active') timerState = 1;
+            await tuya.sendDataPointValue(entity, 11, timerState, 'setData', 1);
+            return {state: {timer_state: value}};
         },
     },
     EMIZB_132_mode: {
@@ -4221,25 +4298,30 @@ const converters = {
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
+            const options = {
+                // Don't send a manufacturerCode (otherwise set in herdsman):
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
+                manufacturerCode: null,
+                ...utils.getOptions(meta.mapped, entity),
+            };
             switch (key) {
             case 'send_key':
                 await entity.command('heimanSpecificInfraRedRemote', 'sendKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'create':
-                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']},
-                    utils.getOptions(meta.mapped, entity));
+                await entity.command('heimanSpecificInfraRedRemote', 'createId', {modelType: value['model_type']}, options);
                 break;
             case 'learn':
                 await entity.command('heimanSpecificInfraRedRemote', 'studyKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'delete':
                 await entity.command('heimanSpecificInfraRedRemote', 'deleteKey',
-                    {id: value['id'], keyCode: value['key_code']}, utils.getOptions(meta.mapped, entity));
+                    {id: value['id'], keyCode: value['key_code']}, options);
                 break;
             case 'get_list':
-                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, utils.getOptions(meta.mapped, entity));
+                await entity.command('heimanSpecificInfraRedRemote', 'getIdAndKeyCodeList', {}, options);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
@@ -4817,7 +4899,7 @@ const converters = {
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: 0},
+                {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 3},
                 utils.getOptions(meta.mapped, entity),
             );
         },
@@ -5339,25 +5421,31 @@ const converters = {
             return {state: {keypad_lockout: value}};
         },
     },
-    moes_105z_dimmer: {
+    moes_105_dimmer: {
         key: ['state', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`to moes_105z_dimmer key=[${key}], value=[${value}]`);
+            meta.logger.debug(`to moes_105_dimmer key=[${key}], value=[${value}]`);
+
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
+            const lookupState = {l1: tuya.dataPoints.moes105DimmerState1, l2: tuya.dataPoints.moes105DimmerState2};
+            const lookupBrightness = {l1: tuya.dataPoints.moes105DimmerLevel1, l2: tuya.dataPoints.moes105DimmerLevel2};
+            const stateKeyId = multiEndpoint ? lookupState[meta.endpoint_name] : lookupState.l1;
+            const brightnessKeyId = multiEndpoint ? lookupBrightness[meta.endpoint_name] : lookupBrightness.l1;
 
             switch (key) {
             case 'state':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'setData', 1);
                 break;
 
             case 'brightness':
                 if (value >= 0 && value <= 254) {
                     const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                     if (newValue === 0) {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, false, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'setData', 1);
                     } else {
-                        await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'setData', 1);
                     }
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moes105zDimmerLevel, newValue, 'setData', 1);
+                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'setData', 1);
                     break;
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..254');
