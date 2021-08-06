@@ -149,7 +149,7 @@ module.exports = [
         model: 'GL-C-007S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_colorxy(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-C-007P'],
