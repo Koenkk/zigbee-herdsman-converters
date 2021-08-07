@@ -91,6 +91,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTD012'],
+        model: '5111531H5',
+        vendor: 'Philips',
+        description: 'Garnea downlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA010'],
         model: '929002335001',
         vendor: 'Philips',
@@ -140,7 +149,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Aphelion downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
