@@ -1417,13 +1417,14 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara T1 power plug ZigBee',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ZNCZ15LM_overload_protection, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.ZNCZ15LM_overload_protection,],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.ZNCZ15LM_overload_protection],
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-            .withDescription('When the load power of the plug is above the set standard, it will automatically cut off the power to avoid any danger.')],
+                .withDescription('When the load power of the plug is above the set standard, it will automatically cut off the power to avoid any danger.')],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x020b], {manufactureCode: 0x115f});
         },
