@@ -6222,6 +6222,15 @@ const converters = {
             }
         },
     },
+    ZNCZ15LM_overload_protection: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x020b)) {
+                return {overload_protection: msg.data[0x020b]};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
