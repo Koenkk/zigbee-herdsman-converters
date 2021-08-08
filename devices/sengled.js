@@ -1,11 +1,28 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['E13-N11'],
+        model: 'E13-N11',
+        vendor: 'Sengled',
+        description: 'Flood light with motion sensor light outdoor',
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.ias_occupancy_alarm_1]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
+        exposes: [e.occupancy(), e.light_brightness()],
+    },
+    {
+        zigbeeModel: ['E21-N1EA'],
+        model: 'E21-N1EA',
+        vendor: 'Sengled',
+        description: 'Smart LED multicolor A19 bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
+    },
     {
         zigbeeModel: ['E12-N1E'],
         model: 'E12-N1E',
@@ -150,6 +167,22 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['E1C-NB7'],
+        model: 'E1C-NB7',
+        vendor: 'Sengled',
+        description: 'Smart plug with energy tracker',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
+    {
         zigbeeModel: ['E1E-G7F'],
         model: 'E1E-G7F',
         vendor: 'Sengled',
@@ -157,5 +190,12 @@ module.exports = [
         fromZigbee: [fz.E1E_G7F_action],
         exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ['E11-N1G'],
+        model: 'E11-N1G',
+        vendor: 'Sengled',
+        description: 'Vintage LED edison bulb (ST19)',
+        extend: extend.light_onoff_brightness(),
     },
 ];

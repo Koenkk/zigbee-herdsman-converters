@@ -15,15 +15,6 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['TS0203'],
-        model: 'TS0203',
-        vendor: 'CR Smart Home',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-    },
-    {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
         vendor: 'CR Smart Home',

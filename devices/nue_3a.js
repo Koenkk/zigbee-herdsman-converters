@@ -133,7 +133,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2', 'LXN56-DS27LX1.3'],
+        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2', 'LXN56-DS27LX1.3', 'LXN60-DS27LX1.3'],
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
@@ -274,5 +274,12 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 strip light controller',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['LXN60-LS27-Z30'],
+        model: 'WL-SD001-9W',
+        vendor: 'Nue / 3A',
+        description: '9W RGB LED downlight',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
 ];

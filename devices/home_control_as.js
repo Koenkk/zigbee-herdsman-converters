@@ -3,20 +3,21 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+
 module.exports = [
     {
-        zigbeeModel: ['Gear'],
-        model: 'GR-ZB01-W',
-        vendor: 'AXIS',
-        description: 'Gear window shade motor',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        zigbeeModel: ['HC-SLM-1'],
+        model: 'HC-SLM-1',
+        vendor: 'Home Control AS',
+        description: 'Heimgard (Wattle) door lock pro',
+        fromZigbee: [fz.lock, fz.battery],
+        toZigbee: [tz.lock],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.lock(), e.battery()],
     },
 ];

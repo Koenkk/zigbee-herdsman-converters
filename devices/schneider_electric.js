@@ -77,7 +77,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
-        model: 'CCT5011-0001/MEG5011-0001',
+        model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
         extend: extend.switch(),
@@ -127,6 +127,20 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SMARTPLUG/1'],
+        model: 'CCT711119',
+        vendor: 'Schneider Electric',
+        description: 'Wiser smart plug',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['U201DST600ZB'],
         model: 'U201DST600ZB',
         vendor: 'Schneider Electric',
@@ -145,6 +159,18 @@ module.exports = [
         model: 'U201SRY2KWZB',
         vendor: 'Schneider Electric',
         description: 'Ulti 240V 9.1 A 1 gang relay switch impress switch module, amber LED',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['NHPB/SWITCH/1'],
+        model: 'S520530W',
+        vendor: 'Schneider Electric',
+        description: 'Odace connectable relay switch 10A',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
@@ -208,6 +234,79 @@ module.exports = [
                     }
                 }
             });
+        },
+    },
+    {
+        zigbeeModel: ['LK Dimmer'],
+        model: '545D6102',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.schneider_lighting_ballast_configuration, fz.command_recall,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.schneider_dimmer_mode],
+        endpoint: (device) => {
+            return {'l1': 3, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
+        },
+        exposes: [e.light_brightness().withLevelConfig().withEndpoint('l1'),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast')
+                .withEndpoint('l1'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')
+                .withEndpoint('l1'),
+            exposes.enum('dimmer_mode', ea.ALL, ['RC', 'RL']).withDescription('Controls Capacitive or Inductive Dimming Mode')
+                .withEndpoint('l1'),
+            e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'recall_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Configure the dimmer actuator endpoint
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            // Configure the four front switches
+            device.endpoints.forEach(async (ep) => {
+                if (21 <= ep.ID && ep.ID <= 22) {
+                    await reporting.bind(ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+                } else if (23 <= ep.ID && ep.ID <= 24) {
+                    await reporting.bind(ep, coordinatorEndpoint, ['genScenes']);
+                }
+            });
+        },
+        onEvent: async (type, data, device) => {
+            // Record the factory default bindings for easy removal/change after deviceInterview
+            if (type === 'deviceInterview') {
+                const dimmer = device.getEndpoint(3);
+                device.endpoints.forEach(async (ep) => {
+                    if (21 <= ep.ID && ep.ID <= 22) {
+                        ep.addBinding('genOnOff', dimmer);
+                        ep.addBinding('genLevelCtrl', dimmer);
+                    }
+                    if (23 <= ep.ID && ep.ID <= 24) {
+                        ep.addBinding('genScenes', dimmer);
+                    }
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ['FLS/AIRLINK/4'],
+        model: '550D6001',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless battery 4 button switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {'top': 21, 'bottom': 22};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [e.action(['on_*', 'off_*', 'brightness_*'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
+            const topButtonsEndpoint = device.getEndpoint(21);
+            await reporting.bind(topButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const bottomButtonsEndpoint = device.getEndpoint(22);
+            await reporting.bind(bottomButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {

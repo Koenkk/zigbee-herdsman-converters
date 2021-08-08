@@ -183,6 +183,7 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
+        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}],
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -191,12 +192,20 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['LIGHTIFY PAR38 ON/OFF/DIM'],
+        model: '73889',
+        vendor: 'OSRAM',
+        description: 'Smart home soft white PAR38 outdoor bulb',
+        extend: extend.ledvance.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['Plug Z3'],
         model: 'AC10691',
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
         ota: ota.ledvance,
+        whiteLabel: [{vendor: 'LEDVANCE', model: 'AC10691'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             let endpoint = device.getEndpoint(3);
             // Endpoint 3 is not always present, use endpoint 1 in that case

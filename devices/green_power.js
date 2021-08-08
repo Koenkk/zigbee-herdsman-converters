@@ -17,7 +17,8 @@ module.exports = [
             'short_press_2_of_1'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
-            {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'}],
+            {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'},
+            {vendor: 'Vimar', description: 'Smart switch for Philips Hue', model: '03906'}],
     },
     {
         zigbeeModel: ['GreenPower_7'],

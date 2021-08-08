@@ -35,18 +35,43 @@ module.exports = [
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement, fz.temperature],
+        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            const payload = [{
+                attribute: 'rmsVoltagePhB',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsVoltagePhC',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsCurrentPhB',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsCurrentPhC',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            }];
+            await endpoint.configureReporting('haElectricalMeasurement', payload);
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.instantaneousDemand(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 3600, change: [1, 1]});
             await reporting.currentSummReceived(endpoint);
             await reporting.temperature(endpoint);
         },
@@ -116,7 +141,7 @@ module.exports = [
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
-        exposes: [e.lock(), e.battery(),
+        exposes: [e.lock(), e.battery(), e.pincode(),
             exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
             exposes.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),

@@ -3,6 +3,14 @@ const extend = require('../lib/extend');
 
 module.exports = [
     {
+        zigbeeModel: ['Outdoor Plug', 'Plug Value'],
+        model: 'AC26940/AC31266',
+        vendor: 'LEDVANCE',
+        description: 'Smart Zigbee outdoor plug',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Panel TW Z3'],
         model: '4058075181472',
         vendor: 'LEDVANCE',

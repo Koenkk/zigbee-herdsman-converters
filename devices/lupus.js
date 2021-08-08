@@ -18,7 +18,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
-        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC'],
+        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC', 'SCM-6-OTA_00.00.03.17TC'],
         model: 'LS12128',
         vendor: 'Lupus',
         description: 'Roller shutter',
@@ -43,7 +43,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['PRS3CH1_00.00.05.10TC'],
+        zigbeeModel: ['PRS3CH1_00.00.05.10TC', 'PRS3CH1_00.00.05.11TC'],
         model: '12126',
         vendor: 'Lupus',
         description: '1 chanel relay',

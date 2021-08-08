@@ -7,6 +7,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['3RSS009Z'],
+        model: '3RSS009Z',
+        vendor: 'Third Reality',
+        description: 'Smart switch Gen3',
+        fromZigbee: [fz.on_off, fz.battery],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        exposes: [e.switch(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['3RSS008Z'],
         model: '3RSS008Z',
         vendor: 'Third Reality',
@@ -41,5 +50,14 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Smart light BR30',
         extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['3RWS18BZ'],
+        model: '3RWS18BZ',
+        vendor: 'Third Reality',
+        description: 'Water sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.battery()],
     },
 ];

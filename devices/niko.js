@@ -17,9 +17,9 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {min: 5, max: 3600, change: 1000});
+            await reporting.rmsCurrent(endpoint, {min: 5, max: 3600, change: 100});
+            await reporting.rmsVoltage(endpoint, {min: 5, max: 3600, change: 100});
         },
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.current(), e.voltage()],
     },
@@ -45,5 +45,21 @@ module.exports = [
             exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],
+    },
+    {
+        zigbeeModel: ['Connectable motion sensor,Zigbee'],
+        model: '552-80401',
+        vendor: 'Niko',
+        description: 'Wireless motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.occupancy(), e.battery_low(), e.battery()],
     },
 ];

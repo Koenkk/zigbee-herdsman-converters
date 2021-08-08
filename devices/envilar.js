@@ -15,4 +15,15 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['ZG302-BOX-RELAY'],
+        model: 'ZG302-BOX-RELAY',
+        vendor: 'Envilar',
+        description: 'Zigbee AC in wall switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
+        },
+    },
 ];
