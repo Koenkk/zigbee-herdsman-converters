@@ -30,6 +30,24 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['5063131P7'],
+        model: '5063131P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato white (1 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5063130P7'],
+        model: '5063130P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato black (1 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['3418931P6'],
         model: '3418931P6',
         vendor: 'Philips',
