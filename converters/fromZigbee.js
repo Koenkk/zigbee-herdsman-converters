@@ -4226,7 +4226,7 @@ const converters = {
             if (commandID === 224) return;
             const lookup = {0x22: 'press_once', 0x20: 'press_twice'};
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`ZLGP15: missing command '${commandID}'`);
+                meta.logger.error(`ZLGP17: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
