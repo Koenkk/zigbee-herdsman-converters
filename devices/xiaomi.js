@@ -1422,7 +1422,8 @@ module.exports = [
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('When the load power of the plug is above the set standard, it will automatically cut off the power to avoid any danger.')],
+                .withDescription('When the load power of the plug is above the set standard, it will automatically ' +
+                    'cut off the power to avoid any danger.')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
