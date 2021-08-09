@@ -256,4 +256,23 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', greenPowerKey: '62149.37.197.242'}],
+        model: 'ZLGP15',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless 4 scenes control',
+        fromZigbee: [fz.legrand_zlgp15],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '62149.31.197.242'}],
+        model: 'ZLGP17',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless lighting control',
+        fromZigbee: [fz.legrand_zlgp17],
+        toZigbee: [],
+        exposes: [e.action(['press_once', 'press_twice'])],
+        whiteLabel: [{vendor: 'Legrand', description: 'Wireless and batteryless double lighting control', model: 'ZLGP18'}],
+    },
 ];
