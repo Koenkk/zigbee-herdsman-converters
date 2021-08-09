@@ -7,6 +7,19 @@ const ea = exposes.access;
 
 module.exports = [
     {
+    zigbeeModel: ['RS-THP-MP-1.0'],
+    model: 'WSDCGQ11LM', 
+    vendor: 'Keen Home', 
+    description: 'Keen Home Temperature Sensor',
+    meta: {battery: {voltageToPercentage: '3V_2100'}},
+    fromZigbee: [fz.battery, fz.xiaomi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
+    toZigbee: [],
+    exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
+    configure: async (device, coordinatorEndpoint, logger) => {
+    device.powerSource = 'Battery';
+    device.save();
+    },
+    {
         zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
             'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-612-MP-1.0'],
         model: 'SV01',
