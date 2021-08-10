@@ -2866,6 +2866,40 @@ const converters = {
             return payload;
         },
     },
+    tint404011_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            // The remote has an internal state so store the last action in order to
+            // determine the direction of the color temperature change.
+            if (!globalStore.hasValue(msg.endpoint, 'last_color_temp')) {
+                globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
+            }
+
+            const lastTemp = globalStore.getValue(msg.endpoint, 'last_color_temp');
+            globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
+            let direction = 'down';
+            if (lastTemp > msg.data.colortemp) {
+                direction = 'up';
+            } else if (lastTemp < msg.data.colortemp) {
+                direction = 'down';
+            } else if (msg.data.colortemp == 370 || msg.data.colortemp == 555) {
+                // The remote goes up to 370 in steps and emits 555 on down button hold.
+                direction = 'down';
+            } else if (msg.data.colortemp == 153) {
+                direction = 'up';
+            }
+
+            const payload = {
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model),
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+                action_color_temperature_direction: direction,
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     ZNMS11LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -5066,12 +5100,12 @@ const converters = {
     D10110_cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 // The Yookee D10110 SENDs it's position reversed, relative to the spec.
-                msg.data['currentPositionLiftPercentage'] = 100 - (msg.data['currentPositionLiftPercentage'] + 1);
+                msg.data['currentPositionLiftPercentage'] = 100 - msg.data['currentPositionLiftPercentage'];
             }
-            return await converters.cover_position_tilt.convert(model, msg, publish, options, meta);
+            return converters.cover_position_tilt.convert(model, msg, publish, options, meta);
         },
     },
     PGC410EU_presence: {
@@ -6219,6 +6253,15 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x0000)) {
                 return {detection_period: msg.data[0x0000]};
+            }
+        },
+    },
+    ZNCZ15LM_overload_protection: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x020b)) {
+                return {overload_protection: msg.data[0x020b]};
             }
         },
     },

@@ -30,6 +30,24 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['5063131P7'],
+        model: '5063131P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato white (1 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5063130P7'],
+        model: '5063130P7',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance spot Fugato black (1 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['3418931P6'],
         model: '3418931P6',
         vendor: 'Philips',
@@ -91,6 +109,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTD012'],
+        model: '5111531H5',
+        vendor: 'Philips',
+        description: 'Garnea downlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA010'],
         model: '929002335001',
         vendor: 'Philips',
@@ -140,7 +167,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Aphelion downlight',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
