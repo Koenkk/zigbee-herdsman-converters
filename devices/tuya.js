@@ -1179,6 +1179,14 @@ module.exports = [
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
         whiteLabel: [{vendor: 'Lidl', model: 'HG06668'}],
+        zigbeeModel: ['TS0211'],
+        model: 'HS2DB',
+        vendor: 'TuYa',
+        description: 'Smart doorbell button',
+        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'HEIMAN', model: 'HS2DB'},
+            {vendor: 'Lidl', model: 'HG06668'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);

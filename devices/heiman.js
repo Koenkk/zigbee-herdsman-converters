@@ -669,19 +669,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
-    {
-        zigbeeModel: ['TS0211'],
-        model: 'HS2DB',
-        vendor: 'Heiman',
-        description: 'Smart doorbell button',
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
-        toZigbee: [],
-        whiteLabel: [{vendor: 'Lidl', model: 'HG06668'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
-    },
 ];
