@@ -1103,4 +1103,20 @@ module.exports = [
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
+    {
+        zigbeeModel: ['TS0211'],
+        model: 'HS2DB',
+        vendor: 'TuYa',
+        description: 'Smart doorbell button',
+        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'HEIMAN', model: 'HS2DB'},
+            {vendor: 'Lidl', model: 'HG06668'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
+    },
 ];
