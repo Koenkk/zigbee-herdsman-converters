@@ -65,6 +65,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.activePower(endpoint);
             await reporting.currentSummDelivered(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
         },
         exposes: [e.power(), e.switch(), e.energy()],
     },
