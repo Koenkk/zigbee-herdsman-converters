@@ -316,7 +316,7 @@ const converters = {
                 strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
-            const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            const info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
