@@ -267,12 +267,11 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '62149.31.197.242'}],
-        model: 'ZLGP17',
+        model: 'ZLGP17/ZLGP18',
         vendor: 'Legrand',
-        description: 'Wireless and batteryless lighting control',
-        fromZigbee: [fz.legrand_zlgp17],
+        description: 'Wireless and batteryless (double) lighting control',
+        fromZigbee: [fz.legrand_zlgp17_zlgp18],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
-        whiteLabel: [{vendor: 'Legrand', description: 'Wireless and batteryless double lighting control', model: 'ZLGP18'}],
     },
 ];

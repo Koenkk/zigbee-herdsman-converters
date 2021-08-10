@@ -36,7 +36,7 @@ module.exports = [
         description: 'Hue tap',
         fromZigbee: [fz.hue_tap],
         toZigbee: [],
-        exposes: [e.action(['1_press', '2_press', '3_press', '4_press'])],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
     },
     {
         zigbeeModel: ['5063131P7'],

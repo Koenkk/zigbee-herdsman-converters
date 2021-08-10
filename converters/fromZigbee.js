@@ -3714,17 +3714,8 @@ const converters = {
             // Button 3: B0 (top right)
             // Button 4: B1 (bottom right)
             const lookup = {
-                0x10: 'press_1',
-                0X14: 'release_1',
-                0X11: 'press_2',
-                0x15: 'release_2',
-                0x13: 'press_3',
-                0x17: 'release_3',
-                0x12: 'press_4',
-                0x16: 'release_4',
-                0x64: 'press_1_and_3',
-                0x65: 'release_1_and_3',
-                0x62: 'press_2_and_4',
+                0x10: 'press_1', 0X14: 'release_1', 0X11: 'press_2', 0x15: 'release_2', 0x13: 'press_3', 0x17: 'release_3',
+                0x12: 'press_4', 0x16: 'release_4', 0x64: 'press_1_and_3', 0x65: 'release_1_and_3', 0x62: 'press_2_and_4',
                 0x63: 'release_2_and_4',
             };
 
@@ -3733,7 +3724,7 @@ const converters = {
             } else {
                 return {action: lookup[commandID]};
             }
-        }
+        },
     },
     enocean_ptm215ze: {
         cluster: 'greenPower',
@@ -3748,26 +3739,10 @@ const converters = {
             // Button 3: B0 (top right)
             // Button 4: B1 (bottom right)
             const lookup = {
-                0x22: 'press_1',
-                0x23: 'release_1',
-                0x18: 'press_2',
-                0x19: 'release_2',
-                0x14: 'press_3',
-                0x15: 'release_3',
-                0x12: 'press_4',
-                0x13: 'release_4',
-                0x64: 'press_1_and_2',
-                0x65: 'release_1_and_2',
-                0x62: 'press_1_and_3',
-                0x63: 'release_1_and_3',
-                0x1e: 'press_1_and_4',
-                0x1f: 'release_1_and_4',
-                0x1c: 'press_2_and_3',
-                0x1d: 'release_2_and_3',
-                0x1a: 'press_2_and_4',
-                0x1b: 'release_2_and_4',
-                0x16: 'press_3_and_4',
-                0x17: 'release_3_and_4',
+                0x22: 'press_1', 0x23: 'release_1', 0x18: 'press_2', 0x19: 'release_2', 0x14: 'press_3', 0x15: 'release_3', 0x12: 'press_4',
+                0x13: 'release_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2', 0x62: 'press_1_and_3', 0x63: 'release_1_and_3',
+                0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
+                0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
@@ -3775,7 +3750,34 @@ const converters = {
             } else {
                 return {action: lookup[commandID]};
             }
-        }
+        },
+    },
+    enocean_ptm216z: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+
+            // Button 1: A0 (top left)
+            // Button 2: A1 (bottom left)
+            // Button 3: B0 (top right)
+            // Button 4: B1 (bottom right)
+            const lookup = {
+                '105_1': 'press_1', '105_2': 'press_2', '105_3': 'press_1_and_2', '105_4': 'press_3', '105_5': 'press_1_and_3',
+                '105_6': 'press_3_and_4', '105_7': 'press_1_and_2_and_3', '105_8': 'press_4', '105_9': 'press_1_and_4',
+                '105_10': 'press_2_and_4', '105_11': 'press_1_and_2_and_4', '105_12': 'press_3_and_4', '105_13': 'press_1_and_3_and_4',
+                '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
+            };
+
+            const ID = `${commandID}_${msg.data.commandFrame.raw.join('_')}`;
+            if (!lookup.hasOwnProperty(ID)) {
+                meta.logger.error(`PTM 216Z: missing command '${ID}'`);
+            } else {
+                return {action: lookup[ID]};
+            }
+        },
     },
     hue_tap: {
         cluster: 'greenPower',
@@ -3784,7 +3786,7 @@ const converters = {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return; // Skip commisioning command.
-            const lookup = {34: '1_press', 16: '2_press', 17: '3_press', 18: '4_press'};
+            const lookup = {34: 'press_1', 16: 'press_2', 17: 'press_3', 18: 'press_4'};
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Hue tap: missing command '${commandID}'`);
             } else {
@@ -4215,9 +4217,9 @@ const converters = {
             } else {
                 return {action: lookup[commandID]};
             }
-        }
+        },
     },
-    legrand_zlgp17: {
+    legrand_zlgp17_zlgp18: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
@@ -4226,11 +4228,11 @@ const converters = {
             if (commandID === 224) return;
             const lookup = {0x22: 'press_once', 0x20: 'press_twice'};
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`ZLGP17: missing command '${commandID}'`);
+                meta.logger.error(`ZLGP17/ZLGP18: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
-        }
+        },
     },
     xiaomi_power: {
         cluster: 'genAnalogInput',
