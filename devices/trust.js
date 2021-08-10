@@ -38,6 +38,7 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        fingerprint: [{modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000'}],
         zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
         vendor: 'Trust',

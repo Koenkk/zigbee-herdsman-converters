@@ -1440,29 +1440,60 @@ const converters = {
             return {presence: true};
         },
     },
-    moes_105z_dimmer: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+    ias_enroll: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-
-            meta.logger.debug(`from moes_105z_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
-
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {state: value ? 'ON': 'OFF'};
-            case tuya.dataPoints.moes105zDimmerLevel:
-                return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
-            default:
-                meta.logger.debug(`zigbee-herdsman-converters:moes_105z_dimmer:` +
-                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
-            }
+            const zoneState = msg.data.zoneState;
+            const iasCieAddr = msg.data.iasCieAddr;
+            const zoneId = msg.data.zoneId;
+            return {
+                enrolled: zoneState !== 0,
+                ias_cie_address: iasCieAddr,
+                zone_id: zoneId,
+            };
+        },
+    },
+    ias_wd: {
+        cluster: 'ssIasWd',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('maxDuration')) result['max_duration'] = msg.data.maxDuration;
+            return result;
         },
     },
     // #endregion
 
     // #region Non-generic converters
+    moes_105_dimmer: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            meta.logger.debug(`from moes_105_dimmer, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+
+            const state = value ? 'ON': 'OFF';
+            const brightness = mapNumberRange(value, 0, 1000, 0, 254);
+
+            switch (dp) {
+            case tuya.dataPoints.moes105DimmerState1:
+                return {[multiEndpoint ? 'state_l1' : 'state']: state};
+            case tuya.dataPoints.moes105DimmerLevel1:
+                return {[multiEndpoint ? 'brightness_l1' : 'brightness']: brightness};
+            case tuya.dataPoints.moes105DimmerState2:
+                return {state_l2: state};
+            case tuya.dataPoints.moes105DimmerLevel2:
+                return {brightness_l2: brightness};
+            default:
+                meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
+                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     ias_smoke_alarm_1_develco: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -2176,6 +2207,10 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
+            // Send the defaultResponse here, otherwise the second button click delays.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
+            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]);
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
@@ -2245,6 +2280,9 @@ const converters = {
             if (msg.data.indexOf(stateHeader) === 0) {
                 if (msg.data[10] === 7) {
                     const status = msg.data[14];
+                    return {state: status & 1 ? 'ON' : 'OFF'};
+                } else if (msg.data[10] === 13) {
+                    const status = msg.data[13];
                     return {state: status & 1 ? 'ON' : 'OFF'};
                 } else if (msg.data[10] === 5) { // TODO: Unknown dp, assumed value type
                     const value = msg.data[14] * 10;
@@ -2824,6 +2862,40 @@ const converters = {
         type: 'write',
         convert: (model, msg, publish, options, meta) => {
             const payload = {action: `scene_${msg.data['16389']}`};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    tint404011_move_to_color_temp: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToColorTemp',
+        convert: (model, msg, publish, options, meta) => {
+            // The remote has an internal state so store the last action in order to
+            // determine the direction of the color temperature change.
+            if (!globalStore.hasValue(msg.endpoint, 'last_color_temp')) {
+                globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
+            }
+
+            const lastTemp = globalStore.getValue(msg.endpoint, 'last_color_temp');
+            globalStore.putValue(msg.endpoint, 'last_color_temp', msg.data.colortemp);
+            let direction = 'down';
+            if (lastTemp > msg.data.colortemp) {
+                direction = 'up';
+            } else if (lastTemp < msg.data.colortemp) {
+                direction = 'down';
+            } else if (msg.data.colortemp == 370 || msg.data.colortemp == 555) {
+                // The remote goes up to 370 in steps and emits 555 on down button hold.
+                direction = 'down';
+            } else if (msg.data.colortemp == 153) {
+                direction = 'up';
+            }
+
+            const payload = {
+                action: postfixWithEndpointName(`color_temperature_move`, msg, model),
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+                action_color_temperature_direction: direction,
+            };
             addActionGroup(payload, msg, model);
             return payload;
         },
@@ -4131,7 +4203,7 @@ const converters = {
                         i += 5;
                         break;
                     default:
-                        if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown vtype=${data[i+1]}, pos=${i+1}`);
+                        if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
                     if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
@@ -4142,7 +4214,7 @@ const converters = {
                     } else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
                     else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
                     else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
-                    else if (meta.logger) meta.logger.debug(`plug.mmeu01: unknown index ${index} with value ${value}`);
+                    else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
             if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
@@ -4221,7 +4293,9 @@ const converters = {
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
-            if (['QBKG39LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG31LM'].includes(model.model)) {
+                buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
+            }
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
@@ -4607,20 +4681,22 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
-            const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple'};
+            const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
             const button = msg.endpoint.ID;
             const value = msg.data.presentValue;
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-
-            // 0 = hold
-            if (value === 0) {
-                // Aqara Opple does not generate a release event when pressed for more than 5 seconds
-                // After 5 seconds of not releasing we assume release.
-                const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
-                globalStore.putValue(msg.endpoint, 'timer', timer);
+            if (model.model === 'WXKG13LM') {
+                return {action: `${actionLookup[value]}`};
+            } else {
+                // 0 = hold
+                if (value === 0) {
+                    // Aqara Opple does not generate a release event when pressed for more than 5 seconds
+                    // After 5 seconds of not releasing we assume release.
+                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
+                    globalStore.putValue(msg.endpoint, 'timer', timer);
+                }
+                return {action: `button_${button}_${actionLookup[value]}`};
             }
-
-            return {action: `button_${button}_${actionLookup[value]}`};
         },
     },
     aqara_opple_on: {
@@ -5024,12 +5100,12 @@ const converters = {
     D10110_cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 // The Yookee D10110 SENDs it's position reversed, relative to the spec.
-                msg.data['currentPositionLiftPercentage'] = 100 - (msg.data['currentPositionLiftPercentage'] + 1);
+                msg.data['currentPositionLiftPercentage'] = 100 - msg.data['currentPositionLiftPercentage'];
             }
-            return await converters.cover_position_tilt.convert(model, msg, publish, options, meta);
+            return converters.cover_position_tilt.convert(model, msg, publish, options, meta);
         },
     },
     PGC410EU_presence: {
@@ -5269,6 +5345,43 @@ const converters = {
                 result.time_report = msg.data[0x0056];
             }
             return result;
+        },
+    },
+    ZVG1: {
+        cluster: 'manuSpecificTuya',
+        type: 'commandGetData',
+        convert: (model, msg, publish, options, meta) => {
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dp = msg.data.dp;
+            switch (dp) {
+            case tuya.dataPoints.state: {
+                return {state: value ? 'ON': 'OFF'};
+            }
+            case 5: {
+                // Assume value is reported in fl. oz., converter to litres
+                return {water_consumed: (value / 33.8140226).toFixed(2)};
+            }
+            case 7: {
+                return {battery: value};
+            }
+            case 11: {
+                // value reported in seconds
+                return {timer_time_left: value / 60};
+            }
+            case 12: {
+                if (value === 0) return {timer_state: 'disabled'};
+                else if (value === 1) return {timer_state: 'active'};
+                else return {timer_state: 'enabled'};
+            }
+            case 15: {
+                // value reported in seconds
+                return {last_valve_open_duration: value / 60};
+            }
+            default: {
+                meta.logger.warn(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
+                    `#${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+            }
         },
     },
     JTQJBF01LMBW_gas_density: {
@@ -6125,6 +6238,31 @@ const converters = {
                 result.current_firmware = msg.data[0x8000].join('.');
             }
             return result;
+        },
+    },
+    xiaomi_tvoc: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {voc: msg.data.presentValue};
+        },
+    },
+    GZCGQ11LM_detection_period: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0000)) {
+                return {detection_period: msg.data[0x0000]};
+            }
+        },
+    },
+    ZNCZ15LM_overload_protection: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x020b)) {
+                return {overload_protection: msg.data[0x020b]};
+            }
         },
     },
     // #endregion

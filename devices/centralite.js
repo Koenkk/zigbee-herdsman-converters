@@ -84,6 +84,20 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
     {
+        zigbeeModel: ['3328-G'],
+        model: '3328-G',
+        vendor: 'Centralite',
+        description: '3-Series micro motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+        },
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature()],
+    },
+    {
         zigbeeModel: ['3400-D', '3400'],
         model: '3400-D',
         vendor: 'Centralite',
