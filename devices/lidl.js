@@ -237,4 +237,12 @@ module.exports = [
         extend: extend.light_onoff_brightness({disableEffect: true}),
         meta: {turnsOffAtBrightness1: false},
     },
+    {
+        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'}],
+        model: 'HG06462A',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 A60 filament bulb',
+        extend: extend.light_onoff_brightness({disableEffect: true}),
+        meta: {turnsOffAtBrightness1: false},
+    },
 ];
