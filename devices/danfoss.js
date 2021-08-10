@@ -90,6 +90,12 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MINUTES_10,
                 reportableChange: 1,
             }], options);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'danfossExternalMeasuredRoomSensor',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.MAX,
+                reportableChange: 1,
+            }], options);
 
             await endpoint.read('hvacThermostat', [
                 'danfossWindowOpenExternal',
@@ -99,6 +105,7 @@ module.exports = [
                 'danfossHeatAvailable',
                 'danfossMountedModeControl',
                 'danfossMountedModeActive',
+                'danfossExternalMeasuredRoomSensor',
             ], options);
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
