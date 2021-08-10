@@ -38,12 +38,15 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000'}],
+        fingerprint: [{modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000', applicationVersion: 1}],
         zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
         extend: extend.light_onoff_brightness_colortemp(),
+        endpoint: (device) => {
+            return {'default': 2};
+        },
     },
     {
         zigbeeModel: ['VMS_ADUROLIGHT'],
