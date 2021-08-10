@@ -3,9 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const tz = require('../converters/toZigbee');
-
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
@@ -57,8 +55,8 @@ module.exports = [
     {
         zigbeeModel: ['LDSENK02F'],
         model: 'LDSENK02F',
-        description: "10A/16A EU smart plug",
-        vendor: "ADEO",
+        description: '10A/16A EU smart plug',
+        vendor: 'ADEO',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_genLevelCtrl_report],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -69,5 +67,5 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.power(), e.switch(), e.energy()],
-    }
+    },
 ];
