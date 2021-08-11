@@ -2977,6 +2977,33 @@ const converters = {
             }
         },
     },
+    sinope_led_intensity_on: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_on'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
+            }
+        },
+    },
+    sinope_led_intensity_off: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
+            }
+        },
+    },
+    sinope_minimum_brightness: {
+        // DM2500ZB
+        key: ['minimum_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 3000) {
+                await entity.write('manuSpecificSinope', {minimumBrightness: value});
+            }
+        },
+    },
     stelpro_thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {

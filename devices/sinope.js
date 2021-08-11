@@ -237,6 +237,12 @@ module.exports = [
         vendor: 'Sinope',
         description: 'Zigbee smart dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness(), e.effect(), exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
+            .withDescription('Control status LED when load ON'), exposes.numeric('led_intensity_off', ea.SET).withValueMin(0)
+            .withValueMax(100).withDescription('Control status LED when load OFF'), exposes.numeric('minimum_brightness', ea.SET)
+            .withValueMin(0).withValueMax(3000).withDescription('Control minimum dimmer brightness')],
+        toZigbee: [tz.light_onoff_brightness, tz.sinope_led_intensity_on, tz.sinope_led_intensity_off,
+            tz.sinope_minimum_brightness],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
