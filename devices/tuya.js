@@ -1104,7 +1104,7 @@ module.exports = [
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
     {
-        zigbeeModel: ['TS0211'],
+        fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HS2DB',
         vendor: 'TuYa',
         description: 'Smart doorbell button',
