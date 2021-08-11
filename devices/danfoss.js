@@ -19,7 +19,8 @@ module.exports = [
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
-            tz.danfoss_viewing_direction, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
+            tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -39,6 +40,9 @@ module.exports = [
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']),
+            exposes.numeric('external_measured_room_sensor', ea.ALL)
+                .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes at every 100 ' +
+                    'value change. Resets every 3hours to standard (-8000=undefined).'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -86,6 +90,12 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MINUTES_10,
                 reportableChange: 1,
             }], options);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'danfossExternalMeasuredRoomSensor',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.MAX,
+                reportableChange: 1,
+            }], options);
 
             await endpoint.read('hvacThermostat', [
                 'danfossWindowOpenExternal',
@@ -95,6 +105,7 @@ module.exports = [
                 'danfossHeatAvailable',
                 'danfossMountedModeControl',
                 'danfossMountedModeActive',
+                'danfossExternalMeasuredRoomSensor',
             ], options);
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);

@@ -2777,6 +2777,10 @@ const converters = {
                 result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model)] =
                     (msg.data['danfossThermostatOrientation'] === 1);
             }
+            if (msg.data.hasOwnProperty('danfossExternalMeasuredRoomSensor')) {
+                result[postfixWithEndpointName('external_measured_room_sensor', msg, model)] =
+                    msg.data['danfossExternalMeasuredRoomSensor'];
+            }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
                 result[postfixWithEndpointName('viewing_direction', msg, model)] = msg.data['danfossViewingDirection'];
             }
