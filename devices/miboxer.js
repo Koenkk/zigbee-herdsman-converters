@@ -19,4 +19,12 @@ module.exports = [
                 .withDescription('Power on behavior state'),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}],
+        model: 'TS0501B',
+        description: 'Single Color LED Controller',
+        vendor: 'Miboxer',
+        extend: extend.light_onoff_brightness(),
+    },
+
 ];
