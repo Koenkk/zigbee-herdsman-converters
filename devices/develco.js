@@ -142,7 +142,7 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.smszb120_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
@@ -163,7 +163,7 @@ module.exports = [
         endpoint: (device) => {
             return {default: 35};
         },
-        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(), e.warning(),
+        exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
             exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
     },
