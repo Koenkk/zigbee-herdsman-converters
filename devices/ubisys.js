@@ -209,6 +209,7 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        exposes: [e.cover_position_tilt(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -218,8 +219,20 @@ module.exports = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 21 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('closuresWindowCovering', ep1);
+            }
+        },
         ota: ota.ubisys,
-        exposes: [e.cover_position_tilt(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['C4 (5504)'],
