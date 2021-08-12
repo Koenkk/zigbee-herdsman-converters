@@ -22,9 +22,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}],
         model: 'TS0501B',
-        description: 'Single Color LED Controller',
+        description: 'Single color LED controller',
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness(),
     },
-
 ];
