@@ -208,8 +208,10 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
-        exposes: [e.cover_position_tilt(), e.power(), e.energy()],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
+            tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        exposes: [e.cover_position_tilt(),
+            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -218,6 +220,9 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
+        },
+        endpoint: (device) => {
+            return {'default': 1, 'meter': 3};
         },
         onEvent: async (type, data, device) => {
             /*
