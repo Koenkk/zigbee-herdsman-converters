@@ -1105,11 +1105,12 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'}],
-        model: 'TS011F_DinSmartRelay',
-        description: 'Din Smart Relay (with power monitoring)',
+        model: 'TS011F_din_smart_relay',
+        description: 'Din smart relay (with power monitoring)',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
