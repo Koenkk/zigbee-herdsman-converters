@@ -2170,6 +2170,10 @@ const converters = {
                 const reversalLookup = {0: 'OFF', 1: 'ON'};
                 result.motor_reversal = reversalLookup[value];
             }
+            if (msg.data.hasOwnProperty('moesCalibrationTime')) {
+                const value = parseFloat(msg.data['moesCalibrationTime']) / 10.0;
+                result.calibration_time = value;
+            }
             return result;
         },
     },
