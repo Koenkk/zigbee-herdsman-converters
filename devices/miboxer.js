@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
+const extend = require('../lib/extend');
 
 module.exports = [
     {
@@ -18,5 +19,12 @@ module.exports = [
             exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
                 .withDescription('Power on behavior state'),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}],
+        model: 'FUT036Z',
+        description: 'Single color LED controller',
+        vendor: 'Miboxer',
+        extend: extend.light_onoff_brightness(),
     },
 ];
