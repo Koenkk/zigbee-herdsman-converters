@@ -349,6 +349,25 @@ const converters = {
             );
         },
     },
+    squawk: {
+        key: ['squawk'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {'system_is_armed': 0, 'system_is_disarmed': 1};
+            const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+            const values = {
+                state: value.state,
+                level: value.level || 'very_high',
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : false,
+            };
+            const info = (state[values.state]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            await entity.command(
+                'ssIasWd',
+                'squawk',
+                {squawkinfo: info},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    },
     cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
