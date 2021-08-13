@@ -925,7 +925,7 @@ module.exports = [
         description: 'MiJia Honeywell smoke detector',
         vendor: 'Xiaomi',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.ias_smoke_alarm_1, fz.JTYJGD01LMBW_smoke_density],
+        fromZigbee: [fz.xiaomi_battery, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
