@@ -32,6 +32,6 @@ module.exports = [
         model: 'FUT035Z',
         description: 'Dual White LED controller',
         vendor: 'Miboxer',
-        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true})
+        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]})
     }
 ];
