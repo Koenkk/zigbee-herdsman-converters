@@ -52,8 +52,13 @@ module.exports = [
         model: 'E11-G13',
         vendor: 'Sengled',
         description: 'Element classic (A19)',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
@@ -100,8 +105,13 @@ module.exports = [
         model: 'E11-N1EA',
         vendor: 'Sengled',
         description: 'Element plus color (A19)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['E11-U2E'],
