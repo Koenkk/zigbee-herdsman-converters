@@ -90,4 +90,12 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['BR30 W 10 year'],
+        model: 'BR30 W 10 year',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Dimmable softwhite BR30',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
 ];
