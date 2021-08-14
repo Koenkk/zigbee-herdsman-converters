@@ -1720,7 +1720,7 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', "QBCZ15LM"].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1742,7 +1742,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', "QBCZ15LM"].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -1793,7 +1793,7 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
-    ZNCZ15LM_overload_protection: {
+    xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
@@ -1804,10 +1804,34 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
+    xiaomi_button_switch_config: {
+        key: ['button_switch_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'relay': 0, 'relay&usb': 1};
+            await entity.write('aqaraOpple', {0x0226: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {button_switch_config: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0226], manufacturerOptions.xiaomi);
+        },
+    },
+    xiaomi_socket_local_lock: {
+        key: ['local_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'open': 0, 'close': 1};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('aqaraOpple', {0x0200: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {local_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', "QBCZ15LM"].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?

@@ -1434,14 +1434,13 @@ module.exports = [
         model: 'ZNCZ15LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 power plug ZigBee',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ZNCZ15LM_overload_protection, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.ZNCZ15LM_overload_protection],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_overload_protection, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.xiaomi_overload_protection],
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('When the load power of the plug is above the set standard, it will automatically ' +
-                    'cut off the power to avoid any danger.')],
+                .withDescription('power off automatically if the maximum power is exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
@@ -1494,6 +1493,33 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.plug.sacn03'],
+        model: 'QBCZ15LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara H1 outlet ZigBee',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_overload_protection, fz.xiaomi_button_switch_config, 
+            fz.xiaomi_socket_local_lock, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_button_switch_config, tz.xiaomi_overload_protection, tz.xiaomi_socket_local_lock],
+        meta: {multiEndpoint: true},
+        endpoint: () => {
+            return {'relay': 1, 'usb': 2};
+        },
+        exposes: [
+            e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
+            e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
+            e.current(),e.power_outage_memory(), e.led_disabled_night(),
+            exposes.enum('button_switch_config', exposes.access.ALL, ['relay', 'relay&usb']),
+            exposes.enum('local_lock', exposes.access.ALL, ['open', 'close'])
+                .withDescription('after the local lock is enabled, the switch function does not response when you press the button'),
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
+                .withDescription('power off automatically if the maximum power is exceeded')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
 ];

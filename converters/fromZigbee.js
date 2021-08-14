@@ -6264,12 +6264,32 @@ const converters = {
             }
         },
     },
-    ZNCZ15LM_overload_protection: {
+    xiaomi_overload_protection: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x020b)) {
                 return {overload_protection: msg.data[0x020b]};
+            }
+        },
+    },
+    xiaomi_button_switch_config: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0226)) {
+                const lookup = {0: 'relay', 1: 'relay&usb'};
+                return {button_switch_config: lookup[msg.data[0x0226]]};
+            }
+        },
+    },
+    xiaomi_socket_local_lock: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0200)) {
+                const lookup = {0: 'open', 1: 'close'};
+                return {local_lock: lookup[msg.data[0x0200]]};
             }
         },
     },
