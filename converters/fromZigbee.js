@@ -5405,6 +5405,16 @@ const converters = {
             }
         },
     },
+    JTYJGD01LMBW_smoke: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.ias_smoke_alarm_1.convert(model, msg, publish, options, meta);
+            const zoneStatus = msg.data.zonestatus;
+            result.test = (zoneStatus & 1<<1) > 0;
+            return result;
+        },
+    },
     JTYJGD01LMBW_smoke_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
