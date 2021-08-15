@@ -77,13 +77,21 @@ module.exports = [
         exposes: [e.temperature(), e.humidity()],
     },
     {
-        zigbeeModel: ['SRACBP5_00.00.03.06TC', 'SRAC_00.00.00.16TC'],
+        zigbeeModel: ['SRACBP5_00.00.03.06TC', 'SRAC_00.00.00.16TC', 'SRACBP5_00.00.05.10TC'],
         model: 'SRAC-23B-ZBSR',
         vendor: 'Climax',
         description: 'Smart siren',
-        fromZigbee: [fz.battery],
-        toZigbee: [tz.warning],
-        exposes: [e.warning(), e.battery_low(), e.tamper(), e.battery()],
+        fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
+        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'ssIasZone', 'ssIasWd']);
+            await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId']);
+            await endpoint.read('ssIasWd', ['maxDuration']);
+        },
+        exposes: [e.battery_low(), e.tamper(), e.warning(),
+            exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
+            exposes.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual Start of Siren')],
     },
     {
         zigbeeModel: ['WS15_00.00.00.14TC'],
