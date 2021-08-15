@@ -2170,6 +2170,10 @@ const converters = {
                 const reversalLookup = {0: 'OFF', 1: 'ON'};
                 result.motor_reversal = reversalLookup[value];
             }
+            if (msg.data.hasOwnProperty('moesCalibrationTime')) {
+                const value = parseFloat(msg.data['moesCalibrationTime']) / 10.0;
+                result.calibration_time = value;
+            }
             return result;
         },
     },
@@ -2776,6 +2780,10 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossThermostatOrientation')) {
                 result[postfixWithEndpointName('thermostat_vertical_orientation', msg, model)] =
                     (msg.data['danfossThermostatOrientation'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossExternalMeasuredRoomSensor')) {
+                result[postfixWithEndpointName('external_measured_room_sensor', msg, model)] =
+                    msg.data['danfossExternalMeasuredRoomSensor'];
             }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
                 result[postfixWithEndpointName('viewing_direction', msg, model)] = msg.data['danfossViewingDirection'];
@@ -5518,6 +5526,16 @@ const converters = {
                     return {gas_density: basicAttrs['100']};
                 }
             }
+        },
+    },
+    JTYJGD01LMBW_smoke: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.ias_smoke_alarm_1.convert(model, msg, publish, options, meta);
+            const zoneStatus = msg.data.zonestatus;
+            result.test = (zoneStatus & 1<<1) > 0;
+            return result;
         },
     },
     JTYJGD01LMBW_smoke_density: {

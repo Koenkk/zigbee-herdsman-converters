@@ -2148,6 +2148,16 @@ const converters = {
             await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);
         },
     },
+    danfoss_external_measured_room_sensor: {
+        key: ['external_measured_room_sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossExternalMeasuredRoomSensor': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'external_measured_room_sensor': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossExternalMeasuredRoomSensor'], manufacturerOptions.danfoss);
+        },
+    },
     danfoss_viewing_direction: {
         key: ['viewing_direction'],
         convertSet: async (entity, key, value, meta) => {
@@ -2997,6 +3007,33 @@ const converters = {
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+            }
+        },
+    },
+    sinope_led_intensity_on: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_on'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
+            }
+        },
+    },
+    sinope_led_intensity_off: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
+            }
+        },
+    },
+    sinope_minimum_brightness: {
+        // DM2500ZB
+        key: ['minimum_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 3000) {
+                await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
         },
     },

@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
 module.exports = [
@@ -50,5 +51,22 @@ module.exports = [
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 LED white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['LDSENK02F'],
+        model: 'LDSENK02F',
+        description: '10A/16A EU smart plug',
+        vendor: 'ADEO',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_genLevelCtrl_report],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+        exposes: [e.power(), e.switch(), e.energy()],
     },
 ];
