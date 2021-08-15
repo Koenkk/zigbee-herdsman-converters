@@ -344,7 +344,7 @@ const converters = {
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: duration, strobedutycycle: 0, strobelevel: 0},
+                {startwarninginfo: info, warningduration: max_duration, strobedutycycle: 0, strobelevel: 0},
                 utils.getOptions(meta.mapped, entity),
             );
         },

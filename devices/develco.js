@@ -363,8 +363,8 @@ module.exports = [
             return {default: 43};
         },
         exposes: [e.battery(), e.battery_low(), e.test(), e.warning(), e.squawk(),
-            exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(900).withDescription('Max duration of the siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of the siren')
-        ],
+            exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(900)
+                .withDescription('Max duration of the siren'),
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of the siren')],
     },
 ];
