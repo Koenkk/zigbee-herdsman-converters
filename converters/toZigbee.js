@@ -340,11 +340,11 @@ const converters = {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
             const alarmState = (value === 'OFF' ? 0 : 1);
-            const info = (3 << 4) + ((alarmState) << 2);
+            const info = (3 << 6) + ((alarmState) << 2);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 3},
+                {startwarninginfo: info, warningduration: duration, strobedutycycle: 0, strobelevel: 0},
                 utils.getOptions(meta.mapped, entity),
             );
         },
