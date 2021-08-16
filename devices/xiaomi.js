@@ -839,13 +839,15 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report,
             fz.ignore_time_read],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.consumer_overload(), e.led_disabled_night(),
+            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
-        ],
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
+                .withDescription('Maximum allowed load, turns off if exceeded')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1434,13 +1436,13 @@ module.exports = [
         model: 'ZNCZ15LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 power plug ZigBee',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_overload_protection, fz.xiaomi_switch_opple_basic],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.xiaomi_overload_protection],
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('power off automatically if the maximum power is exceeded')],
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
+                .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
@@ -1499,11 +1501,10 @@ module.exports = [
         zigbeeModel: ['lumi.plug.sacn03'],
         model: 'QBCZ15LM',
         vendor: 'Xiaomi',
-        description: 'Aqara smart wall outlet h1 usb',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_overload_protection, fz.xiaomi_button_switch_config,
-            fz.xiaomi_socket_local_lock, fz.xiaomi_switch_opple_basic],
+        description: 'Aqara smart wall outlet H1 usb',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_button_switch_config, tz.xiaomi_overload_protection, tz.xiaomi_socket_local_lock],
+            tz.xiaomi_button_switch_mode, tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
         meta: {multiEndpoint: true},
         endpoint: () => {
             return {'relay': 1, 'usb': 2};
@@ -1512,15 +1513,13 @@ module.exports = [
             e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
             e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
             e.current(), e.power_outage_memory(), e.led_disabled_night(),
-            exposes.enum('button_switch_config', exposes.access.ALL, ['relay', 'relay_and_usb'])
-                .withDescription('Device switch button is used to control relay or relay and usb'),
-            exposes.enum('local_lock', exposes.access.ALL, ['open', 'close'])
-                .withDescription('After the local lock is enabled, the switch function does not response when you press the button'),
+            exposes.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
+                .withDescription('Control both relay and usb or only the relay with the physical switch button'),
+            exposes.switch().withState('button_lock', false, 'Disables the physical switch button', exposes.access.ALL),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
-                .withDescription('Power off automatically if the maximum power is exceeded')],
+                .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
 ];
