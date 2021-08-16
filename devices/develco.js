@@ -343,7 +343,7 @@ module.exports = [
         zigbeeModel: ['SIRZB-110'],
         model: 'SIRZB-110',
         vendor: 'Develco Products A/S',
-        description: 'Customizable Siren',
+        description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.develco_fw, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
