@@ -6278,7 +6278,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x0226)) {
-                const lookup = {0: 'relay', 1: 'relay&usb'};
+                const lookup = {0: 'relay', 1: 'relay_and_usb'};
                 return {button_switch_config: lookup[msg.data[0x0226]]};
             }
         },

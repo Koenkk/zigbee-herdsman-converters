@@ -1807,7 +1807,7 @@ const converters = {
     xiaomi_button_switch_config: {
         key: ['button_switch_config'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'relay': 0, 'relay&usb': 1};
+            const lookup = {'relay': 0, 'relay_and_usb': 1};
             await entity.write('aqaraOpple', {0x0226: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {button_switch_config: value}};
         },

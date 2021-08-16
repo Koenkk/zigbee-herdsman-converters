@@ -1499,7 +1499,7 @@ module.exports = [
         zigbeeModel: ['lumi.plug.sacn03'],
         model: 'QBCZ15LM',
         vendor: 'Xiaomi',
-        description: 'Aqara H1 outlet ZigBee',
+        description: 'Aqara smart wall outlet h1 usb',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_overload_protection, fz.xiaomi_button_switch_config,
             fz.xiaomi_socket_local_lock, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
