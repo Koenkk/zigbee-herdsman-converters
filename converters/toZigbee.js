@@ -360,12 +360,7 @@ const converters = {
                 strobe: value.hasOwnProperty('strobe') ? value.strobe : false,
             };
             const info = (state[values.state]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
-            await entity.command(
-                'ssIasWd',
-                'squawk',
-                {squawkinfo: info},
-                utils.getOptions(meta.mapped, entity),
-            );
+            await entity.command('ssIasWd', 'squawk', {squawkinfo: info}, utils.getOptions(meta.mapped, entity));
         },
     },
     cover_state: {
