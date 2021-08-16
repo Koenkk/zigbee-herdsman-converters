@@ -1804,25 +1804,25 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
-    xiaomi_button_switch_config: {
-        key: ['button_switch_config'],
+    xiaomi_button_switch_mode: {
+        key: ['button_switch_mode'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'relay': 0, 'relay_and_usb': 1};
             await entity.write('aqaraOpple', {0x0226: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
-            return {state: {button_switch_config: value}};
+            return {state: {button_switch_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0226], manufacturerOptions.xiaomi);
         },
     },
-    xiaomi_socket_local_lock: {
-        key: ['local_lock'],
+    xiaomi_socket_button_lock: {
+        key: ['button_lock'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'open': 0, 'close': 1};
+            const lookup = {'OFF': 0, 'ON': 1};
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             await entity.write('aqaraOpple', {0x0200: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
-            return {state: {local_lock: value}};
+            return {state: {button_lock: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
