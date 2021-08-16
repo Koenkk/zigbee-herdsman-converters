@@ -1818,9 +1818,7 @@ const converters = {
     xiaomi_socket_button_lock: {
         key: ['button_lock'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'OFF': 0, 'ON': 1};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
+            const lookup = {'ON': 0, 'OFF': 1};
             await entity.write('aqaraOpple', {0x0200: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {button_lock: value}};
         },
