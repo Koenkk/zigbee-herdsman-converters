@@ -391,6 +391,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
