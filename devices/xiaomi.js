@@ -1512,11 +1512,12 @@ module.exports = [
             e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
             e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
             e.current(), e.power_outage_memory(), e.led_disabled_night(),
-            exposes.enum('button_switch_config', exposes.access.ALL, ['relay', 'relay&usb']),
+            exposes.enum('button_switch_config', exposes.access.ALL, ['relay', 'relay_and_usb'])
+                .withDescription('Device switch button is used to control relay or relay and usb'),
             exposes.enum('local_lock', exposes.access.ALL, ['open', 'close'])
-                .withDescription('after the local lock is enabled, the switch function does not response when you press the button'),
+                .withDescription('After the local lock is enabled, the switch function does not response when you press the button'),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
-                .withDescription('power off automatically if the maximum power is exceeded')],
+                .withDescription('Power off automatically if the maximum power is exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
