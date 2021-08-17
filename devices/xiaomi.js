@@ -1497,4 +1497,19 @@ module.exports = [
             await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
         },
     },
+    {
+        zigbeeModel: ['lumi.magnet.agl02'],
+        model: 'MCCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint); 
+        },
+	},
 ];
