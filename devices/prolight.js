@@ -15,4 +15,11 @@ module.exports = [
         description: 'E27 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['PROLIGHT GU10 WHITE AND COLOUR'],
+        model: '5412748727401',
+        vendor: 'Prolight',
+        description: 'GU10 white and colour spot',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+    },
 ];
