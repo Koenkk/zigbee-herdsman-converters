@@ -1438,10 +1438,11 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara T1 power plug ZigBee',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night, tz.xiaomi_overload_protection],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
-            e.power_outage_memory(), e.led_disabled_night().withAccess(ea.STATE_SET),
+            e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1535,6 +1536,25 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['lumi.plug.sacn02'],
+        model: 'QBCZ14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall outlet T1',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
+        exposes: [
+            e.switch(), e.power().withAccess(ea.STATE), e.energy(),
+            e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
+            e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
+            .withDescription('Maximum allowed load, turns off if exceeded')
+        ],
+        configure: async(device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', { 'mode': 1 }, { manufacturerCode: 0x115f, disableResponse: true });
         },
     },
 ];
