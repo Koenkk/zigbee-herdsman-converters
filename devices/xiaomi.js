@@ -927,11 +927,12 @@ module.exports = [
         description: 'MiJia Honeywell smoke detector',
         vendor: 'Xiaomi',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.ias_smoke_alarm_1, fz.JTYJGD01LMBW_smoke_density],
+        fromZigbee: [fz.xiaomi_battery, fz.JTYJGD01LMBW_smoke, fz.JTYJGD01LMBW_smoke_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
+            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'),
         ],
     },
     {
@@ -1519,6 +1520,21 @@ module.exports = [
                 .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.magnet.agl02'],
+        model: 'MCCGQ12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
         },
     },
 ];

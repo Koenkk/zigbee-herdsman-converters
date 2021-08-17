@@ -700,6 +700,22 @@ const converters = {
             };
         },
     },
+    ias_siren: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                alarm: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+            };
+        },
+    },
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -2214,7 +2230,7 @@ const converters = {
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]);
+            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
@@ -5407,6 +5423,16 @@ const converters = {
             }
         },
     },
+    JTYJGD01LMBW_smoke: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.ias_smoke_alarm_1.convert(model, msg, publish, options, meta);
+            const zoneStatus = msg.data.zonestatus;
+            result.test = (zoneStatus & 1<<1) > 0;
+            return result;
+        },
+    },
     JTYJGD01LMBW_smoke_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -6239,7 +6265,7 @@ const converters = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     },
-    smszb120_fw: {
+    develco_fw: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {

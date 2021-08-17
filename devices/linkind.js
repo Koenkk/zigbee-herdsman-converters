@@ -129,4 +129,13 @@ module.exports = [
             }
         },
     },
+    {
+        zigbeeModel: ['A001082'],
+        model: 'LS21001',
+        vendor: 'Linkind',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low()],
+    },
 ];
