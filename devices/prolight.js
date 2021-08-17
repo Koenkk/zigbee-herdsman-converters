@@ -20,6 +20,6 @@ module.exports = [
         model: '5412748727401',
         vendor: 'Prolight',
         description: 'GU10 white and colour spot',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
 ];
