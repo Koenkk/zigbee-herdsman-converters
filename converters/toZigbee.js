@@ -316,7 +316,14 @@ const converters = {
                 strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
-            const info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            let info;
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
+            if (['SIRZB-110'].includes(meta.mapped.model)) {
+                info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            } else {
+                info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            }
+
             await entity.command(
                 'ssIasWd',
                 'startWarning',
