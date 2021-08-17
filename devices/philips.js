@@ -1479,7 +1479,6 @@ module.exports = [
             const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0034: {value: 0, type: 48}}, options);
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RWL020', 'RWL021'],
