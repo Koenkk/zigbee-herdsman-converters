@@ -1551,10 +1551,9 @@ module.exports = [
             e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')
-        ],
-        configure: async(device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', { 'mode': 1 }, { manufacturerCode: 0x115f, disableResponse: true });
+                .withDescription('Maximum allowed load, turns off if exceeded')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
 ];
