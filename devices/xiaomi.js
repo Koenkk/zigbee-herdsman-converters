@@ -1512,10 +1512,9 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
             e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
-            e.current(), e.power_outage_memory(), e.led_disabled_night(),
+            e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
-            exposes.switch().withState('button_lock', false, 'Disables the physical switch button', exposes.access.ALL),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2200).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
