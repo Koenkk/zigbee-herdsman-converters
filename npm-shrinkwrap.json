@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "14.0.223",
+  "version": "14.0.224",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
