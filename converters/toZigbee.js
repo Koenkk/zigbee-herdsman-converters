@@ -300,7 +300,7 @@ const converters = {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
-    {
+    warning: {
         key: ['warning'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
