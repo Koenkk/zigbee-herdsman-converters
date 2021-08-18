@@ -1864,6 +1864,13 @@ const converters = {
             }
             return {state: {led_disabled_night: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0203],  manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
+        },
     },
     xiaomi_switch_operation_mode_basic: {
         key: ['operation_mode'],

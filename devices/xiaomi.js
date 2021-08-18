@@ -893,9 +893,9 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ignore_occupancy_report, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
             tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.power_outage_memory(),
-            e.voltage().withAccess(ea.STATE), e.led_disabled_night().withAccess(ea.STATE_SET),
-            exposes.binary('auto_off', ea.STATE_SET, true, false)],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(),
+            e.voltage().withAccess(ea.STATE), e.power_outage_memory().withAccess(ea.STATE_SET),
+            e.led_disabled_night().withAccess(ea.STATE_SET), exposes.binary('auto_off', ea.STATE_SET, true, false)],
         onEvent: async (type, data, device) => {
             device.skipTimeResponse = true;
             // According to the Zigbee the genTime.time should be the seconds since 1 January 2020 UTC
