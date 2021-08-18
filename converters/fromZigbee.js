@@ -6292,6 +6292,21 @@ const converters = {
             }
         },
     },
+    tuya_intelligent_valve: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const state = value ? 'ON' : 'OFF';
+
+            if (dp === tuya.dataPoints.state) {
+                return {state};
+            }
+
+            meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_valve: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

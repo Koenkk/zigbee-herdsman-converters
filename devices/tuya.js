@@ -1130,4 +1130,13 @@ module.exports = [
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'}],
+        model: 'PM02D-TYZ',
+        description: 'Intelligent gas(water) valve controller',
+        vendor: 'TuYa',
+        fromZigbee: [fz.tuya_intelligent_valve],
+        toZigbee: [tz.tuya_intelligent_valve_state],
+        exposes: [e.switch()],
+    },
 ];

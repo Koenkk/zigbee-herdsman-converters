@@ -2700,6 +2700,14 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
+    tuya_intelligent_valve_state:{
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const valueUpperCase = value.toUpperCase();
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, valueUpperCase === 'ON');
+            return {state: {state: valueUpperCase}};
+        }
+    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {
