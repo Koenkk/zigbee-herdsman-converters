@@ -188,6 +188,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -204,6 +205,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
+            {vendor: 'Mercator ikuü', model: 'SISWD01'},
         ],
     },
     {
