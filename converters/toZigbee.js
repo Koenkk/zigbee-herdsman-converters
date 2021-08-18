@@ -300,7 +300,7 @@ const converters = {
             await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
-    warning: {
+    {
         key: ['warning'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
@@ -318,7 +318,7 @@ const converters = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
-            if (['SIRZB-110'].includes(meta.mapped.model)) {
+            if (['SIRZB-110', 'SRAC-23B-ZBSR'].includes(meta.mapped.model)) {
                 info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
             } else {
                 info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
