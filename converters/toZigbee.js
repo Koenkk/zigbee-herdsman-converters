@@ -1866,7 +1866,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
-                await entity.read('aqaraOpple', [0x0203],  manufacturerOptions.xiaomi);
+                await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
