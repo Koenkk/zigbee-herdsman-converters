@@ -1766,7 +1766,7 @@ const converters = {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
-            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+            } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
             } else {
                 throw new Error('Not supported');
@@ -1863,6 +1863,13 @@ const converters = {
                 throw new Error('Not supported');
             }
             return {state: {led_disabled_night: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
         },
     },
     xiaomi_switch_operation_mode_basic: {
