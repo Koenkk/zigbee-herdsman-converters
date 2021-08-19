@@ -869,12 +869,19 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
             try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
                 await reporting.activePower(endpoint);
+                await reporting.rmsCurrent(endpoint);
+                await reporting.rmsVoltage(endpoint);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.currentSummDelivered(endpoint);
             } catch (e) {
+                logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
+                logger.debug(e.stack);
                 // Not all plugs support this.
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
             }
