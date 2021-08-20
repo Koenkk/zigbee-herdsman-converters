@@ -160,9 +160,8 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4919};
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg','genBasic', 'ssIasZone']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'ssIasZone']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
 
