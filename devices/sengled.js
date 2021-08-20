@@ -20,7 +20,7 @@ module.exports = [
         zigbeeModel: ['E21-N13A'],
         model: 'E21-N13A',
         vendor: 'Sengled',
-        description: 'Sengled Smart LED (A19)',
+        description: 'Smart LED (A19)',
         extend: extend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
