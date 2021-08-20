@@ -869,12 +869,19 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
             try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
                 await reporting.activePower(endpoint);
+                await reporting.rmsCurrent(endpoint);
+                await reporting.rmsVoltage(endpoint);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.currentSummDelivered(endpoint);
             } catch (e) {
+                logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
+                logger.debug(e.stack);
                 // Not all plugs support this.
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
             }
@@ -893,9 +900,11 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ignore_occupancy_report, fz.xiaomi_switch_basic],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
             tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.power_outage_memory(),
-            e.voltage().withAccess(ea.STATE), e.led_disabled_night().withAccess(ea.STATE_SET),
-            exposes.binary('auto_off', ea.STATE_SET, true, false)],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(),
+            exposes.binary('auto_off', ea.STATE_SET, true, false)
+                .withDescription('If the power is constantly lower than 2W within half an hour, ' +
+                    'the plug will be automatically turned off')],
         onEvent: async (type, data, device) => {
             device.skipTimeResponse = true;
             // According to the Zigbee the genTime.time should be the seconds since 1 January 2020 UTC

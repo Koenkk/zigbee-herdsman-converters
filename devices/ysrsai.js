@@ -7,7 +7,7 @@ module.exports = [
         model: 'YSR-MINI-01_rgbcct',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [160, 370]}),
     },
     {
         zigbeeModel: ['ZB-CT01'],
