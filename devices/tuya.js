@@ -525,6 +525,7 @@ module.exports = [
         fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
+        whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
     },
     {
         zigbeeModel: ['TS0001'],
