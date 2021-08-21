@@ -8,20 +8,20 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const hueExtend = {
-    light_onoff_brightness: (options = {}) => ({
+    light_onoff_brightness: (options={}) => ({
         ...extend.light_onoff_brightness(options),
         toZigbee: extend.light_onoff_brightness(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_colortemp: (options = {}) => ({
+    light_onoff_brightness_colortemp: (options={}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
         toZigbee: extend.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_color: (options = {}) => ({
+    light_onoff_brightness_color: (options={}) => ({
         ...extend.light_onoff_brightness_color({supportsHS: true, ...options}),
         toZigbee: extend.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee
             .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_colortemp_color: (options = {}) => ({
+    light_onoff_brightness_colortemp_color: (options={}) => ({
         ...extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
         toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
             .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
