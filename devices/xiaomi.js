@@ -865,7 +865,7 @@ module.exports = [
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.energy],
+        fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
