@@ -48,9 +48,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0010'],
-        model: 'ZBT-DIMLight-GLS0010',
+        model: 'ZL100010008',
         vendor: 'Linkind',
-        description: 'Zigbee LED 9W A19 bulb, dimmable',
+        description: 'Zigbee LED 9W 2700K A19 bulb, dimmable',
         extend: extend.light_onoff_brightness(),
     },
     {
