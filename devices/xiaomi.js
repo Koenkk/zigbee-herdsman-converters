@@ -865,31 +865,37 @@ module.exports = [
         model: 'SP-EUC01',
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+
+            // Not all plugs support electricity measurements:
+            // - https://github.com/Koenkk/zigbee2mqtt/issues/6861
+            // - https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
             try {
-                await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint);
-                await reporting.rmsCurrent(endpoint);
-                await reporting.rmsVoltage(endpoint);
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-                await reporting.currentSummDelivered(endpoint);
+                // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
             } catch (e) {
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
-                // Not all plugs support this.
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
             }
 
-            // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.currentSummDelivered(endpoint);
+            } catch (e) {
+                logger.warn(`SP-EUC01 failed to setup metering (${e.message})`);
+                logger.debug(e.stack);
+            }
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE), e.current()],
+        exposes: [e.switch(), e.power(), e.energy()],
         ota: ota.zigbeeOTA,
     },
     {

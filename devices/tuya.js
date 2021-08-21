@@ -518,6 +518,16 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qq9mpfhw'}],
+        model: 'TS0601_water_sensor',
+        vendor: 'TuYa',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
+        exposes: [e.water_leak()],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
+    },
+    {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
         vendor: 'TuYa',

@@ -32,6 +32,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['LXEK-3'],
+        model: '9CZA-P470T-A1A',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['LXEK-4'],
         model: '9CZA-M350ST-Q1A',
         vendor: 'ADEO',
