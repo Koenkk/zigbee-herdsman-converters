@@ -154,8 +154,8 @@ module.exports = [
     {
         zigbeeModel: ['Water Sensor'],
         model: 'HSE2919E',
-        vendor: 'Eva',
-        description: 'Water leak sensor',
+        vendor: 'Datek',
+        description: 'Eva water leak sensor',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
