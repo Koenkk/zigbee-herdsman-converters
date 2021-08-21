@@ -8,20 +8,20 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const hueExtend = {
-    light_onoff_brightness: (options={}) => ({
+    light_onoff_brightness: (options = {}) => ({
         ...extend.light_onoff_brightness(options),
         toZigbee: extend.light_onoff_brightness(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_colortemp: (options={}) => ({
+    light_onoff_brightness_colortemp: (options = {}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
         toZigbee: extend.light_onoff_brightness_colortemp(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_color: (options={}) => ({
+    light_onoff_brightness_color: (options = {}) => ({
         ...extend.light_onoff_brightness_color({supportsHS: true, ...options}),
         toZigbee: extend.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee
             .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
-    light_onoff_brightness_colortemp_color: (options={}) => ({
+    light_onoff_brightness_colortemp_color: (options = {}) => ({
         ...extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
         toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
             .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
@@ -192,9 +192,18 @@ module.exports = [
         zigbeeModel: ['929002375901'],
         model: '929002375901',
         vendor: 'Philips',
-        description: 'Hue Bloom with Bluetooth (White)',
+        description: 'Hue Bloom with Bluetooth (White) - EU/UK',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929002376501'],
+        model: '929002376501',
+        vendor: 'Philips',
+        description: 'Hue Bloom Gen4 with Bluetooth (White) - US',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
