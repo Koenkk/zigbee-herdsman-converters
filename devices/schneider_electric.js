@@ -300,7 +300,9 @@ module.exports = [
             return {'top': 21, 'bottom': 22};
         },
         meta: {multiEndpoint: true},
-        exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom','brightness_move_up_top', 'brightness_stop_top', 'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom', 'brightness_move_down_bottom', 'brightness_stop_bottom'])],
+        exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
+            'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
+            'brightness_move_down_bottom', 'brightness_stop_bottom'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
             const topButtonsEndpoint = device.getEndpoint(21);
