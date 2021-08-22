@@ -666,7 +666,7 @@ module.exports = [
             .withAwayMode()],
     },
     {
-        fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
+        fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}, {modelID: 'TS0601', manufacturerName: '_TZE200_2dpplnsn'}],
         model: 'HT-10',
         vendor: 'ETOP',
         description: 'Radiator valve',
