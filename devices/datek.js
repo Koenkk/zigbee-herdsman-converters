@@ -151,4 +151,26 @@ module.exports = [
             exposes.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use',
                 'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
     },
+    {
+        zigbeeModel: ['Water Sensor'],
+        model: 'HSE2919E',
+        vendor: 'Datek',
+        description: 'Eva water leak sensor',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'ssIasZone']);
+            await reporting.batteryVoltage(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+        },
+        endpoint: (device) => {
+            return {default: 1};
+        },
+        exposes: [e.battery(), e.battery_low(), e.temperature(), e.water_leak(), e.tamper()],
+    },
 ];
