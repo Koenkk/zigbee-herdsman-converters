@@ -4241,7 +4241,20 @@ const converters = {
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
-            if (msg.data.hasOwnProperty('512')) payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON'; // 0x0200
+            if (msg.data.hasOwnProperty('512')) {
+                if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
+                    payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
+                } else {
+                    const mappingMode = {
+                        0x01: 'control_relay',
+                        0x00: 'decoupled',
+                    };
+                    const mode = mappingMode[msg.data['512']];
+                    const payload = {};
+                    payload[postfixWithEndpointName('operation_mode', msg, model)] = mode;
+                    return payload;
+                }
+            }
             if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
             if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1; // 0x0202
             if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1; // 0x0203
