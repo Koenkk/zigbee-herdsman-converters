@@ -875,12 +875,11 @@ module.exports = [
             // Not all plugs support electricity measurements:
             // - https://github.com/Koenkk/zigbee2mqtt/issues/6861
             // - https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050#issuecomment-673111969
+            // Voltage and current are not supported:
+            // - https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-                await reporting.activePower(endpoint);
-                // Voltage/current doesn't seem to be supported, maybe in futurue revisions of the device (?).
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1050
             } catch (e) {
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
@@ -889,7 +888,7 @@ module.exports = [
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
-                await reporting.currentSummDelivered(endpoint);
+                await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
                 logger.warn(`SP-EUC01 failed to setup metering (${e.message})`);
                 logger.debug(e.stack);
