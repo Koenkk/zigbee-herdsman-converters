@@ -326,7 +326,7 @@ module.exports = [
                 'poor', 'unhealthy', 'out_of_range',
                 'unknown']).withDescription('Measured air quality'),
         ],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
             const options = {manufacturerCode: 0x1015};
