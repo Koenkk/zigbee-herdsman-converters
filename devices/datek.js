@@ -183,13 +183,13 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff',
                 'genLevelCtrl', 'msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTES_10, max: constants.repInterval.HOUR, change: 100});
         },
         exposes: [e.battery(), e.temperature(),
-            e.action(['recall_1', 'recall_2', 'recall_3','recall_4', 'on', 'off',
-            'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+            e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off',
+                'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
     },
 ];
