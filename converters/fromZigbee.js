@@ -926,6 +926,16 @@ const converters = {
             };
         },
     },
+    ias_occupancy_only_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0,
+            };
+        },
+    },
     ias_occupancy_alarm_1_with_timeout: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
