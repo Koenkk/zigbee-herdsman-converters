@@ -257,7 +257,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'GreenPower_254', greenPowerKey: '62149.37.197.242'}],
+        fingerprint: [{modelID: 'GreenPower_254', greenPowerKey: '37.197.242'}],
         model: 'ZLGP15',
         vendor: 'Legrand',
         description: 'Wireless and batteryless 4 scenes control',
@@ -266,7 +266,7 @@ module.exports = [
         exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '62149.31.197.242'}],
+        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '31.197.242'}],
         model: 'ZLGP17/ZLGP18',
         vendor: 'Legrand',
         description: 'Wireless and batteryless (double) lighting control',

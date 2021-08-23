@@ -4,8 +4,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '62149.46.197.242'},
-            {modelID: 'GreenPower_2', greenPowerKey: '0.46.197.242'}],
+        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '46.197.242'}],
         model: 'PTM 215Z',
         vendor: 'EnOcean',
         description: 'Pushbutton transmitter module',
@@ -20,7 +19,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '62081.27.129.242'}],
+        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '27.129.242'}],
         model: 'PTM 215ZE',
         vendor: 'EnOcean',
         description: 'Pushbutton transmitter module',
@@ -35,7 +34,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_7', greenPowerKey: '0.31.133.242'}],
+        fingerprint: [{modelID: 'GreenPower_7', greenPowerKey: '31.133.242'}],
         model: 'PTM 216Z',
         vendor: 'EnOcean',
         description: 'Pushbutton transmitter module',

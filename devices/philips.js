@@ -30,7 +30,7 @@ const hueExtend = {
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '0.27.129.242'}],
+        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '27.129.242'}],
         model: '8718696743133',
         vendor: 'Philips',
         description: 'Hue tap',
