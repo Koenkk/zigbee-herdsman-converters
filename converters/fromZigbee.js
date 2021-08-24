@@ -3722,7 +3722,7 @@ const converters = {
             // Button 3: B0 (top right)
             // Button 4: B1 (bottom right)
             const lookup = {
-                0x10: 'press_1', 0X14: 'release_1', 0X11: 'press_2', 0x15: 'release_2', 0x13: 'press_3', 0x17: 'release_3',
+                0x10: 'press_1', 0x14: 'release_1', 0x11: 'press_2', 0x15: 'release_2', 0x13: 'press_3', 0x17: 'release_3',
                 0x12: 'press_4', 0x16: 'release_4', 0x64: 'press_1_and_3', 0x65: 'release_1_and_3', 0x62: 'press_2_and_4',
                 0x63: 'release_2_and_4',
             };
