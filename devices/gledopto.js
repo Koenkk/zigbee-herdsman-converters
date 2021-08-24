@@ -62,7 +62,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['GL-SD-001 '],
+        zigbeeModel: ['GL-SD-001'],
         model: 'GL-SD-001',
         vendor: 'Gledopto',
         description: 'Zigbee triac AC dimmer',

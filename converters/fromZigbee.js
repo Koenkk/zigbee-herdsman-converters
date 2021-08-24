@@ -700,6 +700,22 @@ const converters = {
             };
         },
     },
+    ias_siren: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                alarm: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+            };
+        },
+    },
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -907,6 +923,16 @@ const converters = {
                 occupancy: (zoneStatus & 1<<1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_occupancy_only_alarm_2: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0,
             };
         },
     },
@@ -2214,7 +2240,7 @@ const converters = {
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
             // Send the defaultResponse here, otherwise the second button click delays.
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]);
+            msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
@@ -4225,11 +4251,26 @@ const converters = {
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
+            if (msg.data.hasOwnProperty('512')) {
+                if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
+                    payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
+                } else {
+                    const mappingMode = {
+                        0x01: 'control_relay',
+                        0x00: 'decoupled',
+                    };
+                    const mode = mappingMode[msg.data['512']];
+                    const payload = {};
+                    payload[postfixWithEndpointName('operation_mode', msg, model)] = mode;
+                    return payload;
+                }
+            }
             if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
             if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1; // 0x0202
             if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1; // 0x0203
             if (msg.data.hasOwnProperty('519')) payload.consumer_connected = msg.data['519'] === 1; // 0x0207
-            if (msg.data.hasOwnProperty('523')) payload.consumer_overload = precisionRound(msg.data['523'], 2); // 0x020B
+            if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2); // 0x020B
+            if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay'; // 0x0226
             return payload;
         },
     },
@@ -5405,6 +5446,16 @@ const converters = {
             }
         },
     },
+    JTYJGD01LMBW_smoke: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.ias_smoke_alarm_1.convert(model, msg, publish, options, meta);
+            const zoneStatus = msg.data.zonestatus;
+            result.test = (zoneStatus & 1<<1) > 0;
+            return result;
+        },
+    },
     JTYJGD01LMBW_smoke_density: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -6237,7 +6288,7 @@ const converters = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     },
-    smszb120_fw: {
+    develco_fw: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -6261,15 +6312,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x0000)) {
                 return {detection_period: msg.data[0x0000]};
-            }
-        },
-    },
-    ZNCZ15LM_overload_protection: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0x020b)) {
-                return {overload_protection: msg.data[0x020b]};
             }
         },
     },

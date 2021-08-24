@@ -316,7 +316,14 @@ const converters = {
                 strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
-            const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            let info;
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
+            if (['SIRZB-110', 'SRAC-23B-ZBSR'].includes(meta.mapped.model)) {
+                info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            } else {
+                info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            }
+
             await entity.command(
                 'ssIasWd',
                 'startWarning',
@@ -340,13 +347,27 @@ const converters = {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
             const alarmState = (value === 'OFF' ? 0 : 1);
-            const info = (3 << 4) + ((alarmState) << 2);
+            const info = (3 << 6) + ((alarmState) << 2);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 3},
+                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 0},
                 utils.getOptions(meta.mapped, entity),
             );
+        },
+    },
+    squawk: {
+        key: ['squawk'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {'system_is_armed': 0, 'system_is_disarmed': 1};
+            const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+            const values = {
+                state: value.state,
+                level: value.level || 'very_high',
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : false,
+            };
+            const info = (state[values.state]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            await entity.command('ssIasWd', 'squawk', {squawkinfo: info}, utils.getOptions(meta.mapped, entity));
         },
     },
     cover_state: {
@@ -1720,7 +1741,8 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
+                'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1742,9 +1764,9 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
-            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+            } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
             } else {
                 throw new Error('Not supported');
@@ -1793,7 +1815,7 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
-    ZNCZ15LM_overload_protection: {
+    xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
@@ -1804,10 +1826,32 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
+    xiaomi_button_switch_mode: {
+        key: ['button_switch_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'relay': 0, 'relay_and_usb': 1};
+            await entity.write('aqaraOpple', {0x0226: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {button_switch_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0226], manufacturerOptions.xiaomi);
+        },
+    },
+    xiaomi_socket_button_lock: {
+        key: ['button_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'ON': 0, 'OFF': 1};
+            await entity.write('aqaraOpple', {0x0200: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {button_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1819,6 +1863,13 @@ const converters = {
                 throw new Error('Not supported');
             }
             return {state: {led_disabled_night: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
         },
     },
     xiaomi_switch_operation_mode_basic: {
@@ -3007,6 +3058,33 @@ const converters = {
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+            }
+        },
+    },
+    sinope_led_intensity_on: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_on'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
+            }
+        },
+    },
+    sinope_led_intensity_off: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
+            }
+        },
+    },
+    sinope_minimum_brightness: {
+        // DM2500ZB
+        key: ['minimum_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 3000) {
+                await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
         },
     },

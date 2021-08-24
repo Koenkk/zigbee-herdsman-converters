@@ -47,6 +47,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['ZBT-DIMLight-GLS0010'],
+        model: 'ZL100010008',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 9W 2700K A19 bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
@@ -128,5 +135,14 @@ module.exports = [
                 await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
             }
         },
+    },
+    {
+        zigbeeModel: ['A001082'],
+        model: 'LS21001',
+        vendor: 'Linkind',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low()],
     },
 ];

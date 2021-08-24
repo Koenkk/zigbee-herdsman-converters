@@ -5,6 +5,7 @@ const globalStore = require('../lib/store');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const constants = require('../lib/constants');
 
 module.exports = [
     {
@@ -167,6 +168,32 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['3310-G'],
+        model: '3310-G',
+        vendor: 'Centralite',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.temperature(endpoint);
+
+            const payload = [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 10,
+            }];
+            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+
+            await reporting.batteryVoltage(endpoint);
         },
     },
 ];

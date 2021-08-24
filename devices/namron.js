@@ -6,6 +6,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['3802967'],
+        model: '3802967',
+        vendor: 'Namron',
+        description: 'Led bulb 6w RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+    },
+    {
         zigbeeModel: ['4512700'],
         model: '4512700',
         vendor: 'Namron',

@@ -27,4 +27,11 @@ module.exports = [
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'}],
+        model: 'FUT035Z',
+        description: 'Dual white LED controller',
+        vendor: 'Miboxer',
+        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+    },
 ];

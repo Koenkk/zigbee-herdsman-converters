@@ -295,7 +295,7 @@ module.exports = [
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -303,7 +303,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.occupancy()],
     },
     {
         zigbeeModel: ['MR16 TW OSRAM'],

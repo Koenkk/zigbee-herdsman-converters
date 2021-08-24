@@ -188,6 +188,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -204,6 +205,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
+            {vendor: 'Mercator ikuü', model: 'SISWD01'},
         ],
     },
     {
@@ -391,6 +393,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -444,10 +447,11 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0041'],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
         model: 'TS0041',
         vendor: 'TuYa',
         description: 'Wireless switch with 1 button',
-        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}],
+        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
@@ -512,6 +516,16 @@ module.exports = [
                 await reporting.batteryPercentageRemaining(endpoint);
             } catch (error) {/* Fails for some*/}
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qq9mpfhw'}],
+        model: 'TS0601_water_sensor',
+        vendor: 'TuYa',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
+        exposes: [e.water_leak()],
+        toZigbee: [],
+        whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -652,7 +666,8 @@ module.exports = [
             .withAwayMode()],
     },
     {
-        fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'}],
+        fingerprint: [{modelID: 'dpplnsn\u0000', manufacturerName: '_TYST11_2dpplnsn'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_2dpplnsn'}],
         model: 'HT-10',
         vendor: 'ETOP',
         description: 'Radiator valve',
