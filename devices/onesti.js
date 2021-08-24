@@ -27,8 +27,8 @@ module.exports = [
     {
         zigbeeModel: ['S4RX-110'],
         model: 'S4RX-110',
-        vendor: 'Safe4',
-        description: 'Onesti Relax Smart Plug',
+        vendor: 'Onesti Products AS',
+        description: 'Relax smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature, fz.identify],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
