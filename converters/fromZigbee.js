@@ -3753,7 +3753,7 @@ const converters = {
                 0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4',
 
                 // Hue tap only
-                0x10: 'press_2', 0x11: 'press_3'
+                0x10: 'press_2', 0x11: 'press_3',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
