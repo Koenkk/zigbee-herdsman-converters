@@ -7,9 +7,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['KONOZ'],
-        model: 'KONOZ',
+        model: 'KN-Z-WH1-B04',
         vendor: 'LUX',
-        description: 'Thermostat',
+        description: 'KONOz thermostat',
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
