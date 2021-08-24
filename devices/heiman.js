@@ -34,7 +34,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['SmartPlug' , 'SmartPlug-EF-3.0'],
+        zigbeeModel: ['SmartPlug', 'SmartPlug-EF-3.0'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         vendor: 'HEIMAN',
