@@ -31,6 +31,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Easyfit by EnOcean', description: 'Wall switch for Zigbee', model: 'EWSxZ'},
             {vendor: 'Trio2sys', description: 'Zigbee Green Power complete switch', model: '20020002'},
+            {vendor: 'Philips', description: 'Hue tap', model: '8718696743133'},
         ],
     },
     {

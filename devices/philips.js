@@ -30,15 +30,6 @@ const hueExtend = {
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'GreenPower_2', greenPowerKey: '27.129.242'}],
-        model: '8718696743133',
-        vendor: 'Philips',
-        description: 'Hue tap',
-        fromZigbee: [fz.hue_tap],
-        toZigbee: [],
-        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
-    },
-    {
         zigbeeModel: ['4076131P6'],
         model: '4076131P6',
         vendor: 'Philips',

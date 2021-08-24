@@ -3751,6 +3751,9 @@ const converters = {
                 0x13: 'release_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2', 0x62: 'press_1_and_3', 0x63: 'release_1_and_3',
                 0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
                 0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4',
+
+                // Hue tap only
+                0x10: 'press_2', 0x11: 'press_3'
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
