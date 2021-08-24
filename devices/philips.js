@@ -1940,4 +1940,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['5309030P9'],
+        model: '5309030P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner single spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },    
 ];
