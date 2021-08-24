@@ -3790,21 +3790,6 @@ const converters = {
             }
         },
     },
-    hue_tap: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return; // Skip commisioning command.
-            const lookup = {34: 'press_1', 16: 'press_2', 17: 'press_3', 18: 'press_4'};
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`Hue tap: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
-        },
-    },
     greenpower_on_off_switch: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
