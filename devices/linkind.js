@@ -142,7 +142,14 @@ module.exports = [
         vendor: 'Linkind',
         description: 'Water leak sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low()],
+        toZigbee: [tz.LS21001_alert_behaviour],
+        exposes: [e.water_leak(), e.battery_low(), e.battery(),
+            exposes.enum('alert_behaviour', ea.STATE_SET, ['siren_led', 'siren', 'led', 'nothing'])
+                .withDescription('Controls behaviour of led/siren on alarm')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
 ];
