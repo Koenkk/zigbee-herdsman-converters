@@ -1,7 +1,7 @@
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const exposes = require('../lib/exposes');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const reporting = require('../lib/reporting');
 
 module.exports = [
     {
@@ -9,17 +9,17 @@ module.exports = [
         model: 'KN-Z-WH1-B04',
         vendor: 'LUX',
         description: 'KONOz thermostat',
-        fromZigbee: [fz.battery, fz.thermostat],
+        fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.thermostat_weekly_schedule],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_running_state,
-            tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.fan_mode, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.05)
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 0.05)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'cool', 'fan_only'])
+                .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool'])
                 .withFanMode(['on', 'auto']),
         ],
