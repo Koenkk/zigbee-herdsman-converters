@@ -159,6 +159,7 @@ function fingerprintMatch(fingerprint, device) {
         (!fingerprint.hardwareVersion || device.hardwareVersion === fingerprint.hardwareVersion) &&
         (!fingerprint.manufacturerName || device.manufacturerName === fingerprint.manufacturerName) &&
         (!fingerprint.modelID || device.modelID === fingerprint.modelID) &&
+        (!fingerprint.greenPowerKey || device.greenPowerKey === fingerprint.greenPowerKey) &&
         (!fingerprint.powerSource || device.powerSource === fingerprint.powerSource) &&
         (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
         (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
