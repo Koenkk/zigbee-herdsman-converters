@@ -1729,7 +1729,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
             await entity.write('genBasic', {0x400a: {value: lookup[value], type: 32}},
-                {manufacturerCode: 0x1168, disableDefaultResponse: true});
+                {manufacturerCode: 0x1168, disableDefaultResponse: true, sendWhenActive: true});
             return {state: {alert_behaviour: value}};
         },
     },
