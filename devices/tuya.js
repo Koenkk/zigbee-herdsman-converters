@@ -645,7 +645,10 @@ module.exports = [
             e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
     },
     {
-        fingerprint: [{modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'}],
+        fingerprint: [
+            {modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wv90ladg'},
+        ],
         model: 'HT-08',
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
