@@ -1724,6 +1724,14 @@ const converters = {
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
+    LS21001_alarm_behaviour: {
+        key: ['alarm_behaviour'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0}
+            await entity.write('genBasic', {0x400a: {value: lookup[value], type: 32}}, {manufacturerCode: TODO, disableDefaultResponse: true});
+            return {state: {alarm_behaviour: value}};
+        },
+    },
     xiaomi_switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {

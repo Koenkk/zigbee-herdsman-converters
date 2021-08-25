@@ -142,7 +142,9 @@ module.exports = [
         vendor: 'Linkind',
         description: 'Water leak sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low()],
+        toZigbee: [tz.LS21001_alarm_behaviour],
+        exposes: [e.water_leak(), e.battery_low(),
+            exposes.enum( 'alarm_behaviour', ea.STATE_SET, ['siren_led', 'siren', 'led', 'nothing'])
+                .withDescription('Controls behaviour of led/siren on alarm')],
     },
 ];
