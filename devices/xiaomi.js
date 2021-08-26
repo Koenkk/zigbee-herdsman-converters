@@ -866,7 +866,7 @@ module.exports = [
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering,
-            fz.xiaomi_switch_opple_basic, fz.xiaomi_power],
+            fz.xiaomi_switch_opple_basic, fz.xiaomi_power,fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -895,7 +895,7 @@ module.exports = [
                 logger.debug(e.stack);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy()],
+        exposes: [e.switch(), e.power(), e.energy(), e.device_temperature()],
         ota: ota.zigbeeOTA,
     },
     {
