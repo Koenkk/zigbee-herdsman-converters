@@ -1296,6 +1296,111 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_display_text: {
+        key: ['display_text'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoDisplayText': value});
+                return {state: {display_text: value}};
+            } else {
+                throw new Error('Length of text is greater than 14');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoDisplayText']);
+        },
+    },
+
+    elko_power_status: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoPowerStatus': value === 'heat'});
+            return {state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoPowerStatus']);
+        },
+    },
+
+    elko_external_temp: {
+        key: ['floor_temp'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoExternalTemp']);
+        },
+    },
+
+    elko_mean_power: {
+        key: ['mean_power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMeanPower']);
+        },
+    },
+
+    elko_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoChildLock': value === 'lock'});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoChildLock']);
+        },
+    },
+
+    elko_frost_guard: {
+        key: ['frost_guard'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoFrostGuard': value === 'on'});
+            return {state: {frost_guard: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoFrostGuard']);
+        },
+    },
+
+    elko_relay_state: {
+        key: ['running_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRelayState']);
+        },
+    },
+
+    elko_sensor_mode: {
+        key: ['sensor_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoSensor': {'air': '0', 'floor': '1', 'supervisor_floor': '3'}[value]});
+            return {state: {sensor_mode: value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoSensor']);
+        },
+    },
+
+    elko_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoCalibration': Math.round(value * 10)});
+            return {state: {local_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoCalibration']);
+        },
+    },
+
+    elko_max_floor_temp: {
+        key: ['max_floor_temp'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoMaxFloorTemp': value});
+                return {state: {max_floor_temp: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMaxFloorTemp']);
+        },
+    },
+
     livolo_socket_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
