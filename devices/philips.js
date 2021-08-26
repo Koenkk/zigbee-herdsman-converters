@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['4076131P6'],
+        model: '4076131P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Cher with bluetooth 3000lm',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063131P7'],
         model: '5063131P7',
         vendor: 'Philips',
@@ -183,9 +192,18 @@ module.exports = [
         zigbeeModel: ['929002375901'],
         model: '929002375901',
         vendor: 'Philips',
-        description: 'Hue Bloom with Bluetooth (White)',
+        description: 'Hue Bloom with Bluetooth (White) - EU/UK',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929002376501'],
+        model: '929002376501',
+        vendor: 'Philips',
+        description: 'Hue Bloom Gen4 with Bluetooth (White) - US',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1470,7 +1488,6 @@ module.exports = [
             const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
             await endpoint.write('genBasic', {0x0034: {value: 0, type: 48}}, options);
         },
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RWL020', 'RWL021'],
@@ -1735,7 +1752,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1742830P7'],
+        zigbeeModel: ['1742730P7', '1742830P7'],
         model: '1742830P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
@@ -1921,6 +1938,15 @@ module.exports = [
         description: 'Hue White and color ambiance GU10 spot LED with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5309030P9'],
+        model: '5309030P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner single spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
 ];
