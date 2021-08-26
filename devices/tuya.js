@@ -395,10 +395,12 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
         description: 'Light controller',
+        whiteLabel: [{vendor: 'Mercator ikuü', model: 'SMI7040', description: 'Ford Batten Light'}],
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
     },
     {
