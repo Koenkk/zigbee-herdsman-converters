@@ -147,7 +147,7 @@ module.exports = [
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
         extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 370], disableEffect: true}),
+            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
