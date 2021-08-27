@@ -52,7 +52,6 @@ module.exports = [
                 'At the same time, the display will fade and the text "Frostsikring x °C" appears in the display and remains until the ' +
                 'thermostat is switched on again.'),
         ],
-        meta: {configureKey: 1},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'genBasic', 'genIdentify']);
