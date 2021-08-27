@@ -1492,6 +1492,57 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x0402)) {
+                result.display_text = data[0x0402];
+            }
+
+            if (data.hasOwnProperty(0x0403)) {
+                const sensorModeLookup = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
+                result.sensor_mode = sensorModeLookup[data[0x0403]];
+            }
+
+            if (data.hasOwnProperty(0x0406)) {
+                result.system_mode = data[0x0406] ? 'heat' : 'off';
+            }
+
+            if (data.hasOwnProperty(0x0408)) {
+                result.mean_power = data[0x0408];
+            }
+
+            if (data.hasOwnProperty(0x0409)) {
+                result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
+            }
+
+            if (data.hasOwnProperty(0x0412)) {
+                result.frost_guard = data[0x0412] ? 'on' : 'off';
+            }
+
+            if (data.hasOwnProperty(0x0413)) {
+                result.child_lock = data[0x0413] ? 'lock' : 'unlock';
+            }
+
+            if (data.hasOwnProperty(0x0414)) {
+                result.max_floor_temp = data[0x0414];
+            }
+
+            if (data.hasOwnProperty(0x0415)) {
+                result.running_state = data[0x0415] ? 'heat' : 'idle';
+            }
+
+            if (data.hasOwnProperty(0x0417)) {
+                result.local_temperature_calibration = precisionRound(data[0x0417], 2) / 10;
+            }
+
+            return result;
+        },
+    },
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
