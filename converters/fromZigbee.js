@@ -1543,7 +1543,6 @@ const converters = {
             return result;
         },
     },
-
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
