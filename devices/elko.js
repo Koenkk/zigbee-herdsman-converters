@@ -27,7 +27,7 @@ module.exports = [
         vendor: 'ELKO',
         description: 'ESH Plus Super TR RF PH',
         fromZigbee: [fz.elko_thermostat, fz.thermostat],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_heating_setpoint,
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_heating_setpoint,
             tz.elko_display_text, tz.elko_power_status, tz.elko_external_temp, tz.elko_mean_power, tz.elko_child_lock, tz.elko_frost_guard,
             tz.elko_relay_state, tz.elko_sensor_mode, tz.elko_local_temperature_calibration, tz.elko_max_floor_temp],
         exposes: [exposes.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
