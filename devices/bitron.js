@@ -79,7 +79,7 @@ module.exports = [
         model: 'AV2010/29A',
         vendor: 'Bitron',
         description: 'SMaBiT Zigbee outdoor siren',
-        fromZigbee: [fz.ias_no_alarm],
+        fromZigbee: [fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery_low(), e.tamper()],
     },
