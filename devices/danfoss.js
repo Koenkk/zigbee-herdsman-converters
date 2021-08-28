@@ -39,7 +39,7 @@ module.exports = [
             exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
-                .withSystemMode(['heat']).withRunningState(['idle','heat'],ea.STATE),
+                .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes at every 100 ' +
                     'value change. Resets every 3hours to standard (-8000=undefined).'),
