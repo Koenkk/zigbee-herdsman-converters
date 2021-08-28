@@ -2821,7 +2821,13 @@ const converters = {
                 result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data['danfossHeatAvailable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossHeatRequired')) {
-                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data['danfossHeatRequired'] === 1);
+                if (msg.data['danfossHeatRequired'] === 1) {
+                    result[postfixWithEndpointName('heat_required', msg, model)] = true;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
+                } else {
+                    result[postfixWithEndpointName('heat_required', msg, model)] = false;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
+                }
             }
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
