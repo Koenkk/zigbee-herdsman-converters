@@ -38,7 +38,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'rotate']),
-            exposes.text('direction', ea.STATE)],
+            exposes.text('direction', ea.STATE), e.number('number', 'number').withDescription('Number of turns')],
     },
     {
         zigbeeModel: ['TERNCY-LS01'],
