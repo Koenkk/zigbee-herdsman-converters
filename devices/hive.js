@@ -117,6 +117,34 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['KEYPAD001'],
+        model: 'KEYPAD001',
+        vendor: 'Hive',
+        description: 'Alarm security keypad',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.command_arm, fz.command_panic, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,
+            fz.ias_ace_occupancy_with_timeout],
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(), e.contact(),
+            exposes.numeric('action_code', ea.STATE),
+            exposes.text('action_zone', ea.STATE),
+            e.action([
+                'panic', 'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency',
+            ])],
+        toZigbee: [tz.arm_mode],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            if (data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce') {
+                console.log(data);
+                await data.endpoint.defaultResponse(0x0b, 0, 1281, data.meta.zclTransactionSequenceNumber, {disableResponse: true});
+            }
+        },
+    },
+    {
         zigbeeModel: ['TRV001'],
         model: 'UK7004240',
         vendor: 'Hive',
