@@ -125,10 +125,10 @@ module.exports = [
         fromZigbee: [fz.command_arm, fz.command_panic, fz.battery, fz.ias_occupancy_alarm_1, fz.identify, fz.ias_contact_alarm_1,
             fz.ias_ace_occupancy_with_timeout],
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(), e.contact(),
-            exposes.numeric('action_code', ea.STATE),
-            exposes.text('action_zone', ea.STATE),
+            exposes.numeric('action_code', ea.STATE).withDescription("Pin code introduced."),
+            exposes.text('action_zone', ea.STATE).withDescription("Alarm zone. Default value 23"),
             e.action([
-                'panic', 'disarm', 'arm_day_zones', 'identify', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency',
+                'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'
             ])],
         toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
@@ -139,8 +139,13 @@ module.exports = [
         },
         onEvent: async (type, data, device) => {
             if (data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce') {
-                console.log(data);
-                await data.endpoint.defaultResponse(0x0b, 0, 1281, data.meta.zclTransactionSequenceNumber, {disableResponse: true});
+                const payload = {
+                    panelstatus: globalStore.getValue(data.endpoint, 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await data.endpoint.commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
             }
         },
     },
