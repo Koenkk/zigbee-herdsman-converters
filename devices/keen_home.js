@@ -4,6 +4,9 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
+const constants = require('../lib/constants');
+const extend = require('../lib/extend');
+
 
 module.exports = [
     {
@@ -22,7 +25,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
-            'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-612-MP-1.0'],
+            'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-610-MP-1.1', 'SV01-612-MP-1.0'],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
@@ -41,7 +44,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3', 'SV02-410-MP-1.0'],
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-610-MP-1.3', 'SV02-612-MP-1.3', 'SV02-410-MP-1.0'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',
@@ -58,5 +61,22 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
+    },
+ {
+        zigbeeModel: ['GW01-001-MP-1.0'],
+        model: 'Smart Bridge',
+        description: 'Keen signal repeater',
+        vendor: 'Keen Home',
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            await endpoint.configureReporting('genBasic', payload);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            device.powerSource = 'Mains (single phase)';
+        },
+        exposes: [],
     },
 ];
