@@ -1877,14 +1877,14 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
-    {                                                                                                                       
-        zigbeeModel: ['LTW018'],                                                                                         
-        model: '3435731P7',                                                                                                 
-        vendor: 'Philips',                                                                                                  
-        description: 'Hue Adore white ambiance bathroom mirror',                                                                           
-        meta: {turnsOffAtBrightness1: true},                                                                                
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),                                   
-        ota: ota.zigbeeOTA,                                                                                                 
+    {
+        zigbeeModel: ['LTW018'],
+        model: '3435731P7',
+        vendor: 'Philips',
+        description: 'Hue Adore white ambiance bathroom mirror',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['LCX002'],
