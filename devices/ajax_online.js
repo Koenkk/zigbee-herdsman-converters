@@ -19,7 +19,7 @@ module.exports = [
         zigbeeModel: ['AJ_ZBPROA60'],
         model: 'AJ_ZIGPROA60',
         vendor: 'Ajax Online',
-        description: 'Smart Zigbee Pro 12W A60 Bulb',
+        description: 'Smart Zigbee pro 12W A60 bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {turnsOffAtBrightness1: true},
     },
