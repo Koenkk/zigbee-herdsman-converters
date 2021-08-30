@@ -61,8 +61,8 @@ const converters = {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
             const isNotification = value.hasOwnProperty('transaction');
-            const modeSrc = isNotification ? constants.armNotification : constants.armMode,
-                mode = utils.getKey(modeSrc, value.mode, undefined, Number);
+            const modeSrc = isNotification ? constants.armNotification : constants.armMode;
+            const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
             if (mode === undefined) {
                 throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(modeSrc)}`);
             }
