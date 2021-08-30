@@ -60,19 +60,28 @@ const converters = {
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
+            const isNotification = value.hasOwnProperty('transaction');
+            const modeSrc = isNotification ? constants.armNotification : constants.armMode,
+                mode = utils.getKey(modeSrc, value.mode, undefined, Number);
             if (mode === undefined) {
-                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`);
+                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(modeSrc)}`);
             }
 
-            if (value.hasOwnProperty('transaction')) {
+            if (isNotification) {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+
+                // Do not update PanelStatus for error responses. e.g. `invalid_code`, `note_ready`, `already_disarmed`
+                // PanelStatus reports alarm values that are stored in arMode in accordance with the ZCL specs
+                if (mode > 3) {
+                    return;
+                }
             }
 
             let panelStatus = mode;
             if (meta.mapped.model === '3400-D') {
                 panelStatus = mode !== 0 && mode !== 4 ? 0x80 : 0x00;
             }
+
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
