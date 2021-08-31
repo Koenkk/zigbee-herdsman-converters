@@ -16,9 +16,6 @@ module.exports = [
             'press_1_of_2', 'release_1_of_2', 'press_2_of_2', 'release_2_of_2', 'short_press_1_of_1', 'short_press_1_of_2',
             'short_press_2_of_1'])],
         toZigbee: [],
-        whiteLabel: [{vendor: 'Philips', description: 'Hue Tap', model: '8718696743133'},
-            {vendor: 'Niko', description: 'Friends of Hue switch', model: '91004'},
-            {vendor: 'Vimar', description: 'Smart switch for Philips Hue', model: '03906'}],
     },
     {
         zigbeeModel: ['GreenPower_7'],
@@ -28,6 +25,5 @@ module.exports = [
         fromZigbee: [fz.greenpower_7],
         toZigbee: [],
         exposes: [e.action(['*'])],
-        whiteLabel: [{vendor: 'EnOcean', description: 'Easyfit 1 or 2 gang switch', model: 'EWSxZG'}],
     },
 ];
