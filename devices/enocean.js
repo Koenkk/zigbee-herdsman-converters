@@ -11,7 +11,7 @@ module.exports = [
         fromZigbee: [fz.enocean_ptm215z],
         toZigbee: [],
         exposes: [e.action(['press_1', 'release_1', 'press_2', 'release_2', 'press_3', 'release_3', 'press_4', 'release_4',
-            'press_1_and_3', 'release_1_and_3', 'press_2_and_4', 'release_2_and_4'])],
+            'press_1_and_3', 'release_1_and_3', 'press_2_and_4', 'release_2_and_4', 'press_energy_bar'])],
         whiteLabel: [
             {vendor: 'Niko', description: 'Dimmer switch for Hue system', model: '91004'},
             {vendor: 'NodOn', description: 'Smart switch for Philips Hue', model: 'CWS-4-1-01_HUE'},
@@ -27,7 +27,8 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['press_1', 'release_1', 'press_2', 'release_2', 'press_3', 'release_3', 'press_4', 'release_4',
             'press_1_and_2', 'release_1_and_2', 'press_1_and_3', 'release_1_and_3', 'press_1_and_4', 'release_1_and_4',
-            'press_2_and_3', 'release_2_and_3', 'press_2_and_4', 'release_2_and_4', 'press_3_and_4', 'release_3_and_4'])],
+            'press_2_and_3', 'release_2_and_3', 'press_2_and_4', 'release_2_and_4', 'press_3_and_4', 'release_3_and_4',
+            'press_energy_bar', 'release_energy_bar', 'press_or_release_all'])],
         whiteLabel: [
             {vendor: 'Easyfit by EnOcean', description: 'Wall switch for Zigbee', model: 'EWSxZ'},
             {vendor: 'Trio2sys', description: 'Zigbee Green Power complete switch', model: '20020002'},
