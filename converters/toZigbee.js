@@ -70,11 +70,10 @@ const converters = {
             if (isNotification) {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
 
-                // Do not update PanelStatus for error responses. e.g. `invalid_code`, `not_ready`, `already_disarmed`
-                // PanelStatus reports alarm values that are stored in armMode in accordance with the ZCL specs
-                if (mode > 3) {
-                    return;
-                }
+                // Do not update PanelStatus after confirming transaction.
+                // Instead the server should send an arm_mode command with the necessary state.
+                // e.g. exit_delay as a result of arm_all_zones
+                return;
             }
 
             let panelStatus = mode;
