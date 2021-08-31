@@ -59,7 +59,7 @@ module.exports = [
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
- {
+    {
         zigbeeModel: ['GW01-001-MP-1.0'],
         model: 'GW01',
         description: 'Signal repeater',
