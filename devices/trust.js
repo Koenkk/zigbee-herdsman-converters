@@ -64,7 +64,7 @@ module.exports = [
         model: 'ZLED-RGB9',
         vendor: 'Trust',
         description: 'Smart RGB LED bulb',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         endpoint: (device) => {
             return {'default': 2};
         },
