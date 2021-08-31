@@ -61,8 +61,8 @@ module.exports = [
     },
  {
         zigbeeModel: ['GW01-001-MP-1.0'],
-        model: 'Smart Bridge',
-        description: 'Keen signal repeater',
+        model: 'GW01',
+        description: 'Signal repeater',
         vendor: 'Keen Home',
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
