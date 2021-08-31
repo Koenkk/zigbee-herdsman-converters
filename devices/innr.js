@@ -11,9 +11,9 @@ module.exports = [
         zigbeeModel: ['RCL 240 T'],
         model: 'RCL 240 T',
         vendor: 'Innr',
-        description: 'Smart Round Ceiling Lamp Comfort',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200,454]}),
-        meta: {turnsOffAtBrightness1: true}
+        description: 'Smart round ceiling lamp comfort',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['FL 140 C'],
