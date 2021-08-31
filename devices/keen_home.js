@@ -4,9 +4,6 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
-const constants = require('../lib/constants');
-const extend = require('../lib/extend');
-
 
 module.exports = [
     {
@@ -74,7 +71,6 @@ module.exports = [
             const payload = [{attribute: 'modelId', minimumReportInterval: 3600, maximumReportInterval: 14400}];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             await endpoint.configureReporting('genBasic', payload);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
             device.powerSource = 'Mains (single phase)';
         },
         exposes: [],
