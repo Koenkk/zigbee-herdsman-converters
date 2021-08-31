@@ -3833,8 +3833,8 @@ const converters = {
                 0x22: 'press_1', 0x23: 'release_1', 0x18: 'press_2', 0x19: 'release_2', 0x14: 'press_3', 0x15: 'release_3', 0x12: 'press_4',
                 0x13: 'release_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2', 0x62: 'press_1_and_3', 0x63: 'release_1_and_3',
                 0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
-                0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4', 0x10: 'press_energy_bar', 0x11: 'release_energy_bar',
-                0x0: 'press_or_release_all',
+                0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4', 0x10: 'press_energy_bar',
+                0x11: 'release_energy_bar', 0x0: 'press_or_release_all',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
