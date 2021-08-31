@@ -6010,15 +6010,7 @@ const converters = {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
-
-            // Button 1: A0 (top left)
-            // Button 2: A1 (bottom left)
-            // Button 3: B0 (top right)
-            // Button 4: B1 (bottom right)
-            const lookup = {
-                0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4',
-            };
-
+            const lookup = {0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4'};
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Hue Tap: missing command '${commandID}'`);
             } else {
