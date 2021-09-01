@@ -1315,8 +1315,9 @@ const converters = {
             const payload = {
                 action: postfixWithEndpointName(`move_to_hue`, msg, model),
                 action_hue: msg.data.hue,
+                action_transition_time: msg.data.transtime / 100,
+                action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
             };
-
             addActionGroup(payload, msg, model);
             return payload;
         },
