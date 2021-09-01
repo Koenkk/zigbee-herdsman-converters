@@ -866,7 +866,7 @@ module.exports = [
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering,
-            fz.xiaomi_switch_opple_basic, fz.xiaomi_power,fz.device_temperature],
+            fz.xiaomi_switch_opple_basic, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -883,6 +883,14 @@ module.exports = [
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             } catch (e) {
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
+                logger.debug(e.stack);
+            }
+            
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
+                await endpoint.read('genDeviceTempCfg', ['currentTemperature']);
+            } catch (e) {
+                logger.warn(`SP-EUC01 failed to setup temperature measurements (${e.message})`);
                 logger.debug(e.stack);
             }
 
