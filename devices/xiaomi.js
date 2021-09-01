@@ -888,7 +888,7 @@ module.exports = [
             
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-                await endpoint.read('genDeviceTempCfg', ['currentTemperature']);
+                await reporting.currentTemperature(endpoint);
             } catch (e) {
                 logger.warn(`SP-EUC01 failed to setup temperature measurements (${e.message})`);
                 logger.debug(e.stack);
