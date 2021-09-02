@@ -444,7 +444,7 @@ module.exports = [
             {type: 'EndDevice', manufacturerID: 4098, endpoints: [{ID: 1, inputClusters: [], outputClusters: []}]},
             {manufacturerName: '_TZ3000_qaaysllp'},
         ],
-        zigbeeModel: ['TS0201'],
+        zigbeeModel: ['TS0201_multi_sensor'],
         model: 'LCZ030',
         vendor: 'TuYa',
         description: 'Temperature & humidity & illuminance sensor with display',
