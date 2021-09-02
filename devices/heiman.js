@@ -111,7 +111,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['GASSensor-N'],
+        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0'],
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
