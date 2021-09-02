@@ -59,6 +59,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Outdoor FLEX RGBW Z3'],
+        model: '4058075208360',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ ZB OUTDOOR FLEX EU',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['P40 TW Value'],
         model: '4058075485174',
         vendor: 'LEDVANCE',
