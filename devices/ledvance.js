@@ -63,7 +63,7 @@ module.exports = [
         model: '4058075208360',
         vendor: 'LEDVANCE',
         description: 'SMART+ outdoor flex multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
     {
