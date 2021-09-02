@@ -440,6 +440,19 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
+        fingerprint: [
+            {type: 'EndDevice', manufacturerID: 4098, endpoints: [{ID: 1, inputClusters: [], outputClusters: []}]},
+            {manufacturerName: '_TZ3000_qaaysllp'},
+        ],
+        zigbeeModel: ['TS0201'],
+        model: 'TS0201',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity & illuminance sensor with display',
+        fromZigbee: [fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+    },
+    {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
         model: 'SM0201',
         vendor: 'Tuya',
