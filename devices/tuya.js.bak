@@ -445,7 +445,7 @@ module.exports = [
             {manufacturerName: '_TZ3000_qaaysllp'},
         ],
         zigbeeModel: ['TS0201'],
-        model: 'LCZ030',
+        model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity & illuminance sensor with display',
         fromZigbee: [fz.battery, fz.illuminance],
