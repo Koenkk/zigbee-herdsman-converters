@@ -1308,6 +1308,20 @@ const converters = {
             return payload;
         },
     },
+    command_move_to_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: postfixWithEndpointName(`move_to_hue`, msg, model),
+                action_hue: msg.data.hue,
+                action_transition_time: msg.data.transtime / 100,
+                action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
