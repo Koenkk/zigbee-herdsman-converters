@@ -15,7 +15,12 @@ module.exports = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: extend.switch(),
+        exposes: [e.switch(),
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
+                .withDescription('Controls the behaviour when the device is powered on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

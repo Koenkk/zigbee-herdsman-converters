@@ -1,32 +1,16 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
+const globalStore = require('../lib/store');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
-const globalStore = require('../lib/store');
 
 module.exports = [
     {
-        zigbeeModel: ['URC4460BC0-X-R'],
-        model: 'XHS2-UE',
-        vendor: 'Universal Electronics Inc',
-        description: 'Magnetic door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
-        toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-            await reporting.temperature(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
-    },
-    {
-        zigbeeModel: ['URC4450BC0-X-R'],
-        model: 'XHK1-UE',
-        vendor: 'Universal Electronics Inc',
+        zigbeeModel: ['TKA105'],
+        model: 'XHK1-TC',
+        vendor: 'Technicolor',
         description: 'Xfinity security keypad',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1, fz.identify,

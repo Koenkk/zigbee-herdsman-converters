@@ -60,19 +60,27 @@ const converters = {
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
+            const isNotification = value.hasOwnProperty('transaction');
+            const modeSrc = isNotification ? constants.armNotification : constants.armMode;
+            const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
             if (mode === undefined) {
-                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`);
+                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(modeSrc)}`);
             }
 
-            if (value.hasOwnProperty('transaction')) {
+            if (isNotification) {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+
+                // Do not update PanelStatus after confirming transaction.
+                // Instead the server should send an arm_mode command with the necessary state.
+                // e.g. exit_delay as a result of arm_all_zones
+                return;
             }
 
             let panelStatus = mode;
             if (meta.mapped.model === '3400-D') {
                 panelStatus = mode !== 0 && mode !== 4 ? 0x80 : 0x00;
             }
+
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
@@ -316,7 +324,14 @@ const converters = {
                 strobeLevel: value.hasOwnProperty('strobe_level') ? strobeLevel[value.strobe_level] : 1,
             };
 
-            const info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            let info;
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
+            if (['SIRZB-110', 'SRAC-23B-ZBSR'].includes(meta.mapped.model)) {
+                info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            } else {
+                info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
+            }
+
             await entity.command(
                 'ssIasWd',
                 'startWarning',
@@ -340,13 +355,27 @@ const converters = {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
             const alarmState = (value === 'OFF' ? 0 : 1);
-            const info = (3 << 4) + ((alarmState) << 2);
+            const info = (3 << 6) + ((alarmState) << 2);
             await entity.command(
                 'ssIasWd',
                 'startWarning',
-                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 3},
+                {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 0},
                 utils.getOptions(meta.mapped, entity),
             );
+        },
+    },
+    squawk: {
+        key: ['squawk'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = {'system_is_armed': 0, 'system_is_disarmed': 1};
+            const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
+            const values = {
+                state: value.state,
+                level: value.level || 'very_high',
+                strobe: value.hasOwnProperty('strobe') ? value.strobe : false,
+            };
+            const info = (state[values.state]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
+            await entity.command('ssIasWd', 'squawk', {squawkinfo: info}, utils.getOptions(meta.mapped, entity));
         },
     },
     cover_state: {
@@ -1275,6 +1304,100 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_display_text: {
+        key: ['display_text'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoDisplayText': value});
+                return {state: {display_text: value}};
+            } else {
+                throw new Error('Length of text is greater than 14');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoDisplayText']);
+        },
+    },
+    elko_power_status: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoPowerStatus': value === 'heat'});
+            return {state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoPowerStatus']);
+        },
+    },
+    elko_external_temp: {
+        key: ['floor_temp'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoExternalTemp']);
+        },
+    },
+    elko_mean_power: {
+        key: ['mean_power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMeanPower']);
+        },
+    },
+    elko_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoChildLock': value === 'lock'});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoChildLock']);
+        },
+    },
+    elko_frost_guard: {
+        key: ['frost_guard'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoFrostGuard': value === 'on'});
+            return {state: {frost_guard: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoFrostGuard']);
+        },
+    },
+    elko_relay_state: {
+        key: ['running_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRelayState']);
+        },
+    },
+    elko_sensor_mode: {
+        key: ['sensor_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoSensor': {'air': '0', 'floor': '1', 'supervisor_floor': '3'}[value]});
+            return {state: {sensor_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoSensor']);
+        },
+    },
+    elko_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoCalibration': Math.round(value * 10)});
+            return {state: {local_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoCalibration']);
+        },
+    },
+    elko_max_floor_temp: {
+        key: ['max_floor_temp'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoMaxFloorTemp': value});
+                return {state: {max_floor_temp: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMaxFloorTemp']);
+        },
+    },
     livolo_socket_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1703,6 +1826,15 @@ const converters = {
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
+    LS21001_alert_behaviour: {
+        key: ['alert_behaviour'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
+            await entity.write('genBasic', {0x400a: {value: lookup[value], type: 32}},
+                {manufacturerCode: 0x1168, disableDefaultResponse: true, sendWhenActive: true});
+            return {state: {alert_behaviour: value}};
+        },
+    },
     xiaomi_switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -1720,7 +1852,8 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
+                'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1742,9 +1875,9 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM'].includes(meta.mapped.model)) {
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
-            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+            } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
             } else {
                 throw new Error('Not supported');
@@ -1793,7 +1926,7 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
-    ZNCZ15LM_overload_protection: {
+    xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
@@ -1804,10 +1937,32 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
+    xiaomi_button_switch_mode: {
+        key: ['button_switch_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'relay': 0, 'relay_and_usb': 1};
+            await entity.write('aqaraOpple', {0x0226: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {button_switch_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0226], manufacturerOptions.xiaomi);
+        },
+    },
+    xiaomi_socket_button_lock: {
+        key: ['button_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'ON': 0, 'OFF': 1};
+            await entity.write('aqaraOpple', {0x0200: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {button_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0200], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1819,6 +1974,13 @@ const converters = {
                 throw new Error('Not supported');
             }
             return {state: {led_disabled_night: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+                await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
+            } else {
+                throw new Error('Not supported');
+            }
         },
     },
     xiaomi_switch_operation_mode_basic: {
@@ -2146,6 +2308,16 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossThermostatOrientation'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_external_measured_room_sensor: {
+        key: ['external_measured_room_sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossExternalMeasuredRoomSensor': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'external_measured_room_sensor': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossExternalMeasuredRoomSensor'], manufacturerOptions.danfoss);
         },
     },
     danfoss_viewing_direction: {
@@ -2997,6 +3169,33 @@ const converters = {
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+            }
+        },
+    },
+    sinope_led_intensity_on: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_on'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
+            }
+        },
+    },
+    sinope_led_intensity_off: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_intensity_off'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 100) {
+                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
+            }
+        },
+    },
+    sinope_minimum_brightness: {
+        // DM2500ZB
+        key: ['minimum_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 3000) {
+                await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
         },
     },

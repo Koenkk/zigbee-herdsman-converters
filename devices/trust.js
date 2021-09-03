@@ -38,12 +38,36 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000'}],
+        fingerprint: [
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8027#issuecomment-904783277
+            {modelID: 'ZLL-ColorTempera', manufacturerName: 'Trust International B.V.\u0000', applicationVersion: 1, endpoints: [
+                {ID: 1, profileID: 49246, deviceID: 544,
+                    inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 65535, 25], outputClusters: [0, 4, 3, 6, 8, 5, 768, 25]},
+                {ID: 2, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
         zigbeeModel: ['ZLL-ColorTempera', 'ZLL-ColorTemperature'],
         model: 'ZLED-TUNE9',
         vendor: 'Trust',
         description: 'Smart tunable LED bulb',
         extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        fingerprint: [
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8027#issuecomment-904783277
+            {modelID: 'ZLL-ExtendedColo', manufacturerName: 'Trust International B.V.\u0000', applicationVersion: 1, endpoints: [
+                {ID: 1, profileID: 49246, deviceID: 4096, inputClusters: [4096], outputClusters: [4096]},
+                {ID: 2, profileID: 49246, deviceID: 528,
+                    inputClusters: [0, 4, 3, 6, 8, 5, 768, 65535, 25], outputClusters: [0, 4, 3, 6, 8, 5, 768, 25]},
+            ]},
+        ],
+        model: 'ZLED-RGB9',
+        vendor: 'Trust',
+        description: 'Smart RGB LED bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        endpoint: (device) => {
+            return {'default': 2};
+        },
     },
     {
         zigbeeModel: ['VMS_ADUROLIGHT'],

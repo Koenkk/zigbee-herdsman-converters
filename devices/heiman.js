@@ -34,7 +34,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['SmartPlug'],
+        zigbeeModel: ['SmartPlug', 'SmartPlug-EF-3.0'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         vendor: 'HEIMAN',
@@ -111,7 +111,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['GASSensor-N'],
+        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0'],
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
