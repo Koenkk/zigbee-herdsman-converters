@@ -117,22 +117,23 @@ module.exports = [
         onEvent: readInitialBatteryState,
     },
     {
-        zigbeeModel: [' Double gangs remote switch', 'Double gangs remote switch'],
+        zigbeeModel: [' Double gangs remote switch\u0000\u0000\u0000\u0000'],
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(),
+            e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {left: 1, right: 2};
-        },
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+        },
+        endpoint: (device) => {
+            return {left: 1, right: 2};
         },
         onEvent: readInitialBatteryState,
     },
@@ -254,5 +255,23 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000005.....$/}],
+        model: 'ZLGP15',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless 4 scenes control',
+        fromZigbee: [fz.legrand_zlgp15],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000005.....$/}],
+        model: 'ZLGP17/ZLGP18',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless (double) lighting control',
+        fromZigbee: [fz.legrand_zlgp17_zlgp18],
+        toZigbee: [],
+        exposes: [e.action(['press_once', 'press_twice'])],
     },
 ];

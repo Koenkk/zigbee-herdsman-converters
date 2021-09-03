@@ -46,11 +46,13 @@ module.exports = [
         description: 'Video wireless socket',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power()],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.currentSummReceived(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
         },
     },
@@ -77,7 +79,7 @@ module.exports = [
         model: 'AV2010/29A',
         vendor: 'Bitron',
         description: 'SMaBiT Zigbee outdoor siren',
-        fromZigbee: [fz.ias_no_alarm],
+        fromZigbee: [fz.ias_siren],
         toZigbee: [tz.warning],
         exposes: [e.warning(), e.battery_low(), e.tamper()],
     },

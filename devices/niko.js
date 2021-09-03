@@ -17,9 +17,9 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {min: 5, max: 3600, change: 1000});
+            await reporting.rmsCurrent(endpoint, {min: 5, max: 3600, change: 100});
+            await reporting.rmsVoltage(endpoint, {min: 5, max: 3600, change: 100});
         },
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.current(), e.voltage()],
     },

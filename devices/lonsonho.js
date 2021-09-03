@@ -16,8 +16,8 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
         meta: {coverInverted: true},
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
@@ -28,9 +28,9 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
         meta: {coverInverted: true},
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'),
+            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'}],
@@ -147,7 +147,7 @@ module.exports = [
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
         extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 370], disableEffect: true}),
+            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],

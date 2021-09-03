@@ -15,7 +15,7 @@ module.exports = [
                 {ID: 3, profileID: 49152, deviceID: 258, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
             ]},
         ],
-        model: '33943',
+        model: '33943/33946',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
         extend: extend.light_onoff_brightness_colortemp_color(),

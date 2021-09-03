@@ -4,7 +4,7 @@ const extend = require('../lib/extend');
 module.exports = [
     {
         zigbeeModel: ['Outdoor Plug', 'Plug Value'],
-        model: 'AC26940',
+        model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
         description: 'Smart Zigbee outdoor plug',
         extend: extend.switch(),
@@ -56,6 +56,14 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'Flex 3P multicolor',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['Outdoor FLEX RGBW Z3'],
+        model: '4058075208360',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ outdoor flex multicolor',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
     {

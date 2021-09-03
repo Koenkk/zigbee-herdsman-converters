@@ -15,7 +15,12 @@ module.exports = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: extend.switch(),
+        exposes: [e.switch(),
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
+                .withDescription('Controls the behaviour when the device is powered on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -190,5 +195,53 @@ module.exports = [
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
+        model: 'MS-105Z',
+        vendor: 'Moes',
+        description: '1 gang 2 way Zigbee dimmer switch',
+        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.moes_105_dimmer],
+        meta: {turnsOffAtBrightness1: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
+        model: 'MS-105B',
+        vendor: 'Moes',
+        description: 'Smart dimmer module (2 gang)',
+        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
+        toZigbee: [tz.moes_105_dimmer],
+        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
+            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'}],
+        model: 'ZLD-RCW',
+        vendor: 'Moes',
+        description: 'RGB+CCT Zigbee LED Controller',
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
+        ]),
+        meta: {applyRedFix: true, enhancedHue: false},
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
+            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
+                .withDescription('Do not disturb mode'),
+            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+                .withDescription('Power on behavior state'),
+        ]),
     },
 ];

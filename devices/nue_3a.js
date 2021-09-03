@@ -275,4 +275,11 @@ module.exports = [
         description: 'Smart Zigbee 3.0 strip light controller',
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
+    {
+        zigbeeModel: ['LXN60-LS27-Z30'],
+        model: 'WL-SD001-9W',
+        vendor: 'Nue / 3A',
+        description: '9W RGB LED downlight',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
 ];

@@ -1,8 +1,18 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['LH09521'],
+        model: 'LH-09521',
+        vendor: 'iHORN',
+        description: 'Indoor siren',
+        fromZigbee: [fz.ias_smoke_alarm_1],
+        toZigbee: [tz.warning],
+        exposes: [e.warning(), e.battery_low(), e.tamper()],
+    },
     {
         zigbeeModel: ['113D'],
         model: 'LH-32ZB',

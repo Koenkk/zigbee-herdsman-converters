@@ -24,7 +24,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_color: (options={}) => ({
-        ...extend.light_onoff_brightness_color(options),
+        ...extend.light_onoff_brightness_color({...options, supportsHS: true}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color],
@@ -32,7 +32,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp_color: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp_color(options),
+        ...extend.light_onoff_brightness_colortemp_color({...options, supportsHS: true}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color_colortemp],
@@ -59,6 +59,13 @@ module.exports = [
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller WW/CW',
+        extend: gledoptoExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['GL-SD-001'],
+        model: 'GL-SD-001',
+        vendor: 'Gledopto',
+        description: 'Zigbee triac AC dimmer',
         extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
@@ -142,7 +149,7 @@ module.exports = [
         model: 'GL-C-007S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-C-007P'],

@@ -35,18 +35,43 @@ module.exports = [
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement, fz.temperature],
+        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            const payload = [{
+                attribute: 'rmsVoltagePhB',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsVoltagePhC',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsCurrentPhB',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            },
+            {
+                attribute: 'rmsCurrentPhC',
+                minimumReportInterval: 10,
+                maximumReportInterval: 3600,
+                reportableChange: 0,
+            }];
+            await endpoint.configureReporting('haElectricalMeasurement', payload);
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.instantaneousDemand(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 3600, change: [1, 1]});
             await reporting.currentSummReceived(endpoint);
             await reporting.temperature(endpoint);
         },
@@ -125,5 +150,46 @@ module.exports = [
                 'auto_on_away_on']).withDescription('Lock-Mode of the Lock'),
             exposes.enum('service_mode', ea.ALL, ['deactivated', 'random_pin_1x_use',
                 'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
+    },
+    {
+        zigbeeModel: ['Water Sensor'],
+        model: 'HSE2919E',
+        vendor: 'Datek',
+        description: 'Eva water leak sensor',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'ssIasZone']);
+            await reporting.batteryVoltage(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+        },
+        endpoint: (device) => {
+            return {default: 1};
+        },
+        exposes: [e.battery(), e.battery_low(), e.temperature(), e.water_leak(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['Scene Selector'],
+        model: 'HBR2917E',
+        vendor: 'Datek',
+        description: 'Eva scene selector',
+        fromZigbee: [fz.temperature, fz.battery, fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
+        toZigbee: [tz.on_off],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff',
+                'genLevelCtrl', 'msTemperatureMeasurement']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint, {min: constants.repInterval.MINUTES_10, max: constants.repInterval.HOUR, change: 100});
+        },
+        exposes: [e.battery(), e.temperature(),
+            e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off',
+                'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
     },
 ];
