@@ -252,7 +252,7 @@ module.exports = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt ],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal ],
-	exposes: [e.cover_position(), exposes.numeric('calibration_time'), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+	exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.STATE_SET), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')], 
     },
 ];
