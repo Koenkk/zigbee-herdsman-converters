@@ -5142,6 +5142,17 @@ const converters = {
             await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
         },
     },
+    moes_cover_calibration: {
+        key: ['calibration_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const calibration = value *10;
+            await entity.write('closuresWindowCovering', {moesCalibrationTime: calibration});
+            return {state: {calibration_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
+        },
+    },
     tuya_backlight_mode: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
