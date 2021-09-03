@@ -80,8 +80,8 @@ module.exports = [
         vendor: 'Bitron',
         description: 'SMaBiT Zigbee outdoor siren',
         fromZigbee: [fz.ias_siren],
-        toZigbee: [tz.warning],
-        exposes: [e.warning(), e.battery_low(), e.tamper()],
+        toZigbee: [tz.warning, tz.squawk],
+        exposes: [e.warning(), e.squawk(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['902010/32'],
