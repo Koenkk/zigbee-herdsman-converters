@@ -108,7 +108,7 @@ module.exports = [
                 'danfossExternalMeasuredRoomSensor',
             ], options);
 
-            // read systemMode to have an initaial value
+            // read systemMode to have an initial value
             await endpoint.read('hvacThermostat', ['systemMode']);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
