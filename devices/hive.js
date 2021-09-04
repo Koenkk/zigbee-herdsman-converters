@@ -170,8 +170,8 @@ module.exports = [
             exposes.binary('thermostat_vertical_orientation', ea.ALL, true, false)
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
                     '`false` Horizontal or `true` Vertical'),
-            exposes.numeric('viewing_direction', ea.ALL).withValueMin(0).withValueMax(1)
-                .withDescription('Viewing/Display Direction. `0` Horizontal or `1` Vertical'),
+            exposes.binary('viewing_direction', ea.ALL, true, false)
+                .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
