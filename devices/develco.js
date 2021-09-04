@@ -154,7 +154,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
-            await endpoint.read ('genBinaryInput', ['outOfService', 'presentValue', 'reliability', 'statusFlags']);
+            await endpoint.read('genBinaryInput', ['outOfService', 'presentValue', 'reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
