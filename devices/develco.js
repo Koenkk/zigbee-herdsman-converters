@@ -142,7 +142,7 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbin],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
@@ -150,10 +150,11 @@ module.exports = [
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read ('genBinaryInput', ['outOfService', 'presentValue', 'reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
