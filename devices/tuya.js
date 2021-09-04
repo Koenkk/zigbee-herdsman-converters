@@ -443,7 +443,6 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'},
         ],
-        zigbeeModel: ['TS0201_multi_sensor'],
         model: 'LCZ030',
         vendor: 'TuYa',
         description: 'Temperature & humidity & illuminance sensor with display',
