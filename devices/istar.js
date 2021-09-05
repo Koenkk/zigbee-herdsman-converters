@@ -7,6 +7,6 @@ module.exports = [
         vendor: 'iStar',
         description: 'Zigbee 3.0 LED controller, dimmable white 12-36V DC max. 5A',
         extend: extend.light_onoff_brightness(),
-        meta: {turnsOffAtBrightness1: true}
+        meta: {turnsOffAtBrightness1: true},
     },
 ];
