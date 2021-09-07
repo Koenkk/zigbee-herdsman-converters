@@ -19,6 +19,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0203'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+                await reporting.batteryPercentageRemaining(endpoint);
+            } catch (error) {/* Fails for some*/}
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
@@ -395,10 +402,12 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
         description: 'Light controller',
+        whiteLabel: [{vendor: 'Mercator ikuü', model: 'SMI7040', description: 'Ford Batten Light'}],
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
     },
     {

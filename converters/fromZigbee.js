@@ -1308,6 +1308,20 @@ const converters = {
             return payload;
         },
     },
+    command_move_to_hue: {
+        cluster: 'lightingColorCtrl',
+        type: 'commandMoveToHue',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {
+                action: postfixWithEndpointName(`move_to_hue`, msg, model),
+                action_hue: msg.data.hue,
+                action_transition_time: msg.data.transtime / 100,
+                action_direction: msg.data.direction === 0 ? 'decrement' : 'increment',
+            };
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
     command_emergency: {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
@@ -1492,6 +1506,57 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+
+            if (data.hasOwnProperty(0x0402)) {
+                result.display_text = data[0x0402];
+            }
+
+            if (data.hasOwnProperty(0x0403)) {
+                const sensorModeLookup = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
+                result.sensor_mode = sensorModeLookup[data[0x0403]];
+            }
+
+            if (data.hasOwnProperty(0x0406)) {
+                result.system_mode = data[0x0406] ? 'heat' : 'off';
+            }
+
+            if (data.hasOwnProperty(0x0408)) {
+                result.mean_power = data[0x0408];
+            }
+
+            if (data.hasOwnProperty(0x0409)) {
+                result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
+            }
+
+            if (data.hasOwnProperty(0x0412)) {
+                result.frost_guard = data[0x0412] ? 'on' : 'off';
+            }
+
+            if (data.hasOwnProperty(0x0413)) {
+                result.child_lock = data[0x0413] ? 'lock' : 'unlock';
+            }
+
+            if (data.hasOwnProperty(0x0414)) {
+                result.max_floor_temp = data[0x0414];
+            }
+
+            if (data.hasOwnProperty(0x0415)) {
+                result.running_state = data[0x0415] ? 'heat' : 'idle';
+            }
+
+            if (data.hasOwnProperty(0x0417)) {
+                result.local_temperature_calibration = precisionRound(data[0x0417], 2) / 10;
+            }
+
+            return result;
+        },
+    },
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -2812,7 +2877,7 @@ const converters = {
                     msg.data['danfossExternalMeasuredRoomSensor'];
             }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
-                result[postfixWithEndpointName('viewing_direction', msg, model)] = msg.data['danfossViewingDirection'];
+                result[postfixWithEndpointName('viewing_direction', msg, model)] = (msg.data['danfossViewingDirection'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossAlgorithmScaleFactor')) {
                 result[postfixWithEndpointName('algorithm_scale_factor', msg, model)] = msg.data['danfossAlgorithmScaleFactor'];
@@ -2821,7 +2886,13 @@ const converters = {
                 result[postfixWithEndpointName('heat_available', msg, model)] = (msg.data['danfossHeatAvailable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossHeatRequired')) {
-                result[postfixWithEndpointName('heat_required', msg, model)] = (msg.data['danfossHeatRequired'] === 1);
+                if (msg.data['danfossHeatRequired'] === 1) {
+                    result[postfixWithEndpointName('heat_required', msg, model)] = true;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
+                } else {
+                    result[postfixWithEndpointName('heat_required', msg, model)] = false;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
+                }
             }
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
@@ -3750,7 +3821,7 @@ const converters = {
             const lookup = {
                 0x10: 'press_1', 0x14: 'release_1', 0x11: 'press_2', 0x15: 'release_2', 0x13: 'press_3', 0x17: 'release_3',
                 0x12: 'press_4', 0x16: 'release_4', 0x64: 'press_1_and_3', 0x65: 'release_1_and_3', 0x62: 'press_2_and_4',
-                0x63: 'release_2_and_4',
+                0x63: 'release_2_and_4', 0x22: 'press_energy_bar',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
@@ -3776,10 +3847,8 @@ const converters = {
                 0x22: 'press_1', 0x23: 'release_1', 0x18: 'press_2', 0x19: 'release_2', 0x14: 'press_3', 0x15: 'release_3', 0x12: 'press_4',
                 0x13: 'release_4', 0x64: 'press_1_and_2', 0x65: 'release_1_and_2', 0x62: 'press_1_and_3', 0x63: 'release_1_and_3',
                 0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
-                0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4',
-
-                // Hue tap only
-                0x10: 'press_2', 0x11: 'press_3',
+                0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4', 0x10: 'press_energy_bar',
+                0x11: 'release_energy_bar', 0x0: 'press_or_release_all',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
@@ -3814,65 +3883,6 @@ const converters = {
             } else {
                 return {action: lookup[ID]};
             }
-        },
-    },
-    greenpower_on_off_switch: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return; // Skip commisioning command.
-            const lookup = {
-                0x00: 'identify',
-                0x10: 'recall_scene_0',
-                0x11: 'recall_scene_1',
-                0x12: 'recall_scene_2',
-                0x13: 'recall_scene_3',
-                0x14: 'recall_scene_4',
-                0x15: 'recall_scene_5',
-                0x16: 'recall_scene_6',
-                0x17: 'recall_scene_7',
-                0x18: 'store_scene_0',
-                0x19: 'store_scene_1',
-                0x1A: 'store_scene_2',
-                0x1B: 'store_scene_3',
-                0x1C: 'store_scene_4',
-                0x1D: 'store_scene_5',
-                0x1E: 'store_scene_6',
-                0x1F: 'store_scene_7',
-                0x20: 'off',
-                0x21: 'on',
-                0x22: 'toggle',
-                0x23: 'release',
-                0x60: 'press_1_of_1',
-                0x61: 'release_1_of_1',
-                0x62: 'press_1_of_2',
-                0x63: 'release_1_of_2',
-                0x64: 'press_2_of_2',
-                0x65: 'release_2_of_2',
-                0x66: 'short_press_1_of_1',
-                0x67: 'short_press_1_of_2',
-                0x68: 'short_press_2_of_1',
-            };
-
-            return {action: lookup[commandID] || commandID.toString()};
-        },
-    },
-    greenpower_7: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: (model, msg, publish, options, meta) => {
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return; // Skip commisioning command.
-            let postfix = '';
-
-            if (msg.data.commandFrame && msg.data.commandFrame.raw) {
-                postfix = `_${[...msg.data.commandFrame.raw].join('_')}`;
-            }
-
-            return {action: `${commandID.toString()}${postfix}`};
         },
     },
     lifecontrolVoc: {
@@ -5946,6 +5956,21 @@ const converters = {
             }
 
             return payload;
+        },
+    },
+    hue_tap: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4'};
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Hue Tap: missing command '${commandID}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
         },
     },
     tuya_switch_power_outage_memory: {
