@@ -326,7 +326,7 @@ const converters = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
-            if (['SIRZB-110', 'SRAC-23B-ZBSR'].includes(meta.mapped.model)) {
+            if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A'].includes(meta.mapped.model)) {
                 info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
             } else {
                 info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
@@ -5140,6 +5140,17 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
+        },
+    },
+    moes_cover_calibration: {
+        key: ['calibration_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const calibration = value *10;
+            await entity.write('closuresWindowCovering', {moesCalibrationTime: calibration});
+            return {state: {calibration_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
         },
     },
     tuya_backlight_mode: {
