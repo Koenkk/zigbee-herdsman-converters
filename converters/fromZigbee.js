@@ -1506,6 +1506,25 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    ikuu_dimmer: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; 
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data); 
+            switch (dp) {
+            case tuya.dataPoints.state:
+                    return {state: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.ikuuDimmerLevel: 
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+            // to do: 
+            // case tuya.dataPoints.ikuuMinBrightness:
+            //      return {min_brightness};
+            // case tuya.dataPoints.ikuuCountDown:
+            //      return  {seconds};
+            }
+        }
+       },
     elko_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
