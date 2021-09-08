@@ -195,7 +195,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
         ],
         model: 'TS0601_dimmer',
@@ -213,8 +212,26 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator ikuü', model: 'SISWD01'},
-        ],
+            ],
+    },
+            // Ikuu single gang no neutral dimmer device
+    {
+            fingerprint: [
+                {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
+            ],
+            model: 'SSWD01',
+            vendor: 'Mercator ikuü',
+            description: 'Zigbee smart dimmer',
+            fromZigbee: [fz.ikuu_dimmer, fz.ignore_basic_report],
+            toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
+            configure: async (device, coordinatorEndpoint, logger) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            },
+            exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+            whiteLabel: [
+                {vendor: 'Mercator ikuü', model: 'SSWD01'},
+            ],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
