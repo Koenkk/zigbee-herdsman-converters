@@ -7,6 +7,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -885,15 +886,6 @@ module.exports = [
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
             }
-            
-            try {
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-                await reporting.currentTemperature(endpoint);
-            } catch (e) {
-                logger.warn(`SP-EUC01 failed to setup temperature measurements (${e.message})`);
-                logger.debug(e.stack);
-            }
-
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -903,7 +895,29 @@ module.exports = [
                 logger.debug(e.stack);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.device_temperature()],
+        onEvent: async (type, data, device) => {
+            const switchEndpoint = device.getEndpoint(1);
+            if (switchEndpoint == null) {
+                return;
+            }
+
+            // This device doesn't support temperature reporting.
+            // Therefore we read the on/off state every 60 seconds.
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const interval = setInterval(async () => {
+                    try {
+                        await switchEndpoint.read('genDeviceTempCfg', ['currentTemperature']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 60000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+        exposes: [e.switch(), e.power(), e.energy(), e.device_temperature().withValueMin(-60)],
         ota: ota.zigbeeOTA,
     },
     {
