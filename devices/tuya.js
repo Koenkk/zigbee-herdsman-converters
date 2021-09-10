@@ -164,9 +164,10 @@ module.exports = [
         exposes: [],
     },
     {
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_upgcbody'}],
         model: 'TS0207_water_leak_detector',
-        vendor: 'Tuya',
+        vendor: 'TuYa',
         description: 'Water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
