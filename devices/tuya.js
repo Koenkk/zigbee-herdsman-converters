@@ -19,6 +19,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0203'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+                await reporting.batteryPercentageRemaining(endpoint);
+            } catch (error) {/* Fails for some*/}
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
@@ -31,7 +38,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'Tuya',
         description: 'Air quality sensor',
@@ -446,9 +453,31 @@ module.exports = [
         model: 'LCZ030',
         vendor: 'TuYa',
         description: 'Temperature & humidity & illuminance sensor with display',
-        fromZigbee: [fz.battery, fz.illuminance],
+        fromZigbee: [
+            fz.ts0201_temperature_humidity_alarm, // This is a debug converter, it will be described in the next part
+            fz.battery,
+            fz.illuminance,
+            fz.temperature
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },				
         toZigbee: [],
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
+            exposes.numeric('alarm_temperature_max', ea.STATE).withUnit('°C')
+                .withDescription('Alarm temperature max'),
+            exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C')
+                .withDescription('Alarm temperature min'),      
+            exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%')
+                .withDescription('Alarm huminity max'),      
+            exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%')
+                .withDescription('Alarm huminity min'),      
+            exposes.enum('alarm_humidity', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+                .withDescription('Alarm humidity status'),
+            exposes.enum('alarm_temperature', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+                .withDescription('Alarm temperature status')                
+        ],
     },
     {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
