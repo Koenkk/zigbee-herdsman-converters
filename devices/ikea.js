@@ -105,6 +105,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbT120E26WSopal450lm'],
+        model: 'LED1937T5',
+        vendor: 'IKEA',
+        description: 'LED bulb E26 450 lumen, wireless dimmable white spectrum/tube-shaped white frosted glass',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
