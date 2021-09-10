@@ -174,7 +174,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.water_leak(), e.tamper()],
     },
     {
-        zigbeeModel: ['Scene Selector'],
+        zigbeeModel: ['Scene Selector', 'SSDS'],
         model: 'HBR2917E',
         vendor: 'Datek',
         description: 'Eva scene selector',
