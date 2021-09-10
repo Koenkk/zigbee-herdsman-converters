@@ -6435,23 +6435,17 @@ const converters = {
             return result;
         },
     },
-    develco_genbin: {
+    develco_genbinaryinput: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            if (msg.data.hasOwnProperty('outOfService')) {
-                result.out_of_service = (msg.data['outOfService']===1);
-            }
-            if (msg.data.hasOwnProperty('presentValue')) {
-                result.present_value = (msg.data['presentValue']===1);
-            }
             if (msg.data.hasOwnProperty('reliability')) {
                 const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
                 result.reliability = lookup[msg.data['reliability']];
             }
             if (msg.data.hasOwnProperty('statusFlags')) {
-                const statusFlags = (msg.data.statusFlags & 1<<2) > 0;
+                const statusFlags = (msg.data.statusFlags & 1<<1) > 0;
                 result.fault = statusFlags;
             }
             return result;
