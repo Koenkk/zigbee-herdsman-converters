@@ -27,9 +27,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZGRC-KEY-009'],
-        model: 'YPHIX 50208693',
+        model: '50208693',
         vendor: 'Sunricher',
-        description: 'Zigbee Wall Remote Control for RGBW, 1 Zone with 2 Scenes',
+        description: 'Zigbee wall remote control for RGBW, 1 zone with 2 scenes',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery,
             fz.command_recall, fz.command_step, fz.command_move_to_color, fz.command_move_to_color_temp],
         toZigbee: [],
