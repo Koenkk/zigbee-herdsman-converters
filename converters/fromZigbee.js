@@ -6445,7 +6445,6 @@ const converters = {
                 result.reliability = lookup[msg.data['reliability']];
             }
             if (msg.data.hasOwnProperty('statusFlags')) {
-                const statusFlags = (msg.data.statusFlags & 1<<1) > 0;
                 result.fault = (msg.data['statusFlags']===1);
             }
             return result;
