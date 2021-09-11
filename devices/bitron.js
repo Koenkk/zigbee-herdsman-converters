@@ -8,7 +8,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['AV2010/14','902010/14'],
+        zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Curtain motion detector',
@@ -17,18 +17,18 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/16','902010/16'],
+        zigbeeModel: ['AV2010/16', '902010/16'],
         model: 'AV2010/16',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay with dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff','genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
-        zigbeeModel: ['AV2010/18','902010/18'],
+        zigbeeModel: ['AV2010/18', '902010/18'],
         model: 'AV2010/18',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall-mount relay',
@@ -39,7 +39,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/21A','902010/21A'],
+        zigbeeModel: ['AV2010/21A', '902010/21A'],
         model: 'AV2010/21A',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Compact magnetic contact sensor',
@@ -48,7 +48,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/21B','902010/21B'],
+        zigbeeModel: ['AV2010/21B', '902010/21B'],
         model: 'AV2010/21B',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Magnetic contact sensor with additional input for wired sensors',
@@ -57,7 +57,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/21C','902010/21C'],
+        zigbeeModel: ['AV2010/21C', '902010/21C'],
         model: 'AV2010/21C',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Ultra-flat magnetic contact sensor',
@@ -66,7 +66,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/22','902010/22', 'IR_00.00.03.12TC'],
+        zigbeeModel: ['AV2010/22', '902010/22', 'IR_00.00.03.12TC'],
         model: 'AV2010/22',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Professional motion detector',
@@ -76,7 +76,7 @@ module.exports = [
         whiteLabel: [{vendor: 'ClimaxTechnology', model: 'IR-9ZBS-SL'}],
     },
     {
-        zigbeeModel: ['AV2010/22A','902010/22A'],
+        zigbeeModel: ['AV2010/22A', '902010/22A'],
         model: 'AV2010/22A',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Design motion detector',
@@ -85,7 +85,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/22B','902010/22B'],
+        zigbeeModel: ['AV2010/22B', '902010/22B'],
         model: 'AV2010/22B',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Outdoor motion detector',
@@ -94,7 +94,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/23','902010/23'],
+        zigbeeModel: ['AV2010/23', '902010/23'],
         model: 'AV2010/23',
         vendor: 'SMaBiT (Bitron Video)',
         description: '4 button Zigbee remote control',
@@ -107,7 +107,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/24','902010/24'],
+        zigbeeModel: ['AV2010/24', '902010/24'],
         model: 'AV2010/24',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Optical smoke detector (hardware version v1)',
@@ -116,7 +116,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/24A','902010/24A'],
+        zigbeeModel: ['AV2010/24A', '902010/24A'],
         model: 'AV2010/24A',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Optical smoke detector (hardware version v2)',
@@ -125,7 +125,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/25','902010/25'],
+        zigbeeModel: ['AV2010/25', '902010/25'],
         model: 'AV2010/25',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket with metering',
@@ -142,18 +142,18 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/26','902010/26'],
+        zigbeeModel: ['AV2010/26', '902010/26'],
         model: 'AV2010/26',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket with dimmer',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff','genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
-        zigbeeModel: ['AV2010/28','902010/28'],
+        zigbeeModel: ['AV2010/28', '902010/28'],
         model: 'AV2010/28',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless socket',
@@ -164,7 +164,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/29','902010/29'],
+        zigbeeModel: ['AV2010/29', '902010/29'],
         model: 'AV2010/29',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Outdoor siren',
@@ -173,7 +173,7 @@ module.exports = [
         exposes: [e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/29A','902010/29A'],
+        zigbeeModel: ['AV2010/29A', '902010/29A'],
         model: 'AV2010/29A',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Outdoor siren',
@@ -182,15 +182,16 @@ module.exports = [
         exposes: [e.warning(), e.squawk(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/32','902010/32'],
+        zigbeeModel: ['AV2010/32', '902010/32'],
         model: 'AV2010/32',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [fz.legacy.bitron_thermostat_att_report, fz.battery, fz.havc_user_interface],
+        fromZigbee: [fz.legacy.bitron_thermostat_att_report, fz.battery, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool']).withLocalTemperatureCalibration(), e.keypad_lockout_2()],
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
+            .withLocalTemperatureCalibration(), e.keypad_lockout_2()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -207,7 +208,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/33','902010/33'],
+        zigbeeModel: ['AV2010/33', '902010/33'],
         model: 'AV2010/33',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Vibration sensor',
@@ -216,7 +217,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/34','902010/34'],
+        zigbeeModel: ['AV2010/34', '902010/34'],
         model: 'AV2010/34',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wall switch with 4 buttons',
@@ -229,7 +230,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['AV2010/37','902010/37'],
+        zigbeeModel: ['AV2010/37', '902010/37'],
         model: 'AV2010/37',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Water detector with siren',
