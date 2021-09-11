@@ -1,7 +1,6 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
@@ -9,12 +8,8 @@ module.exports = [
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
-        description: 'Single LED Relay',
-        exposes: [
-            e.switch(),
-        ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        description: 'Single LED relay',
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
@@ -25,12 +20,9 @@ module.exports = [
         zigbeeModel: ['SIN-4-2-20'],
         model: 'SIN-4-2-20',
         vendor: 'NodOn',
-        description: 'Double LED Relay',
-        exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-        ],
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
+        description: 'Double LED relay',
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        extend: extend.switch(),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
