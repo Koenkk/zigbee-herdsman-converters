@@ -40,15 +40,6 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
-        model: 'TS0207',
-        vendor: 'CR Smart Home',
-        description: 'Water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-    },
-    {
         zigbeeModel: ['TS0218'],
         model: 'TS0218',
         vendor: 'CR Smart Home',
