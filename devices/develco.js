@@ -177,14 +177,14 @@ module.exports = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
