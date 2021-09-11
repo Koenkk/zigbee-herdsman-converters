@@ -917,7 +917,7 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.device_temperature().withValueMin(-60)],
+        exposes: [e.switch(), e.power(), e.energy(), e.device_temperature().withValueMin(-60).withDescription('Device temperature (polled every 30 min.)')],
         ota: ota.zigbeeOTA,
     },
     {
