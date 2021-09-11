@@ -902,7 +902,7 @@ module.exports = [
             }
 
             // This device doesn't support temperature reporting.
-            // Therefore we read the on/off state every 60 seconds.
+            // Therefore we read the temperature every 30 min.
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
                 globalStore.clearValue(device, 'interval');
@@ -913,7 +913,7 @@ module.exports = [
                     } catch (error) {
                         // Do nothing
                     }
-                }, 60000);
+                }, 1800000);
                 globalStore.putValue(device, 'interval', interval);
             }
         },
