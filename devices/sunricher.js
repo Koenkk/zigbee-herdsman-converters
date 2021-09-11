@@ -35,7 +35,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off',
             'brightness_move_up', 'brightness_move_down', 'brightness_move_stop', 'brightness_step_up', 'brightness_step_down',
-            'recall_*'])],
+            'recall_1','recall_2'])],
     },
     {
         zigbeeModel: ['ZGRC-KEY-013'],
