@@ -1516,7 +1516,7 @@ const converters = {
             case tuya.dataPoints.state:
                     return {state: value ? 'ON': 'OFF'};
             case tuya.dataPoints.ikuuDimmerLevel: 
-                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
             // to do: 
             // case tuya.dataPoints.ikuuMinBrightness:
             //      return {min_brightness};
