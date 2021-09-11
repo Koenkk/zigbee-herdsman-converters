@@ -14,7 +14,7 @@ module.exports = [
         model: 'HLU2909K',
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.temperature],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

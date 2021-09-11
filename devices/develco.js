@@ -145,7 +145,7 @@ module.exports = [
             fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
@@ -176,7 +176,7 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.develco_fw, fz.ias_enroll, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
@@ -359,7 +359,7 @@ module.exports = [
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.develco_fw, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(43);
