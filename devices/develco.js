@@ -166,7 +166,10 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren'),
+            exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
+                .withDescription('Indicates reason if any fault'),
+            exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
     },
     {
         zigbeeModel: ['HESZB-120'],
