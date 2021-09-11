@@ -6446,7 +6446,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('statusFlags')) {
                 const statusFlags = (msg.data.statusFlags & 1<<1) > 0;
-                result.fault = statusFlags;
+                result.fault = (msg.data['statusFlags']===1);
             }
             return result;
         },
