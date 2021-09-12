@@ -44,7 +44,7 @@ module.exports = [
         model: '4137',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee LED bulb 9,3W Matt E27 RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['CCT light'],
