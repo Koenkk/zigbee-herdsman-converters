@@ -1382,15 +1382,11 @@ const converters = {
             await entity.write('hvacThermostat', {'elkoSensor': {'air': '0', 'floor': '1', 'supervisor_floor': '3'}[value]});
             return {state: {sensor: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoSensor']);
-        },
     },
     elko_regulator_time: {
         key: ['regulator_time'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {'elkoRegulatorTime': value});
-            // await entity.write('hvacThermostat', {'elkoRegulatorTime': {2: '2', 5: '5', 10: '10', 15: '15', 20: '20'}[value]});
             return {state: {sensor: value}};
         },
         convertGet: async (entity, key, meta) => {

@@ -43,7 +43,7 @@ module.exports = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration()
                 .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-                .withSensor(['air', 'floor', 'supervisor_floor'], ea.ALL),
+                .withSensor(['air', 'floor', 'supervisor_floor']),
             exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
             exposes.numeric('max_floor_temp', ea.ALL).withUnit('°C')
