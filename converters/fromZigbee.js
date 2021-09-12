@@ -1506,25 +1506,6 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
-    ikuu_dimmer: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp; 
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data); 
-            switch (dp) {
-            case tuya.dataPoints.state:
-                    return {state: value ? 'ON': 'OFF'};
-            case tuya.dataPoints.ikuuDimmerLevel: 
-                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
-            // to do: 
-            // case tuya.dataPoints.ikuuMinBrightness:
-            //      return {min_brightness};
-            // case tuya.dataPoints.ikuuCountDown:
-            //      return  {seconds};
-            }
-        }
-       },
     elko_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -3669,9 +3650,14 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             if (msg.data.dp === tuya.dataPoints.state) {
                 return {state: value ? 'ON': 'OFF'};
+            } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
+                if (msg.data.dp === 2) {
+                        return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                }
             } else { // TODO: Unknown dp, assumed value type
-                return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
-            }
+                        return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                    }
         },
     },
     tuya_data_point_dump: {
