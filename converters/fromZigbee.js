@@ -3650,6 +3650,11 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             if (msg.data.dp === tuya.dataPoints.state) {
                 return {state: value ? 'ON': 'OFF'};
+            } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
+                if (msg.data.dp === 2) {
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
+                }
             } else { // TODO: Unknown dp, assumed value type
                 return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
             }
