@@ -231,7 +231,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
             {vendor: 'Mercator ikuü', model: 'SSWD01'},
-            ],
+        ],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
