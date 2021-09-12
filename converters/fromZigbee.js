@@ -3656,8 +3656,8 @@ const converters = {
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
             } else { // TODO: Unknown dp, assumed value type
-                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
-                }
+                return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+            }
         },
     },
     tuya_data_point_dump: {
