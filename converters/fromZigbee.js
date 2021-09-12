@@ -6435,6 +6435,21 @@ const converters = {
             return result;
         },
     },
+    develco_genbinaryinput: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('reliability')) {
+                const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
+                result.reliability = lookup[msg.data['reliability']];
+            }
+            if (msg.data.hasOwnProperty('statusFlags')) {
+                result.fault = (msg.data['statusFlags']===1);
+            }
+            return result;
+        },
+    },
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
