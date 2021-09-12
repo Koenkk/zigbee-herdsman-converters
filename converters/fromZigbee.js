@@ -1513,44 +1513,56 @@ const converters = {
             const result = {};
             const data = msg.data;
 
-            if (data.hasOwnProperty(0x0402)) {
+            if (data.hasOwnProperty(0x0402)) { // Display text
                 result.display_text = data[0x0402];
             }
 
-            if (data.hasOwnProperty(0x0403)) {
+            if (data.hasOwnProperty(0x0403)) { // Sensor
                 const sensorModeLookup = {'0': 'air', '1': 'floor', '3': 'supervisor_floor'};
-                result.sensor_mode = sensorModeLookup[data[0x0403]];
+                result.sensor = sensorModeLookup[data[0x0403]];
             }
 
-            if (data.hasOwnProperty(0x0406)) {
+            if (data.hasOwnProperty(0x0404)) { // Regulator time
+                result.regulator_time = data[0x0404];
+            }
+
+            if (data.hasOwnProperty(0x0405)) { // Regulator mode
+                result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
+            }
+
+            if (data.hasOwnProperty(0x0406)) { // Power status
                 result.system_mode = data[0x0406] ? 'heat' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0408)) {
+            if (data.hasOwnProperty(0x0408)) { // Mean power
                 result.mean_power = data[0x0408];
             }
 
-            if (data.hasOwnProperty(0x0409)) {
+            if (data.hasOwnProperty(0x0409)) { // External temp (floor)
                 result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
             }
 
-            if (data.hasOwnProperty(0x0412)) {
+            if (data.hasOwnProperty(0x0411)) { // Night switching
+                result.night_switching = data[0x0411] ? 'on' : 'off';
+            }
+
+            if (data.hasOwnProperty(0x0412)) { // Frost guard
                 result.frost_guard = data[0x0412] ? 'on' : 'off';
             }
 
-            if (data.hasOwnProperty(0x0413)) {
+            if (data.hasOwnProperty(0x0413)) { // Child lock
                 result.child_lock = data[0x0413] ? 'lock' : 'unlock';
             }
 
-            if (data.hasOwnProperty(0x0414)) {
+            if (data.hasOwnProperty(0x0414)) { // Max floor temp
                 result.max_floor_temp = data[0x0414];
             }
 
-            if (data.hasOwnProperty(0x0415)) {
+            if (data.hasOwnProperty(0x0415)) { // Relay state
                 result.running_state = data[0x0415] ? 'heat' : 'idle';
             }
 
-            if (data.hasOwnProperty(0x0417)) {
+            if (data.hasOwnProperty(0x0417)) { // Calibration
                 result.local_temperature_calibration = precisionRound(data[0x0417], 2) / 10;
             }
 
