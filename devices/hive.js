@@ -170,8 +170,8 @@ module.exports = [
             exposes.binary('thermostat_vertical_orientation', ea.ALL, true, false)
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
                     '`false` Horizontal or `true` Vertical'),
-            exposes.numeric('viewing_direction', ea.ALL).withValueMin(0).withValueMax(1)
-                .withDescription('Viewing/Display Direction. `0` Horizontal or `1` Vertical'),
+            exposes.binary('viewing_direction', ea.ALL, true, false)
+                .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
@@ -180,7 +180,7 @@ module.exports = [
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes at every 100 ' +
-                    'value change. Resets every 3hours to standard (-8000=undefined).'),
+                    'value change. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -245,7 +245,7 @@ module.exports = [
                 'danfossExternalMeasuredRoomSensor',
             ], options);
 
-            // read systemMode to have an initaial value
+            // read systemMode to have an initial value
             await endpoint.read('hvacThermostat', ['systemMode']);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device

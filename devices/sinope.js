@@ -11,7 +11,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1123ZB'],
         model: 'TH1123ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
@@ -54,7 +54,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1124ZB'],
         model: 'TH1124ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
@@ -111,7 +111,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1300ZB'],
         model: 'TH1300ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.ignore_temperature_report,
             fz.legacy.sinope_thermostat_state, fz.sinope_TH1300ZB_specific],
@@ -154,7 +154,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1400ZB'],
         model: 'TH1400ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
         fromZigbee: [fz.legacy.sinope_thermostat_att_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
@@ -180,7 +180,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1500ZB'],
         model: 'TH1500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee dual pole line volt thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -206,7 +206,7 @@ module.exports = [
     {
         zigbeeModel: ['SW2500ZB'],
         model: 'SW2500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -218,7 +218,7 @@ module.exports = [
     {
         zigbeeModel: ['SP2600ZB'],
         model: 'SP2600ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
@@ -234,7 +234,7 @@ module.exports = [
     {
         zigbeeModel: ['DM2500ZB'],
         model: 'DM2500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness(), e.effect(), exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
@@ -254,7 +254,7 @@ module.exports = [
     {
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: '50A Smart electrical load controller',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
@@ -274,7 +274,7 @@ module.exports = [
     {
         zigbeeModel: ['WL4200'],
         model: 'WL4200',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
@@ -283,7 +283,7 @@ module.exports = [
     {
         zigbeeModel: ['WL4200S'],
         model: 'WL4200S',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],

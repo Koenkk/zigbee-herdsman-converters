@@ -99,4 +99,14 @@ module.exports = [
         description: 'Assure lock SL',
         extend: lockExtend,
     },
+    {
+        // Appears to be a slightly rebranded Assure lock SL
+        // Just with Lockwood | Assa Abloy branding instead of Yale
+        // Appears to have been part of a deal with Telstra, hence the T-Lock name
+        zigbeeModel: ['YDD-D4F0 TSDB'],
+        model: 'YDD-D4F0-TSDB',
+        vendor: 'Yale',
+        description: 'Lockwood T-Lock',
+        extend: lockExtend,
+    },
 ];

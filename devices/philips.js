@@ -1967,4 +1967,22 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000004.....$/}],
+        model: '8718696743133',
+        vendor: 'Philips',
+        description: 'Hue tap',
+        fromZigbee: [fz.hue_tap],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+    },
+    {
+        zigbeeModel: ['LCA005'],
+        model: '9290022266A',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance A19 800 lumen',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
