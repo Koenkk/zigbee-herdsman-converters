@@ -57,7 +57,7 @@ module.exports = [
                 device.powerSource = 'Mains (single phase)';
                 device.save();
             }
-		},
+        },
         exposes: [e.device_temperature(), e.switch(), e.power(), e.energy()],
     },
     {
