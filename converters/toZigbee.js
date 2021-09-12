@@ -4606,7 +4606,7 @@ const converters = {
                 }
                 return {membersState};
             } else {
-                if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+                if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
                     let recalledState = entity.meta.scenes[metaKey].state;
 
                     // add color_mode if saved state does not contain it
