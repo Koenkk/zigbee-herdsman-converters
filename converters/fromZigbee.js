@@ -3653,7 +3653,7 @@ const converters = {
             } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (msg.data.dp === 2) {
-                        return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                        return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
             } else { // TODO: Unknown dp, assumed value type
                         return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
