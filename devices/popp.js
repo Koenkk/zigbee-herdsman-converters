@@ -14,7 +14,7 @@ module.exports = [
         zigbeeModel: ['eT093WRO'],
         model: '701721',
         vendor: 'Popp',
-        description: 'Smart Thermostat',
+        description: 'Smart thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
