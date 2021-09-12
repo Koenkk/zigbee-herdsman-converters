@@ -54,8 +54,8 @@ module.exports = [
             await reporting.deviceTemperature(endpoint);
             // some firmware is not defined powersource
             if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
+              device.powerSource = 'Mains (single phase)';
+              device.save();
             }
 		},
         exposes: [e.device_temperature(), e.switch(), e.power(), e.energy()],
@@ -188,8 +188,8 @@ module.exports = [
             await reporting.onOff(endpoint);
             // some firmware is not defined powersource
             if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
+              device.powerSource = 'Mains (single phase)';
+              device.save();
             }
         },
     },
@@ -211,8 +211,8 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(2));
             // some firmware is not defined powersource
             if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
+              device.powerSource = 'Mains (single phase)';
+              device.save();
             }
         },
     },
@@ -236,8 +236,8 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(3));
             // some firmware is not defined powersource
             if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
+              device.powerSource = 'Mains (single phase)';
+              device.save();
             }
         },
     },
