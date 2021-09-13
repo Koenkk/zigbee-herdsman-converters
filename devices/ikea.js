@@ -606,5 +606,4 @@ module.exports = [
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
-
 ];
