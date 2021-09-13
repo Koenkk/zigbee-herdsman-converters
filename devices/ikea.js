@@ -600,7 +600,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb GU10 WS 345lm'],
+        zigbeeModel: ['TTRADFRIbulbGU10WS345lm'],
         model: 'LED2005R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
