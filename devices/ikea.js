@@ -599,4 +599,11 @@ module.exports = [
         description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['TTRADFRIbulbGU10WS345lm'],
+        model: 'LED2005R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
 ];
