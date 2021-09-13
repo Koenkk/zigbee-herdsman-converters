@@ -180,7 +180,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_PWS'],
         model: 'EFEKTA_PWS',
         vendor: 'Custom devices (DiY)',
-        description: '[Plant Wattering Sensor]',
+        description: '[Plant Wattering Sensor](https://github.com/smartboxchannel/Plant-Watering-Sensor-Zigbee)',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
         meta: {disableDefaultResponse: true},
