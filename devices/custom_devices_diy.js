@@ -183,7 +183,6 @@ module.exports = [
         description: '[Plant Wattering Sensor](https://github.com/smartboxchannel/Plant-Watering-Sensor-Zigbee)',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
-        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
