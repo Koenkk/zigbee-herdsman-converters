@@ -1172,7 +1172,6 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
-        zigbeeModel: ['DoorBell-EM', 'TS0211'],
         fingerprint: [{modelID: 'DoorBell-EM', manufacturerName: 'HEIMAN'},
             {modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HS2DB',
