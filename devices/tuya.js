@@ -1171,28 +1171,4 @@ module.exports = [
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
     },
-    {
-        zigbeeModel: ['TS0211'],
-        model: 'HS2DB',
-        vendor: 'Heiman',
-        description: 'Smart doorbell button',
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
-        toZigbee: [],
-        whiteLabel: [{vendor: 'Lidl', model: 'HG06668'}],
-        zigbeeModel: ['TS0211'],
-        fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
-        model: 'HS2DB',
-        vendor: 'TuYa',
-        description: 'Smart doorbell button',
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
-        toZigbee: [],
-        whiteLabel: [{vendor: 'HEIMAN', model: 'HS2DB'},
-            {vendor: 'Lidl', model: 'HG06668'}],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
-    },
 ];
