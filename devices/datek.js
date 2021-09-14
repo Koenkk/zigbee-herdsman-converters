@@ -14,7 +14,7 @@ module.exports = [
         model: 'HLU2909K',
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.temperature],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -174,7 +174,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.water_leak(), e.tamper()],
     },
     {
-        zigbeeModel: ['Scene Selector'],
+        zigbeeModel: ['Scene Selector', 'SSDS'],
         model: 'HBR2917E',
         vendor: 'Datek',
         description: 'Eva scene selector',

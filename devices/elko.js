@@ -29,15 +29,21 @@ module.exports = [
         fromZigbee: [fz.elko_thermostat, fz.thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_heating_setpoint,
             tz.elko_display_text, tz.elko_power_status, tz.elko_external_temp, tz.elko_mean_power, tz.elko_child_lock, tz.elko_frost_guard,
-            tz.elko_relay_state, tz.elko_sensor_mode, tz.elko_local_temperature_calibration, tz.elko_max_floor_temp],
+            tz.elko_relay_state, tz.elko_sensor_mode, tz.elko_local_temperature_calibration, tz.elko_max_floor_temp,
+            tz.elko_regulator_mode, tz.elko_regulator_time, tz.elko_night_switching],
         exposes: [exposes.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
+            exposes.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
+                .withDescription('Device in regulator or thermostat mode.'),
+            exposes.numeric('regulator_time', ea.ALL).withUnit('min')
+                .withValueMin(5).withValueMax(20).withDescription('When device is in regulator mode this controls the time between each ' +
+                'in/out connection. When device is in thermostat mode this controls the  time between each in/out switch when measured ' +
+                'temperature is within +-0.5 °C set temperature. Choose a long time for (slow) concrete floors and a short time for ' +
+                '(quick) wooden floors.'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 50, 1)
-                .withLocalTemperature(ea.STATE).withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-                .withLocalTemperatureCalibration(),
-            exposes.enum('sensor_mode', ea.ALL, ['air', 'floor', 'supervisor_floor'])
-                .withDescription('"air" = Thermostat uses air sensor.' +
-                  '"floor" = Thermostat uses floor sensor. ' +
-                  '"supervisor_floor" = Thermostat uses air sensor and with max temperatur from "max_floor_temp"'),
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withSensor(['air', 'floor', 'supervisor_floor']),
             exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
             exposes.numeric('max_floor_temp', ea.ALL).withUnit('°C')
@@ -51,6 +57,8 @@ module.exports = [
                 .withDescription('When frost guard is ON, it is activated when the thermostat is switched OFF with the ON/OFF button.' +
                 'At the same time, the display will fade and the text "Frostsikring x °C" appears in the display and remains until the ' +
                 'thermostat is switched on again.'),
+            exposes.binary('night_switching', ea.ALL, 'on', 'off')
+                .withDescription('Turn on or off night setting.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -68,7 +76,6 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
             }]);
-
             // Power consumption
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoMeanPower',
@@ -76,7 +83,6 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 5,
             }]);
-
             // External temp sensor (floor)
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoExternalTemp',
@@ -84,7 +90,6 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10,
             }]);
-
             // Child lock active/inactive
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoChildLock',
@@ -92,14 +97,20 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
             }]);
-
+            // Night switching
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'elkoNightSwitching',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }]);
+            // Frost guard
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoFrostGuard',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
             }]);
-
             // Heating active/inactive
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoRelayState',
@@ -107,7 +118,6 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
             }]);
-
             // Max floor temp
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'elkoMaxFloorTemp',
@@ -116,6 +126,20 @@ module.exports = [
                 reportableChange: 1,
             }]);
 
+            // Regulator mode
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'elkoRegulatorMode',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }]);
+            // Regulator time
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'elkoRegulatorTime',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }]);
             // Trigger read
             await endpoint.read('hvacThermostat', ['elkoDisplayText', 'elkoSensor']);
 

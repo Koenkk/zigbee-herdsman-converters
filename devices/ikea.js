@@ -99,9 +99,16 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 opal 470lm', 'TRADFRI bulb E27 W opal 470lm', 'TRADFRIbulbT120E27WSopal470lm'],
-        model: 'LED1937T5',
+        model: 'LED1937T5_E27',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 470 lumen, dimmable, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbT120E26WSopal450lm'],
+        model: 'LED1937T5_E26',
+        vendor: 'IKEA',
+        description: 'LED bulb E26 450 lumen, wireless dimmable white spectrum/tube-shaped white frosted glass',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -148,9 +155,16 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRIbulbE27WWclear250lm'],
-        model: 'LED1934G3',
+        model: 'LED1934G3_E27',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbE26WWclear250lm'],
+        model: 'LED1934G3_E26',
+        vendor: 'IKEA',
+        description: 'LED bulb E26 250 lumen, wireless dimmable warm white/globe clear',
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
@@ -584,5 +598,12 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['TTRADFRIbulbGU10WS345lm'],
+        model: 'LED2005R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];
