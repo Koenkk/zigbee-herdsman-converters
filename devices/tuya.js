@@ -1173,7 +1173,8 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0211'],
-        fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
+        fingerprint: [{modelID: 'TS0211', manufacturerName: 'HEIMAN'},
+            {modelID: 'DoorBell-EM', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HS2DB',
         vendor: 'TuYa',
         description: 'Smart doorbell button',
