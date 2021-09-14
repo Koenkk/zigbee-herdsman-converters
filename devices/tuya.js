@@ -1173,13 +1173,6 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0211'],
-        model: 'HS2DB',
-        vendor: 'Heiman',
-        description: 'Smart doorbell button',
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
-        toZigbee: [],
-        whiteLabel: [{vendor: 'Lidl', model: 'HG06668'}],
-        zigbeeModel: ['TS0211'],
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HS2DB',
         vendor: 'TuYa',
