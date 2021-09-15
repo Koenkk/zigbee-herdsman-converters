@@ -613,6 +613,6 @@ module.exports = [
         description: 'STARKVIND air purifier',
         exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
         fromZigbee: [fz.fan],
-        toZigbee: [tz.fan_mode]
+        toZigbee: [tz.fan_mode],
     }
 ];
