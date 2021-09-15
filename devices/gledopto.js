@@ -488,6 +488,14 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-FL-001P'],
+        model: 'GL-FL-001P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee 10W Floodlight RGB+CCT 12V Low Voltage (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+    },    
+    {
         zigbeeModel: ['GL-FL-005TZ'],
         model: 'GL-FL-005TZ',
         vendor: 'Gledopto',
