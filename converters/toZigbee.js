@@ -1149,7 +1149,7 @@ const converters = {
         },
     },
     thermostat_keypad_lockout: {
-        key: ['keypad_lockout', 'keypad_lockout_2'],
+        key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
             const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {keypadLockout});
