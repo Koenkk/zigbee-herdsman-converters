@@ -614,5 +614,5 @@ module.exports = [
         exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
         fromZigbee: [fz.fan],
         toZigbee: [tz.fan_mode],
-    }
+    },
 ];
