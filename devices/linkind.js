@@ -47,6 +47,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['ZBT-DIMLight-GLS0010'],
+        model: 'ZL100010008',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 9W 2700K A19 bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-D0120'],
         model: 'ZL1000701-27-EU-V1A02',
         vendor: 'Linkind',
@@ -65,9 +72,14 @@ module.exports = [
         model: 'ZS1100400-IN-V1A02',
         vendor: 'Linkind',
         description: 'PIR motion sensor, wireless motion detector',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['ZB-DoorSensor-D0003'],
@@ -127,6 +139,22 @@ module.exports = [
             if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
                 await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
             }
+        },
+    },
+    {
+        zigbeeModel: ['A001082'],
+        model: 'LS21001',
+        vendor: 'Linkind',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [tz.LS21001_alert_behaviour],
+        exposes: [e.water_leak(), e.battery_low(), e.battery(),
+            exposes.enum('alert_behaviour', ea.STATE_SET, ['siren_led', 'siren', 'led', 'nothing'])
+                .withDescription('Controls behaviour of led/siren on alarm')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];

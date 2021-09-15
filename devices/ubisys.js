@@ -147,7 +147,8 @@ module.exports = [
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
             fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, fz.ubisys_dimmer_setup],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup, tz.ubisys_device_setup,
+            tz.ignore_transition],
         exposes: [e.light_brightness().withLevelConfig(), e.power(),
             exposes.numeric('ballast_physical_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output the ballast can achieve.'),
@@ -207,7 +208,10 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
+            tz.ubisys_configure_j1, tz.ubisys_device_setup],
+        exposes: [e.cover_position_tilt(),
+            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -217,8 +221,23 @@ module.exports = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
+        endpoint: (device) => {
+            return {'default': 1, 'meter': 3};
+        },
+        onEvent: async (type, data, device) => {
+            /*
+             * As per technical doc page 21 section 7.3.4
+             * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
+             *
+             * We use addBinding to 'record' this default binding.
+             */
+            if (type === 'deviceInterview') {
+                const ep1 = device.getEndpoint(1);
+                const ep2 = device.getEndpoint(2);
+                ep2.addBinding('closuresWindowCovering', ep1);
+            }
+        },
         ota: ota.ubisys,
-        exposes: [e.cover_position_tilt(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['C4 (5504)'],

@@ -62,6 +62,13 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['GL-SD-001'],
+        model: 'GL-SD-001',
+        vendor: 'Gledopto',
+        description: 'Zigbee triac AC dimmer',
+        extend: gledoptoExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['GL-C-006'],
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GLEDOPTO', endpoints: [
@@ -142,7 +149,7 @@ module.exports = [
         model: 'GL-C-007S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-C-007P'],

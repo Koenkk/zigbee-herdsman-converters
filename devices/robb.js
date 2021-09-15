@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -128,5 +129,23 @@ module.exports = [
         exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
+    },
+    {
+        zigbeeModel: ['ROB_200-017-0'],
+        model: 'ROB_200-017-0',
+        vendor: 'ROBB',
+        description: 'Zigbee smart plug',
+        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
     },
 ];

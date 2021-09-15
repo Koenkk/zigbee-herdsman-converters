@@ -31,7 +31,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HG06668',
         vendor: 'Lidl',
-        description: 'Silvercrest smart wireless door bell',
+        description: 'Silvercrest smart wireless door bell button',
         fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -228,5 +228,21 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {},
         exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1)
             .withUnit('min').withDescription('Auto off after specific time.')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_j2w1dw29'}],
+        model: 'HG06463A',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 ST64 filament bulb',
+        extend: extend.light_onoff_brightness({disableEffect: true}),
+        meta: {turnsOffAtBrightness1: false},
+    },
+    {
+        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'}],
+        model: 'HG06462A',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 A60 filament bulb',
+        extend: extend.light_onoff_brightness({disableEffect: true}),
+        meta: {turnsOffAtBrightness1: false},
     },
 ];

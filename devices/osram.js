@@ -142,7 +142,7 @@ module.exports = [
         model: 'AB32840',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic B40 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [150, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -190,6 +190,13 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['LIGHTIFY PAR38 ON/OFF/DIM'],
+        model: '73889',
+        vendor: 'OSRAM',
+        description: 'Smart home soft white PAR38 outdoor bulb',
+        extend: extend.ledvance.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['Plug Z3'],
@@ -288,7 +295,7 @@ module.exports = [
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -296,7 +303,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.occupancy()],
     },
     {
         zigbeeModel: ['MR16 TW OSRAM'],
@@ -308,7 +315,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini blue'],
-        model: 'AC0251100NJ/AC0251700NJ',
+        model: 'AC0251100NJ/AC0251600NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [fz.legacy.osram_lightify_switch_cmdOn, fz.legacy.osram_lightify_switch_cmdMoveWithOnOff,

@@ -8,10 +8,27 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['E13-N11'],
+        model: 'E13-N11',
+        vendor: 'Sengled',
+        description: 'Flood light with motion sensor light outdoor',
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.ias_occupancy_alarm_1]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
+        exposes: [e.occupancy(), e.light_brightness()],
+    },
+    {
+        zigbeeModel: ['E21-N13A'],
+        model: 'E21-N13A',
+        vendor: 'Sengled',
+        description: 'Smart LED (A19)',
+        extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['E21-N1EA'],
         model: 'E21-N1EA',
         vendor: 'Sengled',
-        description: 'Sengled smart LED multicolor A19 bulb',
+        description: 'Smart LED multicolor A19 bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
     },
     {
@@ -43,8 +60,13 @@ module.exports = [
         model: 'E11-G13',
         vendor: 'Sengled',
         description: 'Element classic (A19)',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
@@ -91,8 +113,13 @@ module.exports = [
         model: 'E11-N1EA',
         vendor: 'Sengled',
         description: 'Element plus color (A19)',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['E11-U2E'],
