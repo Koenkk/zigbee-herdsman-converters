@@ -199,7 +199,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_THP_LR'],
         model: 'EFEKTA_THP_LR',
         vendor: 'Custom devices (DiY)',
-        description: '[DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure.]',
+        description: 'DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
         toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
