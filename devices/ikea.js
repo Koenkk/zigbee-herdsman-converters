@@ -606,6 +606,11 @@ module.exports = [
         description: 'STARKVIND Air purifier',
         exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
         fromZigbee: [fz.fan],
-        toZigbee: [tz.fan_mode]
+        toZigbee: [tz.fan_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
+        },
     }
 ];
