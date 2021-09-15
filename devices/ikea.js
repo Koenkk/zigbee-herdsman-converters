@@ -599,4 +599,13 @@ module.exports = [
         description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['STARKVIND Air purifier'],
+        model: 'E2007',
+        vendor: 'IKEA',
+        description: 'STARKVIND Air purifier',
+        exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
+        fromZigbee: [fz.fan],
+        toZigbee: [tz.fan_mode]
+    }
 ];
