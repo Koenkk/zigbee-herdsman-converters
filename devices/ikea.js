@@ -619,5 +619,5 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);
         },
-    }
+    },
 ];
