@@ -211,7 +211,7 @@ module.exports = [
             await reporting.temperature(endpoint, overides);
             await reporting.humidity(endpoint, overides);
             await reporting.pressureExtended(endpoint, overides);
-			await endpoint.read('msPressureMeasurement', ['scale']);
+            await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(),],
     },
