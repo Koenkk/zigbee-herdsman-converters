@@ -611,7 +611,7 @@ module.exports = [
         model: 'E3007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
         fromZigbee: [fz.fan],
         toZigbee: [tz.fan_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
