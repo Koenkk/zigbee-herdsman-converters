@@ -142,18 +142,19 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
@@ -165,7 +166,10 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren'),
+            exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
+                .withDescription('Indicates reason if any fault'),
+            exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
     },
     {
         zigbeeModel: ['HESZB-120'],
@@ -173,17 +177,18 @@ module.exports = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
@@ -195,7 +200,10 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren'),
+            exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
+                .withDescription('Indicates reason if any fault'),
+            exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
     },
     {
         zigbeeModel: ['MOSZB-130'],
@@ -355,7 +363,7 @@ module.exports = [
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.develco_fw, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(43);
