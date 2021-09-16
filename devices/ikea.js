@@ -606,4 +606,18 @@ module.exports = [
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['STARKVIND Air purifier'],
+        model: 'E3007',
+        vendor: 'IKEA',
+        description: 'STARKVIND air purifier',
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
+        fromZigbee: [fz.fan],
+        toZigbee: [tz.fan_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
+        },
+    },
 ];
