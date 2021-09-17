@@ -2230,6 +2230,13 @@ const converters = {
             return {contact: (msg.data['presentValue']==0)};
         },
     },
+    true_false_input: {
+        cluster: 'genBinaryInput',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            return {contact: (msg.data['presentValue']==0)};
+        },
+    },
     terncy_temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
