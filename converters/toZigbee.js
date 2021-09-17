@@ -5683,6 +5683,26 @@ const converters = {
             return {state: {color_power_on_behavior: value}};
         },
     },
+    centralite_thermostat_occupied_heating_setpoint: {
+        key: ['occupied_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedHeatingSetpoint = (Math.round((value * 10).toFixed(1)) / 10).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+        },
+    },
+    centralite_thermostat_occupied_cooling_setpoint: {
+        key: ['occupied_cooling_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const occupiedCoolingSetpoint = (Math.round((value * 10).toFixed(1)) / 10).toFixed(1) * 100;
+            await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedCoolingSetpoint']);
+        },
+    },
 
     // #endregion
 
