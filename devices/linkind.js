@@ -5,7 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
-const globalStore = require('../lib/store')
+const globalStore = require('../lib/store');
 
 module.exports = [
     {
@@ -14,14 +14,15 @@ module.exports = [
         vendor: 'Linkind',
         description: 'Security keypad battery',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout, fz.ias_smoke_alarm_1, fz.command_panic], 
-		exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(),
+        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout,
+		     fz.ias_smoke_alarm_1, fz.command_panic],
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(),
             exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
             exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
             exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
             e.action([
                 'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
-        toZigbee: [tz.arm_mode], 
+        toZigbee: [tz.arm_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genBasic', 'genIdentify'];
