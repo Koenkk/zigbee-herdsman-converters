@@ -15,7 +15,7 @@ module.exports = [
         description: 'Security keypad battery',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout,
-		     fz.ias_smoke_alarm_1, fz.command_panic],
+                     fz.ias_smoke_alarm_1, fz.command_panic],
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(),
             exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
             exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
