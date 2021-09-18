@@ -340,7 +340,7 @@ module.exports = [
             fz.ikea_arrow_release],
         exposes: [e.battery(), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release', 'arrow_right_click',
             'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold', 'brightness_down_release',
-            'brightness_up_click', 'brightness_up_hold', 'brightness_up_release'])],
+            'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
