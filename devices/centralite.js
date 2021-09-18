@@ -146,14 +146,15 @@ module.exports = [
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat,',
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
+        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.centralite_thermostat_occupied_heating_setpoint, tz.centralite_thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool']).withFanMode(['auto', 'on'])
-            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration().withPiHeatingDemand()],
+            .withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
+            .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
+            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration()],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
