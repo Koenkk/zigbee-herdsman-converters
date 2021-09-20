@@ -10,14 +10,15 @@ module.exports = [
         model: 'BE468',
         vendor: 'Schlage',
         description: 'Connect smart deadbolt',
-        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
-        toZigbee: [tz.lock],
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery, fz.lock_pin_code_response, fz.lock_programming_event],
+        toZigbee: [tz.lock, tz.pincode_lock],
+        meta: {pinCodeCount: 30},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.pincode()],
     },
 ];

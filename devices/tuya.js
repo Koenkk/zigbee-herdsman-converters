@@ -104,6 +104,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_5snkkrxw'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_12sxjap4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_589kq4ul'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'}],
         model: 'TS0505B',
         vendor: 'TuYa',
@@ -131,7 +132,8 @@ module.exports = [
         meta: {applyRedFix: true},
     },
     {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'}],
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'}],
         model: 'TS0501B',
         description: 'Zigbee light',
         vendor: 'TuYa',
@@ -162,6 +164,22 @@ module.exports = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
+    },
+    {
+        zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
+        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_upgcbody'}],
+        model: 'TS0207_water_leak_detector',
+        vendor: 'TuYa',
+        description: 'Water leak detector',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0207'}],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TYZB01_ijihzffk'}],
@@ -195,8 +213,8 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ebwgzdqq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9i9dt8is'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -213,7 +231,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator ikuü', model: 'SISWD01'},
+            {vendor: 'Mercator ikuü', model: 'SSWD01'},
         ],
     },
     {
@@ -864,14 +882,20 @@ module.exports = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
         zigbeeModel: ['TS0011'],
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
-            {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'}],
+        whiteLabel: [
+            {vendor: 'Vrey', model: 'VR-X712U-0013'},
+            {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
+            {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
+            {vendor: 'Mercator ikuü', model: 'SSW01'},
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = 'Mains (single phase)';
             device.save();

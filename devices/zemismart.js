@@ -46,6 +46,7 @@ module.exports = [
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
+        whiteLabel: [{vendor: 'BSEED', model: 'TS0003', description: 'Zigbee switch'}],
         meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
