@@ -109,7 +109,6 @@ module.exports = [
         description: 'Lockwood T-Lock',
         extend: lockExtend,
     },
-
     {
         zigbeeModel: ['c700000202'],
         model: 'YDF40',
@@ -117,5 +116,4 @@ module.exports = [
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: lockExtend,
     },
-
 ];
