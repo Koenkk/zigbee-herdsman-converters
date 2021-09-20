@@ -3272,7 +3272,7 @@ const converters = {
             case tuya.dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case tuya.dataPoints.moesValve:
-                return {heat: value ? 'OFF' : 'ON'};
+                return {heat: value ? 'OFF' : 'ON', running_state: (value ? 'idle' : (model.model === 'BAC-002-ALZB' ? 'cool' : 'heat'))};
             case tuya.dataPoints.moesSensor:
                 switch (value) {
                 case 0:
