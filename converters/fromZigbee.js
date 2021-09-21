@@ -2178,44 +2178,26 @@ const converters = {
         },
     },
     neo_nas_pd07: {
-                cluster: 'manuSpecificTuya',
-                type: ['commandSetDataResponse', 'commandGetData'],
-                convert: (model, msg, publish, options, meta) => {
-                const dp = msg.data.dp;
-
-                switch (dp) {
-
-                        case 101: {
-                                const pohyb = msg.data.data[0];
-                                if (pohyb > 0) {
-                                        return {occupancy: true};
-                                } else {
-                                        return {occupancy: false};
-                                }
-                        }
-
-                        case 102: {
-                                return {
-                                        power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
-                                        battery_low: value === 3,
-                                        };
-                        }
-
-                        case 104: {
-                                const temperature = parseFloat(msg.data.data[3]) / 10.0;
-                                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-                        }
-
-                        case 105: {
-                                return {humidity: calibrateAndPrecisionRoundOptions(msg.data.data[3], options, 'humidity')};
-                        }
-
-                        default: // Unknown code
-                                meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
-                }
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            if (dp === 101) return {occupancy: msg.data.data[0] > 0};
+            else if (dp === 102) {
+                return {
+                    power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                    battery_low: value === 3,
+                };
+            } else if (dp === 104) {
+                const temperature = parseFloat(msg.data.data[3]) / 10.0;
+                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            } else if (dp === 105) {
+                return {humidity: calibrateAndPrecisionRoundOptions(msg.data.data[3], options, 'humidity')};
+            } else {
+                meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
         },
-        },
-
+    },
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
