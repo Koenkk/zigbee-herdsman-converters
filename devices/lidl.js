@@ -246,12 +246,10 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
-        fingerprint: [
-            {modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'},
-        ],
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
         model: 'HG06619',
         vendor: 'Lidl',
-        description: 'Lidl Silvercrest Oudoor plug',
+        description: 'Silvercrest oudoor plug',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
