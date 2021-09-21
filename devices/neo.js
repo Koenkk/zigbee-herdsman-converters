@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
+const tuya = require("zigbee-herdsman-converters/lib/tuya");
 
 module.exports = [
     {
@@ -27,4 +28,18 @@ module.exports = [
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'},],
+        model: 'NAS-PD07',
+        vendor: 'Neo',
+        description: 'Motion, temperature & humidity sensor',
+        fromZigbee: [fz.neo_nas_pd07],
+        toZigbee: [],
+        onEvent: tuya.setTime, // Add this if you are getting no converter for 'commandSetTimeRequest'
+        exposes: [
+                e.occupancy(), e.humidity(), e.temperature(),
+                exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
+        ],
+    },
+
 ];
