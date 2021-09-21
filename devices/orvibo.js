@@ -283,4 +283,53 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        model: 'T40W1Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch - 1 gang',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['b11c438ea86f416b9026b2526b7abe84'], 
+        model: 'T40W2Z', 
+        vendor: 'ORVIBO', 
+        description: 'MixSwitch - 2 gang ', 
+        exposes: e.switch(),
+        exposes: [e.switch().withEndpoint('right'), e.switch().withEndpoint('left')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {    
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+                return {'right': 1,  'left': 2};
+            },
+    },
+    {
+        zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
+        model: 'T40W3Z', 
+        vendor: 'ORVIBO',
+        description: 'MixSwitch - 3 gang ',
+        exposes: [e.switch()],
+        exposes: [e.switch().withEndpoint('right'), e.switch().withEndpoint('center'), e.switch().withEndpoint('left')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {    
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            return {'right': 1, 'center': 2, 'left': 3};
+         },
+    },
 ];
