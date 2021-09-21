@@ -147,7 +147,7 @@ module.exports = [
         description: '3-Series pearl touch thermostat,',
         fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.fan, fz.ignore_time_read],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
-            tz.centralite_thermostat_occupied_heating_setpoint, tz.centralite_thermostat_occupied_cooling_setpoint,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
