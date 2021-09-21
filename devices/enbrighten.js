@@ -91,7 +91,7 @@ module.exports = [
     {
         zigbeeModel: ['43094'],
         model: '43094',
-        vendor: 'Jasco Products',
+        vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart switch ZB4102',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
