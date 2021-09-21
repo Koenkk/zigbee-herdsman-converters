@@ -272,4 +272,100 @@ module.exports = [
         },
         exposes: [e.cover_position(), e.battery()],
     },
+    {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        model: 'T30W1Z', 
+        vendor: 'ORVIBO', 
+        description: 'Smart light switch - 1 gang ', 
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        meta: {configureKey: 1},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+    zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'], 
+    model: 'T40W1Z', 
+    vendor: 'ORVIBO',
+    description: 'Smart light switch - 1 gang ', 
+    fromZigbee: [fz.on_off],
+    toZigbee: [tz.on_off],
+    exposes: [e.switch()],
+    meta: {configureKey: 1},
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        await reporting.onOff(endpoint);
+        },
+    },
+    {
+    zigbeeModel: ['b11c438ea86f416b9026b2526b7abe84'], 
+    model: 'T40W2Z', 
+    vendor: 'ORVIBO', 
+    description: 'Smart light switch - 2 gang ', 
+    fromZigbee: [fz.on_off],
+    toZigbee: [tz.on_off],
+    exposes: [e.switch()],
+    exposes: [e.switch().withEndpoint('right'), e.switch().withEndpoint('left')],
+    meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {    
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+        },
+      endpoint: (device) => {
+            return {'right': 1,  'left': 2};
+         },
+    },
+    {
+    zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
+    model: 'T40W3Z', 
+    vendor: 'ORVIBO',
+    description: 'Smart light switch - 3 gang ',
+    fromZigbee: [fz.on_off],
+    toZigbee: [tz.on_off],
+    exposes: [e.switch()],
+    exposes: [e.switch().withEndpoint('right'), e.switch().withEndpoint('center'), e.switch().withEndpoint('left')],
+    meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {    
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+      endpoint: (device) => {
+            return {'right': 1, 'center': 2, 'left': 3};
+         },
+    },
+    {
+    zigbeeModel: ['2b6cf37f879045a7bd0f90cce3b41255'],
+    model: 'DG10FB', 
+    vendor: 'ORVIBO', 
+    description: 'Smart light 15W', 
+    extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+    zigbeeModel: ['aad960b86b834def87693e13173d0928'], 
+    model: 'DL20Z', 
+    vendor: 'ORVIBO', 
+    description: 'LED Strip Driver', 
+    extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+    zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'], 
+    model: 'DS20Z07A', 
+    vendor: 'ORVIBO', 
+    description: 'Smart Down Light',
+    extend: extend.light_onoff_brightness_colortemp(),
+    },
+    
+        
+      
 ];
