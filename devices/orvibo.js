@@ -272,4 +272,15 @@ module.exports = [
         },
         exposes: [e.cover_position(), e.battery()],
     },
+    {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        model: 'T30W1Z',
+        vendor: 'ORVIBO',
+        description: 'Smart light switch - 1 gang',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
