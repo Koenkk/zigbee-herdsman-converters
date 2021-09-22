@@ -520,6 +520,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTA008'],
+        model: '9290022267A',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27 with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 434]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCP003'],
         model: '4090631P7',
         vendor: 'Philips',
@@ -1065,10 +1074,9 @@ module.exports = [
         description: 'Hue white ambiance Aurelle square panel light',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3216131P6'],
+        zigbeeModel: ['3216131P6', 'LTC005'],
         model: '3216131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
@@ -1983,6 +1991,15 @@ module.exports = [
         description: 'Hue White and color ambiance A19 800 lumen',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWE003'],
+        model: '9290020400',
+        vendor: 'Philips',
+        description: 'Hue White E17 470 lumen',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
 ];

@@ -2177,6 +2177,30 @@ const converters = {
             return result;
         },
     },
+    neo_nas_pd07: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            if (dp === 101) return {occupancy: msg.data.data[0] > 0};
+            else if (dp === 102) {
+                const value = msg.data.data[0];
+                return {
+                    power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                    battery_low: value === 3,
+                };
+            } else if (dp === 103) {
+                return {tamper: msg.data.data[0] > 0 ? true : false};
+            } else if (dp === 104) {
+                const temperature = parseFloat(msg.data.data[3]) / 10.0;
+                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            } else if (dp === 105) {
+                return {humidity: calibrateAndPrecisionRoundOptions(msg.data.data[3], options, 'humidity')};
+            } else {
+                meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
@@ -3272,7 +3296,7 @@ const converters = {
             case tuya.dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case tuya.dataPoints.moesValve:
-                return {heat: value ? 'OFF' : 'ON'};
+                return {heat: value ? 'OFF' : 'ON', running_state: (value ? 'idle' : (model.model === 'BAC-002-ALZB' ? 'cool' : 'heat'))};
             case tuya.dataPoints.moesSensor:
                 switch (value) {
                 case 0:

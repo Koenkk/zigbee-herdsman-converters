@@ -17,6 +17,7 @@ module.exports = [
         vendor: 'EcoDim',
         description: 'LED dimmer duo 2x 0-100W',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        meta: {multiEndpoint: true},
         exposes: [e.light_brightness().withEndpoint('left'), e.light_brightness().withEndpoint('right')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -28,7 +29,7 @@ module.exports = [
             }
         },
         endpoint: (device) => {
-            return {'left': 1, 'right': 2};
+            return {'left': 2, 'right': 1};
         },
     },
     {
