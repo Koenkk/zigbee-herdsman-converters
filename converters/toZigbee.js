@@ -28,13 +28,6 @@ const manufacturerOptions = {
     viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
-function normalizeCelsiusVersionOfFahrenheit(value) {
-    const fahrenheit = (value * 1.8) + 32;
-    const roundedFahrenheit = (Math.round((fahrenheit * 2).toFixed(1)) / 2).toFixed(1);
-    return ((roundedFahrenheit - 32)/1.8).toFixed(2);
-}
-
-
 const converters = {
     // #region Generic converters
     read: {
@@ -1242,7 +1235,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1258,7 +1251,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1274,7 +1267,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1290,7 +1283,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -5714,27 +5707,6 @@ const converters = {
             return {state: {color_power_on_behavior: value}};
         },
     },
-    centralite_thermostat_occupied_heating_setpoint: {
-        key: ['occupied_heating_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 10).toFixed(1)) / 10).toFixed(1) * 100;
-            await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
-        },
-    },
-    centralite_thermostat_occupied_cooling_setpoint: {
-        key: ['occupied_cooling_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            const occupiedCoolingSetpoint = (Math.round((value * 10).toFixed(1)) / 10).toFixed(1) * 100;
-            await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['occupiedCoolingSetpoint']);
-        },
-    },
-
     // #endregion
 
     // #region Ignore converters
