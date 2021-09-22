@@ -1040,14 +1040,6 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
         ota: ota.zigbeeOTA,
     },
-    {                                           
-        zigbeeModel: ['LTC005'],                      
-        model: '3216131P6',                                                         
-        vendor: 'Philips',
-        description: 'Hue ambiance ceiling',                
-        meta: {turnsOffAtBrightness1: true},                    
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
-    },  
     {
         zigbeeModel: ['LTC011'],
         model: '4096730U7',
@@ -1075,7 +1067,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['3216131P6'],
+        zigbeeModel: ['3216131P6', 'LTC005],
         model: '3216131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
