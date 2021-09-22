@@ -1067,7 +1067,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['3216131P6', 'LTC005],
+        zigbeeModel: ['3216131P6', 'LTC005'],
         model: '3216131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
