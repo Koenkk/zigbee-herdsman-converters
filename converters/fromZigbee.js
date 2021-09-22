@@ -2184,13 +2184,13 @@ const converters = {
             const dp = msg.data.dp;
             if (dp === 101) return {occupancy: msg.data.data[0] > 0};
             else if (dp === 102) {
-		const value = msg.data.data[0];
+                const value = msg.data.data[0];
                 return {
                     power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                     battery_low: value === 3,
                 };
             } else if (dp === 103) {
-		return {tamper: msg.data.data[0] > 0 ? true : false};
+                return {tamper: msg.data.data[0] > 0 ? true : false};
             } else if (dp === 104) {
                 const temperature = parseFloat(msg.data.data[3]) / 10.0;
                 return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
