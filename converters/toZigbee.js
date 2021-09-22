@@ -5707,6 +5707,7 @@ const converters = {
             return {state: {color_power_on_behavior: value}};
         },
     },
+
     // #endregion
 
     // #region Ignore converters
