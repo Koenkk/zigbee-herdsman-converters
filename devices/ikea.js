@@ -228,6 +228,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm'],
+        model: 'LED2002G5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 470 lumen, dimmable, white spectrum, clear',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['LEPTITER Recessed spot light'],
         model: 'T1820',
         vendor: 'IKEA',
