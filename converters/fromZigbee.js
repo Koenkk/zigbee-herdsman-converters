@@ -6521,6 +6521,23 @@ const converters = {
             };
         },
     },
+    aqara_knob_rotation: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(570)) {
+                const act = {1: 'start_rotation', 2: 'rotation', 3: 'stop_rotation'};
+                return {
+                    action: act[msg.data[570]],
+                    rotation_angle: msg.data[558],
+                    rotation_angle_speed: msg.data[560],
+                    rotation_percent: msg.data[563],
+                    rotation_percent_speed: msg.data[562],
+                    rotation_time: msg.data[561],
+                };
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

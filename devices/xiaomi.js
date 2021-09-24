@@ -1593,4 +1593,28 @@ module.exports = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
+    {
+        zigbeeModel: ['lumi.remote.rkba01'],
+        model: 'ZNXNKG02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Knob H1 (Wireless)',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.battery_voltage(), 
+            e.action(['single', 'double', 'hold', 'release', 'start_rotation', 'rotation', 'stop_rotation']), 
+            exposes.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
+            exposes.numeric('rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
+            exposes.numeric('rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
+            exposes.numeric('rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
+            exposes.numeric('rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
+            exposes.numeric('rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
+        ],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery, fz.aqara_opple_report, 
+            fz.aqara_knob_rotation],
+        toZigbee: [tz.aqara_opple_operation_mode],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
 ];
