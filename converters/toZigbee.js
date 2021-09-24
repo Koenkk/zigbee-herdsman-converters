@@ -1233,7 +1233,13 @@ const converters = {
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1243,7 +1249,13 @@ const converters = {
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1253,7 +1265,13 @@ const converters = {
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1263,7 +1281,13 @@ const converters = {
     thermostat_unoccupied_cooling_setpoint: {
         key: ['unoccupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1989,7 +2013,7 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2003,7 +2027,7 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');

@@ -674,7 +674,7 @@ module.exports = [
         model: 'HS2DB',
         vendor: 'HEIMAN',
         description: 'Smart doorbell button',
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
