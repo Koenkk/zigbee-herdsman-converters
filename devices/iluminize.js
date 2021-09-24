@@ -148,4 +148,15 @@ module.exports = [
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
     },
+    {
+        zigbeeModel: ['ZGRC-TEUR-002'],
+        model: '511.541',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer RGBW 1 zone',
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move_to_color, fz.command_move_to_color_temp,
+            fz.command_move_hue, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
+            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
 ];

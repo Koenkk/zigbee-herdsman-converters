@@ -60,19 +60,27 @@ const converters = {
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
-            const mode = utils.getKey(constants.armMode, value.mode, undefined, Number);
+            const isNotification = value.hasOwnProperty('transaction');
+            const modeSrc = isNotification ? constants.armNotification : constants.armMode;
+            const mode = utils.getKey(modeSrc, value.mode, undefined, Number);
             if (mode === undefined) {
-                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(constants.armMode)}`);
+                throw new Error(`Unsupported mode: '${value.mode}', should be one of: ${Object.values(modeSrc)}`);
             }
 
-            if (value.hasOwnProperty('transaction')) {
+            if (isNotification) {
                 entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+
+                // Do not update PanelStatus after confirming transaction.
+                // Instead the server should send an arm_mode command with the necessary state.
+                // e.g. exit_delay as a result of arm_all_zones
+                return;
             }
 
             let panelStatus = mode;
             if (meta.mapped.model === '3400-D') {
                 panelStatus = mode !== 0 && mode !== 4 ? 0x80 : 0x00;
             }
+
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
@@ -318,7 +326,7 @@ const converters = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
-            if (['SIRZB-110', 'SRAC-23B-ZBSR'].includes(meta.mapped.model)) {
+            if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A'].includes(meta.mapped.model)) {
                 info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
             } else {
                 info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
@@ -1225,7 +1233,13 @@ const converters = {
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1235,7 +1249,13 @@ const converters = {
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1245,7 +1265,13 @@ const converters = {
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1255,7 +1281,13 @@ const converters = {
     thermostat_unoccupied_cooling_setpoint: {
         key: ['unoccupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1296,6 +1328,127 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_display_text: {
+        key: ['display_text'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoDisplayText': value});
+                return {state: {display_text: value}};
+            } else {
+                throw new Error('Length of text is greater than 14');
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoDisplayText']);
+        },
+    },
+    elko_power_status: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoPowerStatus': value === 'heat'});
+            return {state: {system_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoPowerStatus']);
+        },
+    },
+    elko_external_temp: {
+        key: ['floor_temp'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoExternalTemp']);
+        },
+    },
+    elko_mean_power: {
+        key: ['mean_power'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMeanPower']);
+        },
+    },
+    elko_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoChildLock': value === 'lock'});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoChildLock']);
+        },
+    },
+    elko_frost_guard: {
+        key: ['frost_guard'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoFrostGuard': value === 'on'});
+            return {state: {frost_guard: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoFrostGuard']);
+        },
+    },
+    elko_night_switching: {
+        key: ['night_switching'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoNightSwitching': value === 'on'});
+            return {state: {night_switching: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoNightSwitching']);
+        },
+    },
+    elko_relay_state: {
+        key: ['running_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRelayState']);
+        },
+    },
+    elko_sensor_mode: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoSensor': {'air': '0', 'floor': '1', 'supervisor_floor': '3'}[value]});
+            return {state: {sensor: value}};
+        },
+    },
+    elko_regulator_time: {
+        key: ['regulator_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoRegulatorTime': value});
+            return {state: {sensor: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRegulatorTime']);
+        },
+    },
+    elko_regulator_mode: {
+        key: ['regulator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoRegulatorMode': value === 'regulator'});
+            return {state: {regulator_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRegulatorMode']);
+        },
+    },
+    elko_local_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoCalibration': Math.round(value * 10)});
+            return {state: {local_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoCalibration']);
+        },
+    },
+    elko_max_floor_temp: {
+        key: ['max_floor_temp'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.length <= 14) {
+                await entity.write('hvacThermostat', {'elkoMaxFloorTemp': value});
+                return {state: {max_floor_temp: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoMaxFloorTemp']);
+        },
+    },
     livolo_socket_switch_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
@@ -1724,6 +1877,15 @@ const converters = {
             await entity.command('closuresDoorLock', lookup[value], {'pincodevalue': ''});
         },
     },
+    LS21001_alert_behaviour: {
+        key: ['alert_behaviour'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'siren_led': 3, 'siren': 2, 'led': 1, 'nothing': 0};
+            await entity.write('genBasic', {0x400a: {value: lookup[value], type: 32}},
+                {manufacturerCode: 0x1168, disableDefaultResponse: true, sendWhenActive: true});
+            return {state: {alert_behaviour: value}};
+        },
+    },
     xiaomi_switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -1851,7 +2013,7 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1865,7 +2027,7 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -4495,7 +4657,7 @@ const converters = {
                 }
                 return {membersState};
             } else {
-                if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+                if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
                     let recalledState = entity.meta.scenes[metaKey].state;
 
                     // add color_mode if saved state does not contain it
@@ -5029,6 +5191,17 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['tuyaMotorReversal']);
+        },
+    },
+    moes_cover_calibration: {
+        key: ['calibration_time'],
+        convertSet: async (entity, key, value, meta) => {
+            const calibration = value *10;
+            await entity.write('closuresWindowCovering', {moesCalibrationTime: calibration});
+            return {state: {calibration_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
         },
     },
     tuya_backlight_mode: {

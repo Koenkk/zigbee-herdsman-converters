@@ -163,6 +163,7 @@ function fingerprintMatch(fingerprint, device) {
         (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
         (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
         (!fingerprint.zclVersion || device.zclVersion === fingerprint.zclVersion) &&
+        (!fingerprint.ieeeAddr || device.ieeeAddr.match(fingerprint.ieeeAddr)) &&
         (!fingerprint.endpoints ||
             arrayEquals(device.endpoints.map((e) => e.ID), fingerprint.endpoints.map((e) => e.ID)));
 

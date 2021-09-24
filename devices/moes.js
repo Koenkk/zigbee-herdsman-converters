@@ -99,8 +99,12 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
+        onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
@@ -112,6 +116,7 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
+        onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -134,6 +139,7 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
+        onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -243,5 +249,16 @@ module.exports = [
             exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
                 .withDescription('Power on behavior state'),
         ]),
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
+        model: 'MS-108ZR',
+        vendor: 'Moes',
+        description: 'Zigbee + RF curtain switch module',
+        supports: 'open, close, stop, position',
+        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
+        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
 ];

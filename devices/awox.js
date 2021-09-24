@@ -44,4 +44,16 @@ module.exports = [
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp(),
     },
+    {
+        fingerprint: [
+            {type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
+                {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [6, 25]},
+                {ID: 3, profileID: 49152, deviceID: 268, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+            ]},
+        ],
+        model: '33955',
+        vendor: 'Eglo',
+        description: 'LED light with color temperature',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
 ];

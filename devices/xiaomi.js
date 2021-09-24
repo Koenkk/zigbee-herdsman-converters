@@ -7,6 +7,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -543,14 +544,14 @@ module.exports = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
+        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         exposes: [
-            e.switch().withEndpoint('left'), e.power_outage_memory(), e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -560,7 +561,8 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.switch().withEndpoint('right'), e.action([
+            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.action([
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release']),
@@ -866,7 +868,7 @@ module.exports = [
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering,
-            fz.xiaomi_switch_opple_basic, fz.xiaomi_power],
+            fz.xiaomi_switch_opple_basic, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -885,7 +887,6 @@ module.exports = [
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
             }
-
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -895,7 +896,30 @@ module.exports = [
                 logger.debug(e.stack);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy()],
+        onEvent: async (type, data, device) => {
+            const switchEndpoint = device.getEndpoint(1);
+            if (switchEndpoint == null) {
+                return;
+            }
+
+            // This device doesn't support temperature reporting.
+            // Therefore we read the temperature every 30 min.
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const interval = setInterval(async () => {
+                    try {
+                        await switchEndpoint.read('genDeviceTempCfg', ['currentTemperature']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 1800000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+        exposes: [e.switch(), e.power(), e.energy(),
+            e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },
     {
