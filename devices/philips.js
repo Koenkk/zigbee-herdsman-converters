@@ -2007,7 +2007,7 @@ module.exports = [
         model: '1746630P7',
         vendor: 'Philips',
         description: 'Hue White and Colour Ambiance Amarant linear outdoor light',
-        meta: { turnsOffAtBrightness1: true },
+        meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({ colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
