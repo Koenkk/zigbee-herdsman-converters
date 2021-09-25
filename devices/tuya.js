@@ -1210,7 +1210,7 @@ module.exports = [
             exposes.enum('alarm_humidity', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
                 .withDescription('Alarm humidity status'),
             exposes.enum('alarm_temperature', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
-                .withDescription('Alarm temperature status')
+                .withDescription('Alarm temperature status'),
         ],
     },
 ];
