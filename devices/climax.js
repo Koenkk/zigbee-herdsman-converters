@@ -111,4 +111,15 @@ module.exports = [
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['KP-ACE_00.00.03.12TC'],
+        model: 'KP-23ZBS-ACE',
+        vendor: 'Climax Technology',
+        description: 'Zigbee Remote Keypad',
+        meta: {commandArmIncludeTransaction: true},
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1,
+            fz.command_arm, fz.command_panic, fz.command_emergency, fz.command_status_change_notification_action],
+        toZigbee: [tz.arm_mode],
+        exposes: [e.battery()],
+    },
 ];
