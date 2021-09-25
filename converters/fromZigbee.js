@@ -1705,8 +1705,8 @@ const converters = {
             if (msg.data.hasOwnProperty('alarm_temperature')) {
                 const sensorAlarmLookup = {'0': 'MIN_ALARM_ON', '1': 'MAX_ALARM_ON', '2': 'ALARM_OFF'};
                 result.alarm_temperature = sensorAlarmLookup[msg.data['alarm_temperature']];
-            }	
-			return result;
+            }
+            return result;
         },
 
     },

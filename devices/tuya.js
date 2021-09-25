@@ -1191,20 +1191,26 @@ module.exports = [
             fz.illuminance,
             fz.temperature,
             fz.humidity,
-            fz.ts0201_temperature_humidity_alarm
-		],
+            fz.ts0201_temperature_humidity_alarm,
+        ],
         toZigbee: [],
-		configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg']);
         },
         exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
-            exposes.numeric('alarm_temperature_max', ea.STATE).withUnit('°C').withDescription('Alarm temperature max'),
-			exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C').withDescription('Alarm temperature min'),
-            exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%').withDescription('Alarm huminity max'),
-            exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%').withDescription('Alarm huminity min'),
-            exposes.enum('alarm_humidity', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF']).withDescription('Alarm humidity status'),
-            exposes.enum('alarm_temperature', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF']).withDescription('Alarm temperature status')
+            exposes.numeric('alarm_temperature_max', ea.STATE).withUnit('°C')
+                .withDescription('Alarm temperature max'),
+            exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C')
+                .withDescription('Alarm temperature min'),
+            exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%')
+                .withDescription('Alarm huminity max'),
+            exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%')
+                .withDescription('Alarm huminity min'),
+            exposes.enum('alarm_humidity', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+                .withDescription('Alarm humidity status'),
+            exposes.enum('alarm_temperature', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+                .withDescription('Alarm temperature status')
         ],
     },
 ];
