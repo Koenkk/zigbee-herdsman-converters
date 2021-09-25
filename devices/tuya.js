@@ -398,6 +398,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Led strip controller',
         extend: extend.light_onoff_brightness_color(),
+        meta: {applyRedFix: true},
     },
     {
         zigbeeModel: ['TS0503A'],
