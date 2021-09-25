@@ -2493,10 +2493,11 @@ const converters = {
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
             const value = constants.easyCodeTouchActions[(msg.data[3] << 8) | msg.data[4]];
-            if (!value) {
-                throw new Error('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4]);
+            if (value) {
+                return {action: value};
+            } else {
+                meta.logger.log('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4]);
             }
-            return {action: value};
         },
     },
     livolo_switch_state_raw: {
