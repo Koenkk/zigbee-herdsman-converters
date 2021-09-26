@@ -6529,11 +6529,11 @@ const converters = {
                 const act = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
                 return {
                     action: act[msg.data[570]],
-                    rotation_angle: msg.data[558],
-                    rotation_angle_speed: msg.data[560],
-                    rotation_percent: msg.data[563],
-                    rotation_percent_speed: msg.data[562],
-                    rotation_time: msg.data[561],
+                    action_rotation_angle: msg.data[558],
+                    action_rotation_angle_speed: msg.data[560],
+                    action_rotation_percent: msg.data[563],
+                    action_rotation_percent_speed: msg.data[562],
+                    action_rotation_time: msg.data[561],
                 };
             }
         },
