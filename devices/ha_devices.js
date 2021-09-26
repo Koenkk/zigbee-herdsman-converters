@@ -1,16 +1,13 @@
 const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
-const ea = exposes.access;
 
-    
-module.exports = 
+module.exports =
 [
     {
-//all Level Controlable Output devices Id 0x0003
+    // all Level Controlable Output devices Id 0x0003
     zigbeeModel: ['ha_0x0003'], // The model ID.
     model: 'TriacDimmer', // Vendor model name
     vendor: 'Alink',
