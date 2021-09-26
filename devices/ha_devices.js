@@ -14,7 +14,7 @@ module.exports =
     zigbeeModel: ['ha_0x0003'], // The model ID.
     model: 'TriacDimmer', // Vendor model name
     vendor: 'Alink',
-    description: 'Dimmable Light Controller', 
+    description: 'Dimmable Light Controller',
     extend: extend.light_onoff_brightness({noConfigure: true}),
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
@@ -43,7 +43,7 @@ module.exports =
     {
     zigbeeModel: ['reedSwitch'], // The model ID.
     model: 'ReedContactSwitch', // Vendor model name
-    vendor: 'Alink', 
+    vendor: 'Alink',
     description: 'Magnetic reed contact for close/open detection',
     fromZigbee: [fz.true_false_input],
     toZigbee: [],
@@ -94,7 +94,7 @@ module.exports =
     description: 'Temperature Humidity and Pressure device',
     fromZigbee: [fz.temperature, fz.humidity, fz.pressure],
     toZigbee: [],
-    exposes: [e.temperature(), e.humidity(), e.pressure()],          
+    exposes: [e.temperature(), e.humidity(), e.pressure()],         
 //meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
@@ -111,14 +111,14 @@ module.exports =
             await reporting.bind(thirdEndpoint, coordinatorEndpoint, [
                 'msPressureMeasurement']);
             const overides3 = {min: 300, max: 60000, change: 10};
-            await reporting.pressure(thirdEndpoint, overides3);         
+            await reporting.pressure(thirdEndpoint, overides3);      
         },
     },
     
     {
     // Blind Controller, 4 level contolable output devices (4 endpoints)
     zigbeeModel: ['BlindCtrl'], // The model ID.
-    model: 'Controler for 4 blinds', 
+    model: 'Controler for 4 blinds',
     vendor: 'Alink',
     description: 'Device for the control of 4 blinds',
     extend: extend.light_onoff_brightness({noConfigure: true}),
@@ -126,7 +126,7 @@ module.exports =
     e.light_brightness().withEndpoint('l3'), e.light_brightness().withEndpoint('l4')],
     meta: {multiEndpoint: true},
     endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4};    
+            return {l1: 1, l2: 2, l3: 3, l4: 4};   
             },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -137,8 +137,7 @@ module.exports =
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(3), overides);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(4), overides);               
+            await reporting.onOff(device.getEndpoint(4), overides);
         },
-    },    
-    
+    },  
 ];
