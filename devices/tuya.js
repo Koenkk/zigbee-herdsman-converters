@@ -1195,9 +1195,9 @@ module.exports = [
             exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C').withDescription('Alarm temperature min'),
             exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%').withDescription('Alarm huminity max'),
             exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%').withDescription('Alarm huminity min'),
-            exposes.enum('alarm_humidity', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+            exposes.enum('alarm_humidity', ea.STATE, ['lower_humdity', 'over_humidity', 'off'])
                 .withDescription('Alarm humidity status'),
-            exposes.enum('alarm_temperature', ea.STATE, ['MIN_ALARM_ON', 'MAX_ALARM_ON', 'ALARM_OFF'])
+            exposes.enum('alarm_temperature', ea.STATE, ['lower_temperature', 'over_temperature', 'off'])
                 .withDescription('Alarm temperature status'),
         ],
     },
