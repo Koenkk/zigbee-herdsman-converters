@@ -202,4 +202,23 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['3200-de'],
+        model: '3200-de',
+        vendor: 'CentraLite',
+        description: 'Smart outlet',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.rmsVoltage(endpoint, {change: 2});
+            await reporting.rmsCurrent(endpoint, {change: 10});
+            await reporting.activePower(endpoint, {change: 2});
+        },
+    },
 ];
