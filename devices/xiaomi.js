@@ -1597,7 +1597,7 @@ module.exports = [
         zigbeeModel: ['lumi.remote.rkba01'],
         model: 'ZNXNKG02LM',
         vendor: 'Xiaomi',
-        description: 'Aqara Knob H1 (Wireless)',
+        description: 'Aqara knob H1 (wireless)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.battery_voltage(),
             e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
