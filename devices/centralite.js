@@ -205,7 +205,7 @@ module.exports = [
     {
         zigbeeModel: ['3200-de'],
         model: '3200-de',
-        vendor: 'CentraLite',
+        vendor: 'Centralite',
         description: 'Smart outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
