@@ -1600,7 +1600,7 @@ module.exports = [
         description: 'Aqara Knob H1 (Wireless)',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.battery_voltage(),
-            e.action(['single', 'double', 'hold', 'release', 'start_rotation', 'rotation', 'stop_rotation']),
+            e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
             exposes.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
             exposes.numeric('rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
             exposes.numeric('rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),

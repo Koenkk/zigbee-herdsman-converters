@@ -6526,7 +6526,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(570)) {
-                const act = {1: 'start_rotation', 2: 'rotation', 3: 'stop_rotation'};
+                const act = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
                 return {
                     action: act[msg.data[570]],
                     rotation_angle: msg.data[558],
