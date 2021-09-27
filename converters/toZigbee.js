@@ -1902,7 +1902,7 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
                 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
@@ -1925,7 +1925,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
