@@ -22,7 +22,7 @@ module.exports = [
         zigbeeModel: ['50131'],
         model: '501.31',
         vendor: 'Paulmann',
-        description: 'Paulmann Smart Plug for Euro- and Schuko-sockets',
+        description: 'Smart plug for Euro- and Schuko-sockets',
         extend: extend.switch(),
     },
     {
