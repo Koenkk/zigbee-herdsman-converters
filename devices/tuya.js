@@ -1180,4 +1180,26 @@ module.exports = [
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
     },
+    {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
+        model: 'LCZ030',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity & illuminance sensor with display',
+        fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg']);
+        },
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
+            exposes.numeric('alarm_temperature_max', ea.STATE).withUnit('°C').withDescription('Alarm temperature max'),
+            exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C').withDescription('Alarm temperature min'),
+            exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%').withDescription('Alarm huminity max'),
+            exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%').withDescription('Alarm huminity min'),
+            exposes.enum('alarm_humidity', ea.STATE, ['below_min_humdity', 'over_humidity', 'off'])
+                .withDescription('Alarm humidity status'),
+            exposes.enum('alarm_temperature', ea.STATE, ['below_min_temperature', 'over_temperature', 'off'])
+                .withDescription('Alarm temperature status'),
+        ],
+    },
 ];

@@ -1681,6 +1681,35 @@ const converters = {
             }
         },
     },
+    ts0201_temperature_humidity_alarm: {
+        cluster: 'manuSpecificTuya_2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('alarm_temperature_max')) {
+                result.alarm_temperature_max = msg.data['alarm_temperature_max'];
+            }
+            if (msg.data.hasOwnProperty('alarm_temperature_min')) {
+                result.alarm_temperature_min = msg.data['alarm_temperature_min'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity_max')) {
+                result.alarm_humidity_max = msg.data['alarm_humidity_max'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity_min')) {
+                result.alarm_humidity_min = msg.data['alarm_humidity_min'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity')) {
+                const sensorAlarmLookup = {'0': 'below_min_humdity', '1': 'over_humidity', '2': 'off'};
+                result.alarm_humidity = sensorAlarmLookup[msg.data['alarm_humidity']];
+            }
+            if (msg.data.hasOwnProperty('alarm_temperature')) {
+                const sensorAlarmLookup = {'0': 'below_min_temperature', '1': 'over_temperature', '2': 'off'};
+                result.alarm_temperature = sensorAlarmLookup[msg.data['alarm_temperature']];
+            }
+            return result;
+        },
+
+    },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
