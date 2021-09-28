@@ -1699,11 +1699,11 @@ const converters = {
                 result.alarm_humidity_min = msg.data['alarm_humidity_min'];
             }
             if (msg.data.hasOwnProperty('alarm_humidity')) {
-                const sensorAlarmLookup = {'0': 'MIN_ALARM_ON', '1': 'MAX_ALARM_ON', '2': 'ALARM_OFF'};
+                const sensorAlarmLookup = {'0': 'below_min_humdity', '1': 'over_humidity', '2': 'off'};
                 result.alarm_humidity = sensorAlarmLookup[msg.data['alarm_humidity']];
             }
             if (msg.data.hasOwnProperty('alarm_temperature')) {
-                const sensorAlarmLookup = {'0': 'MIN_ALARM_ON', '1': 'MAX_ALARM_ON', '2': 'ALARM_OFF'};
+                const sensorAlarmLookup = {'0': 'below_min_temperature', '1': 'over_temperature', '2': 'off'};
                 result.alarm_temperature = sensorAlarmLookup[msg.data['alarm_temperature']];
             }
             return result;
