@@ -1681,6 +1681,35 @@ const converters = {
             }
         },
     },
+    ts0201_temperature_humidity_alarm: {
+        cluster: 'manuSpecificTuya_2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('alarm_temperature_max')) {
+                result.alarm_temperature_max = msg.data['alarm_temperature_max'];
+            }
+            if (msg.data.hasOwnProperty('alarm_temperature_min')) {
+                result.alarm_temperature_min = msg.data['alarm_temperature_min'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity_max')) {
+                result.alarm_humidity_max = msg.data['alarm_humidity_max'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity_min')) {
+                result.alarm_humidity_min = msg.data['alarm_humidity_min'];
+            }
+            if (msg.data.hasOwnProperty('alarm_humidity')) {
+                const sensorAlarmLookup = {'0': 'below_min_humdity', '1': 'over_humidity', '2': 'off'};
+                result.alarm_humidity = sensorAlarmLookup[msg.data['alarm_humidity']];
+            }
+            if (msg.data.hasOwnProperty('alarm_temperature')) {
+                const sensorAlarmLookup = {'0': 'below_min_temperature', '1': 'over_temperature', '2': 'off'};
+                result.alarm_temperature = sensorAlarmLookup[msg.data['alarm_temperature']];
+            }
+            return result;
+        },
+
+    },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
@@ -2175,6 +2204,30 @@ const converters = {
                 result.valve_position = msg.data[0x4001];
             }
             return result;
+        },
+    },
+    neo_nas_pd07: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            if (dp === 101) return {occupancy: msg.data.data[0] > 0};
+            else if (dp === 102) {
+                const value = msg.data.data[0];
+                return {
+                    power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                    battery_low: value === 3,
+                };
+            } else if (dp === 103) {
+                return {tamper: msg.data.data[0] > 0 ? true : false};
+            } else if (dp === 104) {
+                const temperature = parseFloat(msg.data.data[3]) / 10.0;
+                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            } else if (dp === 105) {
+                return {humidity: calibrateAndPrecisionRoundOptions(msg.data.data[3], options, 'humidity')};
+            } else {
+                meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
         },
     },
     neo_t_h_alarm: {
@@ -3272,7 +3325,7 @@ const converters = {
             case tuya.dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
                 return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
             case tuya.dataPoints.moesValve:
-                return {heat: value ? 'OFF' : 'ON'};
+                return {heat: value ? 'OFF' : 'ON', running_state: (value ? 'idle' : (model.model === 'BAC-002-ALZB' ? 'cool' : 'heat'))};
             case tuya.dataPoints.moesSensor:
                 switch (value) {
                 case 0:
@@ -6480,6 +6533,37 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty(0x0000)) {
                 return {detection_period: msg.data[0x0000]};
+            }
+        },
+    },
+    heiman_doorbell_button: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            const lookup = {32768: 'pressed'};
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                action: lookup[zoneStatus],
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    aqara_knob_rotation: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(570)) {
+                const act = {1: 'start_rotating', 2: 'rotation', 3: 'stop_rotating'};
+                return {
+                    action: act[msg.data[570]],
+                    action_rotation_angle: msg.data[558],
+                    action_rotation_angle_speed: msg.data[560],
+                    action_rotation_percent: msg.data[563],
+                    action_rotation_percent_speed: msg.data[562],
+                    action_rotation_time: msg.data[561],
+                };
             }
         },
     },

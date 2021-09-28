@@ -98,6 +98,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm'],
+        model: 'LED2003G10',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E27 1055 lumen, dimmable, white spectrum, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRI bulb E27 opal 470lm', 'TRADFRI bulb E27 W opal 470lm', 'TRADFRIbulbT120E27WSopal470lm'],
         model: 'LED1937T5_E27',
         vendor: 'IKEA',
@@ -228,6 +235,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbE14WSglobeopal470lm'],
+        model: 'LED2002G5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 470 lumen, dimmable, white spectrum, clear',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['LEPTITER Recessed spot light'],
         model: 'T1820',
         vendor: 'IKEA',
@@ -340,7 +354,7 @@ module.exports = [
             fz.ikea_arrow_release],
         exposes: [e.battery(), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release', 'arrow_right_click',
             'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold', 'brightness_down_release',
-            'brightness_up_click', 'brightness_up_hold', 'brightness_up_release'])],
+            'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
@@ -600,7 +614,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TTRADFRIbulbGU10WS345lm'],
+        zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WW 345lm'],
         model: 'LED2005R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
@@ -611,8 +625,13 @@ module.exports = [
         model: 'E3007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
         fromZigbee: [fz.fan],
         toZigbee: [tz.fan_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.fanMode(endpoint);
+        },
     },
 ];
