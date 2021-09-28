@@ -398,6 +398,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Led strip controller',
         extend: extend.light_onoff_brightness_color(),
+        meta: {applyRedFix: true},
     },
     {
         zigbeeModel: ['TS0503A'],
@@ -764,7 +765,8 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak'}],
         model: 'TS011F_plug',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',

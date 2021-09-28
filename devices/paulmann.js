@@ -19,6 +19,13 @@ module.exports = [
         extend: extend.switch(),
     },
     {
+        zigbeeModel: ['50131'],
+        model: '501.31',
+        vendor: 'Paulmann',
+        description: 'Smart plug for Euro- and Schuko-sockets',
+        extend: extend.switch(),
+    },
+    {
         zigbeeModel: ['Dimmablelight '],
         model: '50044/50045',
         vendor: 'Paulmann',
