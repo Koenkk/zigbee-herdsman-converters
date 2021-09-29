@@ -41,6 +41,24 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.dimmer.rcbac1'],
+        model: 'ZNDDMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart lightstrip driver',
+        exposes: [e.light_brightness_colortemp({colorTempRange: [153, 370], noConfigure: true}).withEndpoint('l1'),
+            e.light_brightness_colortemp({colorTempRange: [153, 370], noConfigure: true}).withEndpoint('l2')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true}),
+    },
+    {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
