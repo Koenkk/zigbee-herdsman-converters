@@ -1274,6 +1274,29 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.n0acn2'],
+        model: 'DLKZMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (with neutral)',
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.device_temperature, fz.xiaomi_switch_type,
+            fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
+            await reporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.activePower(endpoint, {min: 5, max: 600, change: 10});
+            await reporting.deviceTemperature(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.l0agl1'],
         model: 'SSM-U02',
         vendor: 'Xiaomi',
