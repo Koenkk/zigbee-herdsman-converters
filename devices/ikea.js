@@ -622,7 +622,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['STARKVIND Air purifier'],
-        model: 'E3007',
+        model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
