@@ -139,7 +139,7 @@ module.exports = [
         zigbeeModel: ['S26R2ZB'],
         model: 'S26R2ZB',
         vendor: 'SONOFF',
-        description: 'S26R2ZB ZigBee Smart Plug',
+        description: 'Zigbee smart plug',
         extend: extend.switch(),
     },
 ];
