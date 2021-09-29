@@ -129,12 +129,20 @@ module.exports = [
             }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c()],
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
+                // Device sends wrong divisior (512) while it should be fixed to 1000
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
+                data.endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
+            }
+        },
     },
     {
         zigbeeModel: ['SMSZB-120'],
