@@ -135,4 +135,11 @@ module.exports = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['S26R2ZB'],
+        model: 'S26R2ZB',
+        vendor: 'SONOFF',
+        description: 'S26R2ZB ZigBee Smart Plug',
+        extend: extend.switch(),
+    },
 ];
