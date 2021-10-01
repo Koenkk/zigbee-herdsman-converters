@@ -45,8 +45,8 @@ module.exports = [
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart lightstrip driver',
-        exposes: [e.light_brightness_colortemp({colorTempRange: [153, 370], noConfigure: true}).withEndpoint('l1'),
-            e.light_brightness_colortemp({colorTempRange: [153, 370], noConfigure: true}).withEndpoint('l2')],
+        exposes: [e.light_brightness_colortemp([153, 370]).withEndpoint('l1'),
+            e.light_brightness_colortemp([153, 370]).withEndpoint('l2')],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -56,7 +56,7 @@ module.exports = [
             await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
