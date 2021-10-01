@@ -787,6 +787,21 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
+        onEvent: (type, data, device, options) => {	
+            const endpoint = device.getEndpoint(1);	
+            if (type === 'stop') {	
+                clearInterval(globalStore.getValue(device, 'interval'));	
+                globalStore.clearValue(device, 'interval');	
+            } else if (!globalStore.hasValue(device, 'interval')) {	
+                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;	
+                const interval = setInterval(async () => {	
+                    try {	
+                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);	
+                    } catch (error) {/* Do nothing*/}	
+                }, seconds*1000);	
+                globalStore.putValue(device, 'interval', interval);	
+            }	
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'}],
