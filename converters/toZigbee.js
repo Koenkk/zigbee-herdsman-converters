@@ -3570,6 +3570,18 @@ const converters = {
             await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
         },
     },
+    ubisys_dimmer_setup_genLevelCtrl: {
+        key: ['minimum_on_level'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'minimum_on_level') {
+                await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
+            }
+            converters.ubisys_dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
+        },
+    },
     ubisys_device_setup: {
         key: ['configure_device_setup'],
         convertSet: async (entity, key, value, meta) => {

@@ -6103,6 +6103,15 @@ const converters = {
             }
         },
     },
+    ubisys_dimmer_setup_genLevelCtrl: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('ubisysMinimumOnLevel')) {
+                return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
+            }
+        },
+    },
     itcmdr_clicks: {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
