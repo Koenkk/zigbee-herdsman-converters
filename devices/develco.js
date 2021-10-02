@@ -113,6 +113,7 @@ module.exports = [
         description: 'Wattle AMS HAN power-meter sensor',
         fromZigbee: [fz.metering, fz.electrical_measurement],
         toZigbee: [tz.EMIZB_132_mode],
+        ota: ota.zigbeeOTA, 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
