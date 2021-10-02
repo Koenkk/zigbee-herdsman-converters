@@ -691,7 +691,7 @@ const converters = {
     },
     ias_no_alarm: {
         cluster: 'ssIasZone',
-        type: 'attributeReport',
+        type: ['attributeReport', 'commandStatusChangeNotification'],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
@@ -6653,6 +6653,11 @@ const converters = {
     ignore_iaszone_report: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_iasace_commandgetpanelstatus: {
+        cluster: 'ssIasAce',
+        type: ['commandGetPanelStatus'],
         convert: (model, msg, publish, options, meta) => null,
     },
     ignore_genIdentify: {

@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -392,5 +393,44 @@ module.exports = [
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(900)
                 .withDescription('Max duration of the siren'),
             exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of the siren')],
+    },
+    {
+        zigbeeModel: ['KEPZB-110'],
+        model: 'KEYZB-110',
+        vendor: 'Develco',
+        description: 'Keypad',
+        whiteLabel: [{vendor: 'Frient', model: 'KEPZB-110'}],
+        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.command_emergency, fz.ias_no_alarm,
+            fz.ignore_iaszone_attreport, fz.ignore_iasace_commandgetpanelstatus],
+        toZigbee: [tz.arm_mode],
+        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.tamper(),
+            exposes.text('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
+            e.action([
+                'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
+        ota: ota.zigbeeOTA,
+        meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(44);
+            const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 44};
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(44), 'panelStatus')) {
+                const payload = {
+                    panelstatus: globalStore.getValue(device.getEndpoint(44), 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await data.endpoint.commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
+            }
+        },
     },
 ];
