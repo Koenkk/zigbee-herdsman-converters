@@ -3407,7 +3407,7 @@ const converters = {
                 } while (operationalStatus != 0);
                 await sleepSeconds(2);
             };
-            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc) => {
+            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc, delaySecondsAfter) => {
                 if (jsonAttr.startsWith('ubisys')) {
                     jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                 }
@@ -3419,11 +3419,26 @@ const converters = {
                     const attributes = {};
                     attributes[attr] = attrValue;
                     await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
+                    if (delaySecondsAfter) {
+                        await sleepSeconds(delaySecondsAfter);
+                    }
                 }
             };
             const stepsPerSecond = value.steps_per_second || 50;
             const hasCalibrate = value.hasOwnProperty('calibrate');
-
+            // cancel any running calibration
+            let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
+            const modeCalibrationBitMask = 0x02;
+            if (mode & modeCalibrationBitMask) {
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                await sleepSeconds(2);
+            }
+            // delay a bit if reconfiguring basic configuration attributes
+            await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
+            await writeAttrFromJson('configStatus', undefined, undefined, 2);
+            if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
+                mode = value['windowCoveringMode'];
+            }
             if (hasCalibrate) {
                 log('Cover calibration starting...');
                 // first of all, move to top position to not confuse calibration later
@@ -3431,14 +3446,6 @@ const converters = {
                 await entity.command('closuresWindowCovering', 'upOpen');
                 await waitUntilStopped();
                 log('  Settings some attributes...');
-                // cancel any running calibration
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0});
-                await sleepSeconds(2);
-            }
-            if (await writeAttrFromJson('windowCoveringType')) {
-                await sleepSeconds(5);
-            }
-            if (hasCalibrate) {
                 // reset attributes
                 await entity.write('closuresWindowCovering', {
                     installedOpenLimitLiftCm: 0,
@@ -3452,7 +3459,7 @@ const converters = {
                 }, manufacturerOptions.ubisys);
                 // enable calibration mode
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x02});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode | modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // move down a bit and back up to detect upper limit
                 log('  Moving cover down a bit...');
@@ -3471,7 +3478,6 @@ const converters = {
                 await waitUntilStopped();
             }
             // now write any attribute values present in JSON
-            await writeAttrFromJson('configStatus');
             await writeAttrFromJson('installedOpenLimitLiftCm');
             await writeAttrFromJson('installedClosedLimitLiftCm');
             await writeAttrFromJson('installedOpenLimitTiltDdegree');
@@ -3495,7 +3501,7 @@ const converters = {
                 log('  Finalizing calibration...');
                 // disable calibration mode again
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x00});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // re-read and dump all relevant attributes
                 log('  Done - will now read back the results.');
@@ -3562,6 +3568,18 @@ const converters = {
             await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
+        },
+    },
+    ubisys_dimmer_setup_genLevelCtrl: {
+        key: ['minimum_on_level'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'minimum_on_level') {
+                await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
+            }
+            converters.ubisys_dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
         },
     },
     ubisys_device_setup: {
