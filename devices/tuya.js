@@ -797,11 +797,6 @@ module.exports = [
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
