@@ -22,6 +22,5 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
-        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
 ];
