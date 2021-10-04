@@ -9,11 +9,12 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        // eTRV0100 is the same as Hive TRV. If implementing anything, please consider changing Hive TRV001 too.
-        zigbeeModel: ['eTRV0100'],
-        model: '014G2461',
-        vendor: 'Danfoss',
-        description: 'Ally thermostat',
+        // eT093WRO is the same as Hive TRV001 and Danfoss Ally (eTRV0100). If implementing anything, please consider
+        // changing those two too.
+        zigbeeModel: ['eT093WRO'],
+        model: '701721',
+        vendor: 'Popp',
+        description: 'Smart thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,

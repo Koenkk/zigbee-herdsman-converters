@@ -1233,7 +1233,13 @@ const converters = {
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1243,7 +1249,13 @@ const converters = {
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedHeatingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1253,7 +1265,13 @@ const converters = {
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const occupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const occupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {occupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1263,7 +1281,13 @@ const converters = {
     thermostat_unoccupied_cooling_setpoint: {
         key: ['unoccupied_cooling_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            const unoccupiedCoolingSetpoint = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
         },
         convertGet: async (entity, key, meta) => {
@@ -1360,6 +1384,16 @@ const converters = {
             await entity.read('hvacThermostat', ['elkoFrostGuard']);
         },
     },
+    elko_night_switching: {
+        key: ['night_switching'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoNightSwitching': value === 'on'});
+            return {state: {night_switching: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoNightSwitching']);
+        },
+    },
     elko_relay_state: {
         key: ['running_state'],
         convertGet: async (entity, key, meta) => {
@@ -1367,13 +1401,30 @@ const converters = {
         },
     },
     elko_sensor_mode: {
-        key: ['sensor_mode'],
+        key: ['sensor'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {'elkoSensor': {'air': '0', 'floor': '1', 'supervisor_floor': '3'}[value]});
-            return {state: {sensor_mode: value}};
+            return {state: {sensor: value}};
+        },
+    },
+    elko_regulator_time: {
+        key: ['regulator_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoRegulatorTime': value});
+            return {state: {sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['elkoSensor']);
+            await entity.read('hvacThermostat', ['elkoRegulatorTime']);
+        },
+    },
+    elko_regulator_mode: {
+        key: ['regulator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoRegulatorMode': value === 'regulator'});
+            return {state: {regulator_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoRegulatorMode']);
         },
     },
     elko_local_temperature_calibration: {
@@ -1851,7 +1902,7 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
                 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
@@ -1874,7 +1925,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -1962,7 +2013,7 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1976,7 +2027,7 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -3356,7 +3407,7 @@ const converters = {
                 } while (operationalStatus != 0);
                 await sleepSeconds(2);
             };
-            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc) => {
+            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc, delaySecondsAfter) => {
                 if (jsonAttr.startsWith('ubisys')) {
                     jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                 }
@@ -3368,11 +3419,26 @@ const converters = {
                     const attributes = {};
                     attributes[attr] = attrValue;
                     await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
+                    if (delaySecondsAfter) {
+                        await sleepSeconds(delaySecondsAfter);
+                    }
                 }
             };
             const stepsPerSecond = value.steps_per_second || 50;
             const hasCalibrate = value.hasOwnProperty('calibrate');
-
+            // cancel any running calibration
+            let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
+            const modeCalibrationBitMask = 0x02;
+            if (mode & modeCalibrationBitMask) {
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                await sleepSeconds(2);
+            }
+            // delay a bit if reconfiguring basic configuration attributes
+            await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
+            await writeAttrFromJson('configStatus', undefined, undefined, 2);
+            if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
+                mode = value['windowCoveringMode'];
+            }
             if (hasCalibrate) {
                 log('Cover calibration starting...');
                 // first of all, move to top position to not confuse calibration later
@@ -3380,14 +3446,6 @@ const converters = {
                 await entity.command('closuresWindowCovering', 'upOpen');
                 await waitUntilStopped();
                 log('  Settings some attributes...');
-                // cancel any running calibration
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0});
-                await sleepSeconds(2);
-            }
-            if (await writeAttrFromJson('windowCoveringType')) {
-                await sleepSeconds(5);
-            }
-            if (hasCalibrate) {
                 // reset attributes
                 await entity.write('closuresWindowCovering', {
                     installedOpenLimitLiftCm: 0,
@@ -3401,7 +3459,7 @@ const converters = {
                 }, manufacturerOptions.ubisys);
                 // enable calibration mode
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x02});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode | modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // move down a bit and back up to detect upper limit
                 log('  Moving cover down a bit...');
@@ -3420,7 +3478,6 @@ const converters = {
                 await waitUntilStopped();
             }
             // now write any attribute values present in JSON
-            await writeAttrFromJson('configStatus');
             await writeAttrFromJson('installedOpenLimitLiftCm');
             await writeAttrFromJson('installedClosedLimitLiftCm');
             await writeAttrFromJson('installedOpenLimitTiltDdegree');
@@ -3444,7 +3501,7 @@ const converters = {
                 log('  Finalizing calibration...');
                 // disable calibration mode again
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x00});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // re-read and dump all relevant attributes
                 log('  Done - will now read back the results.');
@@ -3511,6 +3568,18 @@ const converters = {
             await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
+        },
+    },
+    ubisys_dimmer_setup_genLevelCtrl: {
+        key: ['minimum_on_level'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'minimum_on_level') {
+                await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
+            }
+            converters.ubisys_dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
         },
     },
     ubisys_device_setup: {
@@ -4606,7 +4675,7 @@ const converters = {
                 }
                 return {membersState};
             } else {
-                if (entity.meta.scenes.hasOwnProperty(metaKey)) {
+                if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
                     let recalledState = entity.meta.scenes[metaKey].state;
 
                     // add color_mode if saved state does not contain it

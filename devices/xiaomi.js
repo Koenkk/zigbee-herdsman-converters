@@ -7,6 +7,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -39,6 +40,24 @@ const preventReset = async (type, data, device) => {
 };
 
 module.exports = [
+    {
+        zigbeeModel: ['lumi.dimmer.rcbac1'],
+        model: 'ZNDDMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart lightstrip driver',
+        exposes: [e.light_brightness_colortemp([153, 370]).withEndpoint('l1'),
+            e.light_brightness_colortemp([153, 370]).withEndpoint('l2')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+    },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
@@ -543,14 +562,14 @@ module.exports = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_switch_do_not_disturb],
+        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         exposes: [
-            e.switch().withEndpoint('left'), e.power_outage_memory(), e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -560,7 +579,8 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.switch().withEndpoint('right'), e.action([
+            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.action([
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
                 'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
                 'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release']),
@@ -866,7 +886,7 @@ module.exports = [
         description: 'Aqara EU smart plug',
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_switch_basic, fz.electrical_measurement, fz.metering,
-            fz.xiaomi_switch_opple_basic, fz.xiaomi_power],
+            fz.xiaomi_switch_opple_basic, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -885,7 +905,6 @@ module.exports = [
                 logger.warn(`SP-EUC01 failed to setup electricity measurements (${e.message})`);
                 logger.debug(e.stack);
             }
-
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -895,7 +914,30 @@ module.exports = [
                 logger.debug(e.stack);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy()],
+        onEvent: async (type, data, device) => {
+            const switchEndpoint = device.getEndpoint(1);
+            if (switchEndpoint == null) {
+                return;
+            }
+
+            // This device doesn't support temperature reporting.
+            // Therefore we read the temperature every 30 min.
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const interval = setInterval(async () => {
+                    try {
+                        await switchEndpoint.read('genDeviceTempCfg', ['currentTemperature']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 1800000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+        exposes: [e.switch(), e.power(), e.energy(),
+            e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1250,15 +1292,42 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.n0acn2'],
+        model: 'DLKZMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (with neutral)',
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.device_temperature, fz.xiaomi_switch_type,
+            fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
+            await reporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.activePower(endpoint, {min: 5, max: 600, change: 10});
+            await reporting.deviceTemperature(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.l0agl1'],
         model: 'SSM-U02',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.xiaomi_switch_type, fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
@@ -1567,6 +1636,30 @@ module.exports = [
                 .withDescription('Maximum allowed load, turns off if exceeded')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.remote.rkba01'],
+        model: 'ZNXNKG02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara knob H1 (wireless)',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.battery_voltage(),
+            e.action(['single', 'double', 'hold', 'release', 'start_rotating', 'rotation', 'stop_rotating']),
+            exposes.enum('operation_mode', ea.ALL, ['event', 'command']).withDescription('Button mode'),
+            exposes.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle'),
+            exposes.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed'),
+            exposes.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent'),
+            exposes.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed'),
+            exposes.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time'),
+        ],
+        fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_multistate_action, fz.xiaomi_battery, fz.aqara_opple_report,
+            fz.aqara_knob_rotation],
+        toZigbee: [tz.aqara_opple_operation_mode],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
 ];

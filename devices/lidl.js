@@ -245,4 +245,16 @@ module.exports = [
         extend: extend.light_onoff_brightness({disableEffect: true}),
         meta: {turnsOffAtBrightness1: false},
     },
+    {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
+        model: 'HG06619',
+        vendor: 'Lidl',
+        description: 'Silvercrest oudoor plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];

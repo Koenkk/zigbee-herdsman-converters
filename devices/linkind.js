@@ -5,8 +5,43 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
 
 module.exports = [
+    {
+        zigbeeModel: ['ZB-KeypadGeneric-D0002'],
+        model: 'ZS130000078',
+        vendor: 'Linkind',
+        description: 'Security keypad battery',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.ias_ace_occupancy_with_timeout,
+            fz.ias_smoke_alarm_1, fz.command_panic],
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(),
+            exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
+            e.action([
+                'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
+        toZigbee: [tz.arm_mode],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genBasic', 'genIdentify'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(1), 'panelStatus')) {
+                const payload = {
+                    panelstatus: globalStore.getValue(device.getEndpoint(1), 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await device.getEndpoint(1).commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
+            }
+        },
+    },
     {
         zigbeeModel: ['ZBT-RGBWSwitch-D0801'],
         model: 'ZS230002',
@@ -72,9 +107,14 @@ module.exports = [
         model: 'ZS1100400-IN-V1A02',
         vendor: 'Linkind',
         description: 'PIR motion sensor, wireless motion detector',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['ZB-DoorSensor-D0003'],

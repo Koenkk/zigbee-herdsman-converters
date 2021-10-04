@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -113,6 +114,7 @@ module.exports = [
         description: 'Wattle AMS HAN power-meter sensor',
         fromZigbee: [fz.metering, fz.electrical_measurement],
         toZigbee: [tz.EMIZB_132_mode],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
@@ -129,12 +131,20 @@ module.exports = [
             }
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c()],
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
+                // Device sends wrong divisior (512) while it should be fixed to 1000
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
+                data.endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
+            }
+        },
     },
     {
         zigbeeModel: ['SMSZB-120'],
@@ -142,18 +152,19 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
@@ -165,7 +176,10 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren'),
+            exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
+                .withDescription('Indicates reason if any fault'),
+            exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
     },
     {
         zigbeeModel: ['HESZB-120'],
@@ -173,17 +187,18 @@ module.exports = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd],
+            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('genBasic', [0x8000], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
             const endpoint2 = device.getEndpoint(38);
@@ -195,7 +210,10 @@ module.exports = [
         },
         exposes: [e.temperature(), e.battery(), e.smoke(), e.battery_low(), e.test(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual Start of Siren'),
+            exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
+                .withDescription('Indicates reason if any fault'),
+            exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
     },
     {
         zigbeeModel: ['MOSZB-130'],
@@ -355,7 +373,7 @@ module.exports = [
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.develco_fw, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(43);
@@ -375,5 +393,44 @@ module.exports = [
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(900)
                 .withDescription('Max duration of the siren'),
             exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of the siren')],
+    },
+    {
+        zigbeeModel: ['KEPZB-110'],
+        model: 'KEYZB-110',
+        vendor: 'Develco',
+        description: 'Keypad',
+        whiteLabel: [{vendor: 'Frient', model: 'KEPZB-110'}],
+        fromZigbee: [fz.command_arm_with_transaction, fz.battery, fz.command_emergency, fz.ias_no_alarm,
+            fz.ignore_iaszone_attreport, fz.ignore_iasace_commandgetpanelstatus],
+        toZigbee: [tz.arm_mode],
+        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.tamper(),
+            exposes.text('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
+            e.action([
+                'disarm', 'arm_day_zones', 'arm_night_zones', 'arm_all_zones', 'exit_delay', 'emergency'])],
+        ota: ota.zigbeeOTA,
+        meta: {battery: {voltageToPercentage: '4LR6AA1_5v'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(44);
+            const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            await reporting.batteryVoltage(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 44};
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'commandGetPanelStatus' && data.cluster === 'ssIasAce' &&
+                globalStore.hasValue(device.getEndpoint(44), 'panelStatus')) {
+                const payload = {
+                    panelstatus: globalStore.getValue(device.getEndpoint(44), 'panelStatus'),
+                    secondsremain: 0x00, audiblenotif: 0x00, alarmstatus: 0x00,
+                };
+                await data.endpoint.commandResponse(
+                    'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
+                );
+            }
+        },
     },
 ];
