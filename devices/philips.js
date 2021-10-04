@@ -2046,5 +2046,5 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
-    };
+    },
 ];
