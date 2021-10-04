@@ -2039,7 +2039,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LTV001'],
+        fingerprint: [{modelID: 'LTV001', manufacturerName: 'Signify Netherlands B.V.'}],
         model: '92900244777',
         vendor: 'Philips',
         description: 'Philips Hue White Ambiance E27 ST64 filament bulb',
