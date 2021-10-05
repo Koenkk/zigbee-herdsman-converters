@@ -716,18 +716,6 @@ const converters = {
             };
         },
     },
-    ias_keypad: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                tamper: (zoneStatus & 1<<2) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-                restore_reports: (zoneStatus & 1<<5) > 0,
-            };
-        },
-    },
     ias_water_leak_alarm_1: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -6069,6 +6057,18 @@ const converters = {
                     return {[postfixWithEndpointName('power_outage_memory', msg, model)]: dict[value]};
                 }
             }
+        },
+    },
+    ias_keypad: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+            };
         },
     },
     ubisys_dimmer_setup: {
