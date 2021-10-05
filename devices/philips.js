@@ -1814,6 +1814,15 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LTV002'],
+        model: '929002477901',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 E27 LED warm-to-cool',
+        ota: ota.zigbeeOTA,
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LWV002'],
         model: '046677551780',
         vendor: 'Philips',
