@@ -827,6 +827,7 @@ module.exports = [
                 const interval = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                        await endpoint.read('seMetering', ['currentSummDelivered']);
                     } catch (error) {/* Do nothing*/}
                 }, seconds*1000);
                 globalStore.putValue(device, 'interval', interval);
