@@ -112,11 +112,13 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement],
+        fromZigbee: [fz.metering, fz.electrical_measurement, fz.develco_fw],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
+            const options = {manufacturerCode: 4117};
+            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], options);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
             try {
@@ -162,7 +164,7 @@ module.exports = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000], options);
+            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], options);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);

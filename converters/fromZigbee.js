@@ -6059,6 +6059,18 @@ const converters = {
             }
         },
     },
+    ias_keypad: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+            };
+        },
+    },
     ubisys_dimmer_setup: {
         cluster: 'manuSpecificUbisysDimmerSetup',
         type: ['attributeReport', 'readResponse'],
@@ -6509,8 +6521,15 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (0x8000 in msg.data) {
-                result.current_firmware = msg.data[0x8000].join('.');
+                const firmware = msg.data[0x8000].join('.');
+                result.current_firmware = firmware;
+                msg.device.zhDevice.softwareBuildID = firmware;
             }
+
+            if (0x8020 in msg.data) {
+                msg.device.zhDevice.hardwareVersion = msg.data[0x8020].join('.');
+            }
+
             return result;
         },
     },
