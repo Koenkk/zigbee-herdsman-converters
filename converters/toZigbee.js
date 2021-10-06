@@ -2869,6 +2869,19 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
+    tuya_switch_type: {
+        key: ['switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
+            return {state: {switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['switchType']);
+        },
+    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {

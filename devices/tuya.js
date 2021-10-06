@@ -586,6 +586,40 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_tqlv4ug4'}],
+        model: 'TS0001_switch_module',
+        vendor: 'TuYa',
+        description: '1 gang switch module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ21'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: extend.switch().exposes.concat([exposes.presets.power_on_behavior(),
+            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary'])
+                .withDescription('Switch type settings')]),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}],
+        model: 'TS0002_switch_module',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ22'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), exposes.presets.power_on_behavior(),
+            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Switch type settings')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: [
             'owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja', // Curtain motors
             'mcdj3aq', 'mcdj3aq\u0000', // Tubular motors
