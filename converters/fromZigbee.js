@@ -3728,6 +3728,16 @@ const converters = {
             });
         },
     },
+    tuya_switch_type = {
+        cluster: 'manuSpecificTuya_3',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
+            if (msg.data.hasOwnProperty('switchType')) {
+                return {switch_type: lookup[msg.data['switchType']]};
+            }
+        },
+    },
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],

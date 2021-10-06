@@ -591,14 +591,21 @@ module.exports = [
         model: 'TS0001',
         vendor: 'TuYa',
         description: '1 gang switch module',
+        whiteLabel: [
+            {vendor: 'OXT', model: 'SWTZ21'},
+        ],
         toZigbee: extend.switch().toZigbee.concat([
-            tz.moes_power_on_behavior
+            tz.moes_power_on_behavior,
+            tz.tuya_switch_type,
         ]),
         fromZigbee: extend.switch().fromZigbee.concat([
-            fz.moes_power_on_behavior
+            fz.moes_power_on_behavior,
+            fz.tuya_switch_type,
         ]),
         exposes: extend.switch().exposes.concat([
             exposes.presets.power_on_behavior(),
+            exposes.enum('switch_type', ea.STATE_SET, ['toggle', 'state', 'momentary'])
+                .withDescription('Switch type settings'),
         ]),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -611,16 +618,23 @@ module.exports = [
         model: 'TS0002',
         vendor: 'TuYa',
         description: '2 gang switch module',
+        whiteLabel: [
+            {vendor: 'OXT', model: 'SWTZ22'},
+        ],
         toZigbee: extend.switch().toZigbee.concat([
-            tz.moes_power_on_behavior
+            tz.moes_power_on_behavior,
+            tz.tuya_switch_type,
         ]),
         fromZigbee: extend.switch().fromZigbee.concat([
-            fz.moes_power_on_behavior
+            fz.moes_power_on_behavior,
+            fz.tuya_switch_type,
         ]),
         exposes: [
             e.switch().withEndpoint('l1'),
             e.switch().withEndpoint('l2'),
             exposes.presets.power_on_behavior(),
+            exposes.enum('switch_type', ea.STATE_SET, ['toggle', 'state', 'momentary'])
+                .withDescription('Switch type settings'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
