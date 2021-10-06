@@ -2869,7 +2869,7 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
-    tuya_switch_type = {
+    tuya_switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
             value = value.toLowerCase();

@@ -3728,7 +3728,7 @@ const converters = {
             });
         },
     },
-    tuya_switch_type = {
+    tuya_switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
