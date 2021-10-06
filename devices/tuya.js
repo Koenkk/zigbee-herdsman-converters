@@ -586,7 +586,7 @@ module.exports = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_tqlv4ug4'}
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_tqlv4ug4'},
         ],
         model: 'TS0001_switch_module',
         vendor: 'TuYa',
@@ -604,7 +604,7 @@ module.exports = [
         ]),
         exposes: extend.switch().exposes.concat([
             exposes.presets.power_on_behavior(),
-            exposes.enum('switch_type', ea.STATE_SET, ['toggle', 'state', 'momentary'])
+            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary'])
                 .withDescription('Switch type settings'),
         ]),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -613,7 +613,7 @@ module.exports = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'},
         ],
         model: 'TS0002_switch_module',
         vendor: 'TuYa',
@@ -633,7 +633,7 @@ module.exports = [
             e.switch().withEndpoint('l1'),
             e.switch().withEndpoint('l2'),
             exposes.presets.power_on_behavior(),
-            exposes.enum('switch_type', ea.STATE_SET, ['toggle', 'state', 'momentary'])
+            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary'])
                 .withDescription('Switch type settings'),
         ],
         endpoint: (device) => {
