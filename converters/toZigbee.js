@@ -4665,15 +4665,11 @@ const converters = {
             };
 
             const isGroup = entity.constructor.name === 'Group';
-            const metaKey = `${sceneid}_${groupid}`;
             if (isGroup) {
                 const membersState = {};
                 for (const member of entity.members) {
-                    if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
-                        membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
-
-                        let recalledState = member.meta.scenes[metaKey].state;
-
+                    let recalledState = utils.getSceneState(member, sceneid, groupid);
+                    if (recalledState) {
                         // add color_mode if saved state does not contain it
                         if (!recalledState.hasOwnProperty('color_mode')) {
                             recalledState = addColorMode(recalledState);
@@ -4688,9 +4684,8 @@ const converters = {
                 }
                 return {membersState};
             } else {
-                if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    let recalledState = entity.meta.scenes[metaKey].state;
-
+                let recalledState = utils.getSceneState(entity, sceneid, groupid);
+                if (recalledState) {
                     // add color_mode if saved state does not contain it
                     if (!recalledState.hasOwnProperty('color_mode')) {
                         recalledState = addColorMode(recalledState);
@@ -4857,21 +4852,14 @@ const converters = {
             );
 
             const isGroup = entity.constructor.name === 'Group';
-            const metaKey = `${sceneid}_${groupid}`;
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
-                            delete member.meta.scenes[metaKey];
-                            member.save();
-                        }
+                        utils.deleteSceneState(member, sceneid, groupid);
                     }
                 }
             } else if (response.status === 0) {
-                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    delete entity.meta.scenes[metaKey];
-                    entity.save();
-                }
+                utils.deleteSceneState(entity, sceneid, groupid);
             } else {
                 throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
@@ -4889,17 +4877,11 @@ const converters = {
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        if (member.meta.scenes) {
-                            member.meta.scenes = {};
-                            member.save();
-                        }
+                        utils.deleteSceneState(member);
                     }
                 }
             } else if (response.status === 0) {
-                if (entity.meta.scenes) {
-                    entity.meta.scenes = {};
-                    entity.save();
-                }
+                utils.deleteSceneState(entity);
             } else {
                 throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
