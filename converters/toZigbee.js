@@ -5769,29 +5769,29 @@ const converters = {
               'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'o_sensitivity':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.msOSensitivity, utils.getKey(tuya.msLookups.OSensitivity, value));
-                    break;
-                case 'v_sensitivity':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.msVSensitivity, utils.getKey(tuya.msLookups.VSensitivity, value));
-                    break;
-                case 'led_status':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.msLedStatus, {'on': 0, 'off': 1}[value.toLowerCase()]);
-                    break;
-                case 'vacancy_delay':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.msVacancyDelay, value);
-                    break;
-                case 'light_on_luminance_prefer':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOnLuminancePrefer, value);
-                    break;
-                case 'light_off_luminance_prefer':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOffLuminancePrefer, value);
-                    break;
-                case 'mode':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.msMode, utils.getKey(tuya.msLookups.Mode, value));
-                    break;
-                default: // Unknown key
-                    meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
+            case 'o_sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msOSensitivity, utils.getKey(tuya.msLookups.OSensitivity, value));
+                break;
+            case 'v_sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msVSensitivity, utils.getKey(tuya.msLookups.VSensitivity, value));
+                break;
+            case 'led_status':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msLedStatus, {'on': 0, 'off': 1}[value.toLowerCase()]);
+                break;
+            case 'vacancy_delay':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msVacancyDelay, value);
+                break;
+            case 'light_on_luminance_prefer':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOnLuminancePrefer, value);
+                break;
+            case 'light_off_luminance_prefer':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOffLuminancePrefer, value);
+                break;
+            case 'mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msMode, utils.getKey(tuya.msLookups.Mode, value));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
             }
         },
     },

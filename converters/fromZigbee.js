@@ -6625,41 +6625,41 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             let result = null;
             switch (dp) {
-                case tuya.dataPoints.state:
-                    result = {occupancy: {1: true, 0: false}[value]};
-                    break;
-                case tuya.dataPoints.msLuminance:
-                    result = {illuminance: value};
-                    break;
-                case tuya.dataPoints.msOSensitivity:
-                    result = {o_sensitivity: tuya.msLookups.OSensitivity[value]};
-                    break;
-                case tuya.dataPoints.msVSensitivity:
-                    result = {v_sensitivity: tuya.msLookups.VSensitivity[value]};
-                    break;
-                case tuya.dataPoints.msLedStatus:
-                    result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
-                    break;
-                case tuya.dataPoints.msVacancyDelay:
-                    result = {vacancy_delay: value};
-                    break;
-                case tuya.dataPoints.msLightOnLuminancePrefer:
-                    result = {light_on_luminance_prefer: value};
-                    break;
-                case tuya.dataPoints.msLightOffLuminancePrefer:
-                    result = {light_off_luminance_prefer: value};
-                    break;
-                case tuya.dataPoints.msMode:
-                    result = {mode: tuya.msLookups.Mode[value]};
-                    break;
-                default:
-                    //TODO:
-                    //dp: 105 (0x6D) data: 00 
-                    //dp: 105 (0x6D) data: 02
-                    //dp: 105 (0x6D) data: 01
-                    //dp: 109 (0x69) data: 000000d1
-                    //dp: 109 (0x69) data: 0000000a
-                    meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
+            case tuya.dataPoints.state:
+                result = {occupancy: {1: true, 0: false}[value]};
+                break;
+            case tuya.dataPoints.msLuminance:
+                result = {illuminance: value};
+                break;
+            case tuya.dataPoints.msOSensitivity:
+                result = {o_sensitivity: tuya.msLookups.OSensitivity[value]};
+                break;
+            case tuya.dataPoints.msVSensitivity:
+                result = {v_sensitivity: tuya.msLookups.VSensitivity[value]};
+                break;
+            case tuya.dataPoints.msLedStatus:
+                result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
+                break;
+            case tuya.dataPoints.msVacancyDelay:
+                result = {vacancy_delay: value};
+                break;
+            case tuya.dataPoints.msLightOnLuminancePrefer:
+                result = {light_on_luminance_prefer: value};
+                break;
+            case tuya.dataPoints.msLightOffLuminancePrefer:
+                result = {light_off_luminance_prefer: value};
+                break;
+            case tuya.dataPoints.msMode:
+                result = {mode: tuya.msLookups.Mode[value]};
+                break;
+            default:
+                // TODO:
+                // dp: 105 (0x6D) data: 00 
+                // dp: 105 (0x6D) data: 02
+                // dp: 105 (0x6D) data: 01
+                // dp: 109 (0x69) data: 000000d1
+                // dp: 109 (0x69) data: 0000000a
+                meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
             }
 
             return result;
