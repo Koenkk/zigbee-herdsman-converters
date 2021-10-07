@@ -6654,7 +6654,7 @@ const converters = {
                 break;
             default:
                 // TODO:
-                // dp: 105 (0x6D) data: 00 
+                // dp: 105 (0x6D) data: 00
                 // dp: 105 (0x6D) data: 02
                 // dp: 105 (0x6D) data: 01
                 // dp: 109 (0x69) data: 000000d1

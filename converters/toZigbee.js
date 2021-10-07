@@ -5766,7 +5766,7 @@ const converters = {
     },
     tuya_motion_sensor: {
         key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay',
-              'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
+            'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'o_sensitivity':
