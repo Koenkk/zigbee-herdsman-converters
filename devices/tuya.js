@@ -1268,4 +1268,22 @@ module.exports = [
                 .withDescription('Alarm temperature status'),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
+        model: 'TS0601_motion_sensor',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        fromZigbee: [fz.tuya_motion_sensor],
+        toZigbee: [tz.tuya_motion_sensor],
+        exposes: [
+            e.occupancy(), e.illuminance(),
+            exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
+            exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
+            exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
+            exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay'),
+            exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer'),
+            exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer'),
+            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
+        ],
+    },
 ];
