@@ -4625,17 +4625,23 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
-            const sceneid = value;
+            let sceneid = value;
+            let scenename = null;
+            if (typeof value === 'object') {
+                sceneid = value.ID;
+                scenename = value.name;
+            }
+
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped));
 
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                        utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
             } else if (response.status === 0) {
-                utils.saveSceneState(entity, sceneid, groupid, meta.state);
+                utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
                 throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
@@ -4719,7 +4725,7 @@ const converters = {
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
             const sceneid = value.ID;
-            const scenename = '';
+            const scenename = value.name;
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
             const state = {};
@@ -4821,17 +4827,17 @@ const converters = {
 
             if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
                 const response = await entity.command(
-                    'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
+                    'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
                 );
 
                 if (isGroup) {
                     if (meta.membersState) {
                         for (const member of entity.members) {
-                            utils.saveSceneState(member, sceneid, groupid, state);
+                            utils.saveSceneState(member, sceneid, groupid, state, scenename);
                         }
                     }
                 } else if (response.status === 0) {
-                    utils.saveSceneState(entity, sceneid, groupid, state);
+                    utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
                     throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
                 }
