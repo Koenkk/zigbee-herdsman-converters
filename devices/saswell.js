@@ -17,6 +17,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_yw7cahqs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_azqp6ssj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuhszj9s'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9gvruqf5'},
         ],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
