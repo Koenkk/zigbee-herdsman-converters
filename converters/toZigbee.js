@@ -4645,7 +4645,7 @@ const converters = {
             } else {
                 throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
-
+            meta.logger.info('Successfully stored scene');
             return {state: {}};
         },
     },
@@ -4688,6 +4688,7 @@ const converters = {
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
+                meta.logger.info('Successfully recalled group scene');
                 return {membersState};
             } else {
                 let recalledState = utils.getSceneState(entity, sceneid, groupid);
@@ -4698,7 +4699,7 @@ const converters = {
                     }
 
                     Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
-
+                    meta.logger.info('Successfully recalled scene');
                     return {state: recalledState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
@@ -4844,7 +4845,7 @@ const converters = {
             } else {
                 throw new Error(`Scene add unable to remove existing scene ('${herdsman.Zcl.Status[removeresp.status]}')`);
             }
-
+            meta.logger.info('Successfully added scene');
             return {state: {}};
         },
     },
@@ -4856,7 +4857,6 @@ const converters = {
             const response = await entity.command(
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
-
             const isGroup = entity.constructor.name === 'Group';
             if (isGroup) {
                 if (meta.membersState) {
@@ -4869,6 +4869,7 @@ const converters = {
             } else {
                 throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
+            meta.logger.info('Successfully removed scene');
         },
     },
     scene_remove_all: {
@@ -4878,7 +4879,6 @@ const converters = {
             const response = await entity.command(
                 'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
             );
-
             const isGroup = entity.constructor.name === 'Group';
             if (isGroup) {
                 if (meta.membersState) {
@@ -4891,6 +4891,7 @@ const converters = {
             } else {
                 throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
+            meta.logger.info('Successfully removed all scenes');
         },
     },
     TS0003_curtain_switch: {
