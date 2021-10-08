@@ -1207,7 +1207,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
-        {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'}],
+            {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'}],
         model: 'TS0222',
         vendor: 'TuYa',
         description: 'Light intensity sensor',
