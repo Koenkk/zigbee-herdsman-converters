@@ -128,7 +128,7 @@ module.exports = [
         zigbeeModel: ['HK-ZD-RGB-A', '5110.40'],
         model: '5110.40',
         vendor: 'Iluminize',
-        description: 'Zigbee 3.0 LED Controller Multi 5 - 4A,RGB W/CCT LED',
+        description: 'Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
     },
     {
