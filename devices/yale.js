@@ -108,6 +108,8 @@ module.exports = [
         vendor: 'Yale',
         description: 'Lockwood T-Lock',
         extend: lockExtend,
+        // Differs from Assure lock SL
+        meta: {battery: {dontDividePercentage: false}},
     },
     {
         zigbeeModel: ['c700000202'],
