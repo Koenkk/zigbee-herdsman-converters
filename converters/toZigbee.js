@@ -5796,7 +5796,19 @@ const converters = {
             }
         },
     },
-
+    tuya_radar_sensor: {
+        key: ['scene', 'sensivity'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'scene':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensivity, value);
+                return {state: {scene: value}};
+            case 'sensivity':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensivity, value);
+                return {state: {sensivity: value}};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters

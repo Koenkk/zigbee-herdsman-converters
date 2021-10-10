@@ -1289,6 +1289,23 @@ module.exports = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
+        model: 'MIR-HE200-TY',
+        vendor: 'TuYa',
+        description: 'Human presence sensor',
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_radar_sensor],
+        toZigbee: [tz.tuya_radar_sensor],
+        exposes: [
+            e.illuminance_lux(),
+            exposes.enum('presence', ea.STATE, ['true', 'false']),
+            exposes.enum('motion', ea.STATE, ['true', 'false']),
+            exposes.numeric('motion_speed', ea.STATE),
+            exposes.enum('motion_direction', ea.STATE, ['still', 'forward', 'backward']),
+            exposes.numeric('sensivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1),
+            exposes.enum('scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel']),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_pcqjmcud'}],
         model: 'YSR-MINI-Z',
         vendor: 'TuYa',
