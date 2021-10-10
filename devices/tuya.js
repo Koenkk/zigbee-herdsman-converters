@@ -1294,10 +1294,6 @@ module.exports = [
         description: 'Human presence sensor',
         fromZigbee: [fz.ignore_basic_report, fz.tuya_radar_sensor],
         toZigbee: [tz.tuya_radar_sensor],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, );
-        },
         exposes: [
             e.illuminance_lux(),
             exposes.enum('presence', ea.STATE, ['true', 'false']),
