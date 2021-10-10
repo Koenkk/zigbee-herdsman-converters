@@ -6665,13 +6665,12 @@ const converters = {
             return result;
         },
     },
-        tuya_radar_sensor: {
+    tuya_radar_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            let result = null;
             switch (dp) {
             case tuya.dataPoints.trsPresenceState:
                 return {presence: {0: 'false', 1: 'true'}[value]};
