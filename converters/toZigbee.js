@@ -5796,7 +5796,20 @@ const converters = {
             }
         },
     },
-
+    tuya_radar_sensor: {
+        key: ['scene', 'sensivity'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'scene':
+            const values = {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6};
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensivity, value);
+            return {state: {scene: value}};
+            case 'sensivity':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensivity, value);
+                return {state: {sensivity: value}};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters
