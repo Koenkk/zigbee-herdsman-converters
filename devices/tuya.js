@@ -1292,12 +1292,13 @@ module.exports = [
         model: 'YSR-MINI-Z',
         vendor: 'TuYa',
         description: '2 in 1 Dimming remote control and scene control',
-        exposes: [e.battery(), e.action(
-            ['on', 'off',
+        exposes: [e.battery(), e.action([
+            'on', 'off',
             'brightness_move_up', 'brightness_step_up', 'brightness_step_down', 'brightness_move_down', 'brightness_stop',
             'color_temperature_step_down', 'color_temperature_step_up',
             '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
-            '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
+            '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
+        ])],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
             fz.command_step_color_temperature, fz.tuya_on_off_action],
         toZigbee: [],
