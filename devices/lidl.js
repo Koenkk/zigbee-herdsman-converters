@@ -238,7 +238,8 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
-        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'}],
+        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
+            {modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'}],
         model: 'HG06462A',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 A60 filament bulb',
