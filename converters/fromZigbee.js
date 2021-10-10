@@ -2363,7 +2363,7 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (model.model === 'TS0044') {
+            } else if (['TS0044', 'YSR-MINI-Z'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
