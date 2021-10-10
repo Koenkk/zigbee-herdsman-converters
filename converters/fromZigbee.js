@@ -19,6 +19,7 @@ const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const utils = require('../lib/utils');
+const exposes = require('../lib/exposes');
 
 const converters = {
     // #region Generic/recommended converters
@@ -311,6 +312,7 @@ const converters = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const property = postfixWithEndpointName('temperature', msg, model);
@@ -2363,7 +2365,7 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (model.model === 'TS0044') {
+            } else if (['TS0044', 'YSR-MINI-Z'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
@@ -4725,6 +4727,7 @@ const converters = {
     },
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
