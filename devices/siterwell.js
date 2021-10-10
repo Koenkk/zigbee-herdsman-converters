@@ -13,6 +13,7 @@ module.exports = [
             {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_hhrtiq0x'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
+            {modelId: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
