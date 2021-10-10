@@ -1309,7 +1309,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_pcqjmcud'}],
         model: 'YSR-MINI-Z',
         vendor: 'TuYa',
-        description: '2 in 1 dimming remote control and scene control',
+        description: '2 in 1 Dimming remote control and scene control',
         exposes: [e.battery(), e.action([
             'on', 'off',
             'brightness_move_up', 'brightness_step_up', 'brightness_step_down', 'brightness_move_down', 'brightness_stop',
