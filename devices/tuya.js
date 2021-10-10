@@ -1287,18 +1287,17 @@ module.exports = [
             exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
         ],
     },
-    {        
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
         model: 'MIR-HE200-TY',
         vendor: 'TuYa',
-        description: 'Human Presence Sensor',
-        supports: 'presence, motion, illuminance, motion_speed, motion_direction, sensivity, scene, ',
+        description: 'Human presence sensor',
         fromZigbee: [fz.ignore_basic_report, fz.tuya_radar_sensor],
         toZigbee: [tz.tuya_radar_sensor],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, );
-    },
+            await reporting.bind(endpoint, coordinatorEndpoint, );
+        },
         exposes: [
             e.illuminance_lux(),
             exposes.enum('presence', ea.STATE, ['true', 'false']),
@@ -1308,5 +1307,5 @@ module.exports = [
             exposes.numeric('sensivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1),
             exposes.enum('scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel']),
         ],
-    }
+    },
 ];
