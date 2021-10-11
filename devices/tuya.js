@@ -1286,9 +1286,9 @@ module.exports = [
             exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer'),
             exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer'),
             exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
-            exposes.numeric('luminance_level', access.STATE).withDescription('Luminance level'),
-            exposes.numeric('reference_luminance', access.STATE).withDescription('Reference luminance'),
-            exposes.numeric('vacant_confirm_time', access.STATE).withDescription('Vacant confirm time'),
+            exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
+            exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),
+            exposes.numeric('vacant_confirm_time', ea.STATE).withDescription('Vacant confirm time'),
         ],
     },
     {
