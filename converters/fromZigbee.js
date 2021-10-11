@@ -19,6 +19,7 @@ const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const utils = require('../lib/utils');
+const exposes = require('../lib/exposes');
 
 const converters = {
     // #region Generic/recommended converters
@@ -311,6 +312,7 @@ const converters = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const property = postfixWithEndpointName('temperature', msg, model);
@@ -4725,6 +4727,7 @@ const converters = {
     },
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
@@ -6663,6 +6666,30 @@ const converters = {
             }
 
             return result;
+        },
+    },
+    tuya_radar_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.trsPresenceState:
+                return {presence: {0: 'false', 1: 'true'}[value]};
+            case tuya.dataPoints.trsMotionState:
+                return {motion: {1: 'false', 2: 'true'}[value]};
+            case tuya.dataPoints.trsMotionSpeed:
+                return {motion_speed: value};
+            case tuya.dataPoints.trsMotionDirection:
+                return {motion_direction: {0: 'still', 1: 'forward', 2: 'backward'}[value]};
+            case tuya.dataPoints.trsScene:
+                return {scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
+            case tuya.dataPoints.trsSensivity:
+                return {sensivity: value};
+            case tuya.dataPoints.trsIlluminanceLux:
+                return {illuminance_lux: value};
+            }
         },
     },
     // #endregion

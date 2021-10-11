@@ -85,7 +85,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'}],
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
@@ -1288,6 +1289,23 @@ module.exports = [
             exposes.numeric('luminance_level', access.STATE).withDescription('Luminance level'),
             exposes.numeric('reference_luminance', access.STATE).withDescription('Reference luminance'),
             exposes.numeric('vacant_confirm_time', access.STATE).withDescription('Vacant confirm time'),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
+        model: 'MIR-HE200-TY',
+        vendor: 'TuYa',
+        description: 'Human presence sensor',
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_radar_sensor],
+        toZigbee: [tz.tuya_radar_sensor],
+        exposes: [
+            e.illuminance_lux(),
+            exposes.enum('presence', ea.STATE, ['true', 'false']),
+            exposes.enum('motion', ea.STATE, ['true', 'false']),
+            exposes.numeric('motion_speed', ea.STATE),
+            exposes.enum('motion_direction', ea.STATE, ['still', 'forward', 'backward']),
+            exposes.numeric('sensivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1),
+            exposes.enum('scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel']),
         ],
     },
     {
