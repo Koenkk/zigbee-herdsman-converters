@@ -8,6 +8,7 @@ const legacy = require('../lib/legacy');
 const light = require('../lib/light');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
+const exposes = require('../lib/exposes');
 
 const manufacturerOptions = {
     xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
@@ -284,6 +285,7 @@ const converters = {
     },
     cover_via_brightness: {
         key: ['position', 'state'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'number') {
                 value = value.toLowerCase();
@@ -389,6 +391,7 @@ const converters = {
     },
     cover_position_tilt: {
         key: ['position', 'tilt'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
@@ -876,6 +879,7 @@ const converters = {
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
@@ -942,6 +946,7 @@ const converters = {
     },
     light_color: {
         key: ['color'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             let command;
             const newColor = libColor.Color.fromConverterArg(value);
@@ -1232,6 +1237,7 @@ const converters = {
     },
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1248,6 +1254,7 @@ const converters = {
     },
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1264,6 +1271,7 @@ const converters = {
     },
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1280,6 +1288,7 @@ const converters = {
     },
     thermostat_unoccupied_cooling_setpoint: {
         key: ['unoccupied_cooling_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -2158,6 +2167,7 @@ const converters = {
     },
     xiaomi_curtain_position_state: {
         key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
@@ -2661,6 +2671,7 @@ const converters = {
     },
     tuya_led_control: {
         key: ['brightness', 'color', 'color_temp'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
                 !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
@@ -3810,7 +3821,7 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const log = (dataRead) => {
                 meta.logger.warn(
-                    `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
+                    `ubisys: Device setup read for '${meta.options.friendly_name}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
             };
             const devMgmtEp = meta.device.getEndpoint(232);
             log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'], manufacturerOptions.ubisysNull));
@@ -3825,6 +3836,7 @@ const converters = {
     },
     bticino_4027C_cover_state: {
         key: ['state'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
@@ -3847,6 +3859,9 @@ const converters = {
     },
     bticino_4027C_cover_position: {
         key: ['position'],
+        options: [exposes.options.invert_cover(), exposes.binary('no_position_support', null, true, false)
+            // eslint-disable-next-line
+            .withDescription('Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false)')],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
@@ -4033,19 +4048,19 @@ const converters = {
                 let transitions = [...daySchedule.transitions];
                 const mode = parseInt(daySchedule.mode);
                 if (!supportedModes.includes(mode)) {
-                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendlyName}`);
+                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendly_name}`);
                 }
                 if (numoftrans != transitions.length) {
                     throw new Error(`Invalid numoftrans provided. Real: ${transitions.length} ` +
-                        `provided ${numoftrans} for device ${meta.options.friendlyName}`);
+                        `provided ${numoftrans} for device ${meta.options.friendly_name}`);
                 }
                 if (transitions.length > maxTransitions) {
                     throw new Error(`Too more transitions provided. Provided: ${transitions.length} ` +
-                        `but supports only ${numoftrans} for device ${meta.options.friendlyName}`);
+                        `but supports only ${numoftrans} for device ${meta.options.friendly_name}`);
                 }
                 if (transitions.length < maxTransitions) {
                     meta.logger.warn(`Padding transitions from ${transitions.length} ` +
-                        `to ${maxTransitions} with last item for device ${meta.options.friendlyName}`);
+                        `to ${maxTransitions} with last item for device ${meta.options.friendly_name}`);
                     const lastTransition = transitions[transitions.length - 1];
                     while (transitions.length != maxTransitions) {
                         transitions = [...transitions, lastTransition];
@@ -4298,6 +4313,7 @@ const converters = {
     },
     tuya_cover_control: {
         key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
