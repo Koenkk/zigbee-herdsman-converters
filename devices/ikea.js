@@ -634,4 +634,11 @@ module.exports = [
             await reporting.fanMode(endpoint);
         },
     },
+    {
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        model: 'LED1949C5',
+        vendor: 'IKEA',
+        description: 'TRÅDFRI - LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
 ];
