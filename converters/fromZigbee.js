@@ -19,6 +19,7 @@ const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const utils = require('../lib/utils');
+const exposes = require('../lib/exposes');
 
 const converters = {
     // #region Generic/recommended converters
@@ -311,6 +312,7 @@ const converters = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             const property = postfixWithEndpointName('temperature', msg, model);
@@ -2363,7 +2365,7 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (model.model === 'TS0044') {
+            } else if (['TS0044', 'YSR-MINI-Z'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
@@ -2514,6 +2516,18 @@ const converters = {
                 return {action: value};
             } else {
                 return {action: lookup[msg.data[3]]};
+            }
+        },
+    },
+    easycodetouch_action: {
+        cluster: 'closuresDoorLock',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const value = constants.easyCodeTouchActions[(msg.data[3] << 8) | msg.data[4]];
+            if (value) {
+                return {action: value};
+            } else {
+                meta.logger.log('Unknown lock status with source ' + msg.data[3] + ' and event code ' + msg.data[4]);
             }
         },
     },
@@ -3757,6 +3771,16 @@ const converters = {
             });
         },
     },
+    tuya_switch_type: {
+        cluster: 'manuSpecificTuya_3',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
+            if (msg.data.hasOwnProperty('switchType')) {
+                return {switch_type: lookup[msg.data['switchType']]};
+            }
+        },
+    },
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -4703,6 +4727,7 @@ const converters = {
     },
     xiaomi_temperature: {
         cluster: 'msTemperatureMeasurement',
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
@@ -6075,6 +6100,18 @@ const converters = {
             }
         },
     },
+    ias_keypad: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+            };
+        },
+    },
     ubisys_dimmer_setup: {
         cluster: 'manuSpecificUbisysDimmerSetup',
         type: ['attributeReport', 'readResponse'],
@@ -6525,8 +6562,15 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (0x8000 in msg.data) {
-                result.current_firmware = msg.data[0x8000].join('.');
+                const firmware = msg.data[0x8000].join('.');
+                result.current_firmware = firmware;
+                msg.device.zhDevice.softwareBuildID = firmware;
             }
+
+            if (0x8020 in msg.data) {
+                msg.device.zhDevice.hardwareVersion = msg.data[0x8020].join('.');
+            }
+
             return result;
         },
     },
@@ -6589,6 +6633,78 @@ const converters = {
                     action_rotation_percent_speed: msg.data[562],
                     action_rotation_time: msg.data[561],
                 };
+            }
+        },
+    },
+    tuya_motion_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.state:
+                result = {occupancy: {1: true, 0: false}[value]};
+                break;
+            case tuya.dataPoints.msReferenceLuminance:
+                result = {reference_luminance: value};
+                break;
+            case tuya.dataPoints.msOSensitivity:
+                result = {o_sensitivity: tuya.msLookups.OSensitivity[value]};
+                break;
+            case tuya.dataPoints.msVSensitivity:
+                result = {v_sensitivity: tuya.msLookups.VSensitivity[value]};
+                break;
+            case tuya.dataPoints.msLedStatus:
+                result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
+                break;
+            case tuya.dataPoints.msVacancyDelay:
+                result = {vacancy_delay: value};
+                break;
+            case tuya.dataPoints.msLightOnLuminancePrefer:
+                result = {light_on_luminance_prefer: value};
+                break;
+            case tuya.dataPoints.msLightOffLuminancePrefer:
+                result = {light_off_luminance_prefer: value};
+                break;
+            case tuya.dataPoints.msMode:
+                result = {mode: tuya.msLookups.Mode[value]};
+                break;
+            case tuya.dataPoints.msVacantConfirmTime:
+                result = {vacant_confirm_time: value};
+                break;
+            case tuya.dataPoints.msLuminanceLevel:
+                result = {luminance_level: value};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+
+            return result;
+        },
+    },
+    tuya_radar_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.trsPresenceState:
+                return {presence: {0: 'false', 1: 'true'}[value]};
+            case tuya.dataPoints.trsMotionState:
+                return {motion: {1: 'false', 2: 'true'}[value]};
+            case tuya.dataPoints.trsMotionSpeed:
+                return {motion_speed: value};
+            case tuya.dataPoints.trsMotionDirection:
+                return {motion_direction: {0: 'still', 1: 'forward', 2: 'backward'}[value]};
+            case tuya.dataPoints.trsScene:
+                return {scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
+            case tuya.dataPoints.trsSensitivity:
+                return {sensitivity: value};
+            case tuya.dataPoints.trsIlluminanceLux:
+                return {illuminance_lux: value};
             }
         },
     },

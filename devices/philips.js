@@ -502,6 +502,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA017'],
+        model: '‎929002469202',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb E27 1050lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA002'],
         model: '9290018215',
         vendor: 'Philips',
@@ -1814,6 +1823,15 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LTV002'],
+        model: '929002477901',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 E27 LED warm-to-cool',
+        ota: ota.zigbeeOTA,
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LWV002'],
         model: '046677551780',
         vendor: 'Philips',
@@ -2036,6 +2054,15 @@ module.exports = [
         description: 'Hue Filament Globe XL Ambiance E27',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTV001'],
+        model: '92900244777',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E27 ST64 filament bulb',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+        meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
 ];
