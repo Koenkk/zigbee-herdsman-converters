@@ -1274,7 +1274,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
         model: 'TS0601_motion_sensor',
         vendor: 'TuYa',
-        description: 'Human Presence Sensor AIR',
+        description: 'Human presence sensor AIR',
         fromZigbee: [fz.tuya_motion_sensor],
         toZigbee: [tz.tuya_motion_sensor],
         exposes: [
