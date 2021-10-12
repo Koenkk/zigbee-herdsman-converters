@@ -1304,7 +1304,7 @@ module.exports = [
             exposes.enum('motion', ea.STATE, ['true', 'false']),
             exposes.numeric('motion_speed', ea.STATE),
             exposes.enum('motion_direction', ea.STATE, ['still', 'forward', 'backward']),
-            exposes.numeric('sensivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1),
+            exposes.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1),
             exposes.enum('scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel']),
         ],
     },
