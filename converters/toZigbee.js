@@ -5819,7 +5819,7 @@ const converters = {
             case 'scene':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsScene, value);
                 return {state: {scene: value}};
-            case 'sensivity':
+            case 'sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
                 return {state: {sensitivity: value}};
             }
