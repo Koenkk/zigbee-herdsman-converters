@@ -6631,8 +6631,8 @@ const converters = {
             case tuya.dataPoints.state:
                 result = {occupancy: {1: true, 0: false}[value]};
                 break;
-            case tuya.dataPoints.msLuminance:
-                result = {illuminance: value};
+            case tuya.dataPoints.msReferenceLuminance:
+                result = {reference_luminance: value};
                 break;
             case tuya.dataPoints.msOSensitivity:
                 result = {o_sensitivity: tuya.msLookups.OSensitivity[value]};
@@ -6655,13 +6655,13 @@ const converters = {
             case tuya.dataPoints.msMode:
                 result = {mode: tuya.msLookups.Mode[value]};
                 break;
+            case tuya.dataPoints.msVacantConfirmTime:
+                result = {vacant_confirm_time: value};
+                break;
+            case tuya.dataPoints.msLuminanceLevel:
+                result = {luminance_level: value};
+                break;
             default:
-                // TODO:
-                // dp: 105 (0x6D) data: 00
-                // dp: 105 (0x6D) data: 02
-                // dp: 105 (0x6D) data: 01
-                // dp: 109 (0x69) data: 000000d1
-                // dp: 109 (0x69) data: 0000000a
                 meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
             }
 

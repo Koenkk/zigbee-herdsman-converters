@@ -1274,11 +1274,11 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
         model: 'TS0601_motion_sensor',
         vendor: 'TuYa',
-        description: 'Motion sensor',
+        description: 'Human presence sensor AIR',
         fromZigbee: [fz.tuya_motion_sensor],
         toZigbee: [tz.tuya_motion_sensor],
         exposes: [
-            e.occupancy(), e.illuminance(),
+            e.occupancy(),
             exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
             exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
             exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
@@ -1286,6 +1286,9 @@ module.exports = [
             exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer'),
             exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer'),
             exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
+            exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
+            exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),
+            exposes.numeric('vacant_confirm_time', ea.STATE).withDescription('Vacant confirm time'),
         ],
     },
     {
