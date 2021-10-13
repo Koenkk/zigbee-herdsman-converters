@@ -2065,4 +2065,13 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LTO001'],
+        model: '8719514301481',
+        vendor: 'Philips',
+        description: 'Hue Filament Globe Ambiance E27',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
