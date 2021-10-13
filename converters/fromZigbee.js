@@ -4739,7 +4739,7 @@ const converters = {
             }
         },
     },
-    xiaomi_devicetemperature: {
+    SJCGQ11LM_temperature: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
