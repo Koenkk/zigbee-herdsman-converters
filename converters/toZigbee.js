@@ -5813,15 +5813,15 @@ const converters = {
         },
     },
     tuya_radar_sensor: {
-        key: ['scene', 'sensitivity'],
+        key: ['radar_scene', 'radar_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-            case 'scene':
+            case 'radar_scene':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsScene, value);
-                return {state: {scene: value}};
-            case 'sensitivity':
+                return {state: {radar_scene: value}};
+            case 'radar_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
-                return {state: {sensitivity: value}};
+                return {state: {radar_sensitivity: value}};
             }
         },
     },
