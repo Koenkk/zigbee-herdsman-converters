@@ -166,4 +166,11 @@ module.exports = [
         exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
             'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
     },
+    {
+        zigbeeModel: ['5112.80'],
+        model: '5112.80',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED-controller 1x 8A',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
