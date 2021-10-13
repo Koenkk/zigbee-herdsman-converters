@@ -1302,9 +1302,12 @@ module.exports = [
             e.illuminance_lux(), e.presence(),
             exposes.enum('motion', ea.STATE, ['true', 'false']).withDescription('moving inside the range of the sensor'),
             exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, ['standing still', 'moving forward', 'moving backward']).withDescription('direction of movement from the point of view of the radar'),
-            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription('sensitivity of the radar'),
-            exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel']).withDescription('presets for sensivity for presence and movement'),
+            exposes.enum('motion_direction', ea.STATE, ['standing still', 'moving forward', 'moving backward'])
+            .withDescription('direction of movement from the point of view of the radar'),
+            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+            .withDescription('sensitivity of the radar'),
+            exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
+            .withDescription('presets for sensivity for presence and movement'),
         ],
     },
     {
