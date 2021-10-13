@@ -4739,6 +4739,22 @@ const converters = {
             }
         },
     },
+    SJCGQ11LM_temperature: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('65281')) {
+                const result = {};
+                if (msg.data['65281'].hasOwnProperty('3')) {
+                    let temperature = msg.data['65281']['3'];
+                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
+                    result.temperature = temperature;
+                }
+
+                return result;
+            }
+        },
+    },
     xiaomi_WXKG11LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
