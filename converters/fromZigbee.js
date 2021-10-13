@@ -357,8 +357,8 @@ const converters = {
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux')],
+        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
+            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
@@ -3115,6 +3115,7 @@ const converters = {
     ZNMS11LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const lockStatusLookup = {
@@ -3181,6 +3182,7 @@ const converters = {
     ZNMS12LM_ZNMS13LM_closuresDoorLock_report: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const lockStatusLookup = {
@@ -3867,6 +3869,7 @@ const converters = {
     ikea_arrow_release: {
         cluster: 'genScenes',
         type: 'commandTradfriArrowRelease',
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
@@ -4556,6 +4559,7 @@ const converters = {
     xiaomi_on_off_action: {
         cluster: 'genOnOff',
         type: ['attributeReport'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (['QBKG04LM', 'QBKG11LM', 'QBKG21LM', 'QBKG03LM', 'QBKG12LM', 'QBKG22LM'].includes(model.model) && msg.data['61440']) {
                 return;
@@ -4615,8 +4619,8 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux')],
+            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
+            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['65281']) {
                 const result = {};
@@ -4640,8 +4644,8 @@ const converters = {
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux')],
+        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
+            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
@@ -4657,7 +4661,15 @@ const converters = {
     xiaomi_WXKG01LM_action: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.hold_timeout_expire(), exposes.options.hold_timeout()],
+        options: [
+            exposes.numeric('hold_timeout').withValueMin(0).withDescription(`The WXKG01LM only reports a button press and release.` +
+                `By default, a hold action is published when there is at least 1000 ms between both events. It could be that due to ` +
+                `delays in the network the release message is received late. This causes a single click to be identified as a hold ` +
+                `action. If you are experiencing this you can try experimenting with this option (e.g. set it to 2000) (value is in ms).`),
+            exposes.numeric('hold_timeout_expire').withValueMin(0).withDescription(`Sometimes it happens that the button does not send a ` +
+                `release. To avoid problems a release is automatically send after a timeout. The default timeout is 4000 ms, you can ` +
+                `increase it with this option (value is in ms).`),
+        ],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
             const state = msg.data['onOff'];
@@ -5043,6 +5055,7 @@ const converters = {
     aqara_opple_stop: {
         cluster: 'genLevelCtrl',
         type: 'commandStop',
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
             if (globalStore.hasValue(msg.endpoint, 'button')) {
@@ -5083,6 +5096,7 @@ const converters = {
     aqara_opple_move_color_temp: {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveColorTemp',
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg)) return;
             const stop = msg.data.movemode === 0;
@@ -5214,6 +5228,7 @@ const converters = {
     MFKZQ01LM_action_multistate: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
@@ -5262,6 +5277,7 @@ const converters = {
     MFKZQ01LM_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             /*
             Source: https://github.com/kirovilya/ioBroker.zigbee
@@ -5852,6 +5868,7 @@ const converters = {
     DNCKAT_S00X_buttons: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const action = msg.data['onOff'] === 1 ? 'release' : 'hold';
             const payload = {action: postfixWithEndpointName(action, msg, model)};
@@ -5916,6 +5933,7 @@ const converters = {
     },
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
+        options: [exposes.options.legacy()],
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff', 'commandMove', 'commandStop'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
@@ -5988,6 +6006,7 @@ const converters = {
     CCTSwitch_D0001_lighting: {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp', 'commandMoveColorTemp'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.type === 'commandMoveColorTemp') {

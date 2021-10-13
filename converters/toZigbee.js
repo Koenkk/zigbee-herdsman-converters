@@ -591,6 +591,7 @@ const converters = {
     },
     light_brightness_step: {
         key: ['brightness_step', 'brightness_step_onoff'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const onOff = key.endsWith('_onoff');
             const command = onOff ? 'stepWithOnOff' : 'step';
@@ -653,6 +654,7 @@ const converters = {
     },
     light_colortemp_step: {
         key: ['color_temp_step'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             value = Number(value);
             if (isNaN(value)) {
@@ -718,6 +720,7 @@ const converters = {
     },
     light_hue_saturation_step: {
         key: ['hue_step', 'saturation_step'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             value = Number(value);
             if (isNaN(value)) {
@@ -775,6 +778,7 @@ const converters = {
     },
     light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
@@ -879,7 +883,7 @@ const converters = {
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        options: [exposes.options.color_sync()],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
@@ -946,7 +950,7 @@ const converters = {
     },
     light_color: {
         key: ['color'],
-        options: [exposes.options.color_sync()],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             let command;
             const newColor = libColor.Color.fromConverterArg(value);
@@ -1044,6 +1048,7 @@ const converters = {
          * converter is used to do just that.
          */
         key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
@@ -1662,6 +1667,7 @@ const converters = {
     },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1684,6 +1690,7 @@ const converters = {
     },
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1703,6 +1710,7 @@ const converters = {
     },
     gledopto_light_color: {
         key: ['color'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1727,6 +1735,7 @@ const converters = {
     },
     gledopto_light_color_colortemp: {
         key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
@@ -2264,6 +2273,7 @@ const converters = {
          * This uses the stored state of the device to restore to the previous brightness level when turning on
          */
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const deviceState = meta.state || {};
             const message = meta.message;
@@ -2914,6 +2924,7 @@ const converters = {
     },
     RM01_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
@@ -2932,6 +2943,7 @@ const converters = {
         },
     },
     RM01_light_brightness_step: {
+        options: [exposes.options.transition()],
         key: ['brightness_step', 'brightness_step_onoff'],
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
@@ -3382,6 +3394,7 @@ const converters = {
     },
     ptvo_switch_light_brightness: {
         key: ['brightness', 'brightness_percent', 'transition'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'transition') {
                 return;
@@ -3859,9 +3872,7 @@ const converters = {
     },
     bticino_4027C_cover_position: {
         key: ['position'],
-        options: [exposes.options.invert_cover(), exposes.binary('no_position_support', null, true, false)
-            // eslint-disable-next-line
-            .withDescription('Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false)')],
+        options: [exposes.options.invert_cover(), exposes.options.no_position_support()],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
