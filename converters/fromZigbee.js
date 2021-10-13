@@ -6684,9 +6684,9 @@ const converters = {
             case tuya.dataPoints.trsMotionDirection:
                 return {motion_direction: {0: 'still', 1: 'forward', 2: 'backward'}[value]};
             case tuya.dataPoints.trsScene:
-                return {scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
+                return {radar_scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
             case tuya.dataPoints.trsSensitivity:
-                return {sensitivity: value};
+                return {radar_sensitivity: value};
             case tuya.dataPoints.trsIlluminanceLux:
                 return {illuminance_lux: value};
             }
