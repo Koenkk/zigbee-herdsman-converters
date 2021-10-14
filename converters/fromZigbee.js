@@ -6605,6 +6605,16 @@ const converters = {
             }
         },
     },
+    aqara_E1_switch_mode_switch: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty(0x0004)) {
+                const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
+                return {mode_switch: lookup[msg.data[0x0004]]};
+            }
+        },
+    },
     heiman_doorbell_button: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

@@ -1997,6 +1997,17 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
+    aqara_E1_switch_mode_switch: {
+        key: ['mode_switch'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};
+            await entity.write('aqaraOpple', {0x0004: {value: lookup[value], type: 0x21}}, manufacturerOptions.xiaomi);
+            return {state: {mode_switch: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0004], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_button_switch_mode: {
         key: ['button_switch_mode'],
         convertSet: async (entity, key, value, meta) => {
