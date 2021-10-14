@@ -2092,4 +2092,13 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LTV002'],
+        model: '8719514301504',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance Filament ST72 E27 Giant Edison',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
