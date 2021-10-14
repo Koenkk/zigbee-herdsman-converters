@@ -1430,8 +1430,8 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights' + 
-                'quick mode makes the device response speed faster.')],
+                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights.' +
+                    'quick mode makes the device response speed faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1462,8 +1462,8 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights' + 
-                'quick mode makes the device response speed faster.'),
+                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights.' +
+                    'quick mode makes the device response speed faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(),
         ],
