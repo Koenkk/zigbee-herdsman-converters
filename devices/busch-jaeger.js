@@ -41,7 +41,7 @@ module.exports = [
                 // The total number of bindings seems to be severely limited with these devices.
                 // In order to be able to toggle groups, we need to remove the scenes cluster
 
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']); 
+                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
             }
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
             // Thef 1st endpoint ist most bound to hardware switch
@@ -53,7 +53,7 @@ module.exports = [
                 if (index > -1) {
                     endpoint11.outputClusters.splice(index, 1);
                 }
-                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']); 
+                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
             }
             const endpoint12 = device.getEndpoint(0x0c);
             if (endpoint12 != null) {
@@ -63,7 +63,7 @@ module.exports = [
                 if (index > -1) {
                     endpoint12.outputClusters.splice(index, 1);
                 }
-                await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']); 
+                await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
             }
             const endpoint13 = device.getEndpoint(0x0d);
             if (endpoint13 != null) {
@@ -73,7 +73,7 @@ module.exports = [
                 if (index > -1) {
                     endpoint13.outputClusters.splice(index, 1);
                 }
-                await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']); 
+                await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
             const endpoint18 = device.getEndpoint(0x12);
             if (endpoint18 != null) {
