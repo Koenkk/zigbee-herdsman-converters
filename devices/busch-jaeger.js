@@ -36,7 +36,6 @@ module.exports = [
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-
             const endpoint10 = device.getEndpoint(0x0a);
             if (endpoint10 != null) {
                 // The total number of bindings seems to be severely limited with these devices.
@@ -44,10 +43,8 @@ module.exports = [
 
                 await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']); 
             }
-
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
             // Thef 1st endpoint ist most bound to hardware switch
-
             const endpoint11 = device.getEndpoint(0x0b);
             if (endpoint11 != null) {
                 // The total number of bindings seems to be severely limited with these devices.
@@ -58,7 +55,6 @@ module.exports = [
                 }
                 await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']); 
             }
-
             const endpoint12 = device.getEndpoint(0x0c);
             if (endpoint12 != null) {
                 // The total number of bindings seems to be severely limited with these devices.
@@ -69,7 +65,6 @@ module.exports = [
                 }
                 await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']); 
             }
-
             const endpoint13 = device.getEndpoint(0x0d);
             if (endpoint13 != null) {
                 // The total number of bindings seems to be severely limited with these devices.
@@ -80,7 +75,6 @@ module.exports = [
                 }
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']); 
             }
-
             const endpoint18 = device.getEndpoint(0x12);
             if (endpoint18 != null) {
                 await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
@@ -94,7 +88,6 @@ module.exports = [
             if (switchEndpoint == null) {
                 return;
             }
-
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.
