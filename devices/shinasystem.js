@@ -8,7 +8,7 @@ const ea = exposes.access;
 module.exports = [
     {
         zigbeeModel: ['CSM-300Z'],
-        model: 'CSM-300Z',
+        model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
         description: 'Sihas Multipurpose Sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
