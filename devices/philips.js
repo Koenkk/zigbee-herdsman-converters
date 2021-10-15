@@ -502,6 +502,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA012'],
+        model: '9290018217',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb B22 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA017'],
         model: '‎929002469202',
         vendor: 'Philips',
