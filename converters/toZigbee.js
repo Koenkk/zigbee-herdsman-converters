@@ -1997,7 +1997,7 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
-    aqara_E1_switch_mode_switch: {
+    aqara_switch_mode_switch: {
         key: ['mode_switch'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};

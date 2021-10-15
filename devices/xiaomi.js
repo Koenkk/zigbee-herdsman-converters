@@ -563,7 +563,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.aqara_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -579,6 +580,9 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
+            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
@@ -1422,16 +1426,15 @@ module.exports = [
         model: 'QBKG38LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 1 gang switch (without neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic,
-            fz.aqara_E1_switch_mode_switch],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_E1_switch_mode_switch],
+            tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights.' +
-                    'quick mode makes the device response speed faster.')],
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1445,10 +1448,9 @@ module.exports = [
         model: 'QBKG39LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 2 gang switch (without neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic,
-            fz.aqara_E1_switch_mode_switch],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_E1_switch_mode_switch],
+            tz.aqara_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1462,8 +1464,8 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
-                .withDescription('anti_flicker_mode can be solved the blinking issue of some lights.' +
-                    'quick mode makes the device response speed faster.'),
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(),
         ],
