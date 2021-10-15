@@ -4468,7 +4468,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('4')) {
                 const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
-                return {mode_switch: lookup[msg.data['4']]};
+                payload.mode_switch = lookup[msg.data['4']];
             }
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
