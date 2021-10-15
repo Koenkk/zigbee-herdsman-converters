@@ -36,7 +36,7 @@ module.exports = [
         fromZigbee: [fz.neo_nas_pd07],
         toZigbee: [],
         onEvent: tuya.setTime,
-        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(),
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb'])],
     },
 ];

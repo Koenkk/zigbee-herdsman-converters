@@ -41,6 +41,24 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.dimmer.rcbac1'],
+        model: 'ZNDDMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart lightstrip driver',
+        exposes: [e.light_brightness_colortemp([153, 370]).withEndpoint('l1'),
+            e.light_brightness_colortemp([153, 370]).withEndpoint('l2')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+    },
+    {
         zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
@@ -158,8 +176,12 @@ module.exports = [
         onEvent: preventReset,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints[1];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            try {
+                const endpoint = device.endpoints[1];
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            } catch (error) {
+                // fails for some but device works as expected: https://github.com/Koenkk/zigbee2mqtt/issues/9136
+            }
         },
     },
     {
@@ -545,7 +567,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.xiaomi_operation_mode_opple, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.aqara_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -561,6 +584,9 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
+            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
@@ -787,9 +813,9 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara water leak sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1],
+        fromZigbee: [fz.xiaomi_battery, fz.ias_water_leak_alarm_1, fz.SJCGQ11LM_temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -1274,6 +1300,29 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.n0acn2'],
+        model: 'DLKZMK11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (with neutral)',
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.device_temperature, fz.xiaomi_switch_type,
+            fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
+            await reporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.activePower(endpoint, {min: 5, max: 600, change: 10});
+            await reporting.deviceTemperature(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.l0agl1'],
         model: 'SSM-U02',
         vendor: 'Xiaomi',
@@ -1381,11 +1430,15 @@ module.exports = [
         model: 'QBKG38LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 1 gang switch (without neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.aqara_switch_mode_switch],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
-                .withDescription('Decoupled mode for button')],
+                .withDescription('Decoupled mode for button'),
+            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1400,7 +1453,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara E1 2 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.aqara_switch_mode_switch],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1413,6 +1467,9 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
+            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             e.power_outage_memory(),
         ],

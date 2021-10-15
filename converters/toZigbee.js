@@ -8,6 +8,7 @@ const legacy = require('../lib/legacy');
 const light = require('../lib/light');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
+const exposes = require('../lib/exposes');
 
 const manufacturerOptions = {
     xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
@@ -284,6 +285,7 @@ const converters = {
     },
     cover_via_brightness: {
         key: ['position', 'state'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'number') {
                 value = value.toLowerCase();
@@ -389,6 +391,7 @@ const converters = {
     },
     cover_position_tilt: {
         key: ['position', 'tilt'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             const isPosition = (key === 'position');
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
@@ -876,6 +879,7 @@ const converters = {
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
@@ -942,6 +946,7 @@ const converters = {
     },
     light_color: {
         key: ['color'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             let command;
             const newColor = libColor.Color.fromConverterArg(value);
@@ -1232,6 +1237,7 @@ const converters = {
     },
     thermostat_occupied_heating_setpoint: {
         key: ['occupied_heating_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1248,6 +1254,7 @@ const converters = {
     },
     thermostat_unoccupied_heating_setpoint: {
         key: ['unoccupied_heating_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1264,6 +1271,7 @@ const converters = {
     },
     thermostat_occupied_cooling_setpoint: {
         key: ['occupied_cooling_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1280,6 +1288,7 @@ const converters = {
     },
     thermostat_unoccupied_cooling_setpoint: {
         key: ['unoccupied_cooling_setpoint'],
+        options: [exposes.options.thermostat_unit()],
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
@@ -1902,7 +1911,7 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
                 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
@@ -1925,7 +1934,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -1986,6 +1995,17 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
+        },
+    },
+    aqara_switch_mode_switch: {
+        key: ['mode_switch'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};
+            await entity.write('aqaraOpple', {0x0004: {value: lookup[value], type: 0x21}}, manufacturerOptions.xiaomi);
+            return {state: {mode_switch: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0004], manufacturerOptions.xiaomi);
         },
     },
     xiaomi_button_switch_mode: {
@@ -2158,6 +2178,7 @@ const converters = {
     },
     xiaomi_curtain_position_state: {
         key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
@@ -2661,6 +2682,7 @@ const converters = {
     },
     tuya_led_control: {
         key: ['brightness', 'color', 'color_temp'],
+        options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
                 !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
@@ -2867,6 +2889,19 @@ const converters = {
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
+        },
+    },
+    tuya_switch_type: {
+        key: ['switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
+            return {state: {switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
     frankever_threshold: {
@@ -3407,7 +3442,7 @@ const converters = {
                 } while (operationalStatus != 0);
                 await sleepSeconds(2);
             };
-            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc) => {
+            const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc, delaySecondsAfter) => {
                 if (jsonAttr.startsWith('ubisys')) {
                     jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                 }
@@ -3419,11 +3454,26 @@ const converters = {
                     const attributes = {};
                     attributes[attr] = attrValue;
                     await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
+                    if (delaySecondsAfter) {
+                        await sleepSeconds(delaySecondsAfter);
+                    }
                 }
             };
             const stepsPerSecond = value.steps_per_second || 50;
             const hasCalibrate = value.hasOwnProperty('calibrate');
-
+            // cancel any running calibration
+            let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
+            const modeCalibrationBitMask = 0x02;
+            if (mode & modeCalibrationBitMask) {
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                await sleepSeconds(2);
+            }
+            // delay a bit if reconfiguring basic configuration attributes
+            await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
+            await writeAttrFromJson('configStatus', undefined, undefined, 2);
+            if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
+                mode = value['windowCoveringMode'];
+            }
             if (hasCalibrate) {
                 log('Cover calibration starting...');
                 // first of all, move to top position to not confuse calibration later
@@ -3431,14 +3481,6 @@ const converters = {
                 await entity.command('closuresWindowCovering', 'upOpen');
                 await waitUntilStopped();
                 log('  Settings some attributes...');
-                // cancel any running calibration
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0});
-                await sleepSeconds(2);
-            }
-            if (await writeAttrFromJson('windowCoveringType')) {
-                await sleepSeconds(5);
-            }
-            if (hasCalibrate) {
                 // reset attributes
                 await entity.write('closuresWindowCovering', {
                     installedOpenLimitLiftCm: 0,
@@ -3452,7 +3494,7 @@ const converters = {
                 }, manufacturerOptions.ubisys);
                 // enable calibration mode
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x02});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode | modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // move down a bit and back up to detect upper limit
                 log('  Moving cover down a bit...');
@@ -3471,7 +3513,6 @@ const converters = {
                 await waitUntilStopped();
             }
             // now write any attribute values present in JSON
-            await writeAttrFromJson('configStatus');
             await writeAttrFromJson('installedOpenLimitLiftCm');
             await writeAttrFromJson('installedClosedLimitLiftCm');
             await writeAttrFromJson('installedOpenLimitTiltDdegree');
@@ -3495,7 +3536,7 @@ const converters = {
                 log('  Finalizing calibration...');
                 // disable calibration mode again
                 await sleepSeconds(2);
-                await entity.write('closuresWindowCovering', {windowCoveringMode: 0x00});
+                await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
                 await sleepSeconds(2);
                 // re-read and dump all relevant attributes
                 log('  Done - will now read back the results.');
@@ -3562,6 +3603,18 @@ const converters = {
             await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
             await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
+        },
+    },
+    ubisys_dimmer_setup_genLevelCtrl: {
+        key: ['minimum_on_level'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'minimum_on_level') {
+                await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
+            }
+            converters.ubisys_dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
         },
     },
     ubisys_device_setup: {
@@ -3779,7 +3832,7 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const log = (dataRead) => {
                 meta.logger.warn(
-                    `ubisys: Device setup read for '${meta.options.friendlyName}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
+                    `ubisys: Device setup read for '${meta.options.friendly_name}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
             };
             const devMgmtEp = meta.device.getEndpoint(232);
             log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'], manufacturerOptions.ubisysNull));
@@ -3794,6 +3847,7 @@ const converters = {
     },
     bticino_4027C_cover_state: {
         key: ['state'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
@@ -3816,6 +3870,9 @@ const converters = {
     },
     bticino_4027C_cover_position: {
         key: ['position'],
+        options: [exposes.options.invert_cover(), exposes.binary('no_position_support', null, true, false)
+            // eslint-disable-next-line
+            .withDescription('Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false)')],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
@@ -4002,19 +4059,19 @@ const converters = {
                 let transitions = [...daySchedule.transitions];
                 const mode = parseInt(daySchedule.mode);
                 if (!supportedModes.includes(mode)) {
-                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendlyName}`);
+                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendly_name}`);
                 }
                 if (numoftrans != transitions.length) {
                     throw new Error(`Invalid numoftrans provided. Real: ${transitions.length} ` +
-                        `provided ${numoftrans} for device ${meta.options.friendlyName}`);
+                        `provided ${numoftrans} for device ${meta.options.friendly_name}`);
                 }
                 if (transitions.length > maxTransitions) {
                     throw new Error(`Too more transitions provided. Provided: ${transitions.length} ` +
-                        `but supports only ${numoftrans} for device ${meta.options.friendlyName}`);
+                        `but supports only ${numoftrans} for device ${meta.options.friendly_name}`);
                 }
                 if (transitions.length < maxTransitions) {
                     meta.logger.warn(`Padding transitions from ${transitions.length} ` +
-                        `to ${maxTransitions} with last item for device ${meta.options.friendlyName}`);
+                        `to ${maxTransitions} with last item for device ${meta.options.friendly_name}`);
                     const lastTransition = transitions[transitions.length - 1];
                     while (transitions.length != maxTransitions) {
                         transitions = [...transitions, lastTransition];
@@ -4267,6 +4324,7 @@ const converters = {
     },
     tuya_cover_control: {
         key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
@@ -4594,21 +4652,27 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
-            const sceneid = value;
+            let sceneid = value;
+            let scenename = null;
+            if (typeof value === 'object') {
+                sceneid = value.ID;
+                scenename = value.name;
+            }
+
             const response = await entity.command('genScenes', 'store', {groupid, sceneid}, utils.getOptions(meta.mapped));
 
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr]);
+                        utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                     }
                 }
             } else if (response.status === 0) {
-                utils.saveSceneState(entity, sceneid, groupid, meta.state);
+                utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
             } else {
                 throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
-
+            meta.logger.info('Successfully stored scene');
             return {state: {}};
         },
     },
@@ -4634,15 +4698,11 @@ const converters = {
             };
 
             const isGroup = entity.constructor.name === 'Group';
-            const metaKey = `${sceneid}_${groupid}`;
             if (isGroup) {
                 const membersState = {};
                 for (const member of entity.members) {
-                    if (member.meta.hasOwnProperty('scenes') && member.meta.scenes.hasOwnProperty(metaKey)) {
-                        membersState[member.getDevice().ieeeAddr] = addColorMode(member.meta.scenes[metaKey].state);
-
-                        let recalledState = member.meta.scenes[metaKey].state;
-
+                    let recalledState = utils.getSceneState(member, sceneid, groupid);
+                    if (recalledState) {
                         // add color_mode if saved state does not contain it
                         if (!recalledState.hasOwnProperty('color_mode')) {
                             recalledState = addColorMode(recalledState);
@@ -4655,18 +4715,18 @@ const converters = {
                         membersState[member.getDevice().ieeeAddr] = {};
                     }
                 }
+                meta.logger.info('Successfully recalled group scene');
                 return {membersState};
             } else {
-                if (entity.meta.hasOwnProperty('scenes') && entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    let recalledState = entity.meta.scenes[metaKey].state;
-
+                let recalledState = utils.getSceneState(entity, sceneid, groupid);
+                if (recalledState) {
                     // add color_mode if saved state does not contain it
                     if (!recalledState.hasOwnProperty('color_mode')) {
                         recalledState = addColorMode(recalledState);
                     }
 
                     Object.assign(recalledState, libColor.syncColorState(recalledState, meta.state, meta.options));
-
+                    meta.logger.info('Successfully recalled scene');
                     return {state: recalledState};
                 } else {
                     meta.logger.warn(`Unknown scene was recalled for ${entity.deviceIeeeAddress}, can't restore state.`);
@@ -4693,7 +4753,7 @@ const converters = {
             const isGroup = entity.constructor.name === 'Group';
             const groupid = isGroup ? entity.groupID : 0;
             const sceneid = value.ID;
-            const scenename = '';
+            const scenename = value.name;
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
 
             const state = {};
@@ -4795,24 +4855,24 @@ const converters = {
 
             if (isGroup || (removeresp.status === 0 || removeresp.status == 133 || removeresp.status == 139)) {
                 const response = await entity.command(
-                    'genScenes', 'add', {groupid, sceneid, scenename, transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
+                    'genScenes', 'add', {groupid, sceneid, scenename: '', transtime, extensionfieldsets}, utils.getOptions(meta.mapped),
                 );
 
                 if (isGroup) {
                     if (meta.membersState) {
                         for (const member of entity.members) {
-                            utils.saveSceneState(member, sceneid, groupid, state);
+                            utils.saveSceneState(member, sceneid, groupid, state, scenename);
                         }
                     }
                 } else if (response.status === 0) {
-                    utils.saveSceneState(entity, sceneid, groupid, state);
+                    utils.saveSceneState(entity, sceneid, groupid, state, scenename);
                 } else {
                     throw new Error(`Scene add not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
                 }
             } else {
                 throw new Error(`Scene add unable to remove existing scene ('${herdsman.Zcl.Status[removeresp.status]}')`);
             }
-
+            meta.logger.info('Successfully added scene');
             return {state: {}};
         },
     },
@@ -4824,26 +4884,19 @@ const converters = {
             const response = await entity.command(
                 'genScenes', 'remove', {groupid, sceneid}, utils.getOptions(meta.mapped),
             );
-
             const isGroup = entity.constructor.name === 'Group';
-            const metaKey = `${sceneid}_${groupid}`;
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        if (member.meta.scenes && member.meta.scenes.hasOwnProperty(metaKey)) {
-                            delete member.meta.scenes[metaKey];
-                            member.save();
-                        }
+                        utils.deleteSceneState(member, sceneid, groupid);
                     }
                 }
             } else if (response.status === 0) {
-                if (entity.meta.scenes && entity.meta.scenes.hasOwnProperty(metaKey)) {
-                    delete entity.meta.scenes[metaKey];
-                    entity.save();
-                }
+                utils.deleteSceneState(entity, sceneid, groupid);
             } else {
                 throw new Error(`Scene remove not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
+            meta.logger.info('Successfully removed scene');
         },
     },
     scene_remove_all: {
@@ -4853,25 +4906,19 @@ const converters = {
             const response = await entity.command(
                 'genScenes', 'removeAll', {groupid}, utils.getOptions(meta.mapped),
             );
-
             const isGroup = entity.constructor.name === 'Group';
             if (isGroup) {
                 if (meta.membersState) {
                     for (const member of entity.members) {
-                        if (member.meta.scenes) {
-                            member.meta.scenes = {};
-                            member.save();
-                        }
+                        utils.deleteSceneState(member);
                     }
                 }
             } else if (response.status === 0) {
-                if (entity.meta.scenes) {
-                    entity.meta.scenes = {};
-                    entity.save();
-                }
+                utils.deleteSceneState(entity);
             } else {
                 throw new Error(`Scene remove all not succesfull ('${herdsman.Zcl.Status[response.status]}')`);
             }
+            meta.logger.info('Successfully removed all scenes');
         },
     },
     TS0003_curtain_switch: {
@@ -5745,7 +5792,50 @@ const converters = {
             return {state: {color_power_on_behavior: value}};
         },
     },
-
+    tuya_motion_sensor: {
+        key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay',
+            'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'o_sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msOSensitivity, utils.getKey(tuya.msLookups.OSensitivity, value));
+                break;
+            case 'v_sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msVSensitivity, utils.getKey(tuya.msLookups.VSensitivity, value));
+                break;
+            case 'led_status':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msLedStatus, {'on': 0, 'off': 1}[value.toLowerCase()]);
+                break;
+            case 'vacancy_delay':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msVacancyDelay, value);
+                break;
+            case 'light_on_luminance_prefer':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOnLuminancePrefer, value);
+                break;
+            case 'light_off_luminance_prefer':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.msLightOffLuminancePrefer, value);
+                break;
+            case 'mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.msMode, utils.getKey(tuya.msLookups.Mode, value));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
+            }
+        },
+    },
+    tuya_radar_sensor: {
+        key: ['radar_scene', 'radar_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'radar_scene':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsScene, value);
+                return {state: {radar_scene: value}};
+            case 'radar_sensitivity':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
+                return {state: {radar_sensitivity: value}};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters

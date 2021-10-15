@@ -12,7 +12,9 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_hhrtiq0x'},
-            {modelId: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'}],
+            {modelId: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
+            {modelId: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
+            {modelId: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -26,7 +28,8 @@ module.exports = [
         whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
             {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
-            {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'}],
+            {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
+            {vendor: 'Tesla', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)

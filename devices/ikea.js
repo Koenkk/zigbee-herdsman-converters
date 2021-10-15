@@ -91,10 +91,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm'],
+        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm'],
         model: 'LED1936G5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED globe-bulb E27 470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED globe-bulb E26/E27 450/470 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -622,7 +622,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['STARKVIND Air purifier'],
-        model: 'E3007',
+        model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
@@ -633,5 +633,12 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        model: 'LED1949C5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];

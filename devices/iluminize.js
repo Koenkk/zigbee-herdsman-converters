@@ -125,6 +125,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['HK-ZD-RGB-A', '5110.40'],
+        model: '5110.40',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
+    },
+    {
         zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
         model: '511.000',
         vendor: 'Iluminize',
@@ -158,5 +165,12 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
             'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
+    {
+        zigbeeModel: ['5112.80'],
+        model: '5112.80',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED-controller 1x 8A',
+        extend: extend.light_onoff_brightness(),
     },
 ];
