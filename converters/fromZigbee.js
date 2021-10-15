@@ -4466,6 +4466,10 @@ const converters = {
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
+            if (msg.data.hasOwnProperty('4')) {
+                const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
+                payload.mode_switch = lookup[msg.data['4']];
+            }
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
                     payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
