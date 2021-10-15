@@ -1,7 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -13,7 +12,7 @@ module.exports = [
         vendor: 'ShinaSystem',
         description: 'Sihas Multipurpose Sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.battery,fz.sihas_people_cnt],
+        fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
