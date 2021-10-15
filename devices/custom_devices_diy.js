@@ -233,4 +233,6 @@ module.exports = [
             await reporting.temperature(firstEndpoint, overides);
             await reporting.soil_moisture(firstEndpoint, overides);
         },
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+    },
 ];
