@@ -176,8 +176,12 @@ module.exports = [
         onEvent: preventReset,
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints[1];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            try {
+                const endpoint = device.endpoints[1];
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            } catch (error) {
+                // fails for some but device works as expected: https://github.com/Koenkk/zigbee2mqtt/issues/9136
+            }
         },
     },
     {
