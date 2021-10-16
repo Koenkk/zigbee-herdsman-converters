@@ -4441,7 +4441,7 @@ const converters = {
                         // 0x23 Zcl32BitUint
                         value = data.readUInt32LE(i+2);
                         i += 5;
-                        break;                        
+                        break;
                     case 39:
                         // 0x27 Zcl64BitUint
                         value = data.readBigUInt64BE(i+2);
@@ -4456,7 +4456,7 @@ const converters = {
                         // 0x29 Zcl16BitInt
                         value = data.readInt16LE(i+2);
                         i += 3;
-                        break;                        
+                        break;
                     case 43:
                         // 0x2B Zcl32BitInt
                         value = data.readInt32LE(i+2);
@@ -4466,7 +4466,7 @@ const converters = {
                         // 0x2F Zcl64BitInt
                         value = data.readBigInt64BE(i+2);
                         i += 9;
-                        break;                                             
+                        break;
                     case 57:
                         // 0x39 ZclSingleFloat
                         value = data.readFloatLE(i+2);
@@ -4476,7 +4476,7 @@ const converters = {
                         // 0x3a ZclDoubleFloat
                         value = data.readDoubleLE(i+2);
                         i += 5;
-                        break;                        
+                        break;
                     default:
                         if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
