@@ -517,4 +517,20 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
         },
     },
+    {
+        zigbeeModel: ['FLS/SYSTEM-M/4'],
+        model: 'WDE002906',
+        vendor: 'Schneider Electric',
+        description: 'Wiser wireless switch 1-gang',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+            e.battery()],
+        meta: {disableActionGroup: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(21);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
