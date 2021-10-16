@@ -220,7 +220,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_ePWS'],
         model: 'EFEKTA_ePWS',
         vendor: 'Custom devices (DiY)',
-        description: '[Plant Wattering Sensor with e-ink display](https://efektalab.com/epws102)',
+        description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
         meta: {disableDefaultResponse: true},
