@@ -4416,11 +4416,11 @@ const converters = {
                 const data = msg.data['247'];
                 // Xiaomi struct parsing
                 const length = data.length;
-                // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
+                // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: Xiaomi struct: length ${length}`);
                 for (let i=0; i < length; i++) {
                     const index = data[i];
                     let value = null;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
+                    // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
                     switch (data[i+1]) {
                     case 16:
                         // 0x10 ZclBoolean
@@ -4437,8 +4437,14 @@ const converters = {
                         value = data.readUInt16LE(i+2);
                         i += 3;
                         break;
+                    case 35:
+                        // 0x23 Zcl32BitUint
+                        value = data.readUInt32LE(i+2);
+                        i += 5;
+                        break;                        
                     case 39:
                         // 0x27 Zcl64BitUint
+                        value = data.readBigUInt64BE(i+2);
                         i += 9;
                         break;
                     case 40:
@@ -4446,11 +4452,31 @@ const converters = {
                         value = data.readInt8(i+2);
                         i += 2;
                         break;
+                    case 41:
+                        // 0x29 Zcl16BitInt
+                        value = data.readInt16LE(i+2);
+                        i += 3;
+                        break;                        
+                    case 43:
+                        // 0x2B Zcl32BitInt
+                        value = data.readInt32LE(i+2);
+                        i += 5;
+                        break;
+                    case 47:
+                        // 0x2F Zcl64BitInt
+                        value = data.readBigInt64BE(i+2);
+                        i += 9;
+                        break;                                             
                     case 57:
                         // 0x39 ZclSingleFloat
                         value = data.readFloatLE(i+2);
                         i += 5;
                         break;
+                    case 58:
+                        // 0x3a ZclDoubleFloat
+                        value = data.readDoubleLE(i+2);
+                        i += 5;
+                        break;                        
                     default:
                         if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
