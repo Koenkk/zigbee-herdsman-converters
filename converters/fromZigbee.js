@@ -6694,7 +6694,7 @@ const converters = {
     },
     moes_thermostat_tv: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandGetData', 'commandSetDataResponse', 'raw'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -6703,50 +6703,50 @@ const converters = {
             case tuya.dataPoints.tvThermostatMode:
                 result = {system_mode: tuya.tvThermostatMode[value]};
                 break;
-            case tuyaLocal.dataPoints.tvWindowDetection:
+            case tuya.dataPoints.tvWindowDetection:
                 result = {window_detection: {1: false, 0: true}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvFrostDetection:
+            case tuya.dataPoints.tvFrostDetection:
                 result = {frost_detection: {1: false, 0: true}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvHeatingSetpoint:
+            case tuya.dataPoints.tvHeatingSetpoint:
                 result = {current_heating_setpoint: (value / 10).toFixed(1)};
                 break;
-            case tuyaLocal.dataPoints.tvLocalTemp:
+            case tuya.dataPoints.tvLocalTemp:
                 result = {local_temperature: (value / 10).toFixed(1)};
                 break;
-            case tuyaLocal.dataPoints.tvTempCalibration:
+            case tuya.dataPoints.tvTempCalibration:
                 value = value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value;
                 result = {local_temperature_calibration: (value / 10).toFixed(1)};
                 break;
-            case tuyaLocal.dataPoints.tvAwayTemp:
+            case tuya.dataPoints.tvAwayTemp:
                 result = {away_temperature: (value / 10).toFixed(1)};
                 break;
-            case tuyaLocal.dataPoints.tvBattery:
+            case tuya.dataPoints.tvBattery:
                 result = {battery: value};
                 break;
             case tuya.dataPoints.tvChildLock:
                 result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvErrorStatus:
+            case tuya.dataPoints.tvErrorStatus:
                 result = {error: value};
                 break;
-            case tuyaLocal.dataPoints.tvAwayMode:
+            case tuya.dataPoints.tvAwayMode:
                 result = {away_mode: {1: false, 0: true}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvBoostMode:
+            case tuya.dataPoints.tvBoostMode:
                 result = {boost_mode: {1: false, 0: true}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvBoostTime:
+            case tuya.dataPoints.tvBoostTime:
                 result = {boost_heating_countdown: value};
                 break;
-            case tuyaLocal.dataPoints.tvOpenWindow:
+            case tuya.dataPoints.tvOpenWindow:
                 result = {window: {1: 'CLOSED', 0: 'OPEN'}[value]};
                 break;
-            case tuyaLocal.dataPoints.tvComfortTemp:
+            case tuya.dataPoints.tvComfortTemp:
                 result = {comfort_temperature: (value / 10).toFixed(1)};
                 break;
-            case tuyaLocal.dataPoints.tvEcoTemp:
+            case tuya.dataPoints.tvEcoTemp:
                 result = {eco_temperature: (value / 10).toFixed(1)};
                 break;
             default:
