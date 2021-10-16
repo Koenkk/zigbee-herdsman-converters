@@ -6692,6 +6692,70 @@ const converters = {
             }
         },
     },
+    moes_thermostat_tv: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.tvThermostatMode:
+                result = {system_mode: tuya.tvThermostatMode[value]};
+                break;
+            case tuyaLocal.dataPoints.tvWindowDetection:
+                result = {window_detection: {1: false, 0: true}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvFrostDetection:
+                result = {frost_detection: {1: false, 0: true}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvHeatingSetpoint:
+                result = {current_heating_setpoint: (value / 10).toFixed(1)};
+                break;
+            case tuyaLocal.dataPoints.tvLocalTemp:
+                result = {local_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuyaLocal.dataPoints.tvTempCalibration:
+                value = value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value;
+                result = {local_temperature_calibration: (value / 10).toFixed(1)};
+                break;
+            case tuyaLocal.dataPoints.tvAwayTemp:
+                result = {away_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuyaLocal.dataPoints.tvBattery:
+                result = {battery: value};
+                break;
+            case tuya.dataPoints.tvChildLock:
+                result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvErrorStatus:
+                result = {error: value};
+                break;
+            case tuyaLocal.dataPoints.tvAwayMode:
+                result = {away_mode: {1: false, 0: true}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvBoostMode:
+                result = {boost_mode: {1: false, 0: true}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvBoostTime:
+                result = {boost_heating_countdown: value};
+                break;
+            case tuyaLocal.dataPoints.tvOpenWindow:
+                result = {window: {1: 'CLOSED', 0: 'OPEN'}[value]};
+                break;
+            case tuyaLocal.dataPoints.tvComfortTemp:
+                result = {comfort_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuyaLocal.dataPoints.tvEcoTemp:
+                result = {eco_temperature: (value / 10).toFixed(1)};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+            
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
