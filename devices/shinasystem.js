@@ -23,6 +23,6 @@ module.exports = [
             await endpoint.configureReporting('genAnalogInput', payload);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People Count')],
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
     },
 ];
