@@ -524,7 +524,7 @@ module.exports = [
         description: 'Wiser wireless switch 1-gang',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']), 
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
             e.battery()],
         meta: {disableActionGroup: true},
         configure: async (device, coordinatorEndpoint, logger) => {
