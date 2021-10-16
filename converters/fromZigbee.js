@@ -6712,6 +6712,13 @@ const converters = {
             }
         },
     },
+    sihas_people_cnt: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {people: msg.data.presentValue};
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

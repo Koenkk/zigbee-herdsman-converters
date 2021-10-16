@@ -5836,6 +5836,18 @@ const converters = {
             }
         },
     },
+    sihas_set_people: {
+        key: ['people'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'presentValue': value};
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.write('genAnalogInput', payload);
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
     // #endregion
 
     // #region Ignore converters
