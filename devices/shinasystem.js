@@ -10,7 +10,7 @@ module.exports = [
         zigbeeModel: ['CSM-300Z'],
         model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
-        description: 'Sihas Multipurpose Sensor',
+        description: 'Sihas multipurpose sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people],
