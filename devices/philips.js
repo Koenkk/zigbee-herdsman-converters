@@ -538,6 +538,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTA009'],
+        model: '9290024684',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27 1100lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTA008'],
         model: '9290022267A',
         vendor: 'Philips',
