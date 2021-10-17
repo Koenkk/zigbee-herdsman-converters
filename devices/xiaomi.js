@@ -702,7 +702,7 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE),
+            e.power().withAccess(ea.STATE_GET), e.energy(), e.voltage().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
