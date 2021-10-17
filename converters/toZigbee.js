@@ -5829,7 +5829,7 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'away_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature',
         ],
         convertSet:  async (entity, key, value, meta) => {
             switch (key) {
@@ -5854,9 +5854,9 @@ const converters = {
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value);
                 break;
-            case 'away_temperature':
+            case 'holiday_temperature':
                 value = Math.round(value * 10);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvAwayTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value);
                 break;
             case 'comfort_temperature':
                 value = Math.round(value * 10);
@@ -5866,10 +5866,14 @@ const converters = {
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
                 break;
-            case 'boost_mode':
-                // set 300sec boost time
-                //await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
+            // case 'boost_mode':
+            //     // set 300sec boost time
+            //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
+            //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
+            //     break;
+            case 'open_window_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
                 break;
             default: // Unknown key
                 meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);

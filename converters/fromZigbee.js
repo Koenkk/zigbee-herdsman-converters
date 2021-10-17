@@ -6719,8 +6719,8 @@ const converters = {
                 value = value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value;
                 result = {local_temperature_calibration: (value / 10).toFixed(1)};
                 break;
-            case tuya.dataPoints.tvAwayTemp:
-                result = {away_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvHolidayTemp:
+                result = {holiday_temperature: (value / 10).toFixed(1)};
                 break;
             case tuya.dataPoints.tvBattery:
                 result = {battery: value};
@@ -6731,17 +6731,17 @@ const converters = {
             case tuya.dataPoints.tvErrorStatus:
                 result = {error: value};
                 break;
-            case tuya.dataPoints.tvAwayMode:
-                result = {away_mode: {1: false, 0: true}[value]};
+            case tuya.dataPoints.tvHolidayMode:
+                result = {holiday_mode: value};
                 break;
-            case tuya.dataPoints.tvBoostMode:
-                result = {boost_mode: {1: false, 0: true}[value]};
-                break;
+            // case tuya.dataPoints.tvBoostMode:
+            //     result = {boost_mode: {1: false, 0: true}[value]};
+            //     break;
             case tuya.dataPoints.tvBoostTime:
                 result = {boost_heating_countdown: value};
                 break;
-            case tuya.dataPoints.tvOpenWindow:
-                result = {window: {1: 'CLOSED', 0: 'OPEN'}[value]};
+            case tuya.dataPoints.tvOpenWindowTemp:
+                result = {open_window_temperature: (value / 10).toFixed(1)};
                 break;
             case tuya.dataPoints.tvComfortTemp:
                 result = {comfort_temperature: (value / 10).toFixed(1)};
