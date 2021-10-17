@@ -5,6 +5,20 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['3010'],
+        model: 'NCZ-3010',
+        vendor: 'Nyce', 
+        description: 'Door Hinge Sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.battery()],
+    },  
+    {
         zigbeeModel: ['3011'],
         model: 'NCZ-3011-HA',
         vendor: 'Nyce',
