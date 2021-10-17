@@ -6700,7 +6700,7 @@ const converters = {
             let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             let result = null;
             switch (dp) {
-            case tuya.dataPoints.tvThermostatMode:
+            case tuya.dataPoints.tvMode:
                 result = {system_mode: tuya.tvThermostatMode[value]};
                 break;
             case tuya.dataPoints.tvWindowDetection:

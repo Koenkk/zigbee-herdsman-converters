@@ -5834,7 +5834,7 @@ const converters = {
         convertSet:  async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvThermostatMode, utils.getKey(tuya.msLookups.tvThermostatMode, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
                 break;
             case 'window_detection':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
@@ -5848,27 +5848,27 @@ const converters = {
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
                 value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
-                await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.tvTempCalibration, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
                 break;
             case 'current_heating_setpoint':
                 value = Math.round(value * 10);
-                await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.tvHeatingSetpoint, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value);
                 break;
             case 'away_temperature':
                 value = Math.round(value * 10);
-                await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.tvAwayTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvAwayTemp, value);
                 break;
             case 'comfort_temperature':
                 value = Math.round(value * 10);
-                await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.tvComfortTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvComfortTemp, value);
                 break;
             case 'eco_temperature':
                 value = Math.round(value * 10);
-                await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.tvEcoTemp, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
                 break;
             case 'boost_mode':
                 // set 300sec boost time
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostTime, 300);
+                //await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
                 break;
             default: // Unknown key
