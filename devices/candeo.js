@@ -6,7 +6,7 @@ module.exports = [
         zigbeeModel: ['HK-DIM-A'],
         model: 'HK-DIM-A',
         vendor: 'Candeo',
-        description: 'ZigBee LED Dimmer Smart Switch',
+        description: 'Zigbee LED dimmer smart switch',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
