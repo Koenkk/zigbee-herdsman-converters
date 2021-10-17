@@ -8,7 +8,7 @@ module.exports = [
         zigbeeModel: ['3010'],
         model: 'NCZ-3010',
         vendor: 'Nyce', 
-        description: 'Door Hinge Sensor',
+        description: 'Door hinge sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
