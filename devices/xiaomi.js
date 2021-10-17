@@ -714,9 +714,8 @@ module.exports = [
                 .withEndpoint('right'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            },
+        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
