@@ -135,7 +135,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'},
-            {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'}],
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'}, {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'}],
         model: 'TS0501B',
         description: 'Zigbee light',
         vendor: 'TuYa',
