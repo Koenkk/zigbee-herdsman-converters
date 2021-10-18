@@ -5889,6 +5889,8 @@ const converters = {
             default: // Unknown key
                 meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
             }
+        },
+    },
     sihas_set_people: {
         key: ['people'],
         convertSet: async (entity, key, value, meta) => {
