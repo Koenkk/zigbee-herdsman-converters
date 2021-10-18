@@ -81,6 +81,20 @@ module.exports = [
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
+        zigbeeModel: ['ROB_200-025-0'],
+        model: 'ROB_200-025-0',
+        vendor: 'ROBB',
+        description: 'Zigbee 8 button wall switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
+            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+    },
+    {
         zigbeeModel: ['ZG2833K4_EU06', 'ROB_200-008', 'ROB_200-008-0'],
         model: 'ROB_200-008-0',
         vendor: 'ROBB',

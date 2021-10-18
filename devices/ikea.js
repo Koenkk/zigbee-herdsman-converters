@@ -639,6 +639,6 @@ module.exports = [
         model: 'LED1949C5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
-        extend: tradfriExtend.light_onoff_brightness(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];

@@ -216,4 +216,23 @@ module.exports = [
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
     },
+    {
+        zigbeeModel: ['EFEKTA_ePWS'],
+        model: 'EFEKTA_ePWS',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+    },
 ];
