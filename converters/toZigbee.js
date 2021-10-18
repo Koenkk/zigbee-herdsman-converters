@@ -5842,7 +5842,7 @@ const converters = {
             'current_heating_setpoint', 'local_temperature_calibration',
             'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature',
         ],
-        convertSet:  async (entity, key, value, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));

@@ -6798,7 +6798,7 @@ const converters = {
             default:
                 meta.logger.warn(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
             }
-            
+
             return result;
         },
     },
