@@ -694,7 +694,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch T1 (with neutral, double rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -702,7 +702,7 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE_GET), e.energy(), e.voltage().withAccess(ea.STATE),
+            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
@@ -1472,10 +1472,7 @@ module.exports = [
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
-                disableDefaultResponse: true, disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1506,10 +1503,7 @@ module.exports = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
-                disableDefaultResponse: true, disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
