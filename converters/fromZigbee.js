@@ -6755,7 +6755,7 @@ const converters = {
                     case 0: // auto
                         result = {system_mode: 'auto', preset: 'schedule'};
                     default:
-                        meta.logger.warn('zigbee-herdsman-converters:zsThermostat: ' +
+                        meta.logger.warn('fromZigbee:moes_thermostat_tv: ' +
                             `preset ${value} is not recognized.`);
                         break;
                 }
