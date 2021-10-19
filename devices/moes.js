@@ -287,4 +287,27 @@ module.exports = [
         exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}],
+        model: 'TV01-ZB',
+        vendor: 'Moes',
+        description: 'Thermostat radiator valve',
+        fromZigbee: [fz.moes_thermostat_tv, fz.ignore_tuya_set_time],
+        toZigbee: [tz.moes_thermostat_tv],
+        exposes: [
+            e.battery(), e.child_lock(), e.window_detection(),
+            exposes.binary('frost_detection', ea.STATE_SET).withDescription('Enables/disables frost detection on the device'),
+            exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
+            exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
+            exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
+            exposes.numeric('open_window_temperature', ea.STATE_SET).withDescription('Open window mode temperature'),
+            exposes.numeric('boost_heating_countdown', ea.STATE).withDescription('Boost heating countdown'),
+            exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
+            // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET),
+            exposes.enum('system_mode', ea.STATE_SET, Object.values(tuya.tvThermostatMode)).withDescription('Mode of this device'),
+        ],
+        onEvent: tuya.onEventSetLocalTime,
+    },
 ];

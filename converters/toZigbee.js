@@ -5836,6 +5836,61 @@ const converters = {
             }
         },
     },
+    moes_thermostat_tv: {
+        key: [
+            'system_mode', 'window_detection', 'frost_detection', 'child_lock',
+            'current_heating_setpoint', 'local_temperature_calibration',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'system_mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
+                break;
+            case 'frost_detection':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvFrostDetection, (value) ? 0 : 1);
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvChildLock, {'unlock': 0, 'lock': 1}[value.toLowerCase()]);
+                break;
+            case 'local_temperature_calibration':
+                value = Math.round(value * 10);
+                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
+                break;
+            case 'current_heating_setpoint':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value);
+                break;
+            case 'holiday_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value);
+                break;
+            case 'comfort_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvComfortTemp, value);
+                break;
+            case 'eco_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
+                break;
+            // case 'boost_mode':
+            //     // set 300sec boost time
+            //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
+            //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
+            //     break;
+            case 'open_window_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
+            }
+        },
+    },
     sihas_set_people: {
         key: ['people'],
         convertSet: async (entity, key, value, meta) => {
