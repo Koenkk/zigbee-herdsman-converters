@@ -11,7 +11,7 @@ module.exports = [
         zigbeeModel: ['PECLS01'],
         model: 'PECLS01',
         vendor: 'Perenio',
-        description: 'Perenio flood alarm device',
+        description: 'Flood alarm device',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => 
