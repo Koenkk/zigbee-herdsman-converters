@@ -48,6 +48,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929002376301'],
+        model: '929002376301',
+        vendor: 'Philips',
+        description: 'Hue Iris rose limited edition (generation 4) ',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063130P7'],
         model: '5063130P7',
         vendor: 'Philips',
