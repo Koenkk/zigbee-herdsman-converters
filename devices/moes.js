@@ -296,7 +296,7 @@ module.exports = [
         toZigbee: [tz.moes_thermostat_tv],
         exposes: [
             e.battery(), e.child_lock(), e.window_detection(),
-            exposes.binary('frost_detection', ea.STATE_SET).withDescription('Enables/disables frost detection on the device'),
+            exposes.binary('frost_detection', ea.STATE_SET, true, false).withDescription('Enables/disables frost detection on the device'),
             exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
             exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
             exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
