@@ -5856,7 +5856,7 @@ const converters = {
                 break;
             case 'window_detection':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
-                await tuya.sendDataPointEnum(entity, tuyaLocal.dataPoints.zsMode, utils.getKey(tuya.tvThermostatPreset, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
                 break;
             case 'window_detection':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
