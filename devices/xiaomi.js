@@ -1472,10 +1472,7 @@ module.exports = [
                     'Quick mode makes the device respond faster.')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
-                disableDefaultResponse: true, disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
@@ -1506,10 +1503,7 @@ module.exports = [
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            // set "event" mode
-            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,
-                disableDefaultResponse: true, disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
     },
     {
