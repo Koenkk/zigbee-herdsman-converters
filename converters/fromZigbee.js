@@ -6809,7 +6809,7 @@ const converters = {
                 break;
             case tuya.dataPoints.tvHeatingStop:
                 if (value == 1) {
-                    result = { system_mode: 'OFF', heating_stop: true }
+                    result = { system_mode: 'off', heating_stop: true }
                 } else {
                     result = { heating_stop: false }
                 }
