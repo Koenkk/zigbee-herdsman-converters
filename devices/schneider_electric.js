@@ -77,7 +77,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['PUCK/SWITCH/1'],
-        model: 'CCT5011-0001/MEG5011-0001',
+        model: 'CCT5011-0001/CCT5011-0002/MEG5011-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module switch',
         extend: extend.switch(),
@@ -93,6 +93,25 @@ module.exports = [
         model: 'WDE002334',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness().withLevelConfig(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['NHPB/DIMMER/1'],
+        model: 'WDE002386',
+        vendor: 'Schneider Electric',
+        description: 'Push button dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
         exposes: [e.light_brightness().withLevelConfig(),
@@ -131,13 +150,20 @@ module.exports = [
         model: 'CCT711119',
         vendor: 'Schneider Electric',
         description: 'Wiser smart plug',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(),
+            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+                .withDescription('Controls the behaviour when the device is powered on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
+            // only activePower seems to be support, although compliance document states otherwise
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
         },
     },
     {
@@ -296,11 +322,19 @@ module.exports = [
         description: 'LK FUGA wiser wireless battery 4 button switch',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_*'])],
+        endpoint: (device) => {
+            return {'top': 21, 'bottom': 22};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
+            'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
+            'brightness_move_down_bottom', 'brightness_stop_bottom'])],
         configure: async (device, coordinatorEndpoint, logger) => {
-            // Currently all four front switches operate out of ep21 for some reason
-            const buttonEndpoint = device.getEndpoint(21);
-            await reporting.bind(buttonEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
+            const topButtonsEndpoint = device.getEndpoint(21);
+            await reporting.bind(topButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const bottomButtonsEndpoint = device.getEndpoint(22);
+            await reporting.bind(bottomButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
@@ -481,6 +515,22 @@ module.exports = [
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+        },
+    },
+    {
+        zigbeeModel: ['FLS/SYSTEM-M/4'],
+        model: 'WDE002906',
+        vendor: 'Schneider Electric',
+        description: 'Wiser wireless switch 1-gang',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+            e.battery()],
+        meta: {disableActionGroup: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(21);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];

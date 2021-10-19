@@ -19,6 +19,13 @@ module.exports = [
         extend: extend.switch(),
     },
     {
+        zigbeeModel: ['50131'],
+        model: '501.31',
+        vendor: 'Paulmann',
+        description: 'Smart plug for Euro- and Schuko-sockets',
+        extend: extend.switch(),
+    },
+    {
         zigbeeModel: ['Dimmablelight '],
         model: '50044/50045',
         vendor: 'Paulmann',
@@ -38,6 +45,13 @@ module.exports = [
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['RGBCW_LIGHT'],
+        model: '4137',
+        vendor: 'Paulmann',
+        description: 'Smart Home Zigbee LED bulb 9,3W Matt E27 RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['CCT light'],

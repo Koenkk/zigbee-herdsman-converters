@@ -155,4 +155,84 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['toggle'])],
     },
+    {
+        zigbeeModel: ['ZeeFlora'],
+        model: 'ZeeFlora',
+        vendor: 'Custom devices (DiY)',
+        description: 'Flower sensor with rechargeable battery',
+        fromZigbee: [fz.temperature, fz.illuminance, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 3600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.illuminance(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_PWS'],
+        model: 'EFEKTA_PWS',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant Wattering Sensor]',
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_THP_LR'],
+        model: 'EFEKTA_THP_LR',
+        vendor: 'Custom devices (DiY)',
+        description: 'DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
+            const overides = {min: 0, max: 64800, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+            await reporting.pressureExtended(endpoint, overides);
+            await endpoint.read('msPressureMeasurement', ['scale']);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_ePWS'],
+        model: 'EFEKTA_ePWS',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+    },
 ];

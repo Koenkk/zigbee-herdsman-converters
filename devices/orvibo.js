@@ -206,7 +206,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b', '83b9b27d5ffb4830bf35be5b1023623e'],
+        zigbeeModel: ['9ea4d5d8778d4f7089ac06a3969e784b', '83b9b27d5ffb4830bf35be5b1023623e', '2810c2403b9c4a5db62cc62d1030d95e'],
         model: 'R20W2Z',
         vendor: 'ORVIBO',
         description: 'In wall switch - 2 gang',
@@ -222,7 +222,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c', 'b2e57a0f606546cd879a1a54790827d6'],
+        zigbeeModel: ['131c854783bc45c9b2ac58088d09571c', 'b2e57a0f606546cd879a1a54790827d6', '585fdfb8c2304119a2432e9845cf2623'],
         model: 'SN10ZW',
         vendor: 'ORVIBO',
         description: 'Occupancy sensor',

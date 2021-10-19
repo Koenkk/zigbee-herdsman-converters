@@ -34,7 +34,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['SmartPlug'],
+        zigbeeModel: ['SmartPlug', 'SmartPlug-EF-3.0'],
         model: 'HS2SK',
         description: 'Smart metering plug',
         vendor: 'HEIMAN',
@@ -83,7 +83,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626'],
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -111,7 +111,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['GASSensor-N'],
+        zigbeeModel: ['GASSensor-N', 'GASSensor-N-3.0'],
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
@@ -258,6 +258,7 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
+        fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'}],
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
@@ -667,5 +668,19 @@ module.exports = [
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
+        fingerprint: [{modelID: 'DoorBell-EM', manufacturerName: 'HEIMAN'}],
+        model: 'HS2DB',
+        vendor: 'HEIMAN',
+        description: 'Smart doorbell button',
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
     },
 ];

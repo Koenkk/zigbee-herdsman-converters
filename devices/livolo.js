@@ -52,6 +52,9 @@ module.exports = [
         toZigbee: [tz.livolo_socket_switch_on_off],
         extend: extend.switch(),
         configure: poll,
+        endpoint: (device) => {
+            return {'left': 6, 'right': 6};
+        },
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));
@@ -130,6 +133,9 @@ module.exports = [
         toZigbee: [tz.livolo_socket_switch_on_off, tz.livolo_dimmer_level],
         exposes: [e.light_brightness()],
         configure: poll,
+        endpoint: (device) => {
+            return {'left': 6, 'right': 6};
+        },
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
                 clearInterval(globalStore.getValue(device, 'interval'));

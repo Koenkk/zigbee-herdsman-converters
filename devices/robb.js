@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -80,6 +81,20 @@ module.exports = [
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {
+        zigbeeModel: ['ROB_200-025-0'],
+        model: 'ROB_200-025-0',
+        vendor: 'ROBB',
+        description: 'Zigbee 8 button wall switch',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        exposes: [e.battery(), e.action([
+            'on_1', 'off_1', 'brightness_move_up_1', 'brightness_move_down_1', 'brightness_stop_1',
+            'on_2', 'off_2', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_stop_2',
+            'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
+            'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+    },
+    {
         zigbeeModel: ['ZG2833K4_EU06', 'ROB_200-008', 'ROB_200-008-0'],
         model: 'ROB_200-008-0',
         vendor: 'ROBB',
@@ -128,5 +143,23 @@ module.exports = [
         exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
         toZigbee: [],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
+    },
+    {
+        zigbeeModel: ['ROB_200-017-0'],
+        model: 'ROB_200-017-0',
+        vendor: 'ROBB',
+        description: 'Zigbee smart plug',
+        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
     },
 ];

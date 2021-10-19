@@ -11,7 +11,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1123ZB'],
         model: 'TH1123ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
@@ -32,28 +32,18 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
 
             try {
+                await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
                 await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Not all support this */}
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            try {
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
                 await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
-            } catch (error) {/* Do nothing*/}
-
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
-            } catch (error) {/* Do nothing*/}
-            try {
                 await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch (error) {/* Do nothing*/}
-            try {
                 await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {/* Not all support this */}
 
             // Disable default reporting
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF});
@@ -64,7 +54,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1124ZB'],
         model: 'TH1124ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
@@ -121,7 +111,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1300ZB'],
         model: 'TH1300ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.legacy.hvac_user_interface, fz.ignore_temperature_report,
             fz.legacy.sinope_thermostat_state, fz.sinope_TH1300ZB_specific],
@@ -164,7 +154,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1400ZB'],
         model: 'TH1400ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
         fromZigbee: [fz.legacy.sinope_thermostat_att_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
@@ -190,7 +180,7 @@ module.exports = [
     {
         zigbeeModel: ['TH1500ZB'],
         model: 'TH1500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee dual pole line volt thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -216,7 +206,7 @@ module.exports = [
     {
         zigbeeModel: ['SW2500ZB'],
         model: 'SW2500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -228,7 +218,7 @@ module.exports = [
     {
         zigbeeModel: ['SP2600ZB'],
         model: 'SP2600ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
@@ -244,9 +234,15 @@ module.exports = [
     {
         zigbeeModel: ['DM2500ZB'],
         model: 'DM2500ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness(), e.effect(), exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
+            .withDescription('Control status LED when load ON'), exposes.numeric('led_intensity_off', ea.SET).withValueMin(0)
+            .withValueMax(100).withDescription('Control status LED when load OFF'), exposes.numeric('minimum_brightness', ea.SET)
+            .withValueMin(0).withValueMax(3000).withDescription('Control minimum dimmer brightness')],
+        toZigbee: [tz.light_onoff_brightness, tz.effect, tz.sinope_led_intensity_on, tz.sinope_led_intensity_off,
+            tz.sinope_minimum_brightness],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -258,7 +254,7 @@ module.exports = [
     {
         zigbeeModel: ['RM3250ZB'],
         model: 'RM3250ZB',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
         description: '50A Smart electrical load controller',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
@@ -278,7 +274,16 @@ module.exports = [
     {
         zigbeeModel: ['WL4200'],
         model: 'WL4200',
-        vendor: 'Sinope',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water leak detector',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['WL4200S'],
+        model: 'WL4200S',
+        vendor: 'Sinopé',
         description: 'Zigbee smart water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
