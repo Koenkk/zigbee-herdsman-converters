@@ -9,6 +9,7 @@ const light = require('../lib/light');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const exposes = require('../lib/exposes');
+const { tuya_air_quality } = require('./fromZigbee');
 
 const manufacturerOptions = {
     xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
@@ -5840,12 +5841,22 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature', 'heat_stop'
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                if(value != 'off'){
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                }
+                else{
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                }
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                await tuya.sendDataPointEnum(entity, tuyaLocal.dataPoints.zsMode, utils.getKey(tuya.tvThermostatPreset, value));
                 break;
             case 'window_detection':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
@@ -5876,6 +5887,15 @@ const converters = {
             case 'eco_temperature':
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
+                break;
+            case 'heating_stop':
+                value = value.toUpperCase();
+                if (value == true) {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                }
                 break;
             // case 'boost_mode':
             //     // set 300sec boost time
