@@ -9,7 +9,6 @@ const light = require('../lib/light');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const exposes = require('../lib/exposes');
-const { tuya_air_quality } = require('./fromZigbee');
 
 const manufacturerOptions = {
     xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
