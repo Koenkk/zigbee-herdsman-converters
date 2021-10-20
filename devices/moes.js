@@ -307,7 +307,7 @@ module.exports = [
             // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
-                .withLocalTemperatureCalibration()
+                .withLocalTemperatureCalibration(ea.STATE_SET)
                 .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)
                 .withPreset(Object.values(tuya.tvThermostatPreset)),
         ],
