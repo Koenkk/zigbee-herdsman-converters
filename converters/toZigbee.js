@@ -5890,7 +5890,6 @@ const converters = {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
                 break;
             case 'heating_stop':
-                value = value.toUpperCase();
                 if (value == true) {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 } else {
