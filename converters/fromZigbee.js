@@ -6759,7 +6759,6 @@ const converters = {
                             `preset ${value} is not recognized.`);
                         break;
                 }
-                result = {system_mode: tuya.tvThermostatMode[value]};
                 break;
             case tuya.dataPoints.tvWindowDetection:
                 result = {window_detection: {1: false, 0: true}[value]};
