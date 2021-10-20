@@ -5841,7 +5841,8 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature', 'heating_stop'
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'open_window_temperature', 'heating_stop', 'preset'
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -5906,6 +5907,9 @@ const converters = {
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
                 break;
+            case 'preset':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                await tuya.sendDataPointEnum(entity, tuua.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
             default: // Unknown key
                 meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
             }
