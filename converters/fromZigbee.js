@@ -6746,18 +6746,21 @@ const converters = {
             let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             let result = null;
             switch (dp) {
-                case tuya.dataPoints.tvMode:
+            case tuya.dataPoints.tvMode:
                 switch (value) {
-                    case 1: // manual
-                        result = {system_mode: 'heat', preset: 'manual'};
-                    case 2: // holiday
-                        result = {system_mode: 'heat', preset: 'holiday'};
-                    case 0: // auto
-                        result = {system_mode: 'auto', preset: 'schedule'};
-                    default:
-                        meta.logger.warn('fromZigbee:moes_thermostat_tv: ' +
-                            `preset ${value} is not recognized.`);
-                        break;
+                case 1: // manual
+                    result = {system_mode: 'heat', preset: 'manual'};
+                    break;
+                case 2: // holiday
+                    result = {system_mode: 'heat', preset: 'holiday'};
+                    break;
+                case 0: // auto
+                    result = {system_mode: 'auto', preset: 'schedule'};
+                    break;
+                default:
+                    meta.logger.warn('fromZigbee:moes_thermostat_tv: ' +
+                        `preset ${value} is not recognized.`);
+                    break;
                 }
                 break;
             case tuya.dataPoints.tvWindowDetection:
@@ -6808,9 +6811,9 @@ const converters = {
                 break;
             case tuya.dataPoints.tvHeatingStop:
                 if (value == 1) {
-                    result = { system_mode: 'off', heating_stop: true }
+                    result = {system_mode: 'off', heating_stop: true};
                 } else {
-                    result = { heating_stop: false }
+                    result = {heating_stop: false};
                 }
                 break;
             default:

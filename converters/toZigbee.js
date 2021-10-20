@@ -5841,22 +5841,17 @@ const converters = {
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
             'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
-            'open_window_temperature', 'heating_stop', 'preset'
+            'open_window_temperature', 'heating_stop', 'preset',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
-                if(value != 'off'){
+                if (value != 'off') {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
-                }
-                else{
+                } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 }
-                break;
-            case 'window_detection':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
                 break;
             case 'window_detection':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
@@ -5907,7 +5902,8 @@ const converters = {
                 break;
             case 'preset':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
-                await tuya.sendDataPointEnum(entity, tuua.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
+                break;
             default: // Unknown key
                 meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
             }
