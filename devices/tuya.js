@@ -1336,7 +1336,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hkdl5fmv'}],
-        model: 'TS0601_din',
+        model: 'TS0601_rcbo',
         vendor: 'TuYa',
         whiteLabel: [
             {vendor: 'HOCH', model: 'ZJSBL7-100Z'},
