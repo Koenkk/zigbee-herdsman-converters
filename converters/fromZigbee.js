@@ -6881,7 +6881,7 @@ const converters = {
                 const lookup = {
                     0: 'off',
                     1: 'on',
-                    2: 'previous'
+                    2: 'previous',
                 };
                 result.power_on_behaviour = lookup[value];
             }
@@ -6894,7 +6894,7 @@ const converters = {
                     8: 'over temperature threshold',
                     10: 'over leakage current threshold',
                     16: 'trip test',
-                    128: 'safety lock'
+                    128: 'safety lock',
                 };
                 result.alarm = lookup[value];
             }
@@ -6902,20 +6902,20 @@ const converters = {
                 result.meter_number = value.trim();
             }
             if (dp === tuya.dataPoints.hochVoltageThreshold) {
-                 result.over_voltage_threshold = (value[1] | value[0] << 8) / 10;
-                 result.over_voltage_trip = value[2] ? 'ON' : 'OFF';
-                 result.over_voltage_alarm = value[3] ? 'ON' : 'OFF';
-                 result.under_voltage_threshold = (value[5] | value[4] << 8) / 10;
-                 result.under_voltage_trip = value[6] ? 'ON' : 'OFF';
-                 result.under_voltage_alarm = value[7] ? 'ON' : 'OFF';
+                result.over_voltage_threshold = (value[1] | value[0] << 8) / 10;
+                result.over_voltage_trip = value[2] ? 'ON' : 'OFF';
+                result.over_voltage_alarm = value[3] ? 'ON' : 'OFF';
+                result.under_voltage_threshold = (value[5] | value[4] << 8) / 10;
+                result.under_voltage_trip = value[6] ? 'ON' : 'OFF';
+                result.under_voltage_alarm = value[7] ? 'ON' : 'OFF';
             }
             if (dp === tuya.dataPoints.hochCurrentThreshold) {
-                let over_current_value = 0;
+                let overCurrentValue = 0;
                 for (let i = 0; i < 3; i++) {
-                    over_current_value = over_current_value << 8;
-                    over_current_value += value[i];
+                    overCurrentValue = overCurrentValue << 8;
+                    overCurrentValue += value[i];
                 }
-                result.over_current_threshold = over_current_value / 1000;
+                result.over_current_threshold = overCurrentValue / 1000;
                 result.over_current_trip = value[3] ? 'ON' : 'OFF';
                 result.over_current_alarm = value[4] ? 'ON' : 'OFF';
             }

@@ -1340,10 +1340,10 @@ module.exports = [
         vendor: 'TuYa',
         whiteLabel: [
             {vendor: 'HOCH', model: 'ZJSBL7-100Z'},
-            {vendor: 'WDYK', model: 'ZJSBL7-100Z'}
+            {vendor: 'WDYK', model: 'ZJSBL7-100Z'},
         ],
         description: 'DIN mount RCBO with smart energy metering',
-        fromZigbee: [fz.hoch_din,],
+        fromZigbee: [fz.hoch_din],
         toZigbee: [tz.hoch_din],
         exposes: [
             exposes.text('meter_number', ea.STATE),
@@ -1360,7 +1360,7 @@ module.exports = [
             exposes.numeric('power', ea.STATE).withUnit('W'),
             exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
             exposes.numeric('temperature', ea.STATE).withUnit('°C'),
-            /*TODO: Add toZigbee converters for the below composites
+            /* TODO: Add toZigbee converters for the below composites
             exposes.composite('voltage_setting', 'voltage_setting')
                 .withFeature(exposes.numeric('under_voltage_threshold', ea.STATE_SET)
                     .withValueMin(50)
