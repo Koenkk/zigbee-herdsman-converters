@@ -4595,8 +4595,8 @@ const converters = {
             if (['QBKG34LM'].includes(model.model)) {
                 buttonLookup = {
                     41: 'left', 42: 'center', 43: 'right',
-                    51: '1_2_both', 52: '1_3_both', 53: '2_3_both',
-                    61: 'all_button',
+                    51: 'left_center', 52: 'left_right', 53: 'center_right',
+                    61: 'all',
                 };
             }
 
