@@ -737,8 +737,9 @@ module.exports = [
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
-                'single_right', 'double_right', 'single_1_2_both', 'double_1_2_both',
-                'single_1_3_both', 'double_1_3_both', 'single_2_3_both', 'double_2_3_both']),
+                'single_right', 'double_right', 'single_left_center', 'double_left_center',
+                'single_left_right', 'double_left_right', 'single_center_right', 'double_center_right',
+                'single_all', 'double_all']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
