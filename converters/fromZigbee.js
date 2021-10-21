@@ -6749,7 +6749,21 @@ const converters = {
             let result = null;
             switch (dp) {
             case tuya.dataPoints.tvMode:
-                result = {system_mode: tuya.tvThermostatMode[value]};
+                switch (value) {
+                case 1: // manual
+                    result = {system_mode: 'heat', preset: 'manual'};
+                    break;
+                case 2: // holiday
+                    result = {system_mode: 'heat', preset: 'holiday'};
+                    break;
+                case 0: // auto
+                    result = {system_mode: 'auto', preset: 'schedule'};
+                    break;
+                default:
+                    meta.logger.warn('fromZigbee:moes_thermostat_tv: ' +
+                        `preset ${value} is not recognized.`);
+                    break;
+                }
                 break;
             case tuya.dataPoints.tvWindowDetection:
                 result = {window_detection: {1: false, 0: true}[value]};
@@ -6796,6 +6810,13 @@ const converters = {
                 break;
             case tuya.dataPoints.tvEcoTemp:
                 result = {eco_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvHeatingStop:
+                if (value == 1) {
+                    result = {system_mode: 'off', heating_stop: true};
+                } else {
+                    result = {heating_stop: false};
+                }
                 break;
             default:
                 meta.logger.warn(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);

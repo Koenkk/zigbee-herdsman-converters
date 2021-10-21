@@ -297,6 +297,7 @@ module.exports = [
         exposes: [
             e.battery(), e.child_lock(), e.window_detection(),
             exposes.binary('frost_detection', ea.STATE_SET, true, false).withDescription('Enables/disables frost detection on the device'),
+            exposes.binary('heating_stop', ea.STATE_SET, true, false).withDescription('Stop heating'),
             exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
             exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
             exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
@@ -304,9 +305,10 @@ module.exports = [
             exposes.numeric('boost_heating_countdown', ea.STATE).withDescription('Boost heating countdown'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
             // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET),
-            exposes.enum('system_mode', ea.STATE_SET, Object.values(tuya.tvThermostatMode)).withDescription('Mode of this device'),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)
+                .withPreset(Object.values(tuya.tvThermostatPreset)),
         ],
         onEvent: tuya.onEventSetLocalTime,
     },

@@ -5841,12 +5841,18 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode', 'open_window_temperature',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'open_window_temperature', 'heating_stop', 'preset',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                if (value != 'off') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                }
                 break;
             case 'window_detection':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
@@ -5878,6 +5884,14 @@ const converters = {
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
                 break;
+            case 'heating_stop':
+                if (value == true) {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                }
+                break;
             // case 'boost_mode':
             //     // set 300sec boost time
             //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
@@ -5886,6 +5900,10 @@ const converters = {
             case 'open_window_temperature':
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
+                break;
+            case 'preset':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
                 break;
             default: // Unknown key
                 meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
