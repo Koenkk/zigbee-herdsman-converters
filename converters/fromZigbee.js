@@ -4596,7 +4596,7 @@ const converters = {
                 buttonLookup = {
                     41: 'left', 42: 'center', 43: 'right',
                     51: '1_2_both', 52: '1_3_both', 53: '2_3_both',
-                    61: 'all_button'
+                    61: 'all_button',
                 };
             }
 
