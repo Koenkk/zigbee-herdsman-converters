@@ -4592,6 +4592,13 @@ const converters = {
             if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG31LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
             }
+            if (['QBKG34LM'].includes(model.model)) {
+                buttonLookup = {
+                    41: 'left', 42: 'center', 43: 'right',
+                    51: 'left_center', 52: 'left_right', 53: 'center_right',
+                    61: 'all',
+                };
+            }
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
