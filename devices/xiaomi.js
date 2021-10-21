@@ -720,6 +720,41 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.switch.b3n01'],
+        model: 'QBKG34LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch T1 (with neutral, three rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'center' :2, 'right': 3};
+        },
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.action([
+                'single_left', 'double_left', 'single_center', 'double_center',
+                'single_right', 'double_right', 'single_1_2_both', 'double_1_2_both',
+                'single_1_3_both', 'double_1_3_both', 'single_2_3_both', 'double_2_3_both']),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('center'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,disableResponse: true});
+        },
+        onEvent: preventReset
+    },
+    {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
