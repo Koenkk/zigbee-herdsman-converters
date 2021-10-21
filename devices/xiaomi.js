@@ -729,7 +729,7 @@ module.exports = [
             tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'left': 1, 'center' :2, 'right': 3};
+            return {'left': 1, 'center': 2, 'right': 3};
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
@@ -750,9 +750,9 @@ module.exports = [
                 .withEndpoint('right'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f,disableResponse: true});
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
-        onEvent: preventReset
+        onEvent: preventReset,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
