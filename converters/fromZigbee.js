@@ -6832,6 +6832,110 @@ const converters = {
             return {people: msg.data.presentValue};
         },
     },
+    hoch_din: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+            meta.logger.debug(`from hoch_din, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+
+            if (dp === tuya.dataPoints.state) {
+                result.state = value ? 'ON' : 'OFF';
+                if (value) {
+                    result.trip = 'clear';
+                }
+            }
+            if (dp === tuya.dataPoints.hochChildLock) {
+                result.child_lock = value ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochVoltage) {
+                result.voltage = (value[1] | value[0] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochHistoricalVoltage) {
+                result.voltage_rms = (value[1] | value[0] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochCurrent) {
+                result.current = value[2] | value[1] << 8;
+            }
+            if (dp === tuya.dataPoints.hochHistoricalCurrent) {
+                result.current_average = value[2] | value[1] << 8;
+            }
+            if (dp === tuya.dataPoints.hochActivePower) {
+                result.power = (value[2] | value[1] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochTotalActivePower) {
+                result.energy_consumed = value / 100;
+            }
+            if (dp === tuya.dataPoints.hochLocking) {
+                result.trip = value ? 'trip' : 'clear';
+            }
+            if (dp === tuya.dataPoints.hochCountdownTimer) {
+                result.countdown_timer = value;
+            }
+            if (dp === tuya.dataPoints.hochTemperature) {
+                result.temperature = value;
+            }
+            if (dp === tuya.dataPoints.hochRelayStatus) {
+                const lookup = {
+                    0: 'off',
+                    1: 'on',
+                    2: 'previous',
+                };
+                result.power_on_behaviour = lookup[value];
+            }
+            if (dp === tuya.dataPoints.hochFaultCode) {
+                const lookup = {
+                    0: 'clear',
+                    1: 'over voltage threshold',
+                    2: 'under voltage threshold',
+                    4: 'over current threshold',
+                    8: 'over temperature threshold',
+                    10: 'over leakage current threshold',
+                    16: 'trip test',
+                    128: 'safety lock',
+                };
+                result.alarm = lookup[value];
+            }
+            if (dp === tuya.dataPoints.hochEquipmentNumberType) {
+                result.meter_number = value.trim();
+            }
+            if (dp === tuya.dataPoints.hochVoltageThreshold) {
+                result.over_voltage_threshold = (value[1] | value[0] << 8) / 10;
+                result.over_voltage_trip = value[2] ? 'ON' : 'OFF';
+                result.over_voltage_alarm = value[3] ? 'ON' : 'OFF';
+                result.under_voltage_threshold = (value[5] | value[4] << 8) / 10;
+                result.under_voltage_trip = value[6] ? 'ON' : 'OFF';
+                result.under_voltage_alarm = value[7] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochCurrentThreshold) {
+                let overCurrentValue = 0;
+                for (let i = 0; i < 3; i++) {
+                    overCurrentValue = overCurrentValue << 8;
+                    overCurrentValue += value[i];
+                }
+                result.over_current_threshold = overCurrentValue / 1000;
+                result.over_current_trip = value[3] ? 'ON' : 'OFF';
+                result.over_current_alarm = value[4] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochTemperatureThreshold) {
+                result.over_temperature_threshold = value[0] > 127 ? (value[0] - 128) * -1 : value[0];
+                result.over_temperature_trip = value[1] ? 'ON' : 'OFF';
+                result.over_temperature_alarm = value[2] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochLeakageParameters) {
+                result.self_test_auto_days = value[0];
+                result.self_test_auto_hours = value[1];
+                result.self_test_auto = value[2] ? 'ON' : 'OFF';
+                result.over_leakage_current_threshold = value[4] | value[3] << 8;
+                result.over_leakage_current_trip = value[5] ? 'ON' : 'OFF';
+                result.over_leakage_current_alarm = value[6] ? 'ON' : 'OFF';
+                result.self_test = value[7] ? 'test' : 'clear';
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

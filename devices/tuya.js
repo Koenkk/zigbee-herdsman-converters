@@ -1334,4 +1334,78 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hkdl5fmv'}],
+        model: 'TS0601_rcbo',
+        vendor: 'TuYa',
+        whiteLabel: [
+            {vendor: 'HOCH', model: 'ZJSBL7-100Z'},
+            {vendor: 'WDYK', model: 'ZJSBL7-100Z'},
+        ],
+        description: 'DIN mount RCBO with smart energy metering',
+        fromZigbee: [fz.hoch_din],
+        toZigbee: [tz.hoch_din],
+        exposes: [
+            exposes.text('meter_number', ea.STATE),
+            exposes.binary('state', ea.STATE_SET, 'ON', 'OFF'),
+            exposes.text('alarm', ea.STATE),
+            exposes.binary('trip', ea.STATE_SET, 'trip', 'clear'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
+            exposes.enum('power_on_behaviour', ea.STATE_SET, ['off', 'on', 'previous']),
+            exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
+            exposes.numeric('voltage', ea.STATE).withUnit('V'),
+            exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
+            exposes.numeric('current', ea.STATE).withUnit('mA'),
+            exposes.numeric('current_average', ea.STATE).withUnit('mA'),
+            exposes.numeric('power', ea.STATE).withUnit('W'),
+            exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
+            exposes.numeric('temperature', ea.STATE).withUnit('°C'),
+            /* TODO: Add toZigbee converters for the below composites
+            exposes.composite('voltage_setting', 'voltage_setting')
+                .withFeature(exposes.numeric('under_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(50)
+                    .withValueMax(385)
+                    .withUnit('V'))
+                .withFeature(exposes.binary('under_voltage_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('under_voltage_alarm', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.numeric('over_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(50)
+                    .withValueMax(385)
+                    .withUnit('V'))
+                .withFeature(exposes.binary('over_voltage_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_voltage_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('current_setting', 'current_setting')
+                .withFeature(exposes.numeric('over_current_threshold', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(999)
+                    .withUnit('A'))
+                .withFeature(exposes.binary('over_current_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_current_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('temperature_setting', 'temperature_setting')
+                .withFeature(exposes.numeric('over_temperature_threshold', ea.STATE_SET)
+                    .withValueMin(-40)
+                    .withValueMax(127)
+                    .withUnit('°C'))
+                .withFeature(exposes.binary('over_temperature_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_temperature_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('leakage_current_setting', 'leakage_current_setting')
+                .withFeature(exposes.numeric('self_test_auto_days', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(28)
+                    .withUnit('days'))
+                .withFeature(exposes.numeric('self_test_auto_hours', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(23)
+                    .withUnit('hours'))
+                .withFeature(exposes.binary('self_test_auto', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.numeric('over_leakage_current_threshold', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(3000)
+                    .withUnit('mA'))
+                .withFeature(exposes.binary('over_leakage_current_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_leakage_current_alarm', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('self_test', ea.STATE_SET, 'test', 'clear')),*/
+            exposes.enum('clear_device_data', ea.SET, ['clear']),
+        ],
+    },
 ];
