@@ -5943,6 +5943,55 @@ const converters = {
     __clearStore__: () => {
         globalStore.clear();
     },
+    hoch_din: {
+        key: ['state',
+            'child_lock',
+            'countdown_timer',
+            'power_on_behaviour',
+            'trip',
+            'clear_device_data',
+            /*TODO: Add the below keys when toZigbee converter work has been completed
+            'voltage_setting',
+            'current_setting',
+            'temperature_setting',
+            'leakage_current_setting'*/
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'state') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+                return {state: {state: value}};
+            } else if (key === 'child_lock') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochChildLock, value === 'ON');
+                return {state: {child_lock: value}};
+            } else if (key === 'countdown_timer') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hochCountdownTimer, value);
+                return {state: {countdown_timer: value}};
+            } else if (key === 'power_on_behaviour') {
+                const lookup = {'off': 0, 'on': 1, 'previous': 2};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.hochRelayStatus, lookup[value], 'sendData');
+                return {state: {power_on_behaviour: value}};
+            } else if (key === 'trip') {
+                if (value === 'clear') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.hochLocking, true, 'sendData');
+                }
+                return {state: {trip: 'clear'}};
+            } else if (key === 'clear_device_data') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochClearEnergy, true, 'sendData');
+            /*TODO: Release the below with other toZigbee converters for device composites
+            } else if (key === 'temperature_setting') {
+                if (value.over_temperature_threshold !== undefined && value.over_temperature_trip !== undefined && value.over_temperature_alarm !== undefined){
+                    const payload = [];
+                    payload.push(value.over_temperature_threshold < 1 ? ((value.over_temperature_threshold * -1) + 128) : value.over_temperature_threshold);
+                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
+                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
+                    await tuya.sendDataPointRaw(entity, tuya.dataPoints.hochTemperatureThreshold, payload, 'sendData');
+                    return {state: {over_temperature_threshold: value.over_temperature_threshold, over_temperature_trip: value.over_temperature_trip, over_temperature_alarm: value.over_temperature_alarm}};
+                }*/
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
+        },
+    },
 };
 
 module.exports = converters;
