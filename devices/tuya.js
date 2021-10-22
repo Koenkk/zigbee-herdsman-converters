@@ -902,6 +902,34 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        model: 'TS1101_dimmer_module',
+        vendor: 'TuYa',
+        description: '2CH Zigbee Dimmer Module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
+            fz.tuya_min_brightness,
+        ]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([
+            tz.tuya_min_brightness,
+        ]),
+        exposes: [
+            e.light_brightness().withEndpoint('l1'),
+            exposes.presets.min_brightness().withEndpoint('l1'),
+            e.light_brightness().withEndpoint('l2'),
+            exposes.presets.min_brightness().withEndpoint('l2'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
         zigbeeModel: ['RH3001'],
         fingerprint: [{type: 'EndDevice', manufacturerID: 4098, applicationVersion: 66, endpoints: [
             {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 10, 1, 1280], outputClusters: [25]},
