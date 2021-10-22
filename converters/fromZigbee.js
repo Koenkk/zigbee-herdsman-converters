@@ -2205,6 +2205,9 @@ const converters = {
             if (typeof msg.data[0x4001] == 'number') {
                 result.valve_position = msg.data[0x4001];
             }
+            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+                result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
+            }
             return result;
         },
     },
