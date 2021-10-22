@@ -63,7 +63,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
-        },        
+        },
     },
     {
         zigbeeModel: ['3RMS16BZ'],
