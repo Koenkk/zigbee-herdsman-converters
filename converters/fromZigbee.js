@@ -2205,6 +2205,9 @@ const converters = {
             if (typeof msg.data[0x4001] == 'number') {
                 result.valve_position = msg.data[0x4001];
             }
+            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+                result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
+            }
             return result;
         },
     },
@@ -4132,6 +4135,8 @@ const converters = {
                 return {battery_low: value === 0};
             case tuya.dataPoints.state:
                 return {smoke: value === 0};
+            case tuya.dataPoints.wooxSmokeTest:
+                return {smoke: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
             }
@@ -4416,11 +4421,11 @@ const converters = {
                 const data = msg.data['247'];
                 // Xiaomi struct parsing
                 const length = data.length;
-                // if (meta.logger) meta.logger.debug(`plug.mmeu01: Xiaomi struct: length ${length}`);
+                // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: Xiaomi struct: length ${length}`);
                 for (let i=0; i < length; i++) {
                     const index = data[i];
                     let value = null;
-                    // if (meta.logger) meta.logger.debug(`plug.mmeu01: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
+                    // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
                     switch (data[i+1]) {
                     case 16:
                         // 0x10 ZclBoolean
@@ -4437,8 +4442,14 @@ const converters = {
                         value = data.readUInt16LE(i+2);
                         i += 3;
                         break;
+                    case 35:
+                        // 0x23 Zcl32BitUint
+                        value = data.readUInt32LE(i+2);
+                        i += 5;
+                        break;
                     case 39:
                         // 0x27 Zcl64BitUint
+                        value = data.readBigUInt64BE(i+2);
                         i += 9;
                         break;
                     case 40:
@@ -4446,9 +4457,29 @@ const converters = {
                         value = data.readInt8(i+2);
                         i += 2;
                         break;
+                    case 41:
+                        // 0x29 Zcl16BitInt
+                        value = data.readInt16LE(i+2);
+                        i += 3;
+                        break;
+                    case 43:
+                        // 0x2B Zcl32BitInt
+                        value = data.readInt32LE(i+2);
+                        i += 5;
+                        break;
+                    case 47:
+                        // 0x2F Zcl64BitInt
+                        value = data.readBigInt64BE(i+2);
+                        i += 9;
+                        break;
                     case 57:
                         // 0x39 ZclSingleFloat
                         value = data.readFloatLE(i+2);
+                        i += 5;
+                        break;
+                    case 58:
+                        // 0x3a ZclDoubleFloat
+                        value = data.readDoubleLE(i+2);
                         i += 5;
                         break;
                     default:
@@ -4465,6 +4496,10 @@ const converters = {
                     else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
+            }
+            if (msg.data.hasOwnProperty('4')) {
+                const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
+                payload.mode_switch = lookup[msg.data['4']];
             }
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -4557,8 +4592,15 @@ const converters = {
             if (['WXKG02LM_rev2', 'WXKG07LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG25LM', 'QBKG26LM'].includes(model.model)) buttonLookup = {41: 'left', 42: 'center', 43: 'right'};
-            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG31LM'].includes(model.model)) {
+            if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG31LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
+            }
+            if (['QBKG34LM'].includes(model.model)) {
+                buttonLookup = {
+                    41: 'left', 42: 'center', 43: 'right',
+                    51: 'left_center', 52: 'left_right', 53: 'center_right',
+                    61: 'all',
+                };
             }
 
             const action = actionLookup[msg.data['presentValue']];
@@ -6706,6 +6748,202 @@ const converters = {
             case tuya.dataPoints.trsIlluminanceLux:
                 return {illuminance_lux: value};
             }
+        },
+    },
+    moes_thermostat_tv: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse', 'raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.tvMode:
+                switch (value) {
+                case 1: // manual
+                    result = {system_mode: 'heat', preset: 'manual'};
+                    break;
+                case 2: // holiday
+                    result = {system_mode: 'heat', preset: 'holiday'};
+                    break;
+                case 0: // auto
+                    result = {system_mode: 'auto', preset: 'schedule'};
+                    break;
+                default:
+                    meta.logger.warn('fromZigbee:moes_thermostat_tv: ' +
+                        `preset ${value} is not recognized.`);
+                    break;
+                }
+                break;
+            case tuya.dataPoints.tvWindowDetection:
+                result = {window_detection: {1: false, 0: true}[value]};
+                break;
+            case tuya.dataPoints.tvFrostDetection:
+                result = {frost_detection: {1: false, 0: true}[value]};
+                break;
+            case tuya.dataPoints.tvHeatingSetpoint:
+                result = {current_heating_setpoint: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvLocalTemp:
+                result = {local_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvTempCalibration:
+                value = value > 0x7FFFFFFF ? 0xFFFFFFFF - value : value;
+                result = {local_temperature_calibration: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvHolidayTemp:
+                result = {holiday_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvBattery:
+                result = {battery: value};
+                break;
+            case tuya.dataPoints.tvChildLock:
+                result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
+                break;
+            case tuya.dataPoints.tvErrorStatus:
+                result = {error: value};
+                break;
+            case tuya.dataPoints.tvHolidayMode:
+                result = {holiday_mode: value};
+                break;
+            // case tuya.dataPoints.tvBoostMode:
+            //     result = {boost_mode: {1: false, 0: true}[value]};
+            //     break;
+            case tuya.dataPoints.tvBoostTime:
+                result = {boost_heating_countdown: value};
+                break;
+            case tuya.dataPoints.tvOpenWindowTemp:
+                result = {open_window_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvComfortTemp:
+                result = {comfort_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvEcoTemp:
+                result = {eco_temperature: (value / 10).toFixed(1)};
+                break;
+            case tuya.dataPoints.tvHeatingStop:
+                if (value == 1) {
+                    result = {system_mode: 'off', heating_stop: true};
+                } else {
+                    result = {heating_stop: false};
+                }
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+
+            return result;
+        },
+    },
+    sihas_people_cnt: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {people: msg.data.presentValue};
+        },
+    },
+    hoch_din: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const result = {};
+            meta.logger.debug(`from hoch_din, msg.data.dp=[${dp}], msg.data.datatype=[${msg.data.datatype}], value=[${value}]`);
+
+            if (dp === tuya.dataPoints.state) {
+                result.state = value ? 'ON' : 'OFF';
+                if (value) {
+                    result.trip = 'clear';
+                }
+            }
+            if (dp === tuya.dataPoints.hochChildLock) {
+                result.child_lock = value ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochVoltage) {
+                result.voltage = (value[1] | value[0] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochHistoricalVoltage) {
+                result.voltage_rms = (value[1] | value[0] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochCurrent) {
+                result.current = value[2] | value[1] << 8;
+            }
+            if (dp === tuya.dataPoints.hochHistoricalCurrent) {
+                result.current_average = value[2] | value[1] << 8;
+            }
+            if (dp === tuya.dataPoints.hochActivePower) {
+                result.power = (value[2] | value[1] << 8) / 10;
+            }
+            if (dp === tuya.dataPoints.hochTotalActivePower) {
+                result.energy_consumed = value / 100;
+            }
+            if (dp === tuya.dataPoints.hochLocking) {
+                result.trip = value ? 'trip' : 'clear';
+            }
+            if (dp === tuya.dataPoints.hochCountdownTimer) {
+                result.countdown_timer = value;
+            }
+            if (dp === tuya.dataPoints.hochTemperature) {
+                result.temperature = value;
+            }
+            if (dp === tuya.dataPoints.hochRelayStatus) {
+                const lookup = {
+                    0: 'off',
+                    1: 'on',
+                    2: 'previous',
+                };
+                result.power_on_behaviour = lookup[value];
+            }
+            if (dp === tuya.dataPoints.hochFaultCode) {
+                const lookup = {
+                    0: 'clear',
+                    1: 'over voltage threshold',
+                    2: 'under voltage threshold',
+                    4: 'over current threshold',
+                    8: 'over temperature threshold',
+                    10: 'over leakage current threshold',
+                    16: 'trip test',
+                    128: 'safety lock',
+                };
+                result.alarm = lookup[value];
+            }
+            if (dp === tuya.dataPoints.hochEquipmentNumberType) {
+                result.meter_number = value.trim();
+            }
+            if (dp === tuya.dataPoints.hochVoltageThreshold) {
+                result.over_voltage_threshold = (value[1] | value[0] << 8) / 10;
+                result.over_voltage_trip = value[2] ? 'ON' : 'OFF';
+                result.over_voltage_alarm = value[3] ? 'ON' : 'OFF';
+                result.under_voltage_threshold = (value[5] | value[4] << 8) / 10;
+                result.under_voltage_trip = value[6] ? 'ON' : 'OFF';
+                result.under_voltage_alarm = value[7] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochCurrentThreshold) {
+                let overCurrentValue = 0;
+                for (let i = 0; i < 3; i++) {
+                    overCurrentValue = overCurrentValue << 8;
+                    overCurrentValue += value[i];
+                }
+                result.over_current_threshold = overCurrentValue / 1000;
+                result.over_current_trip = value[3] ? 'ON' : 'OFF';
+                result.over_current_alarm = value[4] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochTemperatureThreshold) {
+                result.over_temperature_threshold = value[0] > 127 ? (value[0] - 128) * -1 : value[0];
+                result.over_temperature_trip = value[1] ? 'ON' : 'OFF';
+                result.over_temperature_alarm = value[2] ? 'ON' : 'OFF';
+            }
+            if (dp === tuya.dataPoints.hochLeakageParameters) {
+                result.self_test_auto_days = value[0];
+                result.self_test_auto_hours = value[1];
+                result.self_test_auto = value[2] ? 'ON' : 'OFF';
+                result.over_leakage_current_threshold = value[4] | value[3] << 8;
+                result.over_leakage_current_trip = value[5] ? 'ON' : 'OFF';
+                result.over_leakage_current_alarm = value[6] ? 'ON' : 'OFF';
+                result.self_test = value[7] ? 'test' : 'clear';
+            }
+            return result;
         },
     },
     // #endregion

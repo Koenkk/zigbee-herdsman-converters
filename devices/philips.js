@@ -48,6 +48,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929002376301'],
+        model: '929002376301',
+        vendor: 'Philips',
+        description: 'Hue Iris rose limited edition (generation 4) ',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063130P7'],
         model: '5063130P7',
         vendor: 'Philips',
@@ -297,7 +306,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCT026'],
+        zigbeeModel: ['LCT026', '7602031P7'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -502,6 +511,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWA012'],
+        model: '9290018217',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb B22 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA017'],
         model: '‎929002469202',
         vendor: 'Philips',
@@ -526,6 +544,15 @@ module.exports = [
         description: 'Hue white ambiance E27 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTA009'],
+        model: '9290024684',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27 1100lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -643,6 +670,15 @@ module.exports = [
         description: 'Hue white and color ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCA008'],
+        model: '929002471601',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance E26/E27 1600lm',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1319,6 +1355,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5060731P7_01', '5060731P7_02', '5060731P7_03', '5060731P7_04', '5060731P7_05'],
+        model: '5060731P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
@@ -1558,6 +1603,7 @@ module.exports = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['ROM001'],
@@ -2072,6 +2118,33 @@ module.exports = [
         description: 'Hue Filament Globe Ambiance E27',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929002966401'],
+        model: '929002966401',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Surimu square panel',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929002966501'],
+        model: '929002966501',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance Surimu rectangle panel',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5060931P7_01', '5060931P7_02', '5060931P7_03', '5060931P7_04'],
+        model: '5060931P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Centris ceiling light (3 spots)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
 ];

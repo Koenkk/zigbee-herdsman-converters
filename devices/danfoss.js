@@ -36,7 +36,7 @@ module.exports = [
                 .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
-            exposes.binary('setpoint_change_source', ea.STATE, 0, 1)
+            exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                 .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),

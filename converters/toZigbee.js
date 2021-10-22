@@ -1912,8 +1912,8 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM',
-                'QBCZ14LM'].includes(meta.mapped.model)) {
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM', 'QBKG20LM', 'QBKG38LM',
+                'QBKG34LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1935,7 +1935,8 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG34LM',
+                'QBKG38LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -1997,6 +1998,17 @@ const converters = {
             await entity.read('aqaraOpple', [0x020b], manufacturerOptions.xiaomi);
         },
     },
+    aqara_switch_mode_switch: {
+        key: ['mode_switch'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'anti_flicker_mode': 4, 'quick_mode': 1};
+            await entity.write('aqaraOpple', {0x0004: {value: lookup[value], type: 0x21}}, manufacturerOptions.xiaomi);
+            return {state: {mode_switch: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0004], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_button_switch_mode: {
         key: ['button_switch_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2022,7 +2034,8 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM',
+                'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2036,7 +2049,8 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM',
+                'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -5825,6 +5839,91 @@ const converters = {
             }
         },
     },
+    moes_thermostat_tv: {
+        key: [
+            'system_mode', 'window_detection', 'frost_detection', 'child_lock',
+            'current_heating_setpoint', 'local_temperature_calibration',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'open_window_temperature', 'heating_stop', 'preset',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'system_mode':
+                if (value != 'off') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatMode, value));
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                }
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
+                break;
+            case 'frost_detection':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvFrostDetection, (value) ? 0 : 1);
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvChildLock, {'unlock': 0, 'lock': 1}[value.toLowerCase()]);
+                break;
+            case 'local_temperature_calibration':
+                value = Math.round(value * 10);
+                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
+                break;
+            case 'current_heating_setpoint':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value);
+                break;
+            case 'holiday_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value);
+                break;
+            case 'comfort_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvComfortTemp, value);
+                break;
+            case 'eco_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value);
+                break;
+            case 'heating_stop':
+                if (value == true) {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                }
+                break;
+            // case 'boost_mode':
+            //     // set 300sec boost time
+            //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
+            //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
+            //     break;
+            case 'open_window_temperature':
+                value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
+                break;
+            case 'preset':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, utils.getKey(tuya.tvThermostatPreset, value));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
+            }
+        },
+    },
+    sihas_set_people: {
+        key: ['people'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'presentValue': value};
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.write('genAnalogInput', payload);
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
     // #endregion
 
     // #region Ignore converters
@@ -5845,6 +5944,59 @@ const converters = {
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         globalStore.clear();
+    },
+    hoch_din: {
+        key: ['state',
+            'child_lock',
+            'countdown_timer',
+            'power_on_behaviour',
+            'trip',
+            'clear_device_data',
+            /* TODO: Add the below keys when toZigbee converter work has been completed
+            'voltage_setting',
+            'current_setting',
+            'temperature_setting',
+            'leakage_current_setting'*/
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'state') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+                return {state: {state: value}};
+            } else if (key === 'child_lock') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochChildLock, value === 'ON');
+                return {state: {child_lock: value}};
+            } else if (key === 'countdown_timer') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hochCountdownTimer, value);
+                return {state: {countdown_timer: value}};
+            } else if (key === 'power_on_behaviour') {
+                const lookup = {'off': 0, 'on': 1, 'previous': 2};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.hochRelayStatus, lookup[value], 'sendData');
+                return {state: {power_on_behaviour: value}};
+            } else if (key === 'trip') {
+                if (value === 'clear') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.hochLocking, true, 'sendData');
+                }
+                return {state: {trip: 'clear'}};
+            } else if (key === 'clear_device_data') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochClearEnergy, true, 'sendData');
+            /* TODO: Release the below with other toZigbee converters for device composites
+            } else if (key === 'temperature_setting') {
+                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
+                    const payload = [];
+                    payload.push(value.over_temperature_threshold < 1
+                        ? ((value.over_temperature_threshold * -1) + 128)
+                        : value.over_temperature_threshold);
+                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
+                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
+                    await tuya.sendDataPointRaw(entity, tuya.dataPoints.hochTemperatureThreshold, payload, 'sendData');
+                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
+                        over_temperature_trip: value.over_temperature_trip,
+                        over_temperature_alarm: value.over_temperature_alarm}};
+                }*/
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
+        },
     },
 };
 

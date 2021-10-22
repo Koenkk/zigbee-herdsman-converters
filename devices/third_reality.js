@@ -60,6 +60,10 @@ module.exports = [
         meta: {battery: {dontDividePercentage: true}},
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RMS16BZ'],

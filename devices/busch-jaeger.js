@@ -36,32 +36,48 @@ module.exports = [
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            let firstEndpoint = 0x0a;
+            const endpoint10 = device.getEndpoint(0x0a);
+            if (endpoint10 != null) {
+                // The total number of bindings seems to be severely limited with these devices.
+                // In order to be able to toggle groups, we need to remove the scenes cluster
 
-            const switchEndpoint10 = device.getEndpoint(10);
-            if (switchEndpoint10 != null && switchEndpoint10.supportsOutputCluster('genOnOff')) {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/3027#issuecomment-606169628
-                await reporting.bind(switchEndpoint10, coordinatorEndpoint, ['genOnOff']);
+                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
             }
-
-            const switchEndpoint12 = device.getEndpoint(0x12);
-            if (switchEndpoint12 != null) {
-                firstEndpoint++;
-                await reporting.bind(switchEndpoint12, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            }
-
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
-            for (let i = firstEndpoint; i <= 0x0d; i++) {
-                const endpoint = device.getEndpoint(i);
-                if (endpoint != null) {
-                    // The total number of bindings seems to be severely limited with these devices.
-                    // In order to be able to toggle groups, we need to remove the scenes cluster
-                    const index = endpoint.outputClusters.indexOf(5);
-                    if (index > -1) {
-                        endpoint.outputClusters.splice(index, 1);
-                    }
-                    await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            // Thef 1st endpoint ist most bound to hardware switch
+            const endpoint11 = device.getEndpoint(0x0b);
+            if (endpoint11 != null) {
+                // The total number of bindings seems to be severely limited with these devices.
+                // In order to be able to toggle groups, we need to remove the scenes cluster
+                const index = endpoint11.outputClusters.indexOf(5);
+                if (index > -1) {
+                    endpoint11.outputClusters.splice(index, 1);
                 }
+                await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
+            }
+            const endpoint12 = device.getEndpoint(0x0c);
+            if (endpoint12 != null) {
+                // The total number of bindings seems to be severely limited with these devices.
+                // In order to be able to toggle groups, we need to remove the scenes cluster
+                const index = endpoint12.outputClusters.indexOf(5);
+                if (index > -1) {
+                    endpoint12.outputClusters.splice(index, 1);
+                }
+                await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
+            }
+            const endpoint13 = device.getEndpoint(0x0d);
+            if (endpoint13 != null) {
+                // The total number of bindings seems to be severely limited with these devices.
+                // In order to be able to toggle groups, we need to remove the scenes cluster
+                const index = endpoint13.outputClusters.indexOf(5);
+                if (index > -1) {
+                    endpoint13.outputClusters.splice(index, 1);
+                }
+                await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
+            }
+            const endpoint18 = device.getEndpoint(0x12);
+            if (endpoint18 != null) {
+                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
@@ -72,7 +88,6 @@ module.exports = [
             if (switchEndpoint == null) {
                 return;
             }
-
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.
