@@ -45,7 +45,7 @@ module.exports = [
             await reporting.illuminance(endpoint, {min: 20, max: 3600, change: 10});
         },
         exposes: [e.battery(), e.battery_voltage(), e.temperature(), e.humidity(), e.occupancy(),
-			e.illuminance_lux().withProperty('illuminance')],
+            e.illuminance_lux().withProperty('illuminance')],
     },
     {
         zigbeeModel: ['SBM300Z1'],
