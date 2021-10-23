@@ -9,7 +9,6 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
-
 module.exports = [
     {
         zigbeeModel: ['TS0203'],
