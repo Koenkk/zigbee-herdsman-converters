@@ -3031,8 +3031,8 @@ const converters = {
             }
             return result;
         },
-    }, 
-    danfoss_icon_regulator:{
+    },
+    danfoss_icon_regulator: {
         cluster: 'haDiagnostic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -3049,12 +3049,12 @@ const converters = {
                     constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']] :
                     msg.data['danfossSystemStatusWater'];
             }
-            if (msg.data.hasOwnProperty('danfossMultimasterRole')) {             
+            if (msg.data.hasOwnProperty('danfossMultimasterRole')) {
                 result[postfixWithEndpointName('multimaster_role', msg, model)] =
                 constants.danfossMultimasterRole.hasOwnProperty(msg.data['danfossMultimasterRole']) ?
                     constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']] :
                     msg.data['danfossMultimasterRole'];
-        }
+            }
             return result;
         },
     },

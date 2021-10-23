@@ -143,7 +143,7 @@ module.exports = [
             tz.danfoss_room_status_code,
             tz.danfoss_system_status_water,
             tz.danfoss_system_status_code,
-            tz.danfoss_multimaster_role
+            tz.danfoss_multimaster_role,
         ],
         meta: {multiEndpoint: true},
         // ota: ota.zigbeeOTA,
@@ -151,58 +151,59 @@ module.exports = [
             return {
                 'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5,
                 'l6': 6, 'l7': 7, 'l8': 8, 'l9': 9, 'l10': 10,
-                'l11': 11, 'l12': 12, 'l13': 13, 'l14': 14, 'l15': 15, 'l16':232
-            }
+                'l11': 11, 'l12': 12, 'l13': 13, 'l14': 14, 'l15': 15, 'l16': 232,
+            };
         },
-        exposes:[].concat(((endpointsCount) => {
-        const features = [];
-        for (let i = 1; i <= endpointsCount; i++) {
-            const epName = `l${i}`;
-            if(i!=16){
-                features.push(e.battery().withEndpoint(epName));
-                features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
-                    .withLocalTemperature().withSystemMode(['heat']).withEndpoint(epName));
-                features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
-                    .withUnit('°C').withEndpoint(epName)
-                    .withDescription('Absolute min temperature allowed on the device'));
-                features.push(exposes.numeric('abs_max_heat_setpoint_limit', ea.STATE)
-                    .withUnit('°C').withEndpoint(epName)
-                    .withDescription('Absolute max temperature allowed on the device'));
-                features.push(exposes.numeric('min_heat_setpoint_limit', ea.ALL)
-                    .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
-                    .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
-                features.push(exposes.numeric('max_heat_setpoint_limit', ea.ALL)
-                    .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
-                    .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
-                features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
-                .withEndpoint(epName));
-                features.push(exposes.enum('output_status', ea.STATE_GET, ['inactive', 'active'])
-                    .withEndpoint(epName).withDescription('Danfoss Output Status [Active vs Inactive])'));
-                features.push(exposes.enum('room_status_code', ea.STATE_GET, ['no_error', 'missing_rt',
-                'rt_touch_error','floor_sensor_short_circuit','floor_sensor_disconnected'])
-                    .withEndpoint(epName).withDescription('Thermostat status'));
-            } else {
-                features.push(exposes.enum('system_status_code', ea.STATE_GET,['no_error','missing_expansion_board',
-                'missing_radio_module','missing_command_module','missing_master_rail','missing_slave_rail_no_1',
-                'missing_slave_rail_no_2','pt1000_input_short_circuit','pt1000_input_open_circuit',
-                'error_on_one_or_more_output']).withEndpoint('l16').withDescription('Regulator Status'));
-                features.push(exposes.enum('system_status_water', ea.STATE_GET,['hot_water_flow_in_pipes','cool_water_flow_in_pipes'])
-                .withEndpoint('l16').withDescription('Water Status of Regulator'));
-                features.push(exposes.enum('multimaster_role', ea.STATE_GET,['invalid_unused', "master","slave_1","slave_2"])
-                .withEndpoint('l16').withDescription('Regulator role (Master vs Slave)'));
+        exposes: [].concat(((endpointsCount) => {
+            const features = [];
+            for (let i = 1; i <= endpointsCount; i++) {
+                const epName = `l${i}`;
+                if (i!=16) {
+                    features.push(e.battery().withEndpoint(epName));
+                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
+                        .withLocalTemperature().withSystemMode(['heat']).withEndpoint(epName));
+                    features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
+                        .withUnit('°C').withEndpoint(epName)
+                        .withDescription('Absolute min temperature allowed on the device'));
+                    features.push(exposes.numeric('abs_max_heat_setpoint_limit', ea.STATE)
+                        .withUnit('°C').withEndpoint(epName)
+                        .withDescription('Absolute max temperature allowed on the device'));
+                    features.push(exposes.numeric('min_heat_setpoint_limit', ea.ALL)
+                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
+                    features.push(exposes.numeric('max_heat_setpoint_limit', ea.ALL)
+                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
+                    features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
+                        .withEndpoint(epName));
+                    features.push(exposes.enum('output_status', ea.STATE_GET, ['inactive', 'active'])
+                        .withEndpoint(epName).withDescription('Danfoss Output Status [Active vs Inactive])'));
+                    features.push(exposes.enum('room_status_code', ea.STATE_GET, ['no_error', 'missing_rt',
+                        'rt_touch_error', 'floor_sensor_short_circuit', 'floor_sensor_disconnected'])
+                        .withEndpoint(epName).withDescription('Thermostat status'));
+                } else {
+                    features.push(exposes.enum('system_status_code', ea.STATE_GET, ['no_error', 'missing_expansion_board',
+                        'missing_radio_module', 'missing_command_module', 'missing_master_rail', 'missing_slave_rail_no_1',
+                        'missing_slave_rail_no_2', 'pt1000_input_short_circuit', 'pt1000_input_open_circuit',
+                        'error_on_one_or_more_output']).withEndpoint('l16').withDescription('Regulator Status'));
+                    features.push(exposes.enum('system_status_water', ea.STATE_GET, ['hot_water_flow_in_pipes', 'cool_water_flow_in_pipes'])
+                        .withEndpoint('l16').withDescription('Water Status of Regulator'));
+                    features.push(exposes.enum('multimaster_role', ea.STATE_GET, ['invalid_unused', 'master', 'slave_1', 'slave_2'])
+                        .withEndpoint('l16').withDescription('Regulator role (Master vs Slave)'));
+                }
             }
-        }
 
-    return features})(16)),
-        
+            return features;
+        })(16)),
+
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 0x1246};
-            
+
             for (let i = 1; i <= 15; i++) {
                 const endpoint = device.getEndpoint(i);
                 if (typeof endpoint !== 'undefined') {
                     await reporting.bind(endpoint, coordinatorEndpoint,
-                        ['genPowerCfg', 'hvacThermostat','hvacUserInterfaceCfg']);
+                        ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
                     await reporting.batteryPercentageRemaining(endpoint,
                         {min: constants.repInterval.HOUR, max: 43200, change: 1});
                     await reporting.thermostatTemperature(endpoint,
@@ -222,7 +223,7 @@ module.exports = [
                         'danfossOutputStatus',
                         'danfossRoomStatusCode'], options);
 
-                    // Standard Thermostat 
+                    // Standard Thermostat
                     await endpoint.read('hvacThermostat', ['localTemp']);
                     await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint']);
                     await endpoint.read('hvacThermostat', ['systemMode']);
@@ -232,19 +233,18 @@ module.exports = [
                     await endpoint.read('hvacThermostat', ['minHeatSetpointLimit']);
                     await endpoint.read('hvacThermostat', ['maxHeatSetpointLimit']);
                     await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-                }       
+                }
             }
 
             // Danfoss Icon Regulator Specific
-            const endpoint_reg = device.getEndpoint(232);
+            const endpoint232 = device.getEndpoint(232);
 
-            await reporting.bind(endpoint_reg, coordinatorEndpoint,['haDiagnostic']);
+            await reporting.bind(endpoint232, coordinatorEndpoint, ['haDiagnostic']);
 
-            await endpoint_reg.read('haDiagnostic', [
-                'danfossSystemStatusCode', 
+            await endpoint232.read('haDiagnostic', [
+                'danfossSystemStatusCode',
                 'danfossSystemStatusWater',
                 'danfossMultimasterRole'], options);
-        
         },
     },
 ];
