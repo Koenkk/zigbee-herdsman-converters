@@ -2917,6 +2917,20 @@ const converters = {
             await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
+    tuya_min_brightness: {
+        key: ['min_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            const minValueHex = value.toString(16);
+            const maxValueHex = 'ff';
+            const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
+            const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
+            await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
+            return {state: {min_brightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', [0xfc00]);
+        },
+    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {
