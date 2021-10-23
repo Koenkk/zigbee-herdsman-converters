@@ -518,7 +518,7 @@ const converters = {
     color_colortemp: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.sync_color()],
+        options: [exposes.options.color_sync()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
@@ -1877,7 +1877,7 @@ const converters = {
     tuya_led_controller: {
         cluster: 'lightingColorCtrl',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.sync_color()],
+        options: [exposes.options.color_sync()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
@@ -5446,7 +5446,7 @@ const converters = {
     PGC410EU_presence: {
         cluster: 'manuSpecificSmartThingsArrivalSensor',
         type: 'commandArrivalSensorNotify',
-        options: [exposes.options.precense_timeout()],
+        options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
@@ -5463,7 +5463,7 @@ const converters = {
     STS_PRS_251_presence: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precense_timeout()],
+        options: [exposes.options.presence_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const useOptionsTimeout = options && options.hasOwnProperty('presence_timeout');
             const timeout = useOptionsTimeout ? options.presence_timeout : 100; // 100 seconds by default
