@@ -905,7 +905,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
         model: 'TS1101_dimmer_module',
         vendor: 'TuYa',
-        description: '2CH Zigbee Dimmer Module',
+        description: '2CH Zigbee dimmer module',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
             fz.tuya_min_brightness,
