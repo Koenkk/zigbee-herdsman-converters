@@ -914,8 +914,8 @@ module.exports = [
             tz.tuya_min_brightness,
         ]),
         exposes: [
-            e.light_brightness_min().withEndpoint('l1'),
-            e.light_brightness_min().withEndpoint('l2'),
+            e.light_brightness().withMinBrightness().withEndpoint('l1'),
+            e.light_brightness().withMinBrightness().withEndpoint('l2'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
