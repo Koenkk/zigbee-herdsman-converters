@@ -9,9 +9,6 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const et = {
-    switch_type: () => exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Switch type settings'),
-};
 
 module.exports = [
     {
@@ -599,7 +596,7 @@ module.exports = [
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
         exposes: extend.switch().exposes.concat([
             exposes.presets.power_on_behavior(),
-            et.switch_type(),
+            exposes.presets.switch_type_2(),
         ]),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -617,7 +614,7 @@ module.exports = [
             e.switch().withEndpoint('l1'),
             e.switch().withEndpoint('l2'),
             exposes.presets.power_on_behavior(),
-            et.switch_type(),
+            exposes.presets.switch_type_2(),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -641,7 +638,7 @@ module.exports = [
             e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'),
             exposes.presets.power_on_behavior(),
-            et.switch_type(),
+            exposes.presets.switch_type_2(),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3};
@@ -667,7 +664,7 @@ module.exports = [
             e.switch().withEndpoint('l3'),
             e.switch().withEndpoint('l4'),
             exposes.presets.power_on_behavior(),
-            et.switch_type(),
+            exposes.presets.switch_type_2(),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
