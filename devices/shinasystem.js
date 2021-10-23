@@ -49,7 +49,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z1'],
-        model: 'SBM-300-ZB1',
+        model: 'SBM300Z1',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 1 gang',
         extend: extend.switch(),
@@ -61,7 +61,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z2'],
-        model: 'SBM-300-ZB2',
+        model: 'SBM300Z2',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 2 gang',
         extend: extend.switch(),
@@ -79,7 +79,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z3'],
-        model: 'SBM-300-ZB3',
+        model: 'SBM300Z3',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 3 gang',
         extend: extend.switch(),
@@ -99,7 +99,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z4'],
-        model: 'SBM-300-ZB4',
+        model: 'SBM300Z4',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 4 gang',
         extend: extend.switch(),
@@ -122,7 +122,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z5'],
-        model: 'SBM-300-ZB5',
+        model: 'SBM300Z5',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 5 gang',
         extend: extend.switch(),
@@ -147,7 +147,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SBM300Z6'],
-        model: 'SBM-300-ZB6',
+        model: 'SBM300Z6',
         vendor: 'ShinaSystem',
         description: 'IOT smart switch 6 gang',
         extend: extend.switch(),
