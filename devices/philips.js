@@ -48,6 +48,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5633031P9'],
+        model: '5633031P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Pillar spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929002376301'],
         model: '929002376301',
         vendor: 'Philips',
