@@ -124,7 +124,13 @@ module.exports = [
     },
     {
         // Danfoss Icon Floor heating thermostats
-        fingerprint: [{modelID: '0x8030', manufacturerName: 'Danfoss'}],
+        fingerprint: [
+            {modelID: '0x8020', manufacturerName: 'Danfoss'}, // RT24V Display
+            {modelID: '0x8021', manufacturerName: 'Danfoss'}, // RT24V Display  Floor sensor
+            {modelID: '0x8030', manufacturerName: 'Danfoss'}, // RTbattery Display
+            {modelID: '0x8031', manufacturerName: 'Danfoss'}, // RTbattery Display Infrared
+            {modelID: '0x8034', manufacturerName: 'Danfoss'}, // RTbattery Dial
+            {modelID: '0x8035', manufacturerName: 'Danfoss'}], // RTbattery Dial Infrared
         model: 'Icon',
         vendor: 'Danfoss',
         description: 'Danfoss icon floor heating (Regulator, Zigbee module & Thermostats)',
