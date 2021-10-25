@@ -5981,11 +5981,11 @@ const converters = {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
                 }
                 break;
-                // case 'boost_mode':
-                //     // set 300sec boost time
-                //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
-                //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
-                //     break;
+            // case 'boost_mode':
+            //     // set 300sec boost time
+            //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
+            //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
+            //     break;
             case 'open_window_temperature':
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
@@ -6066,20 +6066,20 @@ const converters = {
                 return {state: {trip: 'clear'}};
             } else if (key === 'clear_device_data') {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.hochClearEnergy, true, 'sendData');
-                /* TODO: Release the below with other toZigbee converters for device composites
-                } else if (key === 'temperature_setting') {
-                    if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
-                        const payload = [];
-                        payload.push(value.over_temperature_threshold < 1
-                            ? ((value.over_temperature_threshold * -1) + 128)
-                            : value.over_temperature_threshold);
-                        payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
-                        payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
-                        await tuya.sendDataPointRaw(entity, tuya.dataPoints.hochTemperatureThreshold, payload, 'sendData');
-                        return {state: {over_temperature_threshold: value.over_temperature_threshold,
-                            over_temperature_trip: value.over_temperature_trip,
-                            over_temperature_alarm: value.over_temperature_alarm}};
-                    }*/
+            /* TODO: Release the below with other toZigbee converters for device composites
+            } else if (key === 'temperature_setting') {
+                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
+                    const payload = [];
+                    payload.push(value.over_temperature_threshold < 1
+                        ? ((value.over_temperature_threshold * -1) + 128)
+                        : value.over_temperature_threshold);
+                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
+                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
+                    await tuya.sendDataPointRaw(entity, tuya.dataPoints.hochTemperatureThreshold, payload, 'sendData');
+                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
+                        over_temperature_trip: value.over_temperature_trip,
+                        over_temperature_alarm: value.over_temperature_alarm}};
+                }*/
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
