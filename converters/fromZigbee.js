@@ -5366,10 +5366,11 @@ const converters = {
     tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout()],
+        options: [exposes.options.occupancy_timeout(), exposes.options.ignore_only_when_on_flag()],
         convert: (model, msg, publish, options, meta) => {
             const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
             if (onlyWhenOnFlag &&
+                (!options || !options.ignore_only_when_on_flag) &&
                 !globalStore.hasValue(msg.endpoint, 'timer')) return;
 
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
