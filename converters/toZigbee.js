@@ -5868,7 +5868,7 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
             'open_window_temperature', 'heating_stop', 'preset',
         ],
         convertSet: async (entity, key, value, meta) => {
