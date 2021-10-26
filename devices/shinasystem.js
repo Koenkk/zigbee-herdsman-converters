@@ -233,7 +233,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
         },
     },
 ];
