@@ -6936,7 +6936,7 @@ const converters = {
         type: ['commandOn', 'commandOff', 'commandToggle'],
         convert: (model, msg, publish, options, meta) => {
             const lookup = {'commandToggle': 'long', 'commandOn': 'double', 'commandOff': 'single'};
-			let buttonMapping = null;
+            let buttonMapping = null;
             if (model.model === 'MSM-300ZB') {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
