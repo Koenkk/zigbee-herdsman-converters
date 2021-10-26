@@ -6865,10 +6865,10 @@ const converters = {
                 }
                 break;
             case tuya.dataPoints.tvWindowDetection:
-                result = {window_detection: {1: false, 0: true}[value]};
+                result = {window_detection: {1: true, 0: false}[value]};
                 break;
             case tuya.dataPoints.tvFrostDetection:
-                result = {frost_detection: {1: false, 0: true}[value]};
+                result = {frost_detection: {1: true, 0: false}[value]};
                 break;
             case tuya.dataPoints.tvHeatingSetpoint:
                 result = {current_heating_setpoint: (value / 10).toFixed(1)};

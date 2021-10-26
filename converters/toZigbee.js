@@ -5868,7 +5868,7 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
             'open_window_temperature', 'heating_stop', 'preset',
         ],
         convertSet: async (entity, key, value, meta) => {
@@ -5882,13 +5882,18 @@ const converters = {
                 }
                 break;
             case 'window_detection':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value);
                 break;
             case 'frost_detection':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvFrostDetection, (value) ? 0 : 1);
+                if (value == false) {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
+                }
                 break;
             case 'child_lock':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvChildLock, {'unlock': 0, 'lock': 1}[value.toLowerCase()]);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
                 break;
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
