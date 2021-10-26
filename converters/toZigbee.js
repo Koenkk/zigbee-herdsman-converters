@@ -1327,6 +1327,38 @@ const converters = {
             await entity.read('hvacThermostat', ['runningMode']);
         },
     },
+    thermostat_min_heat_setpoint_limit: {
+        key: ['min_heat_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const minHeatSetpointLimit = result;
+            await entity.write('hvacThermostat', {minHeatSetpointLimit});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['minHeatSetpointLimit']);
+        },
+    },
+    thermostat_max_heat_setpoint_limit: {
+        key: ['max_heat_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const maxHeatSetpointLimit = result;
+            await entity.write('hvacThermostat', {maxHeatSetpointLimit});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['maxHeatSetpointLimit']);
+        },
+    },
     electrical_measurement_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
@@ -2482,6 +2514,36 @@ const converters = {
         key: ['load_estimate'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossLoadEstimate'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_output_status: {
+        key: ['output_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossOutputStatus'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_room_status_code: {
+        key: ['room_status_code'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossRoomStatusCode'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_system_status_code: {
+        key: ['system_status_code'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossSystemStatusCode'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_system_status_water: {
+        key: ['system_status_water'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossSystemStatusWater'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_multimaster_role: {
+        key: ['multimaster_role'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossMultimasterRole'], manufacturerOptions.danfoss);
         },
     },
     ZMCSW032D_cover_position: {
