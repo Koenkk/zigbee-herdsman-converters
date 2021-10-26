@@ -194,10 +194,8 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: extend.light_onoff_brightness_color(),
-        ota: ota.tradfri,
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
         meta: {supportsHueAndSaturation: false},
-        onEvent: bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm'],

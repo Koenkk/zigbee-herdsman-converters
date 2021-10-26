@@ -29,7 +29,8 @@ module.exports = [
             {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
             {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
-            {vendor: 'Tesla', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'}],
+            {vendor: 'Tesla', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
+            {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)

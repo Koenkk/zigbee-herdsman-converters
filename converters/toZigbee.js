@@ -591,6 +591,7 @@ const converters = {
     },
     light_brightness_step: {
         key: ['brightness_step', 'brightness_step_onoff'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const onOff = key.endsWith('_onoff');
             const command = onOff ? 'stepWithOnOff' : 'step';
@@ -653,6 +654,7 @@ const converters = {
     },
     light_colortemp_step: {
         key: ['color_temp_step'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             value = Number(value);
             if (isNaN(value)) {
@@ -718,6 +720,7 @@ const converters = {
     },
     light_hue_saturation_step: {
         key: ['hue_step', 'saturation_step'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             value = Number(value);
             if (isNaN(value)) {
@@ -775,6 +778,7 @@ const converters = {
     },
     light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
@@ -879,7 +883,7 @@ const converters = {
     },
     light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
-        options: [exposes.options.color_sync()],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const [colorTempMin, colorTempMax] = light.findColorTempRange(entity, meta.logger);
             const preset = {'warmest': colorTempMax, 'warm': 454, 'neutral': 370, 'cool': 250, 'coolest': colorTempMin};
@@ -946,7 +950,7 @@ const converters = {
     },
     light_color: {
         key: ['color'],
-        options: [exposes.options.color_sync()],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             let command;
             const newColor = libColor.Color.fromConverterArg(value);
@@ -1044,6 +1048,7 @@ const converters = {
          * converter is used to do just that.
          */
         key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.light_color.convertSet(entity, key, value, meta);
@@ -1662,6 +1667,7 @@ const converters = {
     },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1684,6 +1690,7 @@ const converters = {
     },
     gledopto_light_colortemp: {
         key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1703,6 +1710,7 @@ const converters = {
     },
     gledopto_light_color: {
         key: ['color'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message && meta.message.hasOwnProperty('transition')) {
                 meta.message.transition = meta.message.transition * 3.3;
@@ -1727,6 +1735,7 @@ const converters = {
     },
     gledopto_light_color_colortemp: {
         key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key == 'color') {
                 const result = await converters.gledopto_light_color.convertSet(entity, key, value, meta);
@@ -1912,8 +1921,8 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM', 'QBKG20LM',
-                'QBCZ14LM'].includes(meta.mapped.model)) {
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM', 'QBKG20LM', 'QBKG38LM',
+                'QBKG34LM', 'QBCZ14LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -1935,7 +1944,8 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM'].includes(meta.mapped.model)) {
+                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG34LM',
+                'QBKG38LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -2033,7 +2043,8 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM',
+                'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2047,7 +2058,8 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM',
+                'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -2275,6 +2287,7 @@ const converters = {
          * This uses the stored state of the device to restore to the previous brightness level when turning on
          */
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             const deviceState = meta.state || {};
             const message = meta.message;
@@ -2904,6 +2917,20 @@ const converters = {
             await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
+    tuya_min_brightness: {
+        key: ['min_brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            const minValueHex = value.toString(16);
+            const maxValueHex = 'ff';
+            const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
+            const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
+            await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
+            return {state: {min_brightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', [0xfc00]);
+        },
+    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {
@@ -2925,6 +2952,7 @@ const converters = {
     },
     RM01_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
                 const endpoint = meta.device.getEndpoint(0x12);
@@ -2943,6 +2971,7 @@ const converters = {
         },
     },
     RM01_light_brightness_step: {
+        options: [exposes.options.transition()],
         key: ['brightness_step', 'brightness_step_onoff'],
         convertSet: async (entity, key, value, meta) => {
             if (utils.hasEndpoints(meta.device, [0x12])) {
@@ -3393,6 +3422,7 @@ const converters = {
     },
     ptvo_switch_light_brightness: {
         key: ['brightness', 'brightness_percent', 'transition'],
+        options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'transition') {
                 return;
@@ -3870,9 +3900,7 @@ const converters = {
     },
     bticino_4027C_cover_position: {
         key: ['position'],
-        options: [exposes.options.invert_cover(), exposes.binary('no_position_support', null, true, false)
-            // eslint-disable-next-line
-            .withDescription('Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false)')],
+        options: [exposes.options.invert_cover(), exposes.options.no_position_support()],
         convertSet: async (entity, key, value, meta) => {
             const invert = !(utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
                 !meta.options.invert_cover : meta.options.invert_cover);
@@ -5941,6 +5969,59 @@ const converters = {
     // Not a converter, can be used by tests to clear the store.
     __clearStore__: () => {
         globalStore.clear();
+    },
+    hoch_din: {
+        key: ['state',
+            'child_lock',
+            'countdown_timer',
+            'power_on_behaviour',
+            'trip',
+            'clear_device_data',
+            /* TODO: Add the below keys when toZigbee converter work has been completed
+            'voltage_setting',
+            'current_setting',
+            'temperature_setting',
+            'leakage_current_setting'*/
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'state') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON');
+                return {state: {state: value}};
+            } else if (key === 'child_lock') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochChildLock, value === 'ON');
+                return {state: {child_lock: value}};
+            } else if (key === 'countdown_timer') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.hochCountdownTimer, value);
+                return {state: {countdown_timer: value}};
+            } else if (key === 'power_on_behaviour') {
+                const lookup = {'off': 0, 'on': 1, 'previous': 2};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.hochRelayStatus, lookup[value], 'sendData');
+                return {state: {power_on_behaviour: value}};
+            } else if (key === 'trip') {
+                if (value === 'clear') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.hochLocking, true, 'sendData');
+                }
+                return {state: {trip: 'clear'}};
+            } else if (key === 'clear_device_data') {
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.hochClearEnergy, true, 'sendData');
+            /* TODO: Release the below with other toZigbee converters for device composites
+            } else if (key === 'temperature_setting') {
+                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
+                    const payload = [];
+                    payload.push(value.over_temperature_threshold < 1
+                        ? ((value.over_temperature_threshold * -1) + 128)
+                        : value.over_temperature_threshold);
+                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
+                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
+                    await tuya.sendDataPointRaw(entity, tuya.dataPoints.hochTemperatureThreshold, payload, 'sendData');
+                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
+                        over_temperature_trip: value.over_temperature_trip,
+                        over_temperature_alarm: value.over_temperature_alarm}};
+                }*/
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
+        },
     },
 };
 
