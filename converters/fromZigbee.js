@@ -6931,6 +6931,19 @@ const converters = {
             return {people: msg.data.presentValue};
         },
     },
+    sihas_action: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff', 'commandToggle'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {'commandToggle': 'long', 'commandOn': 'double', 'commandOff': 'single'};
+            let buttonMapping = null;
+            if (model.model === 'MSM-300ZB') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${lookup[msg.type]}`};
+        },
+    },
     hoch_din: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
