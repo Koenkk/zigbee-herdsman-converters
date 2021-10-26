@@ -7035,6 +7035,17 @@ const converters = {
             return result;
         },
     },
+    tuya_operation_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('tuyaOperationMode')) {
+                const value = msg.data['tuyaOperationMode'];
+                const lookup = {0: 'command', 1: 'event'};
+                return {operation_mode: lookup[value]};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

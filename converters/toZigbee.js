@@ -5954,6 +5954,22 @@ const converters = {
             await endpoint.read('genAnalogInput', ['presentValue']);
         },
     },
+    tuya_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for group control
+            // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': lookup[value.toLowerCase()]});
+            return {state: {operation_mode: value.toLowerCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['tuyaOperationMode']);
+        },
+    },
     // #endregion
 
     // #region Ignore converters
