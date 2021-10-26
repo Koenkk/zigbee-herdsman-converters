@@ -5388,7 +5388,7 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             }
 
-            return {occupancy: true, bright: onlyWhenOnFlag};
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
         },
     },
     almond_click: {
