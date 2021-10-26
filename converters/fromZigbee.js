@@ -5366,22 +5366,30 @@ const converters = {
     tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout()],
+        options: [exposes.options.occupancy_timeout(), exposes.options.illuminance_below_threshold_check()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.ctrlbits === 1) return;
+            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+            if (onlyWhenOnFlag &&
+                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
+                  options.illuminance_below_threshold_check) &&
+                !globalStore.hasValue(msg.endpoint, 'timer')) return;
 
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
                 options.occupancy_timeout : msg.data.ontime / 10;
 
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            globalStore.clearValue(msg.endpoint, 'timer');
 
             if (timeout !== 0) {
-                const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                    globalStore.clearValue(msg.endpoint, 'timer');
+                }, timeout * 1000);
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             }
 
-            return {occupancy: true};
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
         },
     },
     almond_click: {
