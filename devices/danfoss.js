@@ -123,7 +123,6 @@ module.exports = [
         },
     },
     {
-        // Danfoss Icon Floor heating thermostats
         fingerprint: [
             {modelID: '0x8020', manufacturerName: 'Danfoss'}, // RT24V Display
             {modelID: '0x8021', manufacturerName: 'Danfoss'}, // RT24V Display  Floor sensor
@@ -133,7 +132,7 @@ module.exports = [
             {modelID: '0x8035', manufacturerName: 'Danfoss'}], // RTbattery Dial Infrared
         model: 'Icon',
         vendor: 'Danfoss',
-        description: 'Danfoss icon floor heating (Regulator, Zigbee module & Thermostats)',
+        description: 'Icon floor heating (regulator, Zigbee module & thermostats)',
         fromZigbee: [
             fz.danfoss_icon_regulator,
             fz.danfoss_thermostat,
@@ -201,7 +200,6 @@ module.exports = [
 
             return features;
         })(16)),
-
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 0x1246};
 
