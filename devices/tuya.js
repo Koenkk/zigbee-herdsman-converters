@@ -1420,8 +1420,8 @@ module.exports = [
                 '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event']
-                ).withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+            exposes.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+                'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
             fz.command_step_color_temperature, fz.tuya_on_off_action, fz.tuya_operation_mode],
