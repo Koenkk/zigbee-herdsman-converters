@@ -103,6 +103,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_ezlg0pht'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_5snkkrxw'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_12sxjap4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_x2fqbdun'},
@@ -423,6 +424,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_muqovqv0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
