@@ -107,7 +107,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_12sxjap4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_x2fqbdun'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_589kq4ul'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -596,9 +597,10 @@ module.exports = [
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ21'}],
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
-        exposes: extend.switch().exposes.concat([exposes.presets.power_on_behavior(),
-            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary'])
-                .withDescription('Switch type settings')]),
+        exposes: extend.switch().exposes.concat([
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ]),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
@@ -611,8 +613,12 @@ module.exports = [
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ22'}],
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), exposes.presets.power_on_behavior(),
-            exposes.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Switch type settings')],
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -620,6 +626,58 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vsasbzkf'}],
+        model: 'TS0003_switch_module',
+        vendor: 'TuYa',
+        description: '3 gang switch module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ23'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0004', manufacturerName: '_TZ3000_ltt60asa'}],
+        model: 'TS0004_switch_module',
+        vendor: 'TuYa',
+        description: '4 gang switch module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ27'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -799,6 +857,13 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0111', manufacturerName: '_TYZB01_ymcdbl3u'}],
+        model: 'TS0111_valve',
+        vendor: 'TuYa',
+        description: 'Smart water/gas valve',
+        extend: extend.switch(),
+    },
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
@@ -852,6 +917,7 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
+        options: [exposes.options.measurement_poll_interval()],
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
@@ -899,6 +965,32 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
+    },
+    {
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        model: 'TS1101_dimmer_module',
+        vendor: 'TuYa',
+        description: '2CH Zigbee dimmer module',
+        whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
+            fz.tuya_min_brightness,
+        ]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([
+            tz.tuya_min_brightness,
+        ]),
+        exposes: [
+            e.light_brightness().withMinBrightness().withEndpoint('l1'),
+            e.light_brightness().withMinBrightness().withEndpoint('l2'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
     },
     {
         zigbeeModel: ['RH3001'],
@@ -1333,5 +1425,79 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hkdl5fmv'}],
+        model: 'TS0601_rcbo',
+        vendor: 'TuYa',
+        whiteLabel: [
+            {vendor: 'HOCH', model: 'ZJSBL7-100Z'},
+            {vendor: 'WDYK', model: 'ZJSBL7-100Z'},
+        ],
+        description: 'DIN mount RCBO with smart energy metering',
+        fromZigbee: [fz.hoch_din],
+        toZigbee: [tz.hoch_din],
+        exposes: [
+            exposes.text('meter_number', ea.STATE),
+            exposes.binary('state', ea.STATE_SET, 'ON', 'OFF'),
+            exposes.text('alarm', ea.STATE),
+            exposes.binary('trip', ea.STATE_SET, 'trip', 'clear'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
+            exposes.enum('power_on_behaviour', ea.STATE_SET, ['off', 'on', 'previous']),
+            exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
+            exposes.numeric('voltage', ea.STATE).withUnit('V'),
+            exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
+            exposes.numeric('current', ea.STATE).withUnit('mA'),
+            exposes.numeric('current_average', ea.STATE).withUnit('mA'),
+            exposes.numeric('power', ea.STATE).withUnit('W'),
+            exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
+            exposes.numeric('temperature', ea.STATE).withUnit('°C'),
+            /* TODO: Add toZigbee converters for the below composites
+            exposes.composite('voltage_setting', 'voltage_setting')
+                .withFeature(exposes.numeric('under_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(50)
+                    .withValueMax(385)
+                    .withUnit('V'))
+                .withFeature(exposes.binary('under_voltage_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('under_voltage_alarm', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.numeric('over_voltage_threshold', ea.STATE_SET)
+                    .withValueMin(50)
+                    .withValueMax(385)
+                    .withUnit('V'))
+                .withFeature(exposes.binary('over_voltage_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_voltage_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('current_setting', 'current_setting')
+                .withFeature(exposes.numeric('over_current_threshold', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(999)
+                    .withUnit('A'))
+                .withFeature(exposes.binary('over_current_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_current_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('temperature_setting', 'temperature_setting')
+                .withFeature(exposes.numeric('over_temperature_threshold', ea.STATE_SET)
+                    .withValueMin(-40)
+                    .withValueMax(127)
+                    .withUnit('°C'))
+                .withFeature(exposes.binary('over_temperature_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_temperature_alarm', ea.STATE_SET, 'ON', 'OFF')),
+            exposes.composite('leakage_current_setting', 'leakage_current_setting')
+                .withFeature(exposes.numeric('self_test_auto_days', ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(28)
+                    .withUnit('days'))
+                .withFeature(exposes.numeric('self_test_auto_hours', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(23)
+                    .withUnit('hours'))
+                .withFeature(exposes.binary('self_test_auto', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.numeric('over_leakage_current_threshold', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(3000)
+                    .withUnit('mA'))
+                .withFeature(exposes.binary('over_leakage_current_trip', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('over_leakage_current_alarm', ea.STATE_SET, 'ON', 'OFF'))
+                .withFeature(exposes.binary('self_test', ea.STATE_SET, 'test', 'clear')),*/
+            exposes.enum('clear_device_data', ea.SET, ['clear']),
+        ],
     },
 ];

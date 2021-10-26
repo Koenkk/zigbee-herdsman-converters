@@ -48,6 +48,24 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5633031P9'],
+        model: '5633031P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Pillar spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929002376301'],
+        model: '929002376301',
+        vendor: 'Philips',
+        description: 'Hue Iris rose limited edition (generation 4) ',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063130P7'],
         model: '5063130P7',
         vendor: 'Philips',
@@ -543,7 +561,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E27 1100lm with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -661,6 +679,15 @@ module.exports = [
         description: 'Hue white and color ambiance E26/E27',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCA008'],
+        model: '929002471601',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance E26/E27 1600lm',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1337,6 +1364,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5060731P7_01', '5060731P7_02', '5060731P7_03', '5060731P7_04', '5060731P7_05'],
+        model: '5060731P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (4 spots)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
         vendor: 'Philips',
@@ -1576,6 +1612,7 @@ module.exports = [
             await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['ROM001'],
@@ -1845,6 +1882,15 @@ module.exports = [
         model: '929002477901',
         vendor: 'Philips',
         description: 'Hue white filament Edison ST72 E27 LED warm-to-cool',
+        ota: ota.zigbeeOTA,
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
+        zigbeeModel: ['LTV004'],
+        model: '929002478401',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST19 E26 LED warm-to-cool',
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
