@@ -2166,8 +2166,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['6109231C5'],
-        model: 'LTF001',
+        zigbeeModel: ['LTF001'],
+        model: '6109231C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee square',
         meta: {turnsOffAtBrightness1: true},
@@ -2175,8 +2175,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['6109331C5'],
-        model: 'LTF002',
+        zigbeeModel: ['LTF002'],
+        model: '6109331C5',
         vendor: 'Philips',
         description: 'Hue white ambiance Apogee round',
         meta: {turnsOffAtBrightness1: true},
