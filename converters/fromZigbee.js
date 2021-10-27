@@ -3634,10 +3634,10 @@ const converters = {
                 return {'position': value};
             case tuya.dataPoints.haozeeMinTemp:
                 // lower limit temperature
-                return {'min_temperature': value};
+                return {'min_temperature': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeMaxTemp:
                 // max limit temperature
-                return {'max_temperature': value};
+                return {'max_temperature': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeSoftVersion:
                 // software
                 break;
