@@ -486,7 +486,9 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(),
             exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
-            exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100)],
+            exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
+            exposes.binary('illuminance_above_threshold', ea.STATE, true, false)
+                .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {

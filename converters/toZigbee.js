@@ -1327,6 +1327,38 @@ const converters = {
             await entity.read('hvacThermostat', ['runningMode']);
         },
     },
+    thermostat_min_heat_setpoint_limit: {
+        key: ['min_heat_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const minHeatSetpointLimit = result;
+            await entity.write('hvacThermostat', {minHeatSetpointLimit});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['minHeatSetpointLimit']);
+        },
+    },
+    thermostat_max_heat_setpoint_limit: {
+        key: ['max_heat_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const maxHeatSetpointLimit = result;
+            await entity.write('hvacThermostat', {maxHeatSetpointLimit});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['maxHeatSetpointLimit']);
+        },
+    },
     electrical_measurement_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
@@ -2482,6 +2514,36 @@ const converters = {
         key: ['load_estimate'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossLoadEstimate'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_output_status: {
+        key: ['output_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossOutputStatus'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_room_status_code: {
+        key: ['room_status_code'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossRoomStatusCode'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_system_status_code: {
+        key: ['system_status_code'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossSystemStatusCode'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_system_status_water: {
+        key: ['system_status_water'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossSystemStatusWater'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_multimaster_role: {
+        key: ['multimaster_role'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haDiagnostic', ['danfossMultimasterRole'], manufacturerOptions.danfoss);
         },
     },
     ZMCSW032D_cover_position: {
@@ -5938,7 +6000,7 @@ const converters = {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature', 'boost_mode',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
             'open_window_temperature', 'heating_stop', 'preset',
         ],
         convertSet: async (entity, key, value, meta) => {
@@ -5952,13 +6014,18 @@ const converters = {
                 }
                 break;
             case 'window_detection':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWindowDetection, (value) ? 0 : 1);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value);
                 break;
             case 'frost_detection':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvFrostDetection, (value) ? 0 : 1);
+                if (value == false) {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
+                }
                 break;
             case 'child_lock':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvChildLock, {'unlock': 0, 'lock': 1}[value.toLowerCase()]);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
                 break;
             case 'local_temperature_calibration':
                 value = Math.round(value * 10);
@@ -6017,6 +6084,22 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
             await endpoint.read('genAnalogInput', ['presentValue']);
+        },
+    },
+    tuya_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for group control
+            // 1 - 'event' mode. keys send events. useful for handling
+            const lookup = {command: 0, event: 1};
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': lookup[value.toLowerCase()]});
+            return {state: {operation_mode: value.toLowerCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['tuyaOperationMode']);
         },
     },
     // #endregion

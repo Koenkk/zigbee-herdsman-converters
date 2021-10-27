@@ -108,6 +108,26 @@ const converters = {
             if (msg.data.hasOwnProperty('tempSetpointHoldDuration')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
             }
+            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model)] = value;
+            }
             return result;
         },
     },
@@ -3007,6 +3027,62 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
+            // Danfoss Icon Converters
+            if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
+                result[postfixWithEndpointName('room_status_code', msg, model)] =
+                    constants.danfossRoomStatusCode.hasOwnProperty(msg.data['danfossRoomStatusCode']) ?
+                        constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']] :
+                        msg.data['danfossRoomStatusCode'];
+            }
+            if (msg.data.hasOwnProperty('danfossOutputStatus')) {
+                result[postfixWithEndpointName('output_status', msg, model)] =
+                    constants.danfossOutputStatus.hasOwnProperty(msg.data['danfossOutputStatus']) ?
+                        constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
+                        msg.data['danfossOutputStatus'];
+            }
+            return result;
+        },
+    },
+    danfoss_icon_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+
+                result[postfixWithEndpointName('battery', msg, model)] = precisionRound(percentage, 2);
+            }
+            return result;
+        },
+    },
+    danfoss_icon_regulator: {
+        cluster: 'haDiagnostic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('danfossSystemStatusCode')) {
+                result[postfixWithEndpointName('system_status_code', msg, model)] =
+                constants.danfossSystemStatusCode.hasOwnProperty(msg.data['danfossSystemStatusCode']) ?
+                    constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']] :
+                    msg.data['danfossSystemStatusCode'];
+            }
+            if (msg.data.hasOwnProperty('danfossSystemStatusWater')) {
+                result[postfixWithEndpointName('system_status_water', msg, model)] =
+                constants.danfossSystemStatusWater.hasOwnProperty(msg.data['danfossSystemStatusWater']) ?
+                    constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']] :
+                    msg.data['danfossSystemStatusWater'];
+            }
+            if (msg.data.hasOwnProperty('danfossMultimasterRole')) {
+                result[postfixWithEndpointName('multimaster_role', msg, model)] =
+                constants.danfossMultimasterRole.hasOwnProperty(msg.data['danfossMultimasterRole']) ?
+                    constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']] :
+                    msg.data['danfossMultimasterRole'];
+            }
             return result;
         },
     },
@@ -5472,22 +5548,30 @@ const converters = {
     tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout()],
+        options: [exposes.options.occupancy_timeout(), exposes.options.illuminance_below_threshold_check()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.ctrlbits === 1) return;
+            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+            if (onlyWhenOnFlag &&
+                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
+                  options.illuminance_below_threshold_check) &&
+                !globalStore.hasValue(msg.endpoint, 'timer')) return;
 
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
                 options.occupancy_timeout : msg.data.ontime / 10;
 
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            globalStore.clearValue(msg.endpoint, 'timer');
 
             if (timeout !== 0) {
-                const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                    globalStore.clearValue(msg.endpoint, 'timer');
+                }, timeout * 1000);
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             }
 
-            return {occupancy: true};
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
         },
     },
     almond_click: {
@@ -6971,10 +7055,10 @@ const converters = {
                 }
                 break;
             case tuya.dataPoints.tvWindowDetection:
-                result = {window_detection: {1: false, 0: true}[value]};
+                result = {window_detection: {1: true, 0: false}[value]};
                 break;
             case tuya.dataPoints.tvFrostDetection:
-                result = {frost_detection: {1: false, 0: true}[value]};
+                result = {frost_detection: {1: true, 0: false}[value]};
                 break;
             case tuya.dataPoints.tvHeatingSetpoint:
                 result = {current_heating_setpoint: (value / 10).toFixed(1)};
@@ -7035,6 +7119,19 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {people: msg.data.presentValue};
+        },
+    },
+    sihas_action: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff', 'commandToggle'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {'commandToggle': 'long', 'commandOn': 'double', 'commandOff': 'single'};
+            let buttonMapping = null;
+            if (model.model === 'MSM-300ZB') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${lookup[msg.type]}`};
         },
     },
     hoch_din: {
@@ -7139,6 +7236,17 @@ const converters = {
                 result.self_test = value[7] ? 'test' : 'clear';
             }
             return result;
+        },
+    },
+    tuya_operation_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('tuyaOperationMode')) {
+                const value = msg.data['tuyaOperationMode'];
+                const lookup = {0: 'command', 1: 'event'};
+                return {operation_mode: lookup[value]};
+            }
         },
     },
     // #endregion
