@@ -852,7 +852,7 @@ module.exports = [
                     'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                     'ON - In this mode, the thermostat stays open ' +
                     'OFF - In this mode, the thermostat stays closed'),
-                exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
+            exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('monday_schedule', ea.STATE))
                 .withFeature(exposes.text('tuesday_schedule', ea.STATE))
