@@ -27,7 +27,7 @@ module.exports = [
         zigbeeModel: ['S24013'],
         model: 'S24013',
         vendor: 'The Light Group',
-        description: 'SLC SmartOne AC Dimmer Mini 200W Zigbee LN',
+        description: 'SLC SmartOne AC dimmer mini 200W Zigbee LN',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
