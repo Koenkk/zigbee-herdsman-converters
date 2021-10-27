@@ -236,4 +236,50 @@ module.exports = [
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
         },
     },
+    {
+        zigbeeModel: ['SBM300ZB1'],
+        model: 'SBM300ZB1',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS Remote Control',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.battery, fz.sihas_action],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+    },
+    {
+        zigbeeModel: ['SBM300ZB2'],
+        model: 'SBM300ZB2',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS Remote Control 2 Button',
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long']), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['SBM300ZB3'],
+        model: 'SBM300ZB3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS Remote Control 3 Button',
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
+            '3_single', '3_double', '3_long']), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+    },
 ];
