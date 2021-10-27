@@ -832,7 +832,7 @@ module.exports = [
         vendor: 'Haozee',
         description: 'Thermostatic radiator valve',
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, thermostat],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.haozee_thermostat],
         toZigbee: [
             tz.haozee_thermostat_system_mode, tz.haozee_thermostat_current_heating_setpoint, tz.haozee_thermostat_boost_heating,
             tz.haozee_thermostat_boost_heating_countdown, tz.haozee_thermostat_window_detection,
