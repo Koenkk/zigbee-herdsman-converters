@@ -7023,11 +7023,9 @@ const converters = {
             let buttonMapping = null;
             if (model.model === 'SBM300ZB2') {
                 buttonMapping = {1: '1', 2: '2'};
-            }
-            else if (model.model === 'SBM300ZB3') {
+            } else if (model.model === 'SBM300ZB3') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            }
-            else if (model.model === 'MSM-300ZB') {
+            } else if (model.model === 'MSM-300ZB') {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
