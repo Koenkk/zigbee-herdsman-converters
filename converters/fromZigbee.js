@@ -3561,55 +3561,55 @@ const converters = {
                 // battery
                 return {battery: value};
             case tuya.dataPoints.haozeeFaultAlarm:
-                return {error: value ? 'ON': 'OFF'}
+                return {error: value ? 'ON': 'OFF'};
             case tuya.dataPoints.haozeeScheduleMonday:
                 // Monday
                 return {
                     'monday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleTuesday:
                 // Tuesday
                 return {
                     'tuesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleWednesday:
                 // wednesday
                 return {
                     'wednesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleThursday:
                 // Thursday
                 return {
                     'thursday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleFriday:
                 // Friday
                 return {
                     'friday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleSaturday:
                 // Saturday
                 return {
                     'saturday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
             case tuya.dataPoints.haozeeScheduleSunday:
 
                 // Sunday
@@ -3617,8 +3617,8 @@ const converters = {
                     'sunday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
                         ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
                         ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C '
-               }
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
 
             case tuya.dataPoints.haozeeRunningState:
                 // working status 0 - pause 1 -working
@@ -3645,7 +3645,7 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:haozee: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
-        }
+        },
     },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
