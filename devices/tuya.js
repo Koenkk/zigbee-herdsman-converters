@@ -840,7 +840,7 @@ module.exports = [
             tz.haozee_thermostat_min_temperature
         ],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
+            e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
             e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
