@@ -3554,7 +3554,7 @@ const converters = {
                     return { window_detection: value ? 'ON' : 'OFF' };
                 case tuya.dataPoints.haozeeWindowState:
                     // window state
-                    return { window: value ? 'CLOSED' : 'OPEN' };
+                    return { window: value ? 'OPEN' : 'CLOSED' };
                 case tuya.dataPoints.haozeeChildLock:
                     return { child_lock: value ? 'LOCK' : 'UNLOCK' };
                 case tuya.dataPoints.haozeeBattery:
@@ -3635,7 +3635,7 @@ const converters = {
                 case tuya.dataPoints.haozeeMinTemp:
                     // lower limit temperature
                     return { 'min_temperature': value };
-                case tuya.dataPoints.haozeeMinTemp:
+                case tuya.dataPoints.haozeeMaxTemp:
                     // max limit temperature
                     return { 'max_temperature': value };
                 case tuya.dataPoints.haozeeSoftVersion:
