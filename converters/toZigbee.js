@@ -2715,7 +2715,7 @@ const converters = {
     haozee_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = { 0: 'auto', 1: 'manual', 2: 'off', 3: 'on' };;
+            const lookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
         },
     },
