@@ -821,6 +821,53 @@ module.exports = [
         ],
     },
     {
+        fingerprint: [{
+            // The model ID from: Device with modelID 'TS0601' is not supported
+            // You may need to add \u0000 at the end of the name in some cases
+            modelID: 'TS0601',
+            // The manufacturer name from: Device with modelID 'TS0601' is not supported.
+            manufacturerName: '_TZE200_a4bpgplm'
+        }],
+        model: 'TS0601',
+        vendor: 'Haozee',
+        description: 'Thermostatic radiator valve',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, thermostat],
+        toZigbee: [
+            tz.haozee_thermostat_system_mode, tz.haozee_thermostat_current_heating_setpoint, tz.haozee_thermostat_boost_heating,
+            tz.haozee_thermostat_boost_heating_countdown, tz.haozee_thermostat_window_detection,
+            tz.haozee_thermostat_child_lock, tz.haozee_thermostat_temperature_calibration, tz.haozee_thermostat_max_temperature,
+            tz.haozee_thermostat_min_temperature
+        ],
+        exposes: [
+            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
+            e.position(), e.window_detection(),
+            exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
+            exposes.climate()
+            .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+            .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
+                'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
+                'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                'ON - In this mode, the thermostat stays open ' +
+                'OFF - In this mode, the thermostat stays closed'),
+            exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
+                'the device executes a preset week programming temperature time and temperature. ')
+            .withFeature(exposes.text('monday_schedule', ea.STATE))
+            .withFeature(exposes.text('tuesday_schedule', ea.STATE))
+            .withFeature(exposes.text('wednesday_schedule', ea.STATE))
+            .withFeature(exposes.text('thursday_schedule', ea.STATE))
+            .withFeature(exposes.text('friday_schedule', ea.STATE))
+            .withFeature(exposes.text('saturday_schedule', ea.STATE))
+            .withFeature(exposes.text('sunday_schedule', ea.STATE))
+            ,
+            exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
+                'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
+            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
+        ],
+    },
+    {
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
