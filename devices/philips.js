@@ -2165,4 +2165,22 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LTF001'],
+        model: 'LTF001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Ruiying square',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTF002'],
+        model: 'LTF002',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Ruiying round',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
