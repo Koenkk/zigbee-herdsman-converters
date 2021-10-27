@@ -771,6 +771,53 @@ module.exports = [
     },
     {
         fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'},
+            {modelID: 'TS0601\u0000', manufacturerName: '_TZE200_a4bpgplm'},
+        ],
+        model: 'BEOK 602',
+        vendor: 'BEOK',
+        description: 'Thermostatic radiator valve (TRV) from Beok',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.beok_thermostat],
+        toZigbee: [tz.beok_thermostat_system_mode, tz.beok_thermostat_current_heating_setpoint, 
+            tz.beok_thermostat_boost_heating, tz.beok_thermostat_boost_heating_countdown, tz.beok_thermostat_working_state,
+            tz.beok_thermostat_window_detection, tz.beok_thermostat_child_lock, tz.beok_thermostat_min_temperature,
+            tz.beok_thermostat_max_temperature, tzLocal.beok_thermostat_temperature_calibration],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [
+            exposes.climate().withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withSystemMode(['auto', 'fan_only', 'off', 'heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(ea.STATE_SET),
+            e.max_temperature(),
+            e.min_temperature(),
+            exposes.composite('programming_mode').withDescription('Programming mode ⏱: In this mode, ' +
+                'the device executes a preprogrammed daily schedule. Four temperatures and hours can be set for each day.')
+                .withFeature(exposes.text('program_monday', ea.STATE))
+                .withFeature(exposes.text('program_tuesday', ea.STATE))
+                .withFeature(exposes.text('program_wednesday', ea.STATE))
+                .withFeature(exposes.text('program_thursday', ea.STATE))
+                .withFeature(exposes.text('program_friday', ea.STATE))
+                .withFeature(exposes.text('program_saturday', ea.STATE))
+                .withFeature(exposes.text('program_sunday', ea.STATE)),
+            e.window_detection(),
+            exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
+            e.child_lock(),
+            exposes.text('fault_alarm', ea.STATE),// not sure what type, never seen one
+            e.battery(),
+            e.position(),
+    //        exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost heating'),
+    //        exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Boost heating countdown in minutes'),
+            exposes.numeric('software_version', ea.STATE),
+        ],
+           
+    },
+    {
+        fingerprint: [
             {modelID: 'v90ladg\u0000', manufacturerName: '_TYST11_wv90ladg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wv90ladg'},
         ],

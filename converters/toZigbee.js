@@ -2650,6 +2650,76 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, temp);
         },
     },
+    beok_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const systemModeLookup = {'auto' : 0, 'fan_only' : 1, 'off' : 2, 'heat' : 3};
+            await tuya.sendDataPointEnum(entity, tuyaLocal.dataPoints.beokSystemMode, systemModeLookup[value]);
+        },
+    },
+    beok_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokHeatingSetpoint, temp);
+        },
+    },
+
+    beok_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokWindowDetection, value === 'ON');
+        },
+    },
+
+    beok_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokChildLock, value === 'LOCK');
+        },
+    },
+
+	beok_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokMinTemp, temp);
+        },
+    },
+
+    beok_thermostat_max_temperature: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokMaxTemp, temp);
+        },
+    },
+
+    beok_thermostat_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            var temp = Math.round(value * 10);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await tuya.sendDataPointValue(entity, tuyaLocal.beokTempCalibration, temp);
+        },
+    },
+
+//    beok_thermostat_boost_heating: {
+//        key: ['boost_heating'],
+//        convertSet: async (entity, key, value, meta) => {
+//            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokBoostHeating, value === 'ON');
+//        },
+//    },
+
+//    beok_thermostat_boost_heating_countdown: {
+//       key: ['boost_heating_countdown'],
+//        convertSet: async (entity, key, value, meta) => {
+//            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokBoostHeatingCountdown, value);
+//        },
+//    },
+
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {

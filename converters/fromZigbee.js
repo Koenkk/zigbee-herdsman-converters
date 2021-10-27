@@ -3456,6 +3456,112 @@ const converters = {
             }
         },
     },
+    beok_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const runningStateLookup = {0: 'idle', 1: 'heat'};
+            const systemModeLookup = {0: 'auto', 1: 'fan_only', 2: 'off', 3: 'heat'};
+
+            switch (dp) {
+            case tuyaLocal.dataPoints.beokSystemMode:
+                return {system_mode: systemModeLookup[value]};
+            case tuyaLocal.dataPoints.beokHeatingSetpoint:
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokLocalTemp:
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokBoostHeating:
+                break; // seems not to work, also not available in SmartHome App
+//                return {boost_heating: value ? 'ON' : 'OFF'};
+            case tuyaLocal.dataPoints.beokBoostHeatingCountdown:
+                break; // seems not to work, also not available in SmartHome App
+//                return {boost_heating_countdown: value};
+            case tuyaLocal.dataPoints.beokRunningState:
+                return {running_state: runningStateLookup[value]};
+            case tuyaLocal.dataPoints.beokWindowState:
+                return {window: value ? 'OPEN' : 'CLOSED'};
+            case tuyaLocal.dataPoints.beokWindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuyaLocal.dataPoints.beokChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuyaLocal.dataPoints.beokBattery:
+                return {battery: value};
+            case tuyaLocal.dataPoints.beokFaultAlarm:
+                return {fault_alarm: value};
+            case tuyaLocal.dataPoints.beokMinTemp:
+                return {min_temperature: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokMaxTemp:
+                return {max_temperature: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokScheduleMonday:
+                return {
+                    program_monday:
+                        {monday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleTuesday:
+                return {
+                    program_tuesday:
+                        {tuesday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleWednesday:
+                return {
+                    program_wednesday:
+                        {wednesday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleThursday:
+                return {
+                    program_thursday:
+                        {thursday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleFriday:
+                return {
+                    program_friday:
+                        {friday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleSaturday:
+                return {
+                    program_saturday:
+                        {saturday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokScheduleSunday:
+                return {
+                    program_sunday:
+                        {sunday: ('0' + value[1]).slice(-2) + ':' + ('0' + value[2]).slice(-2) + ' -> ' + value[4]/10 + '°C' +
+                                '  |  ' + ('0' + value[5]).slice(-2) + ':' + ('0' + value[6]).slice(-2) + ' -> ' + value[8]/10 + '°C' +
+                                '  |  ' + ('0' + value[9]).slice(-2) + ':' + ('0' + value[10]).slice(-2) + ' -> ' + value[12]/10 + '°C' +
+                                '  |  ' + ('0' + value[13]).slice(-2) + ':' + ('0' + value[14]).slice(-2) + ' -> ' + value[16]/10 + '°C'},
+                };
+            case tuyaLocal.dataPoints.beokTempCalibration:
+                return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokValvePosition:
+                return {position: parseFloat((value / 10).toFixed(1))};
+            case tuyaLocal.dataPoints.beokSoftVersion:
+                return {software_version: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:Beok thermostat: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
