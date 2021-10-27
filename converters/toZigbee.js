@@ -2716,28 +2716,28 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             const systemModeLookup = {'auto' : 0, 'fan_only' : 1, 'off' : 2, 'heat' : 3};
-            await tuya.sendDataPointEnum(entity, tuyaLocal.dataPoints.beokSystemMode, systemModeLookup[value]);
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.beokSystemMode, systemModeLookup[value]);
         },
     },
     beok_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokHeatingSetpoint, temp);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.beokHeatingSetpoint, temp);
         },
     },
 
     beok_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokWindowDetection, value === 'ON');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.beokWindowDetection, value === 'ON');
         },
     },
 
     beok_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokChildLock, value === 'LOCK');
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.beokChildLock, value === 'LOCK');
         },
     },
 
@@ -2745,7 +2745,7 @@ const converters = {
         key: ['min_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokMinTemp, temp);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.beokMinTemp, temp);
         },
     },
 
@@ -2753,7 +2753,7 @@ const converters = {
         key: ['max_temperature'],
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value * 10);
-            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokMaxTemp, temp);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.beokMaxTemp, temp);
         },
     },
 
@@ -2764,21 +2764,21 @@ const converters = {
             if (temp < 0) {
                 temp = 0xFFFFFFFF + temp + 1;
             }
-            await tuya.sendDataPointValue(entity, tuyaLocal.beokTempCalibration, temp);
+            await tuya.sendDataPointValue(entity, tuya.beokTempCalibration, temp);
         },
     },
 
 //    beok_thermostat_boost_heating: {
 //        key: ['boost_heating'],
 //        convertSet: async (entity, key, value, meta) => {
-//            await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.beokBoostHeating, value === 'ON');
+//            await tuya.sendDataPointBool(entity, tuya.dataPoints.beokBoostHeating, value === 'ON');
 //        },
 //    },
 
 //    beok_thermostat_boost_heating_countdown: {
 //       key: ['boost_heating_countdown'],
 //        convertSet: async (entity, key, value, meta) => {
-//            await tuya.sendDataPointValue(entity, tuyaLocal.dataPoints.beokBoostHeatingCountdown, value);
+//            await tuya.sendDataPointValue(entity, tuya.dataPoints.beokBoostHeatingCountdown, value);
 //        },
 //    },
 
