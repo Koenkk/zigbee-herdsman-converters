@@ -386,7 +386,9 @@ module.exports = [
         model: '4062172044776',
         vendor: 'OSRAM',
         description: 'OSRAM Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
-        extend: extend.light_onoff_brightness(),
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
+            tz.light_brightness_step, tz.level_config, tz.power_on_behavior],
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11};
