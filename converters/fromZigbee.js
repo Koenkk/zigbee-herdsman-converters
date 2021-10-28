@@ -3024,6 +3024,12 @@ const converters = {
                     result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
                 }
             }
+            if (msg.data.hasOwnProperty('danfossLoadBalancingEnable')) {
+                result[postfixWithEndpointName('load_balancing_enable', msg, model)] = (msg.data['danfossLoadBalancingEnable'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossLoadRoomMean')) {
+                result[postfixWithEndpointName('load_room_mean', msg, model)] = msg.data['danfossLoadRoomMean'];
+            }
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
