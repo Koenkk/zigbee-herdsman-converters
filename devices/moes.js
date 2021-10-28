@@ -295,16 +295,15 @@ module.exports = [
         fromZigbee: [fz.moes_thermostat_tv, fz.ignore_tuya_set_time],
         toZigbee: [tz.moes_thermostat_tv],
         exposes: [
-            e.battery(), e.child_lock(), e.window_detection(),
+            e.battery(), e.child_lock(), e.window_detection(), e.boost_time(),
             exposes.binary('frost_detection', ea.STATE_SET, true, false).withDescription('Enables/disables frost detection on the device'),
             exposes.binary('heating_stop', ea.STATE_SET, true, false).withDescription('Stop heating'),
             exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
             exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
             exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
             exposes.numeric('open_window_temperature', ea.STATE_SET).withDescription('Open window mode temperature'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withDescription('Boost heating countdown'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
-            // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
+            exposes.binary('is_online', ea.STATE_SET, true, false).withDescription('Force device update'),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
                 .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)

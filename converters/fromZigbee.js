@@ -6870,6 +6870,9 @@ const converters = {
             case tuya.dataPoints.tvFrostDetection:
                 result = {frost_detection: {1: true, 0: false}[value]};
                 break;
+            case tuya.dataPoints.tvIsOnline:
+                result = {is_online: {1: true, 0: false}[value]};
+                break;
             case tuya.dataPoints.tvHeatingSetpoint:
                 result = {current_heating_setpoint: (value / 10).toFixed(1)};
                 break;
@@ -6895,11 +6898,8 @@ const converters = {
             case tuya.dataPoints.tvHolidayMode:
                 result = {holiday_mode: value};
                 break;
-            // case tuya.dataPoints.tvBoostMode:
-            //     result = {boost_mode: {1: false, 0: true}[value]};
-            //     break;
             case tuya.dataPoints.tvBoostTime:
-                result = {boost_heating_countdown: value};
+                result = {boost_time: value};
                 break;
             case tuya.dataPoints.tvOpenWindowTemp:
                 result = {open_window_temperature: (value / 10).toFixed(1)};

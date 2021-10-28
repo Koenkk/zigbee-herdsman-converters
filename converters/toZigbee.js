@@ -5869,7 +5869,7 @@ const converters = {
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
             'current_heating_setpoint', 'local_temperature_calibration',
             'holiday_temperature', 'comfort_temperature', 'eco_temperature',
-            'open_window_temperature', 'heating_stop', 'preset',
+            'open_window_temperature', 'heating_stop', 'preset','boost_time', 'is_online',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -5924,11 +5924,13 @@ const converters = {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
                 }
                 break;
-            // case 'boost_mode':
-            //     // set 300sec boost time
-            //     await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, 300);
-            //     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvBoostMode, (value) ? 0 : 1);
-            //     break;
+            case 'boost_time':
+                 // set boost time
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, value);
+                break;
+            case 'is_online':
+                await tuya.sendDataPointBool(entity, tuyaLocal.dataPoints.zsIsOnline, value);
+                break;
             case 'open_window_temperature':
                 value = Math.round(value * 10);
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value);
