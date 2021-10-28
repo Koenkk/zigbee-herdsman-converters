@@ -3532,6 +3532,121 @@ const converters = {
             }
         },
     },
+    haozee_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+            switch (dp) {
+            case tuya.dataPoints.haozeeSystemMode:
+                return {preset: presetLookup[value]};
+            case tuya.dataPoints.haozeeHeatingSetpoint:
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case tuya.dataPoints.haozeeLocalTemp:
+                return {local_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.haozeeBoostHeatingCountdown:
+                // quick heating countdown
+                return {boost_heating_countdown: value};
+            case tuya.dataPoints.haozeeWindowDetection:
+                // window check
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.haozeeWindowState:
+                // window state
+                return {window: value ? 'OPEN' : 'CLOSED'};
+            case tuya.dataPoints.haozeeChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.haozeeBattery:
+                // battery
+                return {battery: value};
+            case tuya.dataPoints.haozeeFaultAlarm:
+                return {error: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.haozeeScheduleMonday:
+                // Monday
+                return {
+                    'monday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleTuesday:
+                // Tuesday
+                return {
+                    'tuesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleWednesday:
+                // wednesday
+                return {
+                    'wednesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleThursday:
+                // Thursday
+                return {
+                    'thursday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleFriday:
+                // Friday
+                return {
+                    'friday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleSaturday:
+                // Saturday
+                return {
+                    'saturday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleSunday:
+
+                // Sunday
+                return {
+                    'sunday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+
+            case tuya.dataPoints.haozeeRunningState:
+                // working status 0 - pause 1 -working
+                return {'heating': value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.haozeeBoostHeating:
+                // rapid heating -> boolean
+                break;
+            case tuya.dataPoints.haozeeTempCalibration:
+                // temperature calibration
+                break;
+            case tuya.dataPoints.haozeeValvePosition:
+                // valve position
+                return {'position': value};
+            case tuya.dataPoints.haozeeMinTemp:
+                // lower limit temperature
+                return {'min_temperature': ( value/10 ).toFixed(1)};
+            case tuya.dataPoints.haozeeMaxTemp:
+                // max limit temperature
+                return {'max_temperature': ( value/10 ).toFixed(1)};
+            case tuya.dataPoints.haozeeSoftVersion:
+                // software
+                break;
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:haozee: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandSetDataResponse', 'commandGetData'],
