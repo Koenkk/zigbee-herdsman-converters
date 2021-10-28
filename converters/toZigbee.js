@@ -3268,7 +3268,7 @@ const converters = {
         },
     },
     eurotronic_valve_position: {
-        key: ['eurotronic_valve_position'],
+        key: ['eurotronic_valve_position', 'valve_position'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4001: {value, type: 0x20}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
@@ -3278,7 +3278,7 @@ const converters = {
         },
     },
     eurotronic_trv_mode: {
-        key: ['eurotronic_trv_mode'],
+        key: ['eurotronic_trv_mode', 'trv_mode'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4000: {value, type: 0x30}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
