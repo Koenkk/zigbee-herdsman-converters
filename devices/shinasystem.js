@@ -11,7 +11,7 @@ module.exports = [
         zigbeeModel: ['CSM-300Z'],
         model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
-        description: 'Sihas multipurpose sensor',
+        description: 'SiHAS multipurpose sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people],
@@ -30,7 +30,7 @@ module.exports = [
         zigbeeModel: ['USM-300Z'],
         model: 'USM-300ZB',
         vendor: 'ShinaSystem',
-        description: 'Sihas multipurpose sensor',
+        description: 'SiHAS multipurpose sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.occupancy, fz.illuminance],
         toZigbee: [],
@@ -51,7 +51,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z1'],
         model: 'SBM300Z1',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 1 gang',
+        description: 'SiHAS IOT smart switch 1 gang',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -63,7 +63,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z2'],
         model: 'SBM300Z2',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 2 gang',
+        description: 'SiHAS IOT smart switch 2 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('bottom')],
         endpoint: (device) => {
@@ -81,7 +81,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z3'],
         model: 'SBM300Z3',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 3 gang',
+        description: 'SiHAS IOT smart switch 3 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('top'), e.switch().withEndpoint('center'), e.switch().withEndpoint('bottom')],
         endpoint: (device) => {
@@ -101,7 +101,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z4'],
         model: 'SBM300Z4',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 4 gang',
+        description: 'SiHAS IOT smart switch 4 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('bottom_left'),
             e.switch().withEndpoint('top_right'), e.switch().withEndpoint('bottom_right')],
@@ -124,7 +124,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z5'],
         model: 'SBM300Z5',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 5 gang',
+        description: 'SiHAS IOT smart switch 5 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('center_left'),
             e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('bottom_right')],
@@ -149,7 +149,7 @@ module.exports = [
         zigbeeModel: ['SBM300Z6'],
         model: 'SBM300Z6',
         vendor: 'ShinaSystem',
-        description: 'IOT smart switch 6 gang',
+        description: 'SiHAS IOT smart switch 6 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('top_left'), e.switch().withEndpoint('bottom_left'), e.switch().withEndpoint('center_left'),
             e.switch().withEndpoint('center_right'), e.switch().withEndpoint('top_right'), e.switch().withEndpoint('bottom_right')],
@@ -170,6 +170,116 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(4));
             await reporting.onOff(device.getEndpoint(5));
             await reporting.onOff(device.getEndpoint(6));
+        },
+    },
+    {
+        zigbeeModel: ['BSM-300Z'],
+        model: 'BSM-300ZB',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS remote control',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.battery, fz.sihas_action],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+    },
+    {
+        zigbeeModel: ['TSM-300Z'],
+        model: 'TSM-300ZB',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS temperature/humidity sensor',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint, {min: 30, max: 300, change: 30});
+            await reporting.humidity(endpoint, {min: 30, max: 3600, change: 50});
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.battery_voltage()],
+    },
+    {
+        zigbeeModel: ['DSM-300Z'],
+        model: 'DSM-300ZB',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS contact sensor',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genPowerCfg']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
+        zigbeeModel: ['MSM-300Z'],
+        model: 'MSM-300ZB',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS remote control 4 button',
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
+            '3_single', '3_double', '3_long', '4_single', '4_double', '4_long']), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['SBM300ZB1'],
+        model: 'SBM300ZB1',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS remote control',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.battery, fz.sihas_action],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+    },
+    {
+        zigbeeModel: ['SBM300ZB2'],
+        model: 'SBM300ZB2',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS remote control 2 button',
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long']), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['SBM300ZB3'],
+        model: 'SBM300ZB3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS remote control 3 button',
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
+            '3_single', '3_double', '3_long']), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
         },
     },
 ];
