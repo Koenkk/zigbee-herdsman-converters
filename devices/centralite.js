@@ -170,7 +170,7 @@ module.exports = [
         model: '3157100-E',
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat,',
-        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.fan, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
