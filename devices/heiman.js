@@ -10,6 +10,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
