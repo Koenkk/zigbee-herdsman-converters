@@ -165,7 +165,7 @@ module.exports = [
             await reporting.fanMode(endpoint);
         },
     },
-     {
+    {
         zigbeeModel: ['3157100-E'],
         model: '3157100-E',
         vendor: 'Centralite',
