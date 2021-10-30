@@ -825,8 +825,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'}],
-        model: 'TS0601',
-        vendor: 'TS0601_thermostat_1',
+        model: 'TS0601_thermostat_1',
+        vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.haozee_thermostat],
