@@ -391,6 +391,6 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11};
         },
-        meta: {multiEndpoint: true},        
+        meta: {multiEndpoint: true},
     },
 ];
