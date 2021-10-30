@@ -51,7 +51,7 @@ module.exports = [
         model: 'AC10787',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
