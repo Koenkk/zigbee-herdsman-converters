@@ -530,7 +530,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['LWA017'],
-        model: '‎929002469202',
+        model: '929002469202',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 1050lm with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
