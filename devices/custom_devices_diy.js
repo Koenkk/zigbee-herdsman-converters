@@ -239,7 +239,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: 'DIY outdoor temperature, humidity and atmospheric pressure sensor, long battery life',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-		toZigbee: [tz.factory_reset],
+	toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -260,7 +260,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Mini Plant Wattering Sensor](https://efektalab.com/minipws)',
         fromZigbee: [fz.soil_moisture, fz.battery],
-		toZigbee: [tz.factory_reset],
+	toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
