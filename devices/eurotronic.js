@@ -21,13 +21,13 @@ module.exports = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
             .withPiHeatingDemand(),
-        exposes.enum('eurotronic_trv_mode', exposes.access.ALL, [1, 2])
-            .withDescription('Select between direct control of the valve via the `eurotronic_valve_position` or automatic control of the '+
+        exposes.enum('trv_mode', exposes.access.ALL, [1, 2])
+            .withDescription('Select between direct control of the valve via the `valve_position` or automatic control of the '+
             'valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value '+
             'to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) '+
             'and the buttons on the device are disabled.'),
-        exposes.numeric('eurotronic_valve_position', exposes.access.ALL).withValueMin(0).withValueMax(255)
-            .withDescription('Directly control the radiator valve when `eurotronic_trv_mode` is set to 1. The values range from 0 (valve '+
+        exposes.numeric('valve_position', exposes.access.ALL).withValueMin(0).withValueMax(255)
+            .withDescription('Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve '+
             'closed) to 255 (valve fully open)')],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {

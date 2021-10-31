@@ -1,5 +1,7 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
@@ -19,6 +21,19 @@ module.exports = [
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+    },
+    {
+        zigbeeModel: ['S24013'],
+        model: 'S24013',
+        vendor: 'The Light Group',
+        description: 'SLC SmartOne AC dimmer mini 200W Zigbee LN',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
         },
     },
 ];
