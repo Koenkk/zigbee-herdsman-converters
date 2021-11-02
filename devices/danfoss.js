@@ -9,7 +9,8 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        // eTRV0100 is the same as Hive TRV. If implementing anything, please consider changing Hive TRV001 too.
+        // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
+        // changing those two too.
         zigbeeModel: ['eTRV0100'],
         model: '014G2461',
         vendor: 'Danfoss',
@@ -37,7 +38,7 @@ module.exports = [
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
-                .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
+                .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
@@ -71,10 +72,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
 
             // standard ZCL attributes
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
 
             // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{
