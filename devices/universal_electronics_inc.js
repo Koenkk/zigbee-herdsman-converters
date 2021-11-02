@@ -11,7 +11,7 @@ module.exports = [
         zigbeeModel: ['URC4470BC0-X-R'],
         model: 'XHS1-UE',
         vendor: 'Universal Electronics Inc',
-        description: 'Wireless Digital Pet Resistant PIR Detector',
+        description: 'Wireless digital pet resistant PIR detector',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
