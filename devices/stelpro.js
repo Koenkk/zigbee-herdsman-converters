@@ -23,14 +23,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
-            await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{attribute: 'StelproSystemMode', minimumReportInterval: 1,
-                maximumReportInterval: 0}]);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1
+            }]);
         },
     },
     {
@@ -51,14 +55,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
-            await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting('hvacThermostat', [{attribute: 'StelproSystemMode',
-                minimumReportInterval: 1, maximumReportInterval: 0}]);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'StelproSystemMode',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1
+            }]);
         },
     },
     {
@@ -80,15 +88,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
-            await reporting.humidity(endpoint, {min: 10, max: 300, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
-            await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode', minimumReportInterval: 1, maximumReportInterval: 0}]);
+                attribute: 'StelproSystemMode',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1}]);
         },
     },
     {
@@ -110,15 +121,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Maestro
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 60, change: 50});
-            await reporting.humidity(endpoint, {min: 10, max: 300, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 0, change: 50});
-            await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 1, max: 900, change: 5});
-            await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'StelproSystemMode', minimumReportInterval: 1, maximumReportInterval: 0}]);
+                attribute: 'StelproSystemMode',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1}]);
         },
     },
 ];

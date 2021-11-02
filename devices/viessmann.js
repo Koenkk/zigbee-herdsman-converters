@@ -31,10 +31,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'hvacThermostat']);
 
             // standard ZCL attributes
-            await reporting.batteryPercentageRemaining(endpoint, {min: 60, max: 43200, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 90, max: 900, change: 10});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 65534, change: 1});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 60, max: 3600, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
 
             // manufacturer attributes
             await endpoint.configureReporting('hvacThermostat', [{attribute: 'viessmannWindowOpenInternal', minimumReportInterval: 60,

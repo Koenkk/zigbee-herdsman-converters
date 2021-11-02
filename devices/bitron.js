@@ -199,7 +199,7 @@ module.exports = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 900, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);
