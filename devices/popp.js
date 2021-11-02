@@ -21,7 +21,7 @@ module.exports = [
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode],
+            tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -38,7 +38,7 @@ module.exports = [
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
-                .withDescription('Values observed are `0` (set locally) or `2` (set via Zigbee)'),
+                .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
@@ -58,6 +58,11 @@ module.exports = [
             exposes.numeric('algorithm_scale_factor', ea.ALL).withValueMin(1).withValueMax(10)
                 .withDescription('Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) '+
                     '1= Quick ...  5=Moderate ... 10=Slow'),
+            exposes.binary('load_balancing_enable', ea.ALL, true, false)
+                .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
+                    'thermostats in the room. The gateway must update load_room_mean if enabled.'),
+            exposes.numeric('load_room_mean', ea.ALL)
+                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes'),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,
@@ -67,10 +72,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
 
             // standard ZCL attributes
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
 
             // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{
@@ -107,6 +112,8 @@ module.exports = [
                 'danfossMountedModeControl',
                 'danfossMountedModeActive',
                 'danfossExternalMeasuredRoomSensor',
+                'danfossLoadBalancingEnable',
+                'danfossLoadRoomMean',
             ], options);
 
             // read systemMode to have an initial value
