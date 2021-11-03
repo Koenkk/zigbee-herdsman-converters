@@ -12,7 +12,7 @@ module.exports = [
     fingerprint: [{ modelID: "TS0001", manufacturerName: "_TZ3000_majwnphg" }],
     model: "JR-ZDS01",
     vendor: "Girier",
-    description: "Tuya zigbee 1 gang mini switch",
+    description: "Girier JR-ZDS01 zigbee 1 gang mini switch",
     toZigbee: extend
       .switch()
       .toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
