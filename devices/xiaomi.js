@@ -41,6 +41,15 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.magnet.acn001'],
+        model: 'MCCGQ14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple_report],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
