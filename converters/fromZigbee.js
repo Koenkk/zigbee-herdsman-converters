@@ -108,6 +108,26 @@ const converters = {
             if (msg.data.hasOwnProperty('tempSetpointHoldDuration')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold_duration', msg, model)] = msg.data['tempSetpointHoldDuration'];
             }
+            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('min_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('max_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_min_heat_setpoint_limit', msg, model)] = value;
+            }
+            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+                let value = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
+                value = value < -250 ? 0 : value;
+                result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model)] = value;
+            }
             return result;
         },
     },
@@ -2778,6 +2798,7 @@ const converters = {
                 const h = parseInt(value.substring(0, 4), 16);
                 const s = parseInt(value.substring(4, 8), 16);
                 const b = parseInt(value.substring(8, 12), 16);
+                result.color_mode = 'hs';
                 result.color = {b: mapNumberRange(b, 0, 1000, 0, 255), h, s: mapNumberRange(s, 0, 1000, 0, 100)};
                 result.brightness = result.color.b;
             } else if (dp === tuya.dataPoints.silvercrestSetEffect) {
@@ -3004,8 +3025,70 @@ const converters = {
                     result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
                 }
             }
+            if (msg.data.hasOwnProperty('danfossLoadBalancingEnable')) {
+                result[postfixWithEndpointName('load_balancing_enable', msg, model)] = (msg.data['danfossLoadBalancingEnable'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossLoadRoomMean')) {
+                result[postfixWithEndpointName('load_room_mean', msg, model)] = msg.data['danfossLoadRoomMean'];
+            }
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
+            }
+            // Danfoss Icon Converters
+            if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
+                result[postfixWithEndpointName('room_status_code', msg, model)] =
+                    constants.danfossRoomStatusCode.hasOwnProperty(msg.data['danfossRoomStatusCode']) ?
+                        constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']] :
+                        msg.data['danfossRoomStatusCode'];
+            }
+            if (msg.data.hasOwnProperty('danfossOutputStatus')) {
+                result[postfixWithEndpointName('output_status', msg, model)] =
+                    constants.danfossOutputStatus.hasOwnProperty(msg.data['danfossOutputStatus']) ?
+                        constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
+                        msg.data['danfossOutputStatus'];
+            }
+            return result;
+        },
+    },
+    danfoss_icon_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                // Some devices do not comply to the ZCL and report a
+                // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
+                let percentage = msg.data['batteryPercentageRemaining'];
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+
+                result[postfixWithEndpointName('battery', msg, model)] = precisionRound(percentage, 2);
+            }
+            return result;
+        },
+    },
+    danfoss_icon_regulator: {
+        cluster: 'haDiagnostic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('danfossSystemStatusCode')) {
+                result[postfixWithEndpointName('system_status_code', msg, model)] =
+                constants.danfossSystemStatusCode.hasOwnProperty(msg.data['danfossSystemStatusCode']) ?
+                    constants.danfossSystemStatusCode[msg.data['danfossSystemStatusCode']] :
+                    msg.data['danfossSystemStatusCode'];
+            }
+            if (msg.data.hasOwnProperty('danfossSystemStatusWater')) {
+                result[postfixWithEndpointName('system_status_water', msg, model)] =
+                constants.danfossSystemStatusWater.hasOwnProperty(msg.data['danfossSystemStatusWater']) ?
+                    constants.danfossSystemStatusWater[msg.data['danfossSystemStatusWater']] :
+                    msg.data['danfossSystemStatusWater'];
+            }
+            if (msg.data.hasOwnProperty('danfossMultimasterRole')) {
+                result[postfixWithEndpointName('multimaster_role', msg, model)] =
+                constants.danfossMultimasterRole.hasOwnProperty(msg.data['danfossMultimasterRole']) ?
+                    constants.danfossMultimasterRole[msg.data['danfossMultimasterRole']] :
+                    msg.data['danfossMultimasterRole'];
             }
             return result;
         },
@@ -3452,6 +3535,121 @@ const converters = {
                 return {min_temperature: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    haozee_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+            switch (dp) {
+            case tuya.dataPoints.haozeeSystemMode:
+                return {preset: presetLookup[value]};
+            case tuya.dataPoints.haozeeHeatingSetpoint:
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case tuya.dataPoints.haozeeLocalTemp:
+                return {local_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.haozeeBoostHeatingCountdown:
+                // quick heating countdown
+                return {boost_heating_countdown: value};
+            case tuya.dataPoints.haozeeWindowDetection:
+                // window check
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.haozeeWindowState:
+                // window state
+                return {window: value ? 'OPEN' : 'CLOSED'};
+            case tuya.dataPoints.haozeeChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.haozeeBattery:
+                // battery
+                return {battery: value};
+            case tuya.dataPoints.haozeeFaultAlarm:
+                return {error: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.haozeeScheduleMonday:
+                // Monday
+                return {
+                    'monday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleTuesday:
+                // Tuesday
+                return {
+                    'tuesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleWednesday:
+                // wednesday
+                return {
+                    'wednesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleThursday:
+                // Thursday
+                return {
+                    'thursday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleFriday:
+                // Friday
+                return {
+                    'friday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleSaturday:
+                // Saturday
+                return {
+                    'saturday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.haozeeScheduleSunday:
+
+                // Sunday
+                return {
+                    'sunday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+
+            case tuya.dataPoints.haozeeRunningState:
+                // working status 0 - pause 1 -working
+                return {'heating': value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.haozeeBoostHeating:
+                // rapid heating -> boolean
+                break;
+            case tuya.dataPoints.haozeeTempCalibration:
+                // temperature calibration
+                break;
+            case tuya.dataPoints.haozeeValvePosition:
+                // valve position
+                return {'position': value};
+            case tuya.dataPoints.haozeeMinTemp:
+                // lower limit temperature
+                return {'min_temperature': ( value/10 ).toFixed(1)};
+            case tuya.dataPoints.haozeeMaxTemp:
+                // max limit temperature
+                return {'max_temperature': ( value/10 ).toFixed(1)};
+            case tuya.dataPoints.haozeeSoftVersion:
+                // software
+                break;
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:haozee: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -5366,22 +5564,30 @@ const converters = {
     tradfri_occupancy: {
         cluster: 'genOnOff',
         type: 'commandOnWithTimedOff',
-        options: [exposes.options.occupancy_timeout()],
+        options: [exposes.options.occupancy_timeout(), exposes.options.illuminance_below_threshold_check()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.ctrlbits === 1) return;
+            const onlyWhenOnFlag = (msg.data.ctrlbits & 1) != 0;
+            if (onlyWhenOnFlag &&
+                (!options || !options.hasOwnProperty('illuminance_below_threshold_check') ||
+                  options.illuminance_below_threshold_check) &&
+                !globalStore.hasValue(msg.endpoint, 'timer')) return;
 
             const timeout = options && options.hasOwnProperty('occupancy_timeout') ?
                 options.occupancy_timeout : msg.data.ontime / 10;
 
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            globalStore.clearValue(msg.endpoint, 'timer');
 
             if (timeout !== 0) {
-                const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                    globalStore.clearValue(msg.endpoint, 'timer');
+                }, timeout * 1000);
                 globalStore.putValue(msg.endpoint, 'timer', timer);
             }
 
-            return {occupancy: true};
+            return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
         },
     },
     almond_click: {
@@ -6929,6 +7135,23 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {people: msg.data.presentValue};
+        },
+    },
+    sihas_action: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff', 'commandToggle'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {'commandToggle': 'long', 'commandOn': 'double', 'commandOff': 'single'};
+            let buttonMapping = null;
+            if (model.model === 'SBM300ZB2') {
+                buttonMapping = {1: '1', 2: '2'};
+            } else if (model.model === 'SBM300ZB3') {
+                buttonMapping = {1: '1', 2: '2', 3: '3'};
+            } else if (model.model === 'MSM-300ZB') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
+            return {action: `${button}${lookup[msg.type]}`};
         },
     },
     hoch_din: {

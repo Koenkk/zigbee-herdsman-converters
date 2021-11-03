@@ -51,7 +51,7 @@ module.exports = [
         model: 'AC10787',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -385,8 +385,12 @@ module.exports = [
         zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
         model: '4062172044776',
         vendor: 'OSRAM',
-        description: 'OSRAM Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
         extend: extend.ledvance.light_onoff_brightness(),
-        ota: ota.ledvance,
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
     },
 ];

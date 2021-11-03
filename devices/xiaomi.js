@@ -41,6 +41,15 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.magnet.acn001'],
+        model: 'MCCGQ14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple_report],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
@@ -685,6 +694,27 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.switch.b1nacn01'],
+        model: 'QBKG19LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch T1 (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night],
+        exposes: [
+            e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
+            e.voltage().withAccess(ea.STATE), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
