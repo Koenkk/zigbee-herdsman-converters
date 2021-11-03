@@ -2798,6 +2798,7 @@ const converters = {
                 const h = parseInt(value.substring(0, 4), 16);
                 const s = parseInt(value.substring(4, 8), 16);
                 const b = parseInt(value.substring(8, 12), 16);
+                result.color_mode = 'hs';
                 result.color = {b: mapNumberRange(b, 0, 1000, 0, 255), h, s: mapNumberRange(s, 0, 1000, 0, 100)};
                 result.brightness = result.color.b;
             } else if (dp === tuya.dataPoints.silvercrestSetEffect) {
