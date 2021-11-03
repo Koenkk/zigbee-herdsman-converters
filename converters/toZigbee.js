@@ -6114,6 +6114,14 @@ const converters = {
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
         },
     },
+    xiaomi_switch_click_mode: {
+        key: ['click_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookupState = {'fast': 0x1, 'multi': 0x02};
+            await entity.write('aqaraOpple', {0x0125: {value: lookupState[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {click_mode: value}};
+        },
+    },
     // #endregion
 
     // #region Ignore converters
