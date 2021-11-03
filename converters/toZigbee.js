@@ -1192,6 +1192,9 @@ const converters = {
     fan_mode: {
         key: ['fan_mode', 'fan_state'],
         convertSet: async (entity, key, value, meta) => {
+            if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+            }
             const fanMode = constants.fanMode[value.toLowerCase()];
             await entity.write('hvacFanCtrl', {fanMode});
             return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
