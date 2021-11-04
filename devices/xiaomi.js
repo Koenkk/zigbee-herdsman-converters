@@ -801,7 +801,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara temperature, humidity and pressure sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.WSDCGQ11LM_pressure, fz.WSDCGQ01LM_WSDCGQ11LM_interval],
+        fromZigbee: [fz.xiaomi_battery, fz.xiaomi_temperature, fz.humidity, fz.pressure, fz.WSDCGQ01LM_WSDCGQ11LM_interval],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
