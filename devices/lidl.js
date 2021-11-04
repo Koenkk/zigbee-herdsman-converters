@@ -156,6 +156,17 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qd7hej8u'}],
+        model: 'HG07834C',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 bulb RGB',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_el5kt5im'}],
         model: 'HG06492A',
         vendor: 'Lidl',
