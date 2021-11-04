@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const constants = require('../lib/constants');
 
 module.exports = [
     {
@@ -33,7 +34,7 @@ module.exports = [
                 attribute: 'StelproSystemMode',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1
+                reportableChange: 1,
             }]);
         },
     },
@@ -65,7 +66,7 @@ module.exports = [
                 attribute: 'StelproSystemMode',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 1
+                reportableChange: 1,
             }]);
         },
     },
