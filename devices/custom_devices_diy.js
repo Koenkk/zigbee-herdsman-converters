@@ -183,7 +183,6 @@ module.exports = [
         description: '[Plant Wattering Sensor]',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
-        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
@@ -223,7 +222,6 @@ module.exports = [
         description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
-        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);

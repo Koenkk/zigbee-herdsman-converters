@@ -41,6 +41,15 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.magnet.acn001'],
+        model: 'MCCGQ14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple_report],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
@@ -685,6 +694,27 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
+        onEvent: preventReset,
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.switch.b1nacn01'],
+        model: 'QBKG19LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch T1 (with neutral, single rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night],
+        exposes: [
+            e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
+            e.voltage().withAccess(ea.STATE), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -1737,6 +1767,26 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.remote.acn004'],
+        model: 'WXKG17LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 double key wireless switch',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery(), e.battery_voltage(),
+            e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'hold_left', 'hold_right']),
+            // eslint-disable-next-line max-len
+            exposes.enum('click_mode', ea.SET, ['fast', 'multi']).withDescription('Click mode, fast: only supports single click which will be send immediately after clicking, multi: supports more events like double and hold'),
+        ],
+        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple_report],
+        toZigbee: [tz.xiaomi_switch_click_mode],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            // set multiclick mode
+            await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
         },
     },
 ];
