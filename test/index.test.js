@@ -449,7 +449,7 @@ describe('index.js', () => {
     });
 
     it('Calculate configure key legacy', () => {
-        const definition = index.findByZigbeeModel('WaterSensor-N');
+        const definition = index.findByZigbeeModel('MCT-340 SMA');
         expect(index.getConfigureKey(definition)).toBe(1);
     });
 });

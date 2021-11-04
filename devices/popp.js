@@ -73,15 +73,15 @@ module.exports = [
 
             // standard ZCL attributes
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 5});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             // danfoss attributes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'danfossMountedModeActive',
                 minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: 43200,
+                maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
             await endpoint.configureReporting('hvacThermostat', [{
@@ -93,7 +93,7 @@ module.exports = [
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'danfossHeatRequired',
                 minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.MINUTES_10,
+                maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], options);
             await endpoint.configureReporting('hvacThermostat', [{

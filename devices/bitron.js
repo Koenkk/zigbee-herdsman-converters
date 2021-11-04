@@ -1,7 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
@@ -199,7 +198,7 @@ module.exports = [
                 'genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg',
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 900, max: constants.repInterval.HOUR, change: 1});
+            await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);

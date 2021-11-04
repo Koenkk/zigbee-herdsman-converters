@@ -29,12 +29,12 @@ module.exports = [
                 'haElectricalMeasurement', 'seMetering', 'manuSpecificSinope'];
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             try {
-                await reporting.thermostatSystemMode(endpoint, {min: 1, max: 0});
+                await reporting.thermostatSystemMode(endpoint);
                 await reporting.thermostatRunningState(endpoint);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -71,9 +71,9 @@ module.exports = [
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
                 'haElectricalMeasurement', 'seMetering', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             try {
                 await reporting.thermostatRunningState(endpoint);
@@ -97,7 +97,7 @@ module.exports = [
             } catch (error) {/* Do nothing*/}
 
             try {
-                await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+                await reporting.thermostatKeypadLockMode(endpoint);
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
@@ -130,16 +130,16 @@ module.exports = [
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 20});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 10, max: 301, change: 5});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 1, max: 302, change: 50});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             try {
                 await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
 
             try {
-                await reporting.thermostatKeypadLockMode(endpoint, {min: 1, max: 0});
+                await reporting.thermostatKeypadLockMode(endpoint);
             } catch (error) {
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
