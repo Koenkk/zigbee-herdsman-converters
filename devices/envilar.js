@@ -1,7 +1,5 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const e = exposes.presets;
 
@@ -31,24 +29,19 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['2CH-ZG-BOX-RELAY'], 
+        zigbeeModel: ['2CH-ZG-BOX-RELAY'],
         model: '2CH-ZG-BOX-RELAY',
         vendor: 'Envilar',
-        description: '2Ch box relay',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-        ],
+        description: '2 channel box relay',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-                await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        
-        }
-    }
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
