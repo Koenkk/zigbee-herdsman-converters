@@ -222,5 +222,5 @@ module.exports = [
         vendor: 'Sengled',
         description: 'Smart LED Filament Candle (E12)',
         extend: extend.switch(),
-    },    
+    },
 ];
