@@ -780,7 +780,7 @@ module.exports = [
         fingerprint: [{model: 'TV02-Zigbee', vendor: 'TuYa', modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
-        description: 'Radiator valve thermostat',
+        description: 'Thermostat radiator valve ',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat, fz.tuya_data_point_dump],
         toZigbee: [tz.tvtwo_thermostat, tz.tuya_data_point_test],            
