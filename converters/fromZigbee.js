@@ -7170,10 +7170,10 @@ const converters = {
                 result.voltage_rms = (value[1] | value[0] << 8) / 10;
             }
             if (dp === tuya.dataPoints.hochCurrent) {
-                result.current = value[2] | value[1] << 8;
+                result.current = (value[2] | value[1] << 8) / 1000;
             }
             if (dp === tuya.dataPoints.hochHistoricalCurrent) {
-                result.current_average = value[2] | value[1] << 8;
+                result.current_average = (value[2] | value[1] << 8) / 1000;
             }
             if (dp === tuya.dataPoints.hochActivePower) {
                 result.power = (value[2] | value[1] << 8) / 10;
