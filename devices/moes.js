@@ -288,7 +288,10 @@ module.exports = [
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}],
+        fingerprint: [
+            { modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf' },
+            { modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux' },
+        ],
         model: 'TV01-ZB',
         vendor: 'Moes',
         description: 'Thermostat radiator valve',
