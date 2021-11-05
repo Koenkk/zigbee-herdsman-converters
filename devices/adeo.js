@@ -76,4 +76,13 @@ module.exports = [
         },
         exposes: [e.power(), e.switch(), e.energy()],
     },
+    {
+        zigbeeModel: ['LDSENK10'],
+        model: 'LDSENK10',
+        vendor: 'ADEO',
+        description: 'LEXMAN motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
 ];

@@ -70,7 +70,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['SZ-DWS08N'],
+        zigbeeModel: ['SZ-DWS08N', 'SZ-DWS08'],
         model: 'SZ-DWS08',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',

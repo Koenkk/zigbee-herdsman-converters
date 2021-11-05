@@ -23,9 +23,9 @@ module.exports = [
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'haDiagnostic'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 1});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
             // bind of hvacUserInterfaceCfg fails with 'Table Full', does this have any effect?
             await endpoint.configureReporting('hvacUserInterfaceCfg', [{attribute: 'keypadLockout', reportableChange: 1,
                 minimumReportInterval: constants.repInterval.MINUTE, maximumReportInterval: constants.repInterval.HOUR}]);
@@ -93,6 +93,25 @@ module.exports = [
         model: 'WDE002334',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        exposes: [e.light_brightness().withLevelConfig(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['NHPB/DIMMER/1'],
+        model: 'WDE002386',
+        vendor: 'Schneider Electric',
+        description: 'Push button dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
         exposes: [e.light_brightness().withLevelConfig(),
@@ -335,8 +354,8 @@ module.exports = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1, {min: 0, max: 60, change: 1});
-            await reporting.thermostatPIHeatingDemand(endpoint1, {min: 0, max: 60, change: 1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.thermostatPIHeatingDemand(endpoint1);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint2, {min: 0, max: 60, change: 1});
             await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
@@ -439,9 +458,8 @@ module.exports = [
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat'];
             await reporting.bind(endpoint, coordinatorEndpointB, binds);
             await reporting.batteryVoltage(endpoint);
-            await reporting.thermostatTemperature(endpoint, {min: constants.repInterval.MINUTE,
-                max: constants.repInterval.MINUTES_15, change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await endpoint.configureReporting('hvacUserInterfaceCfg', [{attribute: 'keypadLockout',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
@@ -495,7 +513,23 @@ module.exports = [
             const endpoint = device.getEndpoint(11);
             const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_15, change: 25});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['FLS/SYSTEM-M/4'],
+        model: 'WDE002906',
+        vendor: 'Schneider Electric',
+        description: 'Wiser wireless switch 1-gang',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+            e.battery()],
+        meta: {disableActionGroup: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(21);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
 ];

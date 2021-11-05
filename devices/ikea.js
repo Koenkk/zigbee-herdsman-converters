@@ -91,10 +91,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm'],
+        zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm'],
         model: 'LED1936G5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED globe-bulb E27 470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED globe-bulb E26/E27 450/470 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -194,10 +194,8 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: extend.light_onoff_brightness_color(),
-        ota: ota.tradfri,
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
         meta: {supportsHueAndSaturation: false},
-        onEvent: bulbOnEvent,
     },
     {
         zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm'],
@@ -448,8 +446,8 @@ module.exports = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
@@ -488,7 +486,9 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(),
             exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
-            exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100)],
+            exposes.numeric('requested_brightness_percent', ea.STATE).withValueMin(30).withValueMax(100),
+            exposes.binary('illuminance_above_threshold', ea.STATE, true, false)
+                .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -625,7 +625,8 @@ module.exports = [
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'auto'])],
+        meta: {fanStateOn: 'auto'},
         fromZigbee: [fz.fan],
         toZigbee: [tz.fan_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -633,5 +634,12 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
             await reporting.fanMode(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        model: 'LED1949C5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];

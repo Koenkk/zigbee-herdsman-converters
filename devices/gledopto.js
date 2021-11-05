@@ -67,6 +67,7 @@ module.exports = [
         vendor: 'Gledopto',
         description: 'Zigbee triac AC dimmer',
         extend: gledoptoExtend.light_onoff_brightness(),
+        meta: {disableDefaultResponse: true},
     },
     {
         zigbeeModel: ['GL-C-006'],
