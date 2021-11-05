@@ -4986,15 +4986,6 @@ const converters = {
             }
         },
     },
-    WSDCGQ11LM_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('16') ? parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
-        },
-    },
     W2_module_carbon_monoxide: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
