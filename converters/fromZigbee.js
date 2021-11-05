@@ -3539,6 +3539,115 @@ const converters = {
             }
         },
     },
+    tvtwo_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const presetLookup = {0: 'auto', 1: 'manual', 2: 'holiday'};
+            switch (dp) {
+            case tuya.dataPoints.tvMode:
+                return {preset: presetLookup[value]};
+            case tuya.dataPoints.tvChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.tvHolidayTemp:
+                return {holiday_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvHeatingSetpoint:
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvFrostDetection:
+                return {frost_protection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.tvWindowDetection:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.tvHeatingStop:
+                return {heating_stop: value ? 'ON' : 'OFF' };
+            case tuya.dataPoints.tvLocalTemp:
+                return {local_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvBattery:
+                return {battery_low: value === 0 ? true : false};
+            case tuya.dataPoints.tvTempCalibration:
+                return {local_temperature_calibration: value > 55 ?
+                    ((value - 0x100000000)/10).toFixed(1): (value/ 10).toFixed(1)};
+            case tuya.dataPoints.tvBoostTime:
+                // Setting minimum 0 - maximum 465 seconds
+                return {boost_timeset_countdown: value};
+            case tuya.dataPoints.tvComfortTemp:
+                return {comfort_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvEcoTemp:
+                return {eco_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvOpenWindowTemp:
+                return {open_window_temperature: (value / 10).toFixed(1)};
+            case tuya.dataPoints.tvErrorStatus:
+                return {fault_alarm: value };
+            case tuya.dataPoints.tvHolidayMode:
+                return {holiday_mode_date: value};
+
+            case tuya.dataPoints.tvBoostMode:
+                // Online ?
+                return {online: value ? 'ON' : 'OFF' };
+            case tuya.dataPoints.tvWorkingDay:
+                // tvWorkingDay: 31,    ????
+                return {working_day: value };
+            case tuya.dataPoints.tvWeekSchedule:
+                // tvWeekSchedule: 106, Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {week_schedule: value };
+
+            case tuya.dataPoints.tvMondaySchedule:
+                return {schedule_monday:
+                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvTuesdaySchedule:
+                return {schedule_tuesday:
+                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvWednesdaySchedule:
+                return {schedule_wednesday:
+                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvThursdaySchedule:
+                return {schedule_thursday:
+                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvFridaySchedule:
+                return {schedule_friday:
+                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvSaturdaySchedule:
+                return {schedule_saturday:
+                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+            case tuya.dataPoints.tvSundaySchedule:
+                return {schedule_sunday:
+                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                };
+
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tvtwo_thermostat: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     haozee_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
