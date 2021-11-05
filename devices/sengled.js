@@ -216,4 +216,11 @@ module.exports = [
         description: 'Vintage LED edison bulb (ST19)',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['E1F-N9G'],
+        model: 'E1F-N9G',
+        vendor: 'Sengled',
+        description: 'Smart LED Filament Candle (E12)',
+        extend: extend.switch(),
+    },    
 ];
