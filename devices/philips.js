@@ -351,6 +351,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1742330P7'],
+        model: '1742330P7',
+        vendor: 'Philips',
+        description: 'Hue Calla outdoor',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1744130P7'],
         model: '1744130P7',
         vendor: 'Philips',
