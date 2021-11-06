@@ -566,7 +566,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['LTA004'],
-        model: '9290024684',
+        model: '8719514328242',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 800lm with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
