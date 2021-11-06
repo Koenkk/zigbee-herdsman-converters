@@ -794,9 +794,8 @@ module.exports = [
             exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged by'+
                     ' switching the heating off. To achieve this, the valve is closed fully. To activate the heating '+
                     'stop, the device display "HS" ‚press the pair button to cancel.'),
-            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperature()
-                .withLocalTemperatureCalibration(ea.STATE_SET)
-                .withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
+            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature().withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).'),
