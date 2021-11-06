@@ -221,6 +221,6 @@ module.exports = [
         model: 'E1F-N9G',
         vendor: 'Sengled',
         description: 'Smart LED Filament Candle (E12)',
-        extend: extend.switch(),
+        extend: extend.light_onoff_brightness(),
     },
 ];
