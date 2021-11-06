@@ -777,7 +777,7 @@ module.exports = [
             e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
     },
     {
-        fingerprint: [{model: 'TV02-Zigbee', vendor: 'TuYa', modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
         description: 'Thermostat radiator valve ',
