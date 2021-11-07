@@ -220,7 +220,7 @@ module.exports = [
         zigbeeModel: ['E1F-N9G'],
         model: 'E1F-N9G',
         vendor: 'Sengled',
-        description: 'Smart LED Filament Candle (E12)',
+        description: 'Smart LED filament candle (E12)',
         extend: extend.light_onoff_brightness(),
     },
 ];
