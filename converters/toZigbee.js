@@ -2793,11 +2793,11 @@ const converters = {
                 // 115 ????? online
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
                 break;
-            case 'week':
+            case 'week': {
                 const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
                 const week = weekLookup[value];
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
-                return {state: {week: value}};
+                return {state: {week: value}};}
 
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
