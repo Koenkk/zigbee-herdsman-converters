@@ -3560,7 +3560,7 @@ const converters = {
             case tuya.dataPoints.tvWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvHeatingStop:
-                return {heating_stop: value ? 'ON' : 'OFF' };
+                return {heating_stop: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvLocalTemp:
                 return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvBattery:
@@ -3578,19 +3578,19 @@ const converters = {
             case tuya.dataPoints.tvOpenWindowTemp:
                 return {open_window_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvErrorStatus:
-                return {fault_alarm: value };
+                return {fault_alarm: value};
             case tuya.dataPoints.tvHolidayMode:
                 return {holiday_mode_date: value};
 
             case tuya.dataPoints.tvBoostMode:
                 // Online ?
-                return {online: value ? 'ON' : 'OFF' };
+                return {online: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWorkingDay:
-                // tvWorkingDay: 31,    ????
-                return {working_day: value };
+                // tvWorkingDay: 31,
+                return {working_day: value};
             case tuya.dataPoints.tvWeekSchedule:
                 // tvWeekSchedule: 106, Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {week_schedule: value };
+                return {week_schedule: value};
 
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
