@@ -750,21 +750,21 @@ module.exports = [
     {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [
-            { modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb' },
-            { modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho' }, // HY367
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
         whiteLabel: [
-            { vendor: 'Moes', model: 'HY368' },
-            { vendor: 'Moes', model: 'HY369RT' },
-            { vendor: 'SHOJZJ', model: '378RT' },
-            { vendor: 'Silvercrest', model: 'TVR01' },
+            {vendor: 'Moes', model: 'HY368'},
+            {vendor: 'Moes', model: 'HY369RT'},
+            {vendor: 'SHOJZJ', model: '378RT'},
+            {vendor: 'Silvercrest', model: 'TVR01'},
         ],
         meta: {tuyaThermostatPreset: tuya.thermostatPresets, tuyaThermostatSystemMode: tuya.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
