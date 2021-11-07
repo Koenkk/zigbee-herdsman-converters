@@ -2749,6 +2749,7 @@ const converters = {
                 const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
                 return {state: {preset: value}};
+                break;
             case 'frost_protection':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, value === 'ON');
                 break;
