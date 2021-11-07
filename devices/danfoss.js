@@ -26,7 +26,8 @@ module.exports = [
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
             tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
-            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset],
+            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset,
+            tz.danfoss_thermostat_occupied_heating_scheduled_setpoint],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
