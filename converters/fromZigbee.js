@@ -4002,7 +4002,7 @@ const converters = {
             });
             dataStr += '\n';
             const fs = require('fs');
-            fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
+            fs.appendFile('/share/zigbee2mqtt/tuya.dump.txt', dataStr, (err) => {
                 if (err) throw err;
             });
         },
