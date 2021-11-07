@@ -2746,9 +2746,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'preset':
-                const lookup = {'auto': 0, 'manual': 1, 'holiday': 3};
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, lookup[value]);
-                return {state: {preset: value}};
+                const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
+                // return {state: {preset: value}};
+                break;
             case 'frost_protection':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, value === 'ON');
                 break;
