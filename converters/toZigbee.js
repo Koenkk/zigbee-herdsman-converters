@@ -2746,7 +2746,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'preset':
-                const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
+            const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
                 return {state: {preset: value}};
             case 'frost_protection':
@@ -2757,7 +2757,7 @@ const converters = {
                 break;
             case 'window_detection':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value === 'ON');
-                break;               
+                break;
             case 'child_lock':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
                 break;
@@ -2794,8 +2794,8 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
                 break;
             case 'week':
-                const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
-                const week = weekLookup[value];
+            const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
+            const week = weekLookup[value];
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
                 return {state: {week: value}};
 
