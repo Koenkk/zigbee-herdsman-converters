@@ -18,7 +18,7 @@ module.exports = [
             // to the extent that reported brighness values can arrive at the endpoint out of order
             // giving the appearance that the values are jumping around.
             // Limit the reporting to once a second to give a smoother reporting of brightness.
-            await reporting.brightness(endpoint, { min: 1 });
+            await reporting.brightness(endpoint, {min: 1});
         },
     },
 ];
