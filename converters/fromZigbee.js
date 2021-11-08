@@ -3594,52 +3594,94 @@ const converters = {
 
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
-                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                        '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                        ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                        ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                        ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                        ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                        ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                        ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                        ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                        ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                        ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvTuesdaySchedule:
                 return {schedule_tuesday:
-                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvWednesdaySchedule:
                 return {schedule_wednesday:
-                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvThursdaySchedule:
                 return {schedule_thursday:
-                        '  ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvFridaySchedule:
                 return {schedule_friday:
-                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ', ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ', ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvSaturdaySchedule:
                 return {schedule_saturday:
-                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
             case tuya.dataPoints.tvSundaySchedule:
                 return {schedule_sunday:
-                        ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
+                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
+                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
+                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
+                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
+                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
+                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
+                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
+                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
+                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
                 };
 
             default:
