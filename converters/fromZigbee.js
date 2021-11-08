@@ -6198,12 +6198,34 @@ const converters = {
     DJT11LM_vibration: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.vibration_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
             if (msg.data['85']) {
                 const vibrationLookup = {1: 'vibration', 2: 'tilt', 3: 'drop'};
                 result.action = vibrationLookup[msg.data['85']];
+
+                // Device only sends a message when vibration is detected.
+                // Therefore we need to publish a no_vibration message on our own.
+                if (result.action === 'vibration') {
+                    result.vibration = true;
+
+                    const timeout = options && options.hasOwnProperty('vibration_timeout') ? options.vibration_timeout : 90;
+
+                    // Stop any existing timers cause vibration detected
+                    globalStore.getValue(msg.endpoint, 'vibration_timers', []).forEach((t) => clearTimeout(t));
+                    globalStore.putValue(msg.endpoint, 'vibration_timers', []);
+
+                    // Set new timer to publish no_vibration message
+                    if (timeout !== 0) {
+                        const timer = setTimeout(() => {
+                            publish({vibration: false});
+                        }, timeout * 1000);
+
+                        globalStore.getValue(msg.endpoint, 'vibration_timers').push(timer);
+                    }
+                }
             }
 
             if (msg.data['1283']) {
