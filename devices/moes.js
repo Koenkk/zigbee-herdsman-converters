@@ -288,11 +288,13 @@ module.exports = [
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}],
         model: 'TV01-ZB',
         vendor: 'Moes',
         description: 'Thermostat radiator valve',
         fromZigbee: [fz.moes_thermostat_tv, fz.ignore_tuya_set_time],
+        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'}],
         toZigbee: [tz.moes_thermostat_tv],
         exposes: [
             e.battery(), e.child_lock(), e.window_detection(),

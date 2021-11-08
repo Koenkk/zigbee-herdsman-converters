@@ -4903,6 +4903,10 @@ const converters = {
                 const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
                 payload.mode_switch = lookup[msg.data['4']];
             }
+            if (msg.data.hasOwnProperty('10')) {
+                const lookup = {1: 'toggle', 2: 'momentary'};
+                payload.switch_type = lookup[msg.data['10']];
+            }
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
                     payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
@@ -5135,15 +5139,6 @@ const converters = {
 
                 return result;
             }
-        },
-    },
-    WSDCGQ11LM_pressure: {
-        cluster: 'msPressureMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
-        convert: (model, msg, publish, options, meta) => {
-            const pressure = msg.data.hasOwnProperty('16') ? parseFloat(msg.data['16']) / 10 : parseFloat(msg.data['measuredValue']);
-            return {pressure: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
         },
     },
     W2_module_carbon_monoxide: {
@@ -7330,10 +7325,10 @@ const converters = {
                 result.voltage_rms = (value[1] | value[0] << 8) / 10;
             }
             if (dp === tuya.dataPoints.hochCurrent) {
-                result.current = value[2] | value[1] << 8;
+                result.current = (value[2] | value[1] << 8) / 1000;
             }
             if (dp === tuya.dataPoints.hochHistoricalCurrent) {
-                result.current_average = value[2] | value[1] << 8;
+                result.current_average = (value[2] | value[1] << 8) / 1000;
             }
             if (dp === tuya.dataPoints.hochActivePower) {
                 result.power = (value[2] | value[1] << 8) / 10;

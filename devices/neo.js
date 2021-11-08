@@ -27,6 +27,12 @@ module.exports = [
             exposes.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
         ],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.command('manuSpecificTuya', 'resetDevice', {});
+            await endpoint.command('manuSpecificTuya', 'unknown0x10', {'data': [0x00, 0x02]});
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
