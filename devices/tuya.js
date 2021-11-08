@@ -749,14 +749,23 @@ module.exports = [
     },
     {
         zigbeeModel: ['kud7u2l'],
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'}, {modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
+        ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
         description: 'Radiator valve with thermostat',
-        whiteLabel: [{vendor: 'Moes', model: 'HY368'}, {vendor: 'Moes', model: 'HY369RT'}, {vendor: 'SHOJZJ', model: '378RT'},
-            {vendor: 'Silvercrest', model: 'TVR01'}],
+        whiteLabel: [
+            {vendor: 'Moes', model: 'HY368'},
+            {vendor: 'Moes', model: 'HY369RT'},
+            {vendor: 'SHOJZJ', model: '378RT'},
+            {vendor: 'Silvercrest', model: 'TVR01'},
+        ],
         meta: {tuyaThermostatPreset: tuya.thermostatPresets, tuyaThermostatSystemMode: tuya.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
@@ -775,6 +784,48 @@ module.exports = [
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
+    },
+    {
+        fingerprint: [
+            {/* model: 'TV02-Zigbee', vendor: 'TuYa',  */modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}],
+        model: 'TV02-Zigbee',
+        vendor: 'TuYa',
+        description: 'Thermostat radiator valve',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
+        toZigbee: [tz.tvtwo_thermostat],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [
+            e.battery_low(), e.window_detection(), e.child_lock(), e.comfort_temperature(), e.eco_temperature(),
+            e.open_window_temperature(), e.holiday_temperature(),
+            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
+            exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
+                    'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
+                    'time for the function will be counted down in seconds ( 465 to 0 ).'),
+            exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
+                    ' is activated, the temperature in the house is kept at 8 °C ‚the device display "AF".press the '+
+                    'pair button to cancel.'),
+            exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged'+
+                    ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
+                    'heating stop, the device display "HS" ‚press the pair button to cancel.'),
+            exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
+            exposes.numeric('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
+                    'automatically start at the set time starting point and run the holiday temperature.'),
+            exposes.composite('programming', 'programming').withDescription('Auto Mode ⏱ - In this mode,'+
+                    ' the device executes a preset week programming temperature time and temperature. ')
+                .withFeature(exposes.text('schedule_monday', ea.STATE))
+                .withFeature(exposes.text('schedule_tuesday', ea.STATE))
+                .withFeature(exposes.text('schedule_wednesday', ea.STATE))
+                .withFeature(exposes.text('schedule_thursday', ea.STATE))
+                .withFeature(exposes.text('schedule_friday', ea.STATE))
+                .withFeature(exposes.text('schedule_saturday', ea.STATE))
+                .withFeature(exposes.text('schedule_sunday', ea.STATE)),
+            exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
+            // exposes.numeric('week_schedule', ea.STATE).withDescription('week_schedule'),
+            // exposes.numeric('working_day', ea.STATE).withDescription('working_day'),
+            // e.week(),
+        ],
     },
     {
         fingerprint: [
@@ -1503,8 +1554,8 @@ module.exports = [
             exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
             exposes.numeric('voltage', ea.STATE).withUnit('V'),
             exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
-            exposes.numeric('current', ea.STATE).withUnit('mA'),
-            exposes.numeric('current_average', ea.STATE).withUnit('mA'),
+            exposes.numeric('current', ea.STATE).withUnit('A'),
+            exposes.numeric('current_average', ea.STATE).withUnit('A'),
             exposes.numeric('power', ea.STATE).withUnit('W'),
             exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
             exposes.numeric('temperature', ea.STATE).withUnit('°C'),

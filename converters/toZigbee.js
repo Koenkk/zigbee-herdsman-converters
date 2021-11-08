@@ -1192,6 +1192,9 @@ const converters = {
     fan_mode: {
         key: ['fan_mode', 'fan_state'],
         convertSet: async (entity, key, value, meta) => {
+            if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+            }
             const fanMode = constants.fanMode[value.toLowerCase()];
             await entity.write('hvacFanCtrl', {fanMode});
             return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
@@ -2075,7 +2078,7 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM',
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM', 'DLKZMK11LM',
                 'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2090,7 +2093,7 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM',
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM', 'DLKZMK11LM',
                 'QBKG34LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
@@ -2730,6 +2733,75 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const temp = Math.round(value);
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, temp);
+        },
+    },
+    tvtwo_thermostat: {
+        key: [
+            'window_detection', 'frost_protection', 'child_lock',
+            'current_heating_setpoint', 'local_temperature_calibration',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'open_window_temperature', 'heating_stop', 'preset', 'boost_timeset_countdown',
+            'holiday_mode_date', 'working_day', 'week_schedule', 'week', 'online',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'preset': {
+                const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
+                return {state: {preset: value}};}
+            case 'frost_protection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, value === 'ON');
+                break;
+            case 'heating_stop':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, value === 'ON');
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value === 'ON');
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                // value = Math.round(value);
+                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value * 10);
+                break;
+            case 'current_heating_setpoint':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                break;
+            case 'holiday_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value * 10);
+                break;
+            case 'comfort_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvComfortTemp, value * 10);
+                break;
+            case 'eco_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value * 10);
+                break;
+            case 'boost_timeset_countdown':
+                // set min 0 - max 465 sec boost time
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, value);
+                break;
+            case 'open_window_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value * 10);
+                break;
+            case 'holiday_mode_date':
+                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvWorkingDayTimetvHolidayMode, value);
+                break;
+
+            case 'online':
+                // 115 ????? online
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
+                break;
+            case 'week': {
+                const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
+                const week = weekLookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
+                return {state: {week: value}};}
+
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
+            }
         },
     },
     haozee_thermostat_system_mode: {
