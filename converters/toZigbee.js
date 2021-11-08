@@ -2735,6 +2735,75 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, temp);
         },
     },
+    tvtwo_thermostat: {
+        key: [
+            'window_detection', 'frost_protection', 'child_lock',
+            'current_heating_setpoint', 'local_temperature_calibration',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'open_window_temperature', 'heating_stop', 'preset', 'boost_timeset_countdown',
+            'holiday_mode_date', 'working_day', 'week_schedule', 'week', 'online',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'preset': {
+                const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
+                return {state: {preset: value}};}
+            case 'frost_protection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, value === 'ON');
+                break;
+            case 'heating_stop':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, value === 'ON');
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value === 'ON');
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                // value = Math.round(value);
+                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value * 10);
+                break;
+            case 'current_heating_setpoint':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                break;
+            case 'holiday_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value * 10);
+                break;
+            case 'comfort_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvComfortTemp, value * 10);
+                break;
+            case 'eco_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvEcoTemp, value * 10);
+                break;
+            case 'boost_timeset_countdown':
+                // set min 0 - max 465 sec boost time
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvBoostTime, value);
+                break;
+            case 'open_window_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value * 10);
+                break;
+            case 'holiday_mode_date':
+                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvWorkingDayTimetvHolidayMode, value);
+                break;
+
+            case 'online':
+                // 115 ????? online
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
+                break;
+            case 'week': {
+                const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
+                const week = weekLookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
+                return {state: {week: value}};}
+
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
+            }
+        },
+    },
     haozee_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
