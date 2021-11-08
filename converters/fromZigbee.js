@@ -6213,9 +6213,9 @@ const converters = {
 
                     const timeout = options && options.hasOwnProperty('vibration_timeout') ? options.vibration_timeout : 90;
 
-                    // Stop any existing timers cause vibration detected
-                    globalStore.getValue(msg.endpoint, 'vibration_timers', []).forEach((t) => clearTimeout(t));
-                    globalStore.putValue(msg.endpoint, 'vibration_timers', []);
+                    // Stop any existing timer cause vibration detected
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'vibration_timer', null));
+                    globalStore.putValue(msg.endpoint, 'vibration_timer', null);
 
                     // Set new timer to publish no_vibration message
                     if (timeout !== 0) {
@@ -6223,7 +6223,7 @@ const converters = {
                             publish({vibration: false});
                         }, timeout * 1000);
 
-                        globalStore.getValue(msg.endpoint, 'vibration_timers').push(timer);
+                        globalStore.putValue(msg.endpoint, 'vibration_timer', timer);
                     }
                 }
             }
