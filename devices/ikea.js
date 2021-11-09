@@ -621,7 +621,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['STARKVIND Air purifier'],
+        zigbeeModel: ['STARKVIND Air purifier', 'STARKVIND Air purifier table'],
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
