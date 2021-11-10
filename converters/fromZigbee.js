@@ -3705,7 +3705,7 @@ const converters = {
             case tuya.dataPoints.haozeeLocalTemp:
                 return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.haozeeBoostHeatingCountdown:
-                // quick heating countdown
+                // quick heating countdown - not supported by this device
                 return {boost_heating_countdown: value};
             case tuya.dataPoints.haozeeWindowDetection:
                 // window check
@@ -3782,7 +3782,7 @@ const converters = {
                 // working status 0 - pause 1 -working
                 return {'heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.haozeeBoostHeating:
-                // rapid heating -> boolean
+                // rapid heating -> boolean - not supported by this device
                 return {'boost_heating': value ? 'ON' : 'OFF'};
                 break;
             case tuya.dataPoints.haozeeTempCalibration:
