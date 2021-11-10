@@ -3783,9 +3783,11 @@ const converters = {
                 return {'heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.haozeeBoostHeating:
                 // rapid heating -> boolean
+                return {'boost_heating': value ? 'ON' : 'OFF'};
                 break;
             case tuya.dataPoints.haozeeTempCalibration:
                 // temperature calibration
+                return {'local_temperature_calibration': ( value/10 ).toFixed(1)};    
                 break;
             case tuya.dataPoints.haozeeValvePosition:
                 // valve position
