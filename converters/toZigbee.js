@@ -2845,7 +2845,7 @@ const converters = {
     haozee_thermostat_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            let temp = Math.round(value * 1);
+            let temp = Math.round(value * 10);
             if (temp < 0) {
                 temp = 0xFFFFFFFF + temp + 1;
             }
