@@ -1,9 +1,17 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['RGBgenie ZB-1026'],
+        model: 'ZB-1026',
+        vendor: 'RGB Genie',
+        description: 'Zigbee LED dimmer controller',
+        extend: extend.light_onoff_brightness(),
+    },
     {
         zigbeeModel: ['RGBgenie ZB-5001'],
         model: 'ZB-5001',
