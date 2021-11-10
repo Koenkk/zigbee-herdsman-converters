@@ -3784,11 +3784,9 @@ const converters = {
             case tuya.dataPoints.haozeeBoostHeating:
                 // rapid heating -> boolean - not supported by this device
                 return {'boost_heating': value ? 'ON' : 'OFF'};
-                break;
             case tuya.dataPoints.haozeeTempCalibration:
                 // temperature calibration
-                return {'local_temperature_calibration': ( value/10 ).toFixed(1)};    
-                break;
+                return {'local_temperature_calibration': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeValvePosition:
                 // valve position
                 return {'position': value};
