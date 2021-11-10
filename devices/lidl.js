@@ -134,6 +134,17 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'}],
+        model: 'HG07834B',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E14 candle RGB',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_kdpxju99'}],
         model: 'HG06106A',
         vendor: 'Lidl',
