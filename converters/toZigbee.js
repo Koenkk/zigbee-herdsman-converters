@@ -4557,6 +4557,34 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_schedule_programming_mode: { // payload example "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"
+        key: ['workdays_schedule', 'holidays_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const dpId =
+                (key === 'workdays_schedule') ?
+                    tuya.dataPoints.scheduleWorkday :
+                    tuya.dataPoints.scheduleHoliday;
+            const payload = [];
+            const items = value.split(' ');
+
+            for (let i = 0; i < 6; i++) {
+                const hourTemperature = items[i].split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const hour = parseInt(hourMinute[0]);
+                const minute = parseInt(hourMinute[1]);
+                const temperature = parseInt(hourTemperature[1]);
+
+                if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || temperature < 5 || temperature >= 35) {
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                }
+
+                payload[i*3] = hour;
+                payload[i*3+1] = minute;
+                payload[i*3+2] = temperature;
+            }
+            tuya.sendDataPointRaw(entity, dpId, payload);
+        },
+    },
     tuya_thermostat_week: {
         key: ['week'],
         convertSet: async (entity, key, value, meta) => {

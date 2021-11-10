@@ -4020,32 +4020,33 @@ const converters = {
                         minutes: value[2],
                     },
                 };
-            case tuya.dataPoints.scheduleWorkday: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+            case tuya.dataPoints.scheduleWorkday: // set schedule for workdays/holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+            case tuya.dataPoints.scheduleHoliday: {
                 // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
                 // Top bits in hours have special meaning
-                // 8: ??
-                // 7: Current schedule indicator
-                return {workdays: [
-                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-                ]};
-            case tuya.dataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
-                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
-                // Top bits in hours have special meaning
-                // 8: ??
-                // 7: Current schedule indicator
-                return {holidays: [
-                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-                ]};
+                // 6: Current schedule indicator
+                const items = [];
+                const programmingMode = [];
+
+                for (let i = 0; i < 6; i++) {
+                    const item = {hour: value[i*3] & 0x3F, minute: value[i*3+1], temperature: value[i*3+2]};
+                    if (value[i*3] & 0x40) {
+                        item['current'] = true;
+                    }
+
+                    items[i] = item;
+                    programmingMode[i] =
+                        item['hour'].toString().padStart(2, '0') + ':' +
+                        item['minute'].toString().padStart(2, '0') + '/' +
+                        item['temperature'] + '°C';
+                }
+
+                if (dp == tuya.dataPoints.scheduleWorkday) {
+                    return {workdays: items, workdays_schedule: programmingMode.join(' ')};
+                } else {
+                    return {holidays: items, holidays_schedule: programmingMode.join(' ')};
+                }
+            }
             case tuya.dataPoints.childLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.siterwellWindowDetection:
