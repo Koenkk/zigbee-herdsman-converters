@@ -2234,8 +2234,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1746530P7'],
-        model: '1746530P7',
+        zigbeeModel: ['1746547P7'],
+        model: '1746547P7',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Daylo outdoor wall lamp',
         meta: {turnsOffAtBrightness1: true},
