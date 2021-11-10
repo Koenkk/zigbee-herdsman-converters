@@ -5961,7 +5961,7 @@ const converters = {
             };
 
             const data = utf8FromStr(msg['data']['16896']);
-            
+
             clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
             const timer = setTimeout(() => publish({action: 'lock', state: 'LOCK'}), 2 * 1000);
             globalStore.putValue(msg.endpoint, 'timer', timer);
@@ -5991,7 +5991,7 @@ const converters = {
             };
             switch (dp) {
             case 1:
-                return{
+                return {
                     states: lookup[value],
                     occupancy: (0 < value && value < 5) ? true: false,
                 };
@@ -6000,20 +6000,19 @@ const converters = {
                     sensitivity: value,
                 };
             case 101:
-                return{
+                return {
                     illuminance_lux: value,
                 };
             case 102:
-                if (meta.device.manufacturerName === '_TZE200_kagkgk0i'){
-                    return{
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
                         illuminance_calibration: value,
                     };
-                }
-                else {
+                } else {
                     return {
                         keep_time: value,
                     };
-                };
+                }
             case 103:
                 return {
                     led_enable: value == 1 ? true : false,
@@ -6021,27 +6020,25 @@ const converters = {
             case 104:
                 return {illuminance_lux: value};
             case 105:
-                return{
+                return {
                     illuminance_calibration: value,
                 };
             case 106:
-                if (meta.device.manufacturerName === '_TZE200_kagkgk0i'){
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
                     return {
                         keep_time: value,
                     };
-                }
-                else {
+                } else {
                     break;
-                };
+                }
             case 107:
-                if (meta.device.manufacturerName === '_TZE200_kagkgk0i'){
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
                     return {
                         led_enable: value == 1 ? true : false,
                     };
-                }
-                else {
+                } else {
                     break;
-                };
+                }
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:javis_microwave_sensor: NOT RECOGNIZED ` +
                     `DP #${dp} with data ${JSON.stringify(msg.data)}`);
