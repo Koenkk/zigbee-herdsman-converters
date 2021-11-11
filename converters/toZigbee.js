@@ -2762,9 +2762,9 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvChildLock, value === 'LOCK');
                 break;
             case 'local_temperature_calibration':
-                // value = Math.round(value);
-                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value * 10);
+                if (value > 0) value = value*10;
+                if (value < 0) value = value*10 + 0x100000000;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
                 break;
             case 'current_heating_setpoint':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
