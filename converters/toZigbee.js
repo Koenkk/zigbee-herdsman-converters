@@ -2596,7 +2596,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write('seMetering', {'develcoCurrentSummation': value}, manufacturerOptions.develco);
             return {state: {'current_summation': value}};
-        }
+        },
     },
     ZMCSW032D_cover_position: {
         key: ['position', 'tilt'],
