@@ -271,6 +271,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
+        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'}],
+        model: 'HG06463B',
+        vendor: 'Lidl',
+        description: 'Livarno Lux E27 G30 filament bulb',
+        extend: extend.light_onoff_brightness({disableEffect: true}),
+        meta: {turnsOffAtBrightness1: false},
+    },
+    {
         fingerprint: [
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'},
