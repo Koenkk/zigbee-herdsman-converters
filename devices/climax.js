@@ -121,4 +121,19 @@ module.exports = [
         exposes: [e.battery_low(), e.tamper(), e.action(['emergency', 'panic', 'disarm', 'arm_all_zones', 'arm_day_zones']),
         ],
     },
+	{
+		zigbeeModel: ['WSS1_00.00.02.03TC'],
+		model: 'WSS1_00.00.02.03TC',
+		vendor: 'Climax',
+		description: 'Wall switch with 1 button',
+		fromZigbee: [fz.command_recall],
+		toZigbee: [],
+		exposes: [e.action('onOff')],
+		// The configure method below is needed to make the device reports on/off state changes
+		// when the device is controlled manually through the button on it.
+		configure: async (device, coordinatorEndpoint, logger) => {
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genScenes']);
+		},
+	},
 ];
