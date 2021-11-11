@@ -592,6 +592,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTA011'],
+        model: '929002471901',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E27 1600lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTA008'],
         model: '9290022267A',
         vendor: 'Philips',
@@ -2231,6 +2240,15 @@ module.exports = [
         description: 'Hue White ambiance Buckram single spotlight',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['1746547P7'],
+        model: '1746547P7',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Daylo outdoor wall lamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
 ];
