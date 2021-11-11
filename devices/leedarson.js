@@ -10,7 +10,7 @@ module.exports = [
         model: 'ZM350STW1TCF',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
     },
     {
         zigbeeModel: ['M350ST-W1R-01', 'A470S-A7R-04'],
