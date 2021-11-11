@@ -5962,12 +5962,88 @@ const converters = {
             };
 
             const data = utf8FromStr(msg['data']['16896']);
+
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            const timer = setTimeout(() => publish({action: 'lock', state: 'LOCK'}), 2 * 1000);
+            globalStore.putValue(msg.endpoint, 'timer', timer);
+
             return {
                 action: 'unlock',
                 action_user: data[3],
                 action_source: data[5],
                 action_source_name: lookup[data[5]],
             };
+        },
+    },
+    javis_microwave_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const lookup = {
+                0: 'no_motion',
+                1: 'big_motion',
+                2: 'minor_motion',
+                3: 'breathing',
+                4: 'abnormal_state',
+                5: 'initializing',
+                6: 'initialization_completed',
+            };
+            switch (dp) {
+            case 1:
+                return {
+                    states: lookup[value],
+                    occupancy: (0 < value && value < 5) ? true: false,
+                };
+            case 2:
+                return {
+                    sensitivity: value,
+                };
+            case 101:
+                return {
+                    illuminance_lux: value,
+                };
+            case 102:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        illuminance_calibration: value,
+                    };
+                } else {
+                    return {
+                        keep_time: value,
+                    };
+                }
+            case 103:
+                return {
+                    led_enable: value == 1 ? true : false,
+                };
+            case 104:
+                return {illuminance_lux: value};
+            case 105:
+                return {
+                    illuminance_calibration: value,
+                };
+            case 106:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        keep_time: value,
+                    };
+                } else {
+                    break;
+                }
+            case 107:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        led_enable: value == 1 ? true : false,
+                    };
+                } else {
+                    break;
+                }
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:javis_microwave_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
         },
     },
     diyruz_freepad_config: {
