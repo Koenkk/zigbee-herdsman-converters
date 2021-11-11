@@ -718,8 +718,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCA001', 'LCA002', 'LCA004'],
-        model: '9290022166',
+        zigbeeModel: ['LCA004'],
+        model: '9290024896',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
         meta: {turnsOffAtBrightness1: true},
