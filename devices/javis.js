@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
+
 module.exports = [
     {
         zigbeeModel: ['JAVISLOCK'],
