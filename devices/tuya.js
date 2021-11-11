@@ -776,7 +776,8 @@ module.exports = [
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
             tz.tuya_thermostat_boost_time, tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp,
             tz.tuya_thermostat_force_to_mode, tz.tuya_thermostat_force, tz.tuya_thermostat_preset, tz.tuya_thermostat_away_mode,
-            tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset],
+            tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset,
+            tz.tuya_thermostat_schedule_programming_mode],
         exposes: [
             e.child_lock(), e.window_detection(), e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
@@ -784,7 +785,12 @@ module.exports = [
                 .withLocalTemperatureCalibration(ea.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
-            e.max_temperature(), e.min_temperature(), e.week(), e.away_preset_temperature()],
+            e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
+            exposes.composite('programming_mode').withDescription('Schedule MODE ⏱ - In this mode, ' +
+                    'the device executes a preset week programming temperature time and temperature.')
+                .withFeature(e.week())
+                .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
+                .withFeature(exposes.text('holidays_schedule', ea.STATE_SET))],
     },
     {
         fingerprint: [
@@ -1069,7 +1075,8 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'},
+            {modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
         model: 'TS1101_dimmer_module',
         vendor: 'TuYa',
         description: '2CH Zigbee dimmer module',
@@ -1122,9 +1129,11 @@ module.exports = [
         model: 'TS0115',
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (10A or 16A)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.power_on_behavior()],
         whiteLabel: [{vendor: 'UseeLink', model: 'SM-SO306E/K/M'}],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 7};
@@ -1136,6 +1145,11 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['genOnOff']);
+            await device.getEndpoint(1).read('genOnOff', ['onOff', 'moesStartUpOnOff']);
+            await device.getEndpoint(2).read('genOnOff', ['onOff']);
+            await device.getEndpoint(3).read('genOnOff', ['onOff']);
+            await device.getEndpoint(4).read('genOnOff', ['onOff']);
+            await device.getEndpoint(7).read('genOnOff', ['onOff']);
         },
     },
     {
@@ -1153,7 +1167,9 @@ module.exports = [
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch(), exposes.presets.switch_type_2()],
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
@@ -1174,8 +1190,9 @@ module.exports = [
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1192,8 +1209,10 @@ module.exports = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -1219,9 +1238,10 @@ module.exports = [
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4')],
+            e.switch().withEndpoint('l4'), exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },

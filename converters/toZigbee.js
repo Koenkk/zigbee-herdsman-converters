@@ -2807,7 +2807,7 @@ const converters = {
     haozee_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+            const lookup = {'auto': 0, 'manual': 1, 'off': 2, 'on': 3};
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
         },
     },
@@ -2845,7 +2845,7 @@ const converters = {
     haozee_thermostat_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            let temp = Math.round(value * 1);
+            let temp = Math.round(value * 10);
             if (temp < 0) {
                 temp = 0xFFFFFFFF + temp + 1;
             }
@@ -4557,6 +4557,34 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_schedule_programming_mode: { // payload example "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"
+        key: ['workdays_schedule', 'holidays_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const dpId =
+                (key === 'workdays_schedule') ?
+                    tuya.dataPoints.scheduleWorkday :
+                    tuya.dataPoints.scheduleHoliday;
+            const payload = [];
+            const items = value.split(' ');
+
+            for (let i = 0; i < 6; i++) {
+                const hourTemperature = items[i].split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const hour = parseInt(hourMinute[0]);
+                const minute = parseInt(hourMinute[1]);
+                const temperature = parseInt(hourTemperature[1]);
+
+                if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || temperature < 5 || temperature >= 35) {
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                }
+
+                payload[i*3] = hour;
+                payload[i*3+1] = minute;
+                payload[i*3+2] = temperature;
+            }
+            tuya.sendDataPointRaw(entity, dpId, payload);
+        },
+    },
     tuya_thermostat_week: {
         key: ['week'],
         convertSet: async (entity, key, value, meta) => {
@@ -6077,6 +6105,46 @@ const converters = {
             case 'radar_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
                 return {state: {radar_sensitivity: value}};
+            }
+        },
+    },
+    javis_microwave_sensor: {
+        key: [
+            'illuminance_calibration', 'led_enable',
+            'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'illuminance_calibration':// (10--100) sensor illuminance sensitivity
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await tuya.sendDataPointRaw(entity, 102, [value]);
+                    break;
+                } else {
+                    tuya.sendDataPointRaw(entity, 105, [value]);
+                    break;
+                }
+            case 'led_enable':// OK (value true/false or 1/0)
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await tuya.sendDataPointRaw(entity, 107, [value ? 1 : 0]);
+                    break;
+                } else {
+                    await tuya.sendDataPointRaw(entity, 103, [value ? 1 : 0]);
+                    break;
+                }
+
+            case 'sensitivity':// value: 25, 50, 75, 100
+                await tuya.sendDataPointRaw(entity, 2, [value]);
+                break;
+            case 'keep_time': // value 0 --> 7 corresponding 5s, 30s, 1, 3, 5, 10, 20, 30 min
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await tuya.sendDataPointRaw(entity, 106, [value]);
+                    break;
+                } else {
+                    await tuya.sendDataPointRaw(entity, 102, [value]);
+                    break;
+                }
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
             }
         },
     },

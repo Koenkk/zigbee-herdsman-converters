@@ -16,7 +16,7 @@ module.exports = [
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
+            .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration().withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);

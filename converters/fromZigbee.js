@@ -3705,7 +3705,7 @@ const converters = {
             case tuya.dataPoints.haozeeLocalTemp:
                 return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.haozeeBoostHeatingCountdown:
-                // quick heating countdown
+                // quick heating countdown - not supported by this device
                 return {boost_heating_countdown: value};
             case tuya.dataPoints.haozeeWindowDetection:
                 // window check
@@ -3782,11 +3782,11 @@ const converters = {
                 // working status 0 - pause 1 -working
                 return {'heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.haozeeBoostHeating:
-                // rapid heating -> boolean
-                break;
+                // rapid heating -> boolean - not supported by this device
+                return {'boost_heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.haozeeTempCalibration:
                 // temperature calibration
-                break;
+                return {'local_temperature_calibration': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeValvePosition:
                 // valve position
                 return {'position': value};
@@ -4020,32 +4020,33 @@ const converters = {
                         minutes: value[2],
                     },
                 };
-            case tuya.dataPoints.scheduleWorkday: // set schedule for workdays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+            case tuya.dataPoints.scheduleWorkday: // set schedule for workdays/holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
+            case tuya.dataPoints.scheduleHoliday: {
                 // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
                 // Top bits in hours have special meaning
-                // 8: ??
-                // 7: Current schedule indicator
-                return {workdays: [
-                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-                ]};
-            case tuya.dataPoints.scheduleHoliday: // set schedule for holidays [6,0,20,8,0,15,11,30,15,12,30,15,17,30,20,22,0,15]
-                // 6:00 - 20*, 8:00 - 15*, 11:30 - 15*, 12:30 - 15*, 17:30 - 20*, 22:00 - 15*
-                // Top bits in hours have special meaning
-                // 8: ??
-                // 7: Current schedule indicator
-                return {holidays: [
-                    {hour: value[0] & 0x3F, minute: value[1], temperature: value[2]},
-                    {hour: value[3] & 0x3F, minute: value[4], temperature: value[5]},
-                    {hour: value[6] & 0x3F, minute: value[7], temperature: value[8]},
-                    {hour: value[9] & 0x3F, minute: value[10], temperature: value[11]},
-                    {hour: value[12] & 0x3F, minute: value[13], temperature: value[14]},
-                    {hour: value[15] & 0x3F, minute: value[16], temperature: value[17]},
-                ]};
+                // 6: Current schedule indicator
+                const items = [];
+                const programmingMode = [];
+
+                for (let i = 0; i < 6; i++) {
+                    const item = {hour: value[i*3] & 0x3F, minute: value[i*3+1], temperature: value[i*3+2]};
+                    if (value[i*3] & 0x40) {
+                        item['current'] = true;
+                    }
+
+                    items[i] = item;
+                    programmingMode[i] =
+                        item['hour'].toString().padStart(2, '0') + ':' +
+                        item['minute'].toString().padStart(2, '0') + '/' +
+                        item['temperature'] + '°C';
+                }
+
+                if (dp == tuya.dataPoints.scheduleWorkday) {
+                    return {workdays: items, workdays_schedule: programmingMode.join(' ')};
+                } else {
+                    return {holidays: items, holidays_schedule: programmingMode.join(' ')};
+                }
+            }
             case tuya.dataPoints.childLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.siterwellWindowDetection:
@@ -5961,12 +5962,88 @@ const converters = {
             };
 
             const data = utf8FromStr(msg['data']['16896']);
+
+            clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+            const timer = setTimeout(() => publish({action: 'lock', state: 'LOCK'}), 2 * 1000);
+            globalStore.putValue(msg.endpoint, 'timer', timer);
+
             return {
                 action: 'unlock',
                 action_user: data[3],
                 action_source: data[5],
                 action_source_name: lookup[data[5]],
             };
+        },
+    },
+    javis_microwave_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const lookup = {
+                0: 'no_motion',
+                1: 'big_motion',
+                2: 'minor_motion',
+                3: 'breathing',
+                4: 'abnormal_state',
+                5: 'initializing',
+                6: 'initialization_completed',
+            };
+            switch (dp) {
+            case 1:
+                return {
+                    states: lookup[value],
+                    occupancy: (0 < value && value < 5) ? true: false,
+                };
+            case 2:
+                return {
+                    sensitivity: value,
+                };
+            case 101:
+                return {
+                    illuminance_lux: value,
+                };
+            case 102:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        illuminance_calibration: value,
+                    };
+                } else {
+                    return {
+                        keep_time: value,
+                    };
+                }
+            case 103:
+                return {
+                    led_enable: value == 1 ? true : false,
+                };
+            case 104:
+                return {illuminance_lux: value};
+            case 105:
+                return {
+                    illuminance_calibration: value,
+                };
+            case 106:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        keep_time: value,
+                    };
+                } else {
+                    break;
+                }
+            case 107:
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    return {
+                        led_enable: value == 1 ? true : false,
+                    };
+                } else {
+                    break;
+                }
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:javis_microwave_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
         },
     },
     diyruz_freepad_config: {
@@ -6198,12 +6275,34 @@ const converters = {
     DJT11LM_vibration: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.vibration_timeout()],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
 
             if (msg.data['85']) {
                 const vibrationLookup = {1: 'vibration', 2: 'tilt', 3: 'drop'};
                 result.action = vibrationLookup[msg.data['85']];
+
+                // Device only sends a message when vibration is detected.
+                // Therefore we need to publish a no_vibration message on our own.
+                if (result.action === 'vibration') {
+                    result.vibration = true;
+
+                    const timeout = options && options.hasOwnProperty('vibration_timeout') ? options.vibration_timeout : 90;
+
+                    // Stop any existing timer cause vibration detected
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'vibration_timer', null));
+                    globalStore.putValue(msg.endpoint, 'vibration_timer', null);
+
+                    // Set new timer to publish no_vibration message
+                    if (timeout !== 0) {
+                        const timer = setTimeout(() => {
+                            publish({vibration: false});
+                        }, timeout * 1000);
+
+                        globalStore.putValue(msg.endpoint, 'vibration_timer', timer);
+                    }
+                }
             }
 
             if (msg.data['1283']) {
