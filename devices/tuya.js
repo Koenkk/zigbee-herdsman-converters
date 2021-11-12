@@ -1208,7 +1208,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}],
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), exposes.presets.switch_type_2()],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
