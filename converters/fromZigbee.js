@@ -4248,6 +4248,7 @@ const converters = {
     ikea_pm25: {
         cluster: 'manuSpecificIkeaPM25Measurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
                 const pm25 = parseFloat(msg.data['measuredValue']) / 100.0;
