@@ -100,6 +100,35 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TI0001-curtain-switch'],
+        model: 'TI0001-curtain-switch',
+        description: 'Zigbee Curtain Switch (can only read status, control does not work yet)',
+        vendor: 'Livolo',
+        fromZigbee: [fz.livolo_curtain_switch_state],
+        toZigbee: [tz.livolo_socket_switch_on_off],
+        //toZigbee: [tz.livolo_curtain_switch_on_off],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        configure: poll,
+        endpoint: (device) => {
+            return {'left': 6, 'right': 6};
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await poll(device);
+                if (!globalStore.hasValue(device, 'interval')) {
+                    const interval = setInterval(async () => {
+                        await poll(device);
+                    }, 300*1000); // Every 300 seconds
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
+        },
+    },
+    {
         zigbeeModel: ['TI0001-socket'],
         model: 'TI0001-socket',
         description: 'Zigbee socket',
