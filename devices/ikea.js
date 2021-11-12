@@ -625,16 +625,10 @@ module.exports = [
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [
-            e.fan().withModes(['off', 'low', 'medium', 'high', 'auto']),
-            e.pm25().withAccess(ea.STATE_GET),
-            exposes.enum('air_quality', ea.STATE_GET, [
-                'good', 'ok', 'not_good', 'unknown',
-            ]).withDescription('Measured air quality'),
-        ],
+        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'auto'])],
         meta: {fanStateOn: 'auto'},
-        fromZigbee: [fz.fan, fz.ikea_pm25],
-        toZigbee: [tz.fan_mode, tz.ikea_pm25],
+        fromZigbee: [fz.fan],
+        toZigbee: [tz.fan_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
