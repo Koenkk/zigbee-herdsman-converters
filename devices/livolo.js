@@ -106,7 +106,7 @@ module.exports = [
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_curtain_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
-        //toZigbee: [tz.livolo_curtain_switch_on_off],
+        // toZigbee: [tz.livolo_curtain_switch_on_off],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         configure: poll,
         endpoint: (device) => {
