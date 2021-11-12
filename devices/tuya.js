@@ -1287,7 +1287,6 @@ module.exports = [
                  e.switch().withEndpoint('left'), 
                  e.switch().withEndpoint('center'), 
                  e.switch().withEndpoint('right'),
-                 exposes.presets.switch_type_2()
                  exposes.presets.power_on_behavior(),
                  exposes.presets.switch_type_2(),
                  ],
