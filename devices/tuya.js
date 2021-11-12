@@ -1181,7 +1181,7 @@ module.exports = [
             device.save();
         },
     },
-        {
+    {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_jl7qyupf'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
@@ -1189,10 +1189,10 @@ module.exports = [
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
         exposes: [
-                 e.switch(), 
-                 exposes.presets.power_on_behavior(),
-                 exposes.presets.switch_type_2(),
-                 ],
+            e.switch(), 
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+            ],
         whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -1221,29 +1221,29 @@ module.exports = [
         },
     },
     {
-    fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'}],
-    model: 'TS0012_switch_module',
-    vendor: 'TuYa',
-    description: '2 gang switch module - (without neutral)',
-    whiteLabel: [{vendor: 'AVATTO', model: '2gang N-ZLWSM01'}],
-    toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
-    fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'}],
+        model: 'TS0012_switch_module',
+        vendor: 'TuYa',
+        description: '2 gang switch module - (without neutral)',
+        whiteLabel: [{vendor: 'AVATTO', model: '2gang N-ZLWSM01'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             exposes.presets.power_on_behavior(),
             exposes.presets.switch_type_2(),
         ],
-    endpoint: (device) => {
-        return {'left': 1, 'right': 2};
-    },
-    meta: {multiEndpoint: true},
-    configure: async (device, coordinatorEndpoint, logger) => {
-        await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        device.powerSource = 'Mains (single phase)';
-        device.save();
-      },
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+            configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['TS0013'],
@@ -1270,7 +1270,7 @@ module.exports = [
             device.save();
         },
     },
-   {
+    {
         fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_jl7qyupf'}],
         model: 'TS0013_switch_module',
         vendor: 'TuYa',
@@ -1279,12 +1279,12 @@ module.exports = [
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
         exposes: [
-                 e.switch().withEndpoint('left'), 
-                 e.switch().withEndpoint('center'), 
-                 e.switch().withEndpoint('right'),
-                 exposes.presets.power_on_behavior(),
-                 exposes.presets.switch_type_2(),
-                 ],
+            e.switch().withEndpoint('left'), 
+            e.switch().withEndpoint('center'), 
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+            ],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
