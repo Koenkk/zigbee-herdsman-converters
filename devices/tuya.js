@@ -1167,9 +1167,7 @@ module.exports = [
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch(), exposes.presets.switch_type_2()],
+        extend: extend.switch(),
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
@@ -1184,15 +1182,58 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_jl7qyupf'}],
+        model: 'TS0011_switch_module',
+        vendor: 'TuYa',
+        description: '1 gang switch module - (without neutral)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch(),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['TS0012'],
         model: 'TS0012',
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}],
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), exposes.presets.switch_type_2()],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'}],
+        model: 'TS0012_switch_module',
+        vendor: 'TuYa',
+        description: '2 gang switch module - (without neutral)',
+        whiteLabel: [{vendor: 'AVATTO', model: '2gang N-ZLWSM01'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1209,14 +1250,44 @@ module.exports = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.presets.switch_type_2()],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                for (const ID of [1, 2, 3]) {
+                    const endpoint = device.getEndpoint(ID);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                }
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
+            }
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_jl7qyupf'}],
+        model: 'TS0013_switch_module',
+        vendor: 'TuYa',
+        description: '3 gang switch module - (without neutral)',
+        whiteLabel: [{vendor: 'AVATTO', model: '3gang N-ZLWSM01'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -1238,10 +1309,9 @@ module.exports = [
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), exposes.presets.switch_type_2()],
+            e.switch().withEndpoint('l4')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
