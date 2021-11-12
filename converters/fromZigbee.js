@@ -4295,6 +4295,61 @@ const converters = {
             }
         },
     },
+    ikea_air_purifier: {
+        cluster: 'manuSpecificIkeaAirPurifier',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        convert: (model, msg, publish, options, meta) => {
+            const state = {};
+
+            if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                const pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
+                const pm25Property = postfixWithEndpointName('pm25', msg, model);
+
+                // Air Quality Scale (ikea app):
+                // 0-35=Good, 35-80=OK, 80+=Not Good
+                let airQuality;
+                const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
+                if (pm25 <= 35) {
+                    airQuality = 'good';
+                } else if (pm25 <= 80) {
+                    airQuality = 'ok';
+                } else if (pm25 < 65535) {
+                    airQuality = 'not_good';
+                } else {
+                    airQuality = 'unknown';
+                }
+
+                Object.assign(state, {
+                    [pm25Property]: calibrateAndPrecisionRoundOptions(pm25, options, 'pm25'),
+                    [airQualityProperty]: airQuality},
+                );
+            }
+
+            if (msg.data.hasOwnProperty('filterOperationTime')) {
+                // Filter needs to be replaced after 6 months
+                Object.assign(state, {'replace_filter': parseInt(msg.data['filterOperationTime']) > (180 * 24 * 60)});
+            }
+
+            if (msg.data.hasOwnProperty('controlPanelLight')) {
+                Object.assign(state, {'led_enable': (msg.data['controlPanelLight'] == 0)});
+            }
+
+            if (msg.data.hasOwnProperty('childLock')) {
+                Object.assign(state, {'child_lock': (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK')});
+            }
+
+            if (msg.data.hasOwnProperty('fanMode')) {
+                Object.assign(state, {'ikea_fan_mode': getKey(constants.ikeaFanMode, msg.data['fanMode'])});
+            }
+
+            if (msg.data.hasOwnProperty('fanSpeed')) {
+                Object.assign(state, {'ikea_fan_speed': getKey(constants.ikeaFanMode, msg.data['fanSpeed'])});
+            }
+
+            return state;
+        },
+    },
     E1524_E1810_levelctrl: {
         cluster: 'genLevelCtrl',
         type: [
