@@ -1911,6 +1911,12 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
+    ikea_pm25: {
+        key: ['pm25', 'air_quality'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaPM25Measurement', ['measuredValue']);
+        },
+    },
     RTCGQ13LM_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {

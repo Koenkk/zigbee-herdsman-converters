@@ -4295,6 +4295,33 @@ const converters = {
             }
         },
     },
+    ikea_pm25: {
+        cluster: 'manuSpecificIkeaPM25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                const pm25 = parseFloat(msg.data['measuredValue']) / 100.0;
+                const pm25Property = postfixWithEndpointName('pm25', msg, model);
+
+                // Air Quality Scale (ikea app):
+                // 0-35=Good, 35-80=OK, 80+=Not Good
+                let airQuality;
+                const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
+                if (pm25 <= 35) {
+                    airQuality = 'good';
+                } else if (pm25 <= 80) {
+                    airQuality = 'ok';
+                } else if (pm25 < 65535) {
+                    airQuality = 'not_good';
+                } else {
+                    airQuality = 'unknown';
+                }
+
+                return {[pm25Property]: calibrateAndPrecisionRoundOptions(pm25, options, 'pm25'), [airQualityProperty]: airQuality};
+            }
+        },
+    },
     E1524_E1810_levelctrl: {
         cluster: 'genLevelCtrl',
         type: [
