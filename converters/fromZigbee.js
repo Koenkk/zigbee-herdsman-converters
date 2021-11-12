@@ -648,6 +648,26 @@ const converters = {
             return payload;
         },
     },
+    develco_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                result[postfixWithEndpointName('pulse_configuration', msg, model)] =
+                    msg.data['develcoPulseConfiguration'];
+            }
+
+            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
+                result[postfixWithEndpointName('interface_mode', msg, model)] =
+                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
+                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
+                        msg.data['develcoInterfaceMode'];
+            }
+
+            return result;
+        },
+    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
