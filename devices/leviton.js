@@ -80,6 +80,7 @@ module.exports = [
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
-                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1).withLocalTemperatureCalibration().withPiHeatingDemand()],
+                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
+                .withLocalTemperatureCalibration(-20, 20, 1).withPiHeatingDemand()],
     },
 ];
