@@ -281,7 +281,6 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
-            {modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'},
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_nbnmw9nc'}, // UK
         ],
         model: 'HG06462A',
