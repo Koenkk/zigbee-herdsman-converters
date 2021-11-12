@@ -5264,8 +5264,6 @@ const converters = {
     saswell_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            if (value > 6) value = 6;
-            if (value < -6) value = -6;
             if (value < 0) value = 0xFFFFFFFF + value + 1;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
         },
