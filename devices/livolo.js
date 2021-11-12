@@ -102,7 +102,7 @@ module.exports = [
     {
         zigbeeModel: ['TI0001-curtain-switch'],
         model: 'TI0001-curtain-switch',
-        description: 'Zigbee Curtain Switch (can only read status, control does not work yet)',
+        description: 'Zigbee curtain switch (can only read status, control does not work yet)',
         vendor: 'Livolo',
         fromZigbee: [fz.livolo_curtain_switch_state],
         toZigbee: [tz.livolo_socket_switch_on_off],
