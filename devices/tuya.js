@@ -1075,7 +1075,8 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'},
+            {modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
         model: 'TS1101_dimmer_module',
         vendor: 'TuYa',
         description: '2CH Zigbee dimmer module',
@@ -1166,7 +1167,9 @@ module.exports = [
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch(), exposes.presets.switch_type_2()],
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
@@ -1187,8 +1190,9 @@ module.exports = [
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}],
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1205,8 +1209,10 @@ module.exports = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -1232,9 +1238,10 @@ module.exports = [
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4')],
+            e.switch().withEndpoint('l4'), exposes.presets.switch_type_2()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
