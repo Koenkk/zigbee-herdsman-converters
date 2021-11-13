@@ -628,7 +628,11 @@ module.exports = [
         exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'auto'])],
         meta: {fanStateOn: 'auto'},
         fromZigbee: [fz.fan, fz.ikea_air_purifier],
-        toZigbee: [tz.fan_mode],
+        toZigbee: [
+            tz.fan_mode, tz.ikea_air_purifier_fan_mode, tz.ikea_air_purifier_fan_speed,
+            tz.ikea_air_purifier_pm25, tz.ikea_air_purifier_child_lock, tz.ikea_air_purifier_led_enable,
+            tz.ikea_air_purifier_replace_filter,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
