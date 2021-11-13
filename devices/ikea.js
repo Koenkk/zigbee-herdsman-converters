@@ -625,7 +625,22 @@ module.exports = [
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'auto'])],
+        exposes: [
+            e.fan().withModes(['off', 'low', 'medium', 'high', 'auto']),
+            exposes.enum('ikea_fan_mode', ea.ALL, [
+                'off', 'auto', '1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5',
+            ]).withDescription('Mode of this fan using finer fan speed control'),
+            exposes.enum('ikea_fan_speed', ea.STATE_GET, [
+                'off', 'auto', '1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5',
+            ]).withDescription('Current fan speed'),
+            e.pm25().withAccess(ea.STATE_GET),
+            exposes.enum('air_quality', ea.STATE_GET, [
+                'good', 'ok', 'not_good', 'unknown',
+            ]).withDescription('Measured air quality'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('replace_filter', ea.STATE_GET, true, false).withDescription('Filter is older than 6 months and needs replacing'),
+        ],
         meta: {fanStateOn: 'auto'},
         fromZigbee: [fz.fan, fz.ikea_air_purifier],
         toZigbee: [
