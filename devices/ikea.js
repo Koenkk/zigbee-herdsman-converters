@@ -640,7 +640,8 @@ module.exports = [
             ]).withDescription('Measured air quality'),
             exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
             exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
-            exposes.binary('replace_filter', ea.STATE_GET, true, false).withDescription('Filter is older than 6 months and needs replacing'),
+            exposes.binary('replace_filter', ea.STATE_GET, true, false)
+                .withDescription('Filter is older than 6 months and needs replacing'),
         ],
         meta: {fanStateOn: 'auto'},
         fromZigbee: [fz.fan, fz.ikea_air_purifier],
@@ -657,16 +658,16 @@ module.exports = [
             const options = {manufacturerCode: 0x117c};
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
                 minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
-                options);
+            options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterOperationTime',
                 minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.MAX, reportableChange: 0}],
-                options);
+            options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
                 minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
-                options);
+            options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
                 minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
-                options);
+            options);
 
             await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock']);
         },
