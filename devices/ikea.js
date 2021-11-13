@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const {repInterval} = require('../lib/constants');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -650,8 +651,24 @@ module.exports = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl', 'manuSpecificIkeaAirPurifier']);
             await reporting.fanMode(endpoint);
+
+            const options = {manufacturerCode: 0x117c};
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
+                minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+                options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterOperationTime',
+                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.MAX, reportableChange: 0}],
+                options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
+                options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
+                options);
+
+            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock']);
         },
     },
     {

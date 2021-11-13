@@ -1944,7 +1944,8 @@ const converters = {
     ikea_air_purifier_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)}, manufacturerOptions.ikea);
+            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
+                manufacturerOptions.ikea);
             return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
         },
         convertGet: async (entity, key, meta) => {
