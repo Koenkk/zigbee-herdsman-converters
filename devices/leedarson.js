@@ -6,6 +6,27 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ZBT-DIMLight-GLS0800'],
+        model: 'Leedarson E27 2700 K',
+        vendor: 'Leedarson',
+        description: 'LED E27 warm white',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['ZBT-CCTLight-GLS0904'],
+        model: 'Leedarson E27 tunable white',
+        vendor: 'Leedarson',
+        description: 'LED E27 tunable white',
+        extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['ZBT-CCTLight-Candle0904'],
+        model: 'Leedarson E14 tunable white',
+        vendor: 'Leedarson',
+        description: 'LED E14 tunable white',
+        extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['LED_GU10_OWDT'],
         model: 'ZM350STW1TCF',
         vendor: 'Leedarson',
@@ -71,5 +92,23 @@ module.exports = [
         fromZigbee: [fz.occupancy, fz.illuminance, fz.ignore_occupancy_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.illuminance(), e.illuminance_lux()],
+    },
+        {
+        zigbeeModel: ['ZB-SMART-PIRTH-V1'],
+        model: '7A-SS-ZABC-H0',
+        vendor: 'Leedarson',
+        description: '4-in-1-sensor',
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.humidity, fz.ignore_occupancy_report],
+        toZigbee: [],
+        exposes: [e.battery(), e.occupancy(), e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity()],
+    },
+    {
+        zigbeeModel: ['ZB-MotionSensor-S0000'],
+        model: '8A-SS-BA-H0',
+        vendor: 'Leedarson',
+        description: 'Motion sensor',
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.ignore_occupancy_report],
+        toZigbee: [],
+        exposes: [e.battery(), e.occupancy()],
     },
 ];
