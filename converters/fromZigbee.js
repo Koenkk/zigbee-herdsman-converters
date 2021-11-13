@@ -4303,8 +4303,8 @@ const converters = {
             const state = {};
 
             if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
-                const pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
                 const pm25Property = postfixWithEndpointName('pm25', msg, model);
+                let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
                 // Air Quality Scale (ikea app):
                 // 0-35=Good, 35-80=OK, 80+=Not Good
@@ -4320,31 +4320,49 @@ const converters = {
                     airQuality = 'unknown';
                 }
 
-                Object.assign(state, {
-                    [pm25Property]: calibrateAndPrecisionRoundOptions(pm25, options, 'pm25'),
-                    [airQualityProperty]: airQuality},
-                );
+                // calibrate and round pm25 unless invalid
+                pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+
+                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[airQualityProperty] = airQuality;
             }
 
             if (msg.data.hasOwnProperty('filterOperationTime')) {
                 // Filter needs to be replaced after 6 months
-                Object.assign(state, {'replace_filter': parseInt(msg.data['filterOperationTime']) > (180 * 24 * 60)});
+                state['replace_filter'] = (parseInt(msg.data['filterOperationTime']) > (180 * 24 * 60));
             }
 
             if (msg.data.hasOwnProperty('controlPanelLight')) {
-                Object.assign(state, {'led_enable': (msg.data['controlPanelLight'] == 0)});
+                state['led_enable'] = (msg.data['controlPanelLight'] == 0);
             }
 
             if (msg.data.hasOwnProperty('childLock')) {
-                Object.assign(state, {'child_lock': (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK')});
-            }
-
-            if (msg.data.hasOwnProperty('fanMode')) {
-                Object.assign(state, {'ikea_fan_mode': getKey(constants.ikeaFanMode, msg.data['fanMode'])});
+                state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
             }
 
             if (msg.data.hasOwnProperty('fanSpeed')) {
-                Object.assign(state, {'ikea_fan_speed': getKey(constants.ikeaFanMode, msg.data['fanSpeed'])});
+                let fanSpeed = msg.data['fanSpeed'];
+                if (fanSpeed >= 10) {
+                    fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                } else {
+                    fanSpeed = 0;
+                }
+
+                state['fan_speed'] = fanSpeed;
+            }
+
+            if (msg.data.hasOwnProperty('fanMode')) {
+                let fanMode = msg.data['fanMode'];
+                if (fanMode >= 10) {
+                    fanMode = (((fanMode - 5) * 2) / 10).toString();
+                } else if (fanMode == 1) {
+                    fanMode = 'auto';
+                } else {
+                    fanMode = 'off';
+                }
+
+                state['fan_mode'] = fanMode;
+                state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
             }
 
             return state;

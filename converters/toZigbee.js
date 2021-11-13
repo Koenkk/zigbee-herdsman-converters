@@ -1913,18 +1913,33 @@ const converters = {
         },
     },
     ikea_air_purifier_fan_mode: {
-        key: ['ikea_fan_mode'],
+        key: ['fan_mode', 'fan_state'],
         convertSet: async (entity, key, value, meta) => {
-            const fanMode = constants.ikeaFanMode[value.toLowerCase()];
+            if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+            }
+
+            let fanMode;
+            switch (value.toLowerCase()) {
+            case 'off':
+                fanMode = 0;
+                break;
+            case 'auto':
+                fanMode = 1;
+                break;
+            default:
+                fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
+            }
+
             await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
-            return {state: {ikea_fan_mode: value.toLowerCase()}};
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
         },
     },
     ikea_air_purifier_fan_speed: {
-        key: ['ikea_fan_speed'],
+        key: ['fan_speed'],
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
         },
