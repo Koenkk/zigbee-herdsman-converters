@@ -17,14 +17,14 @@ module.exports = [
         model: 'Leedarson E27 tunable white',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['ZBT-CCTLight-Candle0904'],
         model: 'Leedarson E14 tunable white',
         vendor: 'Leedarson',
         description: 'LED E14 tunable white',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['LED_GU10_OWDT'],
