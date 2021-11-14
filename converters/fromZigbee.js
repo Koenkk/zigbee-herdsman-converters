@@ -4295,14 +4295,16 @@ const converters = {
             }
         },
     },
-    ikea_pm25: {
-        cluster: 'manuSpecificIkeaPM25Measurement',
+    ikea_air_purifier: {
+        cluster: 'manuSpecificIkeaAirPurifier',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['measuredValue']) {
-                const pm25 = parseFloat(msg.data['measuredValue']) / 100.0;
+            const state = {};
+
+            if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
                 const pm25Property = postfixWithEndpointName('pm25', msg, model);
+                let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
                 // Air Quality Scale (ikea app):
                 // 0-35=Good, 35-80=OK, 80+=Not Good
@@ -4318,8 +4320,52 @@ const converters = {
                     airQuality = 'unknown';
                 }
 
-                return {[pm25Property]: calibrateAndPrecisionRoundOptions(pm25, options, 'pm25'), [airQualityProperty]: airQuality};
+                // calibrate and round pm25 unless invalid
+                pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+
+                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[airQualityProperty] = airQuality;
             }
+
+            if (msg.data.hasOwnProperty('filterRunTime')) {
+                // Filter needs to be replaced after 6 months
+                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+            }
+
+            if (msg.data.hasOwnProperty('controlPanelLight')) {
+                state['led_enable'] = (msg.data['controlPanelLight'] == 0);
+            }
+
+            if (msg.data.hasOwnProperty('childLock')) {
+                state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
+            }
+
+            if (msg.data.hasOwnProperty('fanSpeed')) {
+                let fanSpeed = msg.data['fanSpeed'];
+                if (fanSpeed >= 10) {
+                    fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                } else {
+                    fanSpeed = 0;
+                }
+
+                state['fan_speed'] = fanSpeed;
+            }
+
+            if (msg.data.hasOwnProperty('fanMode')) {
+                let fanMode = msg.data['fanMode'];
+                if (fanMode >= 10) {
+                    fanMode = (((fanMode - 5) * 2) / 10).toString();
+                } else if (fanMode == 1) {
+                    fanMode = 'auto';
+                } else {
+                    fanMode = 'off';
+                }
+
+                state['fan_mode'] = fanMode;
+                state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
+            }
+
+            return state;
         },
     },
     E1524_E1810_levelctrl: {

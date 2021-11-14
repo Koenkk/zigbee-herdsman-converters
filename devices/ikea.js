@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const {repInterval} = require('../lib/constants');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -626,19 +627,44 @@ module.exports = [
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
         exposes: [
-            e.fan().withModes(['off', 'low', 'medium', 'high', 'auto']),
+            e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+            exposes.numeric('fan_speed', exposes.access.STATE_GET).withValueMin(0).withValueMax(9)
+                .withDescription('Current fan speed'),
             e.pm25().withAccess(ea.STATE_GET),
             exposes.enum('air_quality', ea.STATE_GET, [
                 'good', 'ok', 'not_good', 'unknown',
             ]).withDescription('Measured air quality'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('replace_filter', ea.STATE_GET, true, false)
+                .withDescription('Filter is older than 6 months and needs replacing'),
         ],
         meta: {fanStateOn: 'auto'},
-        fromZigbee: [fz.fan, fz.ikea_pm25],
-        toZigbee: [tz.fan_mode, tz.ikea_pm25],
+        fromZigbee: [fz.ikea_air_purifier],
+        toZigbee: [
+            tz.ikea_air_purifier_fan_mode, tz.ikea_air_purifier_fan_speed,
+            tz.ikea_air_purifier_pm25, tz.ikea_air_purifier_child_lock, tz.ikea_air_purifier_led_enable,
+            tz.ikea_air_purifier_replace_filter,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 0x117c};
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
-            await reporting.fanMode(endpoint);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
+                minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
+                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
+            options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            options);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            options);
+
+            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
     },
     {

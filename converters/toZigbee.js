@@ -17,6 +17,7 @@ const manufacturerOptions = {
     danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
     develco: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DEVELCO},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
+    ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -1911,10 +1912,69 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
-    ikea_pm25: {
+    ikea_air_purifier_fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+            }
+
+            let fanMode;
+            switch (value.toLowerCase()) {
+            case 'off':
+                fanMode = 0;
+                break;
+            case 'auto':
+                fanMode = 1;
+                break;
+            default:
+                fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
+            }
+
+            await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
+        },
+    },
+    ikea_air_purifier_fan_speed: {
+        key: ['fan_speed'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
+        },
+    },
+    ikea_air_purifier_pm25: {
         key: ['pm25', 'air_quality'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaPM25Measurement', ['measuredValue']);
+            await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
+        },
+    },
+    ikea_air_purifier_replace_filter: {
+        key: ['replace_filter'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+        },
+    },
+    ikea_air_purifier_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
+                manufacturerOptions.ikea);
+            return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
+        },
+    },
+    ikea_air_purifier_led_enable: {
+        key: ['led_enable'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions.ikea);
+            return {state: {led_enable: ((value) ? true : false)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
         },
     },
     RTCGQ13LM_motion_sensitivity: {
