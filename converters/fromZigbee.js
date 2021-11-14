@@ -4327,9 +4327,9 @@ const converters = {
                 state[airQualityProperty] = airQuality;
             }
 
-            if (msg.data.hasOwnProperty('filterOperationTime')) {
+            if (msg.data.hasOwnProperty('filterRunTime')) {
                 // Filter needs to be replaced after 6 months
-                state['replace_filter'] = (parseInt(msg.data['filterOperationTime']) > (180 * 24 * 60));
+                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) > (180 * 24 * 60));
             }
 
             if (msg.data.hasOwnProperty('controlPanelLight')) {

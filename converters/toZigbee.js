@@ -1953,7 +1953,7 @@ const converters = {
     ikea_air_purifier_replace_filter: {
         key: ['replace_filter'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['filterOperationTime']);
+            await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
         },
     },
     ikea_air_purifier_child_lock: {

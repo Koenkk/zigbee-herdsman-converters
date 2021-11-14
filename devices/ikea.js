@@ -654,7 +654,7 @@ module.exports = [
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
                 minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
             options);
-            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterOperationTime',
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
                 minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.MAX, reportableChange: 0}],
             options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
@@ -664,7 +664,7 @@ module.exports = [
                 minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
             options);
 
-            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterOperationTime']);
+            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
     },
     {
