@@ -19,7 +19,8 @@ module.exports = [
             tz.thermostat_remote_sensing, tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])
+            .withLocalTemperatureCalibration(-20, 20, 1)
             .withPiHeatingDemand(),
         exposes.enum('trv_mode', exposes.access.ALL, [1, 2])
             .withDescription('Select between direct control of the valve via the `valve_position` or automatic control of the '+

@@ -1176,6 +1176,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4096730U9'],
+        model: '046677803087',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Cher ceiling light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC013'],
         model: '3216131P5',
         vendor: 'Philips',
@@ -1391,12 +1400,30 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4080248U9'],
+        model: '4080248U9',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Signe floor light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['4080148P9'],
         model: '4080148P9',
         vendor: 'Philips',
         description: 'Hue Signe table light',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4080148U9'],
+        model: '4080148U9',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Signe table light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1918,7 +1945,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
-	{
+    {
         zigbeeModel: ['1746730V7'],
         model: '1746730V7',
         vendor: 'Philips',
@@ -1971,6 +1998,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
+        zigbeeModel: ['LTO004'],
+        model: '9290024785',
+        vendor: 'Philips',
+        description: 'Hue White Ambinance G25 E26 Edison Filament Globe',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['LWV002'],
