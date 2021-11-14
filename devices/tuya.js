@@ -1182,7 +1182,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_jl7qyupf'}],
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
@@ -1271,7 +1271,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_jl7qyupf'}],
+        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_ypgri8yz'}],
         model: 'TS0013_switch_module',
         vendor: 'TuYa',
         description: '3 gang switch module - (without neutral)',
