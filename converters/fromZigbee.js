@@ -4329,7 +4329,7 @@ const converters = {
 
             if (msg.data.hasOwnProperty('filterRunTime')) {
                 // Filter needs to be replaced after 6 months
-                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) > (180 * 24 * 60));
+                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
             }
 
             if (msg.data.hasOwnProperty('controlPanelLight')) {
