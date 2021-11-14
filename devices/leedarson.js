@@ -7,21 +7,21 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['ZBT-DIMLight-GLS0800'],
-        model: 'A60 806lm Dimmable E27',
+        model: 'ZBT-DIMLight-GLS0800',
         vendor: 'Leedarson',
         description: 'LED E27 warm white',
         extend: extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['ZBT-CCTLight-GLS0904'],
-        model: 'A60 806lm Tunable White E27',
+        model: 'ZBT-CCTLight-GLS0904',
         vendor: 'Leedarson',
         description: 'LED E27 tunable white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['ZBT-CCTLight-Candle0904'],
-        model: 'Mini Bulb B38 470lm Tunable White E14',
+        model: 'ZBT-CCTLight-Candle0904',
         vendor: 'Leedarson',
         description: 'LED E14 tunable white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
