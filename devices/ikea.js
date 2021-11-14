@@ -655,7 +655,7 @@ module.exports = [
                 minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
             options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
-                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.MAX, reportableChange: 0}],
+                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
             options);
             await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
                 minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
