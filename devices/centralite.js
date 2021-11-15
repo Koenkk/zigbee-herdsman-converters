@@ -26,8 +26,7 @@ module.exports = [
             await reporting.activePower(endpoint);
         },
     },
-    {      
-        // Coppied from 4257050-ZHAC
+    {
         zigbeeModel: ['4256050-ZHAC'],
         model: '4256050-ZHAC',
         vendor: 'Centralite',
@@ -46,7 +45,7 @@ module.exports = [
             await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
             await reporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
         },
-    },    
+    },
     {
         zigbeeModel: ['4257050-ZHAC'],
         model: '4257050-ZHAC',
