@@ -648,6 +648,26 @@ const converters = {
             return payload;
         },
     },
+    develco_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                result[postfixWithEndpointName('pulse_configuration', msg, model)] =
+                    msg.data['develcoPulseConfiguration'];
+            }
+
+            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
+                result[postfixWithEndpointName('interface_mode', msg, model)] =
+                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
+                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
+                        msg.data['develcoInterfaceMode'];
+            }
+
+            return result;
+        },
+    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -2485,6 +2505,22 @@ const converters = {
             }
         },
     },
+    livolo_curtain_switch_state: {
+        cluster: 'genPowerCfg',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const stateHeader = Buffer.from([122, 209]);
+            if (msg.data.indexOf(stateHeader) === 0) {
+                if (msg.data[10] === 5) {
+                    const status = msg.data[14];
+                    return {
+                        state_left: status === 1 ? 'ON' : 'OFF',
+                        state_right: status === 0 ? 'ON' : 'OFF',
+                    };
+                }
+            }
+        },
+    },
     livolo_dimmer_state: {
         cluster: 'genPowerCfg',
         type: ['raw'],
@@ -2592,16 +2628,24 @@ const converters = {
             [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
             [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
             [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
+
             new switch
             [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
             [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
             [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
+
             old switch
             [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
             [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
             [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,1] left: 1, right: 0
             [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,2] left: 0, right: 1
             [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,3] left: 1, right: 1
+
+            curtain switch
+            [124,210,21,216,128,  110,74,116,33,0,75,18,0,  19,5,0]        after interview
+            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,2,11]  left: 0, right: 0  (off)
+            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,1,11]  left: 1, right: 0  (left on)
+            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,0,11]  left: 0, right: 1  (right on)
             */
             const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
             const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
@@ -2628,6 +2672,12 @@ const converters = {
                 if (msg.data.includes(Buffer.from([19, 2, 0]), 13)) {
                     // new switch, hack
                     meta.device.modelID = 'TI0001-switch-2gang';
+                    meta.device.save();
+                }
+                if (msg.data.includes(Buffer.from([19, 5, 0]), 13)) {
+                    if (meta.logger) meta.logger.debug('Detected Livolo Curtain Switch');
+                    // curtain switch, hack
+                    meta.device.modelID = 'TI0001-curtain-switch';
                     meta.device.save();
                 }
                 if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
@@ -4243,6 +4293,79 @@ const converters = {
                 if (!isLegacyEnabled(options)) delete result.duration;
                 return result;
             }
+        },
+    },
+    ikea_air_purifier: {
+        cluster: 'manuSpecificIkeaAirPurifier',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        convert: (model, msg, publish, options, meta) => {
+            const state = {};
+
+            if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                const pm25Property = postfixWithEndpointName('pm25', msg, model);
+                let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
+
+                // Air Quality Scale (ikea app):
+                // 0-35=Good, 35-80=OK, 80+=Not Good
+                let airQuality;
+                const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
+                if (pm25 <= 35) {
+                    airQuality = 'good';
+                } else if (pm25 <= 80) {
+                    airQuality = 'ok';
+                } else if (pm25 < 65535) {
+                    airQuality = 'not_good';
+                } else {
+                    airQuality = 'unknown';
+                }
+
+                // calibrate and round pm25 unless invalid
+                pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+
+                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                state[airQualityProperty] = airQuality;
+            }
+
+            if (msg.data.hasOwnProperty('filterRunTime')) {
+                // Filter needs to be replaced after 6 months
+                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+            }
+
+            if (msg.data.hasOwnProperty('controlPanelLight')) {
+                state['led_enable'] = (msg.data['controlPanelLight'] == 0);
+            }
+
+            if (msg.data.hasOwnProperty('childLock')) {
+                state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
+            }
+
+            if (msg.data.hasOwnProperty('fanSpeed')) {
+                let fanSpeed = msg.data['fanSpeed'];
+                if (fanSpeed >= 10) {
+                    fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                } else {
+                    fanSpeed = 0;
+                }
+
+                state['fan_speed'] = fanSpeed;
+            }
+
+            if (msg.data.hasOwnProperty('fanMode')) {
+                let fanMode = msg.data['fanMode'];
+                if (fanMode >= 10) {
+                    fanMode = (((fanMode - 5) * 2) / 10).toString();
+                } else if (fanMode == 1) {
+                    fanMode = 'auto';
+                } else {
+                    fanMode = 'off';
+                }
+
+                state['fan_mode'] = fanMode;
+                state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
+            }
+
+            return state;
         },
     },
     E1524_E1810_levelctrl: {

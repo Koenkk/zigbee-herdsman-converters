@@ -86,7 +86,7 @@ module.exports = [
             tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
@@ -210,7 +210,8 @@ module.exports = [
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
+                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                 'PROGRAMMING MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
@@ -307,7 +308,7 @@ module.exports = [
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
             // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)
                 .withPreset(Object.values(tuya.tvThermostatPreset)),
         ],

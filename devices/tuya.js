@@ -140,7 +140,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'},
-            {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'}, {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'}],
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_grnwgegn'}],
         model: 'TS0501B',
         description: 'Zigbee light',
         vendor: 'TuYa',
@@ -782,7 +784,7 @@ module.exports = [
             e.child_lock(), e.window_detection(), e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSystemMode(['heat', 'auto', 'off'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
@@ -805,7 +807,7 @@ module.exports = [
         exposes: [
             e.battery_low(), e.window_detection(), e.child_lock(), e.comfort_temperature(), e.eco_temperature(),
             e.open_window_temperature(), e.holiday_temperature(),
-            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(ea.STATE_SET)
+            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
@@ -903,7 +905,7 @@ module.exports = [
             exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
+                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
                     'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                     'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
@@ -1167,9 +1169,7 @@ module.exports = [
         model: 'TS0011',
         vendor: 'TuYa',
         description: 'Smart light switch - 1 gang',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch(), exposes.presets.switch_type_2()],
+        extend: extend.switch(),
         whiteLabel: [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
@@ -1184,15 +1184,58 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
+        model: 'TS0011_switch_module',
+        vendor: 'TuYa',
+        description: '1 gang switch module - (without neutral)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch(),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['TS0012'],
         model: 'TS0012',
         vendor: 'TuYa',
         description: 'Smart light switch - 2 gang',
         whiteLabel: [{vendor: 'Vrey', model: 'VR-X712U-0013'}, {vendor: 'TUYATEC', model: 'GDKES-02TZXD'},
             {vendor: 'Earda', model: 'ESW-2ZAA-EU'}],
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), exposes.presets.switch_type_2()],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'}],
+        model: 'TS0012_switch_module',
+        vendor: 'TuYa',
+        description: '2 gang switch module - (without neutral)',
+        whiteLabel: [{vendor: 'AVATTO', model: '2gang N-ZLWSM01'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -1209,14 +1252,44 @@ module.exports = [
         model: 'TS0013',
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.presets.switch_type_2()],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                for (const ID of [1, 2, 3]) {
+                    const endpoint = device.getEndpoint(ID);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                }
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
+            }
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_ypgri8yz'}],
+        model: 'TS0013_switch_module',
+        vendor: 'TuYa',
+        description: '3 gang switch module - (without neutral)',
+        whiteLabel: [{vendor: 'AVATTO', model: '3gang N-ZLWSM01'}],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('center'),
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -1238,10 +1311,9 @@ module.exports = [
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
-        toZigbee: extend.switch().toZigbee.concat([tz.tuya_switch_type]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.tuya_switch_type]),
+        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), exposes.presets.switch_type_2()],
+            e.switch().withEndpoint('l4')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
@@ -1348,7 +1420,7 @@ module.exports = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat'], ea.ALL)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-            .withLocalTemperatureCalibration(ea.ALL).withPiHeatingDemand()],
+            .withLocalTemperatureCalibration(-20, 20, 1, ea.ALL).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);

@@ -15,7 +15,9 @@ const manufacturerOptions = {
     osram: {manufacturerCode: herdsman.Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
     danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
+    develco: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DEVELCO},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
+    ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -328,7 +330,7 @@ const converters = {
 
             let info;
             // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
-            if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A'].includes(meta.mapped.model)) {
+            if (['SIRZB-110', 'SRAC-23B-ZBSR', 'AV2010/29A', 'AV2010/24A'].includes(meta.mapped.model)) {
                 info = (mode[values.mode]) + ((values.strobe ? 1 : 0) << 4) + (level[values.level] << 6);
             } else {
                 info = (mode[values.mode] << 4) + ((values.strobe ? 1 : 0) << 2) + (level[values.level]);
@@ -1910,6 +1912,71 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
+    ikea_air_purifier_fan_mode: {
+        key: ['fan_mode', 'fan_state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+            }
+
+            let fanMode;
+            switch (value.toLowerCase()) {
+            case 'off':
+                fanMode = 0;
+                break;
+            case 'auto':
+                fanMode = 1;
+                break;
+            default:
+                fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
+            }
+
+            await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
+            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
+        },
+    },
+    ikea_air_purifier_fan_speed: {
+        key: ['fan_speed'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
+        },
+    },
+    ikea_air_purifier_pm25: {
+        key: ['pm25', 'air_quality'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
+        },
+    },
+    ikea_air_purifier_replace_filter: {
+        key: ['replace_filter'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+        },
+    },
+    ikea_air_purifier_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
+                manufacturerOptions.ikea);
+            return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
+        },
+    },
+    ikea_air_purifier_led_enable: {
+        key: ['led_enable'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions.ikea);
+            return {state: {led_enable: ((value) ? true : false)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
+        },
+    },
     RTCGQ13LM_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
@@ -2567,6 +2634,34 @@ const converters = {
         key: ['multimaster_role'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haDiagnostic', ['danfossMultimasterRole'], manufacturerOptions.danfoss);
+        },
+    },
+    develco_pulse_configuration: {
+        key: ['pulse_configuration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('seMetering', {'develcoPulseConfiguration': value}, manufacturerOptions.develco);
+            return {readAfterWriteTime: 200, state: {'pulse_configuration': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions.develco);
+        },
+    },
+    develco_interface_mode: {
+        key: ['interface_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'develcoInterfaceMode': utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
+            await entity.write('seMetering', payload, manufacturerOptions.develco);
+            return {readAfterWriteTime: 200, state: {'interface_mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions.develco);
+        },
+    },
+    develco_current_summation: {
+        key: ['current_summation'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('seMetering', {'develcoCurrentSummation': value}, manufacturerOptions.develco);
+            return {state: {'current_summation': value}};
         },
     },
     ZMCSW032D_cover_position: {
@@ -5264,8 +5359,6 @@ const converters = {
     saswell_thermostat_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            if (value > 6) value = 6;
-            if (value < -6) value = -6;
             if (value < 0) value = 0xFFFFFFFF + value + 1;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
         },
