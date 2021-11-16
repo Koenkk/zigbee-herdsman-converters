@@ -32,8 +32,8 @@ module.exports = [
             tz.elko_relay_state, tz.elko_sensor_mode, tz.elko_local_temperature_calibration, tz.elko_max_floor_temp,
             tz.elko_regulator_mode, tz.elko_regulator_time, tz.elko_night_switching],
         exposes: [exposes.numeric('load', ea.ALL).withUnit('W')
-                .withDescription('Load in W when heating is on (between 0-2000 W). The thermostat uses the value as input to the mean_power ' +
-                'calculation')
+                .withDescription('Load in W when heating is on (between 0-2000 W). The thermostat uses the value as input to the ' +
+                'mean_power calculation')
                 .withValueMin(0).withValueMax(2000),
             exposes.text('display_text', ea.ALL).withDescription('Displayed text on thermostat display (zone). Max 14 characters'),
             exposes.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
