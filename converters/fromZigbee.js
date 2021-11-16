@@ -3576,7 +3576,7 @@ const converters = {
                         item['temp'] + '°C';
                 }
                 return {programming_mode: pMode.join('  ')};
-            }        
+            }
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
