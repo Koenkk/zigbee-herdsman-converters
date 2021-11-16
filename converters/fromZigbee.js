@@ -1574,6 +1574,10 @@ const converters = {
             const result = {};
             const data = msg.data;
 
+            if (data.hasOwnProperty(0x0401)) { // Load
+                result.load = data[0x0401];
+            }
+
             if (data.hasOwnProperty(0x0402)) { // Display text
                 result.display_text = data[0x0402];
             }
