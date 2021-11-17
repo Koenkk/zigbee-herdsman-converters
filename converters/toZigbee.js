@@ -2842,7 +2842,7 @@ const converters = {
                 const m = parseInt(hourMinute[1]);
                 const temp = parseInt(hourTemperature[1]);
                 if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp >= 35) {
-                    // throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
                 }
                 payload[i*3] = h; payload[i*3+1] = m; payload[i*3+2] = temp * 2;
             }
