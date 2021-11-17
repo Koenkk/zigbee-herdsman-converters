@@ -89,6 +89,10 @@ const converters = {
                 result[postfixWithEndpointName('control_sequence_of_operation', msg, model)] =
                     constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
             }
+            if (msg.data.hasOwnProperty('programingOperMode')) {
+                result[postfixWithEndpointName('programming_operation_mode', msg, model)] =
+                    constants.thermostatProgrammingOperationModes[msg.data['programingOperMode']];
+            }
             if (msg.data.hasOwnProperty('systemMode')) {
                 result[postfixWithEndpointName('system_mode', msg, model)] = constants.thermostatSystemModes[msg.data['systemMode']];
             }
