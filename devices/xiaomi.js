@@ -1357,7 +1357,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
         },
-        exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux()],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
