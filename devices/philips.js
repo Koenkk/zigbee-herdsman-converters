@@ -1409,6 +1409,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCT020'],
+        model: '4080148P7',
+        vendor: 'Philips',
+        description: 'Hue Signe table light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['4080148P9'],
         model: '4080148P9',
         vendor: 'Philips',
