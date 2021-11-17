@@ -5204,36 +5204,51 @@ const converters = {
             if (hasAlreadyProcessedMessage(msg)) return;
             const state = msg.data['onOff'];
 
-            // 0 = click down, 1 = click up, else = multiple clicks
-            if (state === 0) {
-                const timer = setTimeout(() => {
-                    publish({action: 'hold'});
-                    globalStore.putValue(msg.endpoint, 'timer', null);
-                    globalStore.putValue(msg.endpoint, 'hold', Date.now());
-                    const holdTimer = setTimeout(() => {
-                        globalStore.putValue(msg.endpoint, 'hold', false);
-                    }, options.hold_timeout_expire || 4000);
-                    globalStore.putValue(msg.endpoint, 'hold_timer', holdTimer);
-                    // After 4000 milliseconds of not reciving release we assume it will not happen.
-                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
-                globalStore.putValue(msg.endpoint, 'timer', timer);
-            } else if (state === 1) {
-                if (globalStore.getValue(msg.endpoint, 'hold')) {
-                    const duration = Date.now() - globalStore.getValue(msg.endpoint, 'hold');
-                    publish({action: 'release', duration: duration});
-                    globalStore.putValue(msg.endpoint, 'hold', false);
-                }
-
-                if (globalStore.getValue(msg.endpoint, 'timer')) {
-                    clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
-                    globalStore.putValue(msg.endpoint, 'timer', null);
-                    publish({action: 'single'});
+            if (options.mode_simple_on_off) {
+                // this option is useful when the device is connected to a common wall switch (when the click is never released in the <active> state)
+                // in this configuration only the 'single' and 'off' actions will alternate at each wall switch status change
+                // to enable this mode set 'mode_simple_on_off: true' in configuration.yaml device options
+                if (state === 0 || state === 1) {
+                    if (globalStore.getValue(msg.endpoint, 'click')) {
+                        globalStore.putValue(msg.endpoint, 'click', false);
+                        publish({action: 'single'});
+                    } else {
+                        globalStore.putValue(msg.endpoint, 'click', true);
+                        publish({action: 'off'});
+                    }
                 }
             } else {
-                const clicks = msg.data['32768'];
-                const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
-                const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
-                publish({action: payload});
+                // 0 = click down, 1 = click up, else = multiple clicks
+                if (state === 0) {
+                    const timer = setTimeout(() => {
+                        publish({action: 'hold'});
+                        globalStore.putValue(msg.endpoint, 'timer', null);
+                        globalStore.putValue(msg.endpoint, 'hold', Date.now());
+                        const holdTimer = setTimeout(() => {
+                            globalStore.putValue(msg.endpoint, 'hold', false);
+                        }, options.hold_timeout_expire || 4000);
+                        globalStore.putValue(msg.endpoint, 'hold_timer', holdTimer);
+                        // After 4000 milliseconds of not reciving release we assume it will not happen.
+                    }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+                    globalStore.putValue(msg.endpoint, 'timer', timer);
+                } else if (state === 1) {
+                    if (globalStore.getValue(msg.endpoint, 'hold')) {
+                        const duration = Date.now() - globalStore.getValue(msg.endpoint, 'hold');
+                        publish({action: 'release', duration: duration});
+                        globalStore.putValue(msg.endpoint, 'hold', false);
+                    }
+
+                    if (globalStore.getValue(msg.endpoint, 'timer')) {
+                        clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+                        globalStore.putValue(msg.endpoint, 'timer', null);
+                        publish({action: 'single'});
+                    }
+                } else {
+                    const clicks = msg.data['32768'];
+                    const actionLookup = {1: 'single', 2: 'double', 3: 'triple', 4: 'quadruple'};
+                    const payload = actionLookup[clicks] ? actionLookup[clicks] : 'many';
+                    publish({action: payload});
+                }
             }
         },
     },
