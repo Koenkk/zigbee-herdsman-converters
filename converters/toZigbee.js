@@ -1379,6 +1379,16 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_load: {
+        key: ['load'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoLoad': value});
+            return {state: {load: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoLoad']);
+        },
+    },
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
