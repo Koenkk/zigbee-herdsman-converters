@@ -2840,6 +2840,25 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSminTempSet, temp);
         },
     },
+    moesS_thermostat_schedule_programming: {
+        key: ['programming_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = [];
+            const items = value.split('  ');
+            for (let i = 0; i < 12; i++) {
+                const hourTemperature = items[i].split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const h = parseInt(hourMinute[0]);
+                const m = parseInt(hourMinute[1]);
+                const temp = parseInt(hourTemperature[1]);
+                if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp >= 35) {
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                }
+                payload[i*3] = h; payload[i*3+1] = m; payload[i*3+2] = temp * 2;
+            }
+            return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSschedule, payload);
+        },
+    },
     tvtwo_thermostat: {
         key: [
             'window_detection', 'frost_protection', 'child_lock',
