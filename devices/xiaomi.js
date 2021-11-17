@@ -1411,10 +1411,11 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['lumi.switch.l0agl1'],
+        fingerprint: [{modelID: 'lumi.switch.l0acn1', manufacturerName: 'LUMI'},{modelID: 'lumi.switch.l0agl1', manufacturerName: 'LUMI'}],
         model: 'SSM-U02',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'SSM-U02'}, {vendor: 'Xiaomi', model: 'DLKZMK12LM'}],
         fromZigbee: [fz.on_off, fz.xiaomi_switch_type, fz.xiaomi_switch_power_outage_memory],
         exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
