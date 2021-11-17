@@ -1574,6 +1574,10 @@ const converters = {
             const result = {};
             const data = msg.data;
 
+            if (data.hasOwnProperty(0x0401)) { // Load
+                result.load = data[0x0401];
+            }
+
             if (data.hasOwnProperty(0x0402)) { // Display text
                 result.display_text = data[0x0402];
             }
@@ -3551,24 +3555,6 @@ const converters = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesSbattery:
                 return {battery: value};
-            case tuya.dataPoints.moesSschedule:
-                return {
-                    program_weekday:
-                        {weekday: ' ' + value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C' +
-                                ',  ' + value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C' +
-                                ',  ' + value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C' +
-                                ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C '},
-                    program_saturday:
-                        {saturday: '' + value[12] + 'h:' + value[13] + 'm ' + value[14]/2 + '°C' +
-                                ',  ' + value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C' +
-                                ',   ' + value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C' +
-                                ',  ' + value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C '},
-                    program_sunday:
-                        {sunday: '  ' + value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C' +
-                                ',  ' + value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C' +
-                                ',  ' + value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C' +
-                                ',  ' + value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C '},
-                };
             case tuya.dataPoints.moesSboostHeatingCountdownTimeSet:
                 return {boost_heating_countdown_time_set: (value)};
             case tuya.dataPoints.moesSvalvePosition:
@@ -3583,6 +3569,18 @@ const converters = {
                 return {max_temperature: value};
             case tuya.dataPoints.moesSminTempSet:
                 return {min_temperature: value};
+            case tuya.dataPoints.moesSschedule: {
+                const items = [];
+                const pMode = [];
+                for (let i = 0; i < 12; i++) {
+                    const item = {h: value[i*3], m: value[i*3+1], temp: value[i*3+2] / 2};
+                    items[i] = item;
+                    pMode[i] = item['h'].toString().padStart(2, '0') + ':' +
+                        item['m'].toString().padStart(2, '0') + '/' +
+                        item['temp'] + '°C';
+                }
+                return {programming_mode: pMode.join('  ')};
+            }
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(msg.data)}`);
