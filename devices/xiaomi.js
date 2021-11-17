@@ -1427,6 +1427,22 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.switch.l0acn1'],
+        model: 'DLKZMK12LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
+        fromZigbee: [fz.on_off, fz.xiaomi_switch_type, fz.xiaomi_switch_power_outage_memory],
+        exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
+        toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['lumi.switch.n4acn4'],
         model: 'ZNCJMB14LM',
         vendor: 'Xiaomi',
