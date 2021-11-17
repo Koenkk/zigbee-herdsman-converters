@@ -1411,7 +1411,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        fingerprint: [{modelID: 'lumi.switch.l0acn1', manufacturerName: 'LUMI'},{modelID: 'lumi.switch.l0agl1', manufacturerName: 'LUMI'}],
+        fingerprint: [{modelID: 'lumi.switch.l0acn1', manufacturerName: 'LUMI'}, {modelID: 'lumi.switch.l0agl1', manufacturerName: 'LUMI'}],
         model: 'SSM-U02',
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
