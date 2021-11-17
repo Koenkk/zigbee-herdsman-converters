@@ -791,7 +791,9 @@ module.exports = [
                 .withDescription('Current fan speed'),
             e.pm25().withAccess(ea.STATE_GET),
             exposes.enum('air_quality', ea.STATE_GET, [
-                'good', 'ok', 'not_good', 'unknown',
+                'excellent', 'good', 'moderate', 'poor',
+                'unhealthy', 'hazardous', 'out_of_range',
+                'unknown',
             ]).withDescription('Measured air quality'),
             exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
             exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
