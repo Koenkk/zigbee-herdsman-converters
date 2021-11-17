@@ -68,16 +68,25 @@ const ikea = {
                     const pm25Property = postfixWithEndpointName('pm25', msg, model);
                     let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
-                    // Air Quality Scale (ikea app):
-                    // 0-35=Good, 35-80=OK, 80+=Not Good
+                    // Air Quality
+                    // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
+                    // Using German IAQ labels to match the Develco Air Quality Sensor
                     let airQuality;
                     const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
-                    if (pm25 <= 35) {
+                    if (pm25 <= 10) {
+                        airQuality = 'excellent';
+                    } else if (pm25 <= 20) {
                         airQuality = 'good';
-                    } else if (pm25 <= 80) {
-                        airQuality = 'ok';
+                    } else if (pm25 <= 25) {
+                        airQuality = 'moderate';
+                    } else if (pm25 <= 50) {
+                        airQuality = 'poor';
+                    } else if (pm25 <= 75) {
+                        airQuality = 'unhealthy';
+                    } else if (pm25 <= 800) {
+                        airQuality = 'hazardous';
                     } else if (pm25 < 65535) {
-                        airQuality = 'not_good';
+                        airQuality = 'out_of_range';
                     } else {
                         airQuality = 'unknown';
                     }
