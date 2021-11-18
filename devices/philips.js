@@ -1306,7 +1306,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Iris (generation 2, black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
