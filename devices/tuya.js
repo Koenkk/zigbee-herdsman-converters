@@ -1036,7 +1036,7 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         }
-    };    
+    },    
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'}],
         model: 'TS011F_plug_2',
