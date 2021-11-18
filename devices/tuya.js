@@ -999,7 +999,7 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'}],
         model: 'nas_wr01b',
         description: 'Smart EU Plug',
         vendor: 'TuYa',
@@ -1035,8 +1035,8 @@ module.exports = [
                 }, seconds*1000);
                 globalStore.putValue(device, 'interval', interval);
             }
-        }
-    },    
+        },
+    },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'}],
         model: 'TS011F_plug_2',
