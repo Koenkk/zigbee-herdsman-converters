@@ -57,7 +57,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'}],
+            {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_majwnphg'}],
         model: 'WHD02',
         vendor: 'TuYa',
         description: 'Wall switch module',
