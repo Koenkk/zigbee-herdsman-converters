@@ -1000,7 +1000,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},],
-        model: 'TS011F_plug_1',
+        model: 'nas_wr01b',
         description: 'Smart EU Plug',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
