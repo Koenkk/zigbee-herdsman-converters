@@ -1068,6 +1068,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCW002', '4090231P9'],
+        model: '4090231P9',
+        vendor: 'Philips',
+        description: 'Hue Liane',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC001'],
         model: '3261030P7',
         vendor: 'Philips',
