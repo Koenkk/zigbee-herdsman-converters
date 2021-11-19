@@ -1425,11 +1425,11 @@ const converters = {
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
-                result.position = invert ? value : 100 - value;
+                result[postfixWithEndpointName('position', msg, model)] = invert ? value : 100 - value;
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
-                result.tilt = invert ? value : 100 - value;
+                result[postfixWithEndpointName('tilt', msg, model)] = invert ? value : 100 - value;
             }
             return result;
         },
