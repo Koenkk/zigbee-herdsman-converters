@@ -1068,7 +1068,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCW002', '4090231P9'],
+        zigbeeModel: ['4090231P9'],
         model: '4090231P9',
         vendor: 'Philips',
         description: 'Hue Liane',
