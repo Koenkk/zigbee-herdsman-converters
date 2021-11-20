@@ -2345,7 +2345,7 @@ module.exports = [
         zigbeeModel: ['LTA005'],
         model: '8719514392830',
         vendor: 'Philips',
-        description: 'Hue White Ambiance E27 Filament Screw Globe',
+        description: 'Hue White Ambiance E27 filament screw globe',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
