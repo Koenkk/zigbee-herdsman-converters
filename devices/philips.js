@@ -2401,4 +2401,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LWE007'],
+        model: '9290030211',
+        vendor: 'Philips',
+        description: 'Hue white Candle bulb E14 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
 ];
