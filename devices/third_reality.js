@@ -88,8 +88,8 @@ module.exports = [
     {
         zigbeeModel: ['3RSP019BZ'],
         model: '3RSP019BZ',
-        vendor: 'Third Reality', 
-        description: 'Zigbee / BLE smart plug', 
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
