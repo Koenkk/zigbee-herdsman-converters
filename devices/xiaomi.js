@@ -108,9 +108,9 @@ module.exports = [
         zigbeeModel: ['lumi.light.cwjwcn01'],
         model: 'JWSP001A',
         vendor: 'Xiaomi',
-        description:'Jiawen LED Driver & Dimmer',
+        description: 'Jiawen LED Driver & Dimmer',
         extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
-             colorTempRange: [153, 370]}),
+            colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn02'],
