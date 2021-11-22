@@ -1606,7 +1606,7 @@ module.exports = [
         model: 'QBKG41LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 2 gang switch (with neutral)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_multistate_action],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.xiaomi_switch_opple_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
