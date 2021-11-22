@@ -970,7 +970,50 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 67},
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak', applicationVersion: 68},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 68},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 68},
+        ],
+        model: 'TS011F_plug_3',
+        description: 'Smart plug (with power monitoring by polling)',
+        vendor: 'TuYa',
+        whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        onEvent: (type, data, device, options) => {
+            const endpoint = device.getEndpoint(1);
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                const interval = setInterval(async () => {
+                    try {
+                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+                        await endpoint.read('seMetering', ['currentSummDelivered']);
+                    } catch (error) {/* Do nothing*/}
+                }, seconds*1000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm'},
@@ -1013,46 +1056,6 @@ module.exports = [
         },
         exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
             .withDescription('Recover state after power outage')],
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b'},
-        ],
-        model: 'TS011F_plug_3',
-        description: 'Smart plug (with power monitoring by polling)',
-        vendor: 'TuYa',
-        whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            device.save();
-        },
-        options: [exposes.options.measurement_poll_interval()],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-                const interval = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                        await endpoint.read('seMetering', ['currentSummDelivered']);
-                    } catch (error) {/* Do nothing*/}
-                }, seconds*1000);
-                globalStore.putValue(device, 'interval', interval);
-            }
-        },
     },
     {
         zigbeeModel: ['5p1vj8r'],
