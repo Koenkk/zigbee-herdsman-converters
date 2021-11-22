@@ -1425,11 +1425,11 @@ const converters = {
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
-                result.position = invert ? value : 100 - value;
+                result[postfixWithEndpointName('position', msg, model)] = invert ? value : 100 - value;
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
-                result.tilt = invert ? value : 100 - value;
+                result[postfixWithEndpointName('tilt', msg, model)] = invert ? value : 100 - value;
             }
             return result;
         },
@@ -1573,6 +1573,10 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const data = msg.data;
+
+            if (data.hasOwnProperty(0x0401)) { // Load
+                result.load = data[0x0401];
+            }
 
             if (data.hasOwnProperty(0x0402)) { // Display text
                 result.display_text = data[0x0402];
@@ -4287,79 +4291,6 @@ const converters = {
                 if (!isLegacyEnabled(options)) delete result.duration;
                 return result;
             }
-        },
-    },
-    ikea_air_purifier: {
-        cluster: 'manuSpecificIkeaAirPurifier',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
-        convert: (model, msg, publish, options, meta) => {
-            const state = {};
-
-            if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
-                const pm25Property = postfixWithEndpointName('pm25', msg, model);
-                let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
-
-                // Air Quality Scale (ikea app):
-                // 0-35=Good, 35-80=OK, 80+=Not Good
-                let airQuality;
-                const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
-                if (pm25 <= 35) {
-                    airQuality = 'good';
-                } else if (pm25 <= 80) {
-                    airQuality = 'ok';
-                } else if (pm25 < 65535) {
-                    airQuality = 'not_good';
-                } else {
-                    airQuality = 'unknown';
-                }
-
-                // calibrate and round pm25 unless invalid
-                pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
-
-                state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
-                state[airQualityProperty] = airQuality;
-            }
-
-            if (msg.data.hasOwnProperty('filterRunTime')) {
-                // Filter needs to be replaced after 6 months
-                state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
-            }
-
-            if (msg.data.hasOwnProperty('controlPanelLight')) {
-                state['led_enable'] = (msg.data['controlPanelLight'] == 0);
-            }
-
-            if (msg.data.hasOwnProperty('childLock')) {
-                state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
-            }
-
-            if (msg.data.hasOwnProperty('fanSpeed')) {
-                let fanSpeed = msg.data['fanSpeed'];
-                if (fanSpeed >= 10) {
-                    fanSpeed = (((fanSpeed - 5) * 2) / 10);
-                } else {
-                    fanSpeed = 0;
-                }
-
-                state['fan_speed'] = fanSpeed;
-            }
-
-            if (msg.data.hasOwnProperty('fanMode')) {
-                let fanMode = msg.data['fanMode'];
-                if (fanMode >= 10) {
-                    fanMode = (((fanMode - 5) * 2) / 10).toString();
-                } else if (fanMode == 1) {
-                    fanMode = 'auto';
-                } else {
-                    fanMode = 'off';
-                }
-
-                state['fan_mode'] = fanMode;
-                state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
-            }
-
-            return state;
         },
     },
     E1524_E1810_levelctrl: {

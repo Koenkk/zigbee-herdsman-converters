@@ -467,6 +467,20 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-D-006P'],
+        model: 'GL-D-006P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 6W anti-glare downlight RGB+CCT (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
+        zigbeeModel: ['GL-D-007P'],
+        model: 'GL-D-007P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 12W anti-glare downlight RGB+CCT (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-FL-004TZ'],
         model: 'GL-FL-004TZ',
         vendor: 'Gledopto',

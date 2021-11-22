@@ -31,6 +31,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['LIGHTIFY RT RGBW'],
+        model: '73741_LIGHTIFY',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY RT5/6 LED',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',

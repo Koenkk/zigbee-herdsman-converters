@@ -1379,6 +1379,16 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    elko_load: {
+        key: ['load'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'elkoLoad': value});
+            return {state: {load: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['elkoLoad']);
+        },
+    },
     elko_display_text: {
         key: ['display_text'],
         convertSet: async (entity, key, value, meta) => {
@@ -1912,71 +1922,6 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
-    ikea_air_purifier_fan_mode: {
-        key: ['fan_mode', 'fan_state'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key == 'fan_state' && value.toLowerCase() == 'on') {
-                value = utils.getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
-            }
-
-            let fanMode;
-            switch (value.toLowerCase()) {
-            case 'off':
-                fanMode = 0;
-                break;
-            case 'auto':
-                fanMode = 1;
-                break;
-            default:
-                fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
-            }
-
-            await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
-            return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
-        },
-    },
-    ikea_air_purifier_fan_speed: {
-        key: ['fan_speed'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
-        },
-    },
-    ikea_air_purifier_pm25: {
-        key: ['pm25', 'air_quality'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
-        },
-    },
-    ikea_air_purifier_replace_filter: {
-        key: ['replace_filter'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
-        },
-    },
-    ikea_air_purifier_child_lock: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
-                manufacturerOptions.ikea);
-            return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
-        },
-    },
-    ikea_air_purifier_led_enable: {
-        key: ['led_enable'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions.ikea);
-            return {state: {led_enable: ((value) ? true : false)}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
-        },
-    },
     RTCGQ13LM_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
@@ -2022,9 +1967,9 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM', 'QBKG20LM', 'QBKG38LM',
-                'QBKG34LM', 'QBCZ14LM', 'QBKG19LM'].includes(meta.mapped.model)) {
+                'QBKG34LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2045,9 +1990,9 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
+            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
                 'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG34LM', 'QBKG19LM',
-                'QBKG38LM'].includes(meta.mapped.model)) {
+                'QBKG38LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
