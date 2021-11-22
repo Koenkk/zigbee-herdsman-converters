@@ -39,6 +39,6 @@ module.exports = [
         model: 'FUT038Z',
         description: 'RGBW LED controller',
         vendor: 'Miboxer',
-        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
     },
 ];

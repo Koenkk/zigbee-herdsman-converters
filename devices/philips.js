@@ -39,6 +39,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003054301'],
+        model: '929003054301',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance Cher Pendant',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5063131P7'],
         model: '5063131P7',
         vendor: 'Philips',
@@ -727,6 +736,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCA006'],
+        model: '9290024689',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance B22 1100lm',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCA008'],
         model: '929002471601',
         vendor: 'Philips',
@@ -1240,6 +1258,15 @@ module.exports = [
     {
         zigbeeModel: ['3216331P6'],
         model: '3216331P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle rectangle panel light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929003099101'],
+        model: '929003099101',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         meta: {turnsOffAtBrightness1: true},
@@ -1771,6 +1798,39 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue motion outdoor sensor',
         fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout,
+            fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        endpoint: (device) => {
+            return {
+                'default': 2, // default
+                'ep1': 1,
+                'ep2': 2, // e.g. for write to msOccupancySensing
+            };
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.illuminance(endpoint);
+            // read occupancy_timeout and motion_sensitivity
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['SML003'],
+        model: '9290030675',
+        vendor: 'Philips',
+        description: 'Hue motion sensor',
+        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.illuminance,
             fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
@@ -2348,6 +2408,15 @@ module.exports = [
         description: 'Hue White Ambiance E27 filament screw globe',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWE007'],
+        model: '9290030211',
+        vendor: 'Philips',
+        description: 'Hue white Candle bulb E14 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
 ];
