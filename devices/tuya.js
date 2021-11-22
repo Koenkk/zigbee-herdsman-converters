@@ -1002,7 +1002,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],     
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',
