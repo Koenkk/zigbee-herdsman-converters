@@ -4862,7 +4862,7 @@ const converters = {
             }
         },
     },
-    xiaomi_switch_opple_basic: {
+    aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
@@ -4872,11 +4872,9 @@ const converters = {
                 const data = msg.data['247'];
                 // Xiaomi struct parsing
                 const length = data.length;
-                // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: Xiaomi struct: length ${length}`);
                 for (let i=0; i < length; i++) {
                     const index = data[i];
                     let value = null;
-                    // if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: pos=${i}, ind=${data[i]}, vtype=${data[i+1]}`);
                     switch (data[i+1]) {
                     case 16:
                         // 0x10 ZclBoolean
@@ -4936,7 +4934,11 @@ const converters = {
                     default:
                         if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${data[i+1]}, pos=${i+1}`);
                     }
-                    if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
+
+                    if (index == 1) {
+                        payload.voltage = value;
+                        payload.battery = batteryVoltageToPercentage(value, '3V_2100');
+                    } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
                     else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
@@ -4948,34 +4950,26 @@ const converters = {
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
-            if (msg.data.hasOwnProperty('4')) {
-                const lookup = {4: 'anti_flicker_mode', 1: 'quick_mode'};
-                payload.mode_switch = lookup[msg.data['4']];
-            }
-            if (msg.data.hasOwnProperty('10')) {
-                const lookup = {1: 'toggle', 2: 'momentary'};
-                payload.switch_type = lookup[msg.data['10']];
-            }
+
+            if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
+            if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
+            if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
+            if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
                     payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
                 } else {
-                    const mappingMode = {
-                        0x01: 'control_relay',
-                        0x00: 'decoupled',
-                    };
-                    const mode = mappingMode[msg.data['512']];
-                    const payload = {};
+                    const mode = {0x01: 'control_relay', 0x00: 'decoupled'}[msg.data['512']];
                     payload[postfixWithEndpointName('operation_mode', msg, model)] = mode;
-                    return payload;
                 }
             }
-            if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1; // 0x0201
-            if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1; // 0x0202
-            if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1; // 0x0203
-            if (msg.data.hasOwnProperty('519')) payload.consumer_connected = msg.data['519'] === 1; // 0x0207
-            if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2); // 0x020B
-            if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay'; // 0x0226
+            if (msg.data.hasOwnProperty('513')) payload.power_outage_memory = msg.data['513'] === 1;
+            if (msg.data.hasOwnProperty('514')) payload.auto_off = msg.data['514'] === 1;
+            if (msg.data.hasOwnProperty('515')) payload.led_disabled_night = msg.data['515'] === 1;
+            if (msg.data.hasOwnProperty('519')) payload.consumer_connected = msg.data['519'] === 1;
+            if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2);
+            if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay';
+            if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
             return payload;
         },
     },
@@ -5415,23 +5409,6 @@ const converters = {
             return payload;
         },
     },
-    xiaomi_operation_mode_opple: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (!msg.data.hasOwnProperty('512')) {
-                return;
-            }
-            const mappingMode = {
-                0x01: 'control_relay',
-                0x00: 'decoupled',
-            };
-            const mode = mappingMode[msg.data['512']];
-            const payload = {};
-            payload[postfixWithEndpointName('operation_mode', msg, model)] = mode;
-            return payload;
-        },
-    },
     qlwz_letv8key_switch: {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
@@ -5442,27 +5419,6 @@ const converters = {
             const action = actionLookup[msg.data['presentValue']] || msg.data['presentValue'];
             if (button) {
                 return {action: `${action}_${button}`};
-            }
-        },
-    },
-    aqara_opple_report: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            // it is like xiaomi_battery_3v, but not parsed
-            // https://github.com/Koenkk/zigbee-herdsman/blob/master/src/zcl/buffaloZcl.ts#L93
-            // data: { '247': <Buffer 01 21 b8 0b 03 28 19 04 21 a8 13 05 21 44 01 06 24 02
-            //                        00 00 00 00 08 21 11 01 0a 21 00 00 0c 20 01 64 10 00> }
-            if (msg.data['247']) {
-                const voltage = msg.data['247'][2] + msg.data['247'][3]*256;
-                if (voltage) {
-                    return {battery: batteryVoltageToPercentage(voltage, '3V_2100'), voltage: voltage};
-                }
-            }
-
-            if (msg.data['mode'] !== undefined) {
-                const lookup = ['command', 'event'];
-                return {operation_mode: lookup[msg.data['mode']]};
             }
         },
     },
@@ -5574,26 +5530,6 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
             }
             return result;
-        },
-    },
-    xiaomi_switch_type: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0x000A)) {
-                const lookup = {1: 'toggle', 2: 'momentary'};
-                return {switch_type: lookup[msg.data[0x000A]]};
-            }
-        },
-    },
-    xiaomi_switch_power_outage_memory: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0x0201)) {
-                const lookup = [false, true];
-                return {power_outage_memory: lookup[msg.data[0x0201]]};
-            }
         },
     },
     keen_home_smart_vent_pressure: {
@@ -6489,16 +6425,6 @@ const converters = {
             }
         },
     },
-    RTCGQ13LM_motion_sensitivity: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0x010c)) {
-                const lookup = {1: 'low', 2: 'medium', 3: 'high'};
-                return {motion_sensitivity: lookup[msg.data[0x010c]]};
-            }
-        },
-    },
     CCTSwitch_D0001_levelctrl: {
         cluster: 'genLevelCtrl',
         options: [exposes.options.legacy()],
@@ -7224,15 +7150,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {voc: msg.data.presentValue};
-        },
-    },
-    GZCGQ11LM_detection_period: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0x0000)) {
-                return {detection_period: msg.data[0x0000]};
-            }
         },
     },
     heiman_doorbell_button: {
