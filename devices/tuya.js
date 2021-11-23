@@ -756,7 +756,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
         ],
@@ -971,59 +970,19 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 67},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125'}],
-        model: 'TS011F_plug_1',
-        description: 'Smart plug (with power monitoring)',
-        vendor: 'TuYa',
-        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'}],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            device.save();
-        },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'}],
-        model: 'TS011F_plug_2',
-        description: 'Smart plug (without power monitoring)',
-        vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-            .withDescription('Recover state after power outage')],
-    },
-    {
         fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak', applicationVersion: 69},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak', applicationVersion: 68},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 68},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 69},
         ],
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
-        whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'LELLKI', model: 'WK35 with power monitoring'}],
+        whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1053,6 +1012,51 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125'}],
+        model: 'TS011F_plug_1',
+        description: 'Smart plug (with power monitoring)',
+        vendor: 'TuYa',
+        whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'}],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+        model: 'TS011F_plug_2',
+        description: 'Smart plug (without power monitoring)',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            .withDescription('Recover state after power outage')],
     },
     {
         zigbeeModel: ['5p1vj8r'],
