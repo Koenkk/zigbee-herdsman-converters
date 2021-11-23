@@ -977,6 +977,7 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 68},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 69},
         ],
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
