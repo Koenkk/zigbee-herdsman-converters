@@ -885,6 +885,18 @@ module.exports = [
         ],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8voyyjng'}],
+        model: 'TS011F_usb_plug',
+        description: 'Smart plug with USB',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        meta: {multiEndpoint: true},
+        exposes: [e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'}],
         model: 'TS0601_thermostat_1',
         vendor: 'TuYa',
