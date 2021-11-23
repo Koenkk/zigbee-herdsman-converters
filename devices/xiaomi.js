@@ -631,7 +631,9 @@ module.exports = [
             e.power().withAccess(ea.STATE), e.action([
                 'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
                 'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
-                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right']),
+                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right',
+                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
+                'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
         fromZigbee: [fz.on_off, fz.xiaomi_operation_mode_opple, fz.xiaomi_multistate_action, fz.xiaomi_power],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple],
