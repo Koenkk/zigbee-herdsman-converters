@@ -128,6 +128,10 @@ const converters = {
                 value = value < -250 ? 0 : value;
                 result[postfixWithEndpointName('abs_max_heat_setpoint_limit', msg, model)] = value;
             }
+            if (msg.data.hasOwnProperty('acLouverPosition')) {
+                result[postfixWithEndpointName('ac_louver_position', msg, model)] =
+                constants.thermostatAcLouverPositions[msg.data['acLouverPosition']];
+            }
             return result;
         },
     },
