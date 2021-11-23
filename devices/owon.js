@@ -63,7 +63,7 @@ module.exports = [
         zigbeeModel: ['AC201'],
         model: 'AC201',
         vendor: 'OWON',
-        description: 'HVAC Controller/IR Blaster',
+        description: 'HVAC controller/IR blaster',
         fromZigbee: [fz.fan, fz.thermostat],
         toZigbee: [tz.fan_mode, tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_ac_louver_position, tz.thermostat_local_temperature],
