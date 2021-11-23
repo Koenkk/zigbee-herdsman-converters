@@ -1957,6 +1957,20 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LOM009'],
+        model: '8718699689308',
+        vendor: 'Philips',
+        description: 'Hue smart plug - UK',
+        extend: extend.switch(),
+        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LLC014'],
         model: '7099860PH',
         vendor: 'Philips',
