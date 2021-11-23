@@ -1364,6 +1364,20 @@ const converters = {
             await entity.read('hvacThermostat', ['maxHeatSetpointLimit']);
         },
     },
+    thermostat_ac_louver_position: {
+        key: ['ac_louver_position'],
+        convertSet: async (entity, key, value, meta) => {
+            let acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
+            if (acLouverPosition === undefined) {
+                acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, value, Number);
+            }
+            await entity.write('hvacThermostat', {acLouverPosition});
+            return {state: {ac_louver_position: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['acLouverPosition']);
+        },
+    },
     electrical_measurement_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
