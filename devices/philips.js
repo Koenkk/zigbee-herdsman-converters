@@ -848,7 +848,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
