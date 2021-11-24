@@ -252,10 +252,10 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4090330P9_01', '4090330P9_02'],
+        zigbeeModel: ['4090330P9_01', '4090330P9_02', '929003052501_01', '929003052501_02'],
         model: '4090330P9',
         vendor: 'Philips',
-        description: 'Hue Ensis',
+        description: 'Hue Ensis (black)',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
@@ -1887,7 +1887,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LOM003'],
+        zigbeeModel: ['LOM003', 'LOM009'],
         model: '8718699689308',
         vendor: 'Philips',
         description: 'Hue smart plug - UK',
@@ -1933,6 +1933,20 @@ module.exports = [
         model: '929003050601',
         vendor: 'Philips',
         description: 'Hue smart plug',
+        extend: extend.switch(),
+        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LOM008'],
+        model: '9290030509',
+        vendor: 'Philips',
+        description: 'Hue smart plug - EU',
         extend: extend.switch(),
         toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2417,6 +2431,15 @@ module.exports = [
         description: 'Hue white Candle bulb E14 bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCD003'],
+        model: '8719514344723',
+        vendor: 'Philips',
+        description: 'Akari downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
 ];
