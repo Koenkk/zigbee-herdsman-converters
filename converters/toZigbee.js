@@ -2822,11 +2822,21 @@ const converters = {
                 const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
                 return {state: {preset: value}};}
-            case 'frost_protection':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, value === 'ON');
-                break;
             case 'heating_stop':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, value === 'ON');
+                if (value == 'ON') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
+                }
+                break;
+            case 'frost_protection':
+                if (value == 'ON') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
+                } else {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
+                }
                 break;
             case 'window_detection':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value === 'ON');
@@ -2859,7 +2869,7 @@ const converters = {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value * 10);
                 break;
             case 'holiday_mode_date':
-                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvWorkingDayTimetvHolidayMode, value);
+                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvHolidayMode, value);
                 break;
 
             case 'online':
