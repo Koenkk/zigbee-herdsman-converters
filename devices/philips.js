@@ -2446,7 +2446,7 @@ module.exports = [
         zigbeeModel: ['LWE004'],
         model: '8719514302235',
         vendor: 'Philips',
-        description: 'Hue White Filament Bulb e14',
+        description: 'Hue White Filament Bulb E14',
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
