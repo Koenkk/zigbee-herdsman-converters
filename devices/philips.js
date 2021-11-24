@@ -2433,4 +2433,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LCD003'],
+        model: '8719514344723',
+        vendor: 'Philips',
+        description: 'Akari downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
+    },
 ];
