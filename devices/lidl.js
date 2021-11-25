@@ -553,7 +553,7 @@ module.exports = [
         model: 'HG06492B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle CCT',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
