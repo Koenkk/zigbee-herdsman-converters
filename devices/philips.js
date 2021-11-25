@@ -408,7 +408,7 @@ module.exports = [
         zigbeeModel: ['1740193P0'],
         model: '1740193P0',
         vendor: 'Philips',
-        description: 'Hue Lucca Wall Light',
+        description: 'Hue Lucca wall light',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
