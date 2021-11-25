@@ -1221,6 +1221,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003055601'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: '4096730P6',
+        vendor: 'Philips',
+        description: 'Hue Cher ceiling light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['4096730U9'],
         model: '046677803087',
         vendor: 'Philips',
