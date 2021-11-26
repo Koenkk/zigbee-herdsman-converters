@@ -804,8 +804,8 @@ module.exports = [
         toZigbee: [tz.tvtwo_thermostat],
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
-            e.battery_low(), e.window_detection(), e.child_lock(), e.comfort_temperature(), e.eco_temperature(),
-            e.open_window_temperature(), e.holiday_temperature(),
+            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature(), e.holiday_temperature(),
+            e.comfort_temperature(), e.eco_temperature(),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
