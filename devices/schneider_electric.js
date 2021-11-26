@@ -273,6 +273,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 3, 's1': 21, 's2': 22, 's3': 23, 's4': 24};
         },
+        meta: {multiEndpoint: true},
         exposes: [e.light_brightness().withLevelConfig().withEndpoint('l1'),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast')

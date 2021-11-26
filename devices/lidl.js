@@ -553,7 +553,7 @@ module.exports = [
         model: 'HG06492B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle CCT',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -624,7 +624,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'}],
         model: 'HG06463B',
         vendor: 'Lidl',
-        description: 'Livarno Lux E27 G30 filament bulb',
+        description: 'Livarno Lux E27 G95 filament bulb',
         extend: extend.light_onoff_brightness({disableEffect: true}),
         meta: {turnsOffAtBrightness1: false},
     },

@@ -405,6 +405,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1740193P0'],
+        model: '1740193P0',
+        vendor: 'Philips',
+        description: 'Hue Lucca wall light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1740293P0'],
         model: '1740293P0',
         vendor: 'Philips',
@@ -848,7 +857,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E14',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2440,6 +2449,14 @@ module.exports = [
         description: 'Akari downlight',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWE004'],
+        model: '8719514302235',
+        vendor: 'Philips',
+        description: 'Hue White Filament Bulb E14',
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
 ];

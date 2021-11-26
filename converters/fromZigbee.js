@@ -3841,7 +3841,7 @@ const converters = {
                 return {'local_temperature_calibration': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeValvePosition:
                 // valve position
-                return {'position': value};
+                return {'position': ( value/10 ).toFixed(1)};
             case tuya.dataPoints.haozeeMinTemp:
                 // lower limit temperature
                 return {'min_temperature': ( value/10 ).toFixed(1)};
