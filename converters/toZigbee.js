@@ -2814,6 +2814,7 @@ const converters = {
             'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_mode_date', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
             'working_day', 'week_schedule', 'week', 'online',
+            ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'preset': {
