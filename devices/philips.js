@@ -1212,16 +1212,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4096730P6'],
-        model: '4096730P6',
-        vendor: 'Philips',
-        description: 'Hue Cher ceiling light',
-        meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
-        ota: ota.zigbeeOTA,
-    },
-    {
-        zigbeeModel: ['929003055601'],
+        zigbeeModel: ['4096730P6', '929003055601'],
         model: '4096730P6',
         vendor: 'Philips',
         description: 'Hue Cher ceiling light',
