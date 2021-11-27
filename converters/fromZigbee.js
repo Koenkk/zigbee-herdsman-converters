@@ -3610,7 +3610,7 @@ const converters = {
             case tuya.dataPoints.tvFrostDetection:
                 return {frost_protection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWindowDetection:
-                return {window_detection: value ? 'ON' : 'OFF'};
+                return {open_window: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvHeatingStop:
                 return {heating_stop: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvLocalTemp:

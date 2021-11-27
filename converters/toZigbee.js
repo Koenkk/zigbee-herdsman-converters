@@ -2810,11 +2810,10 @@ const converters = {
     },
     tvtwo_thermostat: {
         key: [
-            'window_detection', 'frost_protection', 'child_lock',
-            'current_heating_setpoint', 'local_temperature_calibration',
-            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
-            'open_window_temperature', 'heating_stop', 'preset', 'boost_timeset_countdown',
-            'holiday_mode_date', 'working_day', 'week_schedule', 'week', 'online',
+            'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'heating_stop',
+            'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
+            'holiday_mode_date', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'working_day', 'week_schedule', 'week', 'online',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -2838,7 +2837,7 @@ const converters = {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
-            case 'window_detection':
+            case 'open_window':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvWindowDetection, value === 'ON');
                 break;
             case 'child_lock':
@@ -2851,6 +2850,7 @@ const converters = {
                 break;
             case 'current_heating_setpoint':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 break;
             case 'holiday_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHolidayTemp, value * 10);
