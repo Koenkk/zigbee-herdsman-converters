@@ -1,18 +1,17 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee };
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
-module.exports = [
-    {
+module.exports = [{
         zigbeeModel: ['CTHS317ET'],
         model: 'CTHS-317-ET',
         vendor: 'CASAIA',
         description: 'Remote temperature probe on cable',
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: { battery: { voltageToPercentage: '3V_2500' } },
+        configure: async(device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -21,5 +20,23 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.temperature(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ['CCB432'],
+        model: 'CCB432',
+        vendor: 'CASAIA',
+        description: 'Rail-Din relay and energy meter',
+        supports: 'on/off, power measurement',
+        fromZigbee: [fz.electrical_measurement, fz.metering, fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async(device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        }
     },
 ];
