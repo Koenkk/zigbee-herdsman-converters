@@ -311,6 +311,7 @@ module.exports = [
         exposes: [
             e.power(),
             e.energy(),
+            e.battery_low(),
             exposes.numeric('pulse_configuration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535'),
             exposes.enum('interface_mode', ea.ALL,
