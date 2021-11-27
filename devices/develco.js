@@ -319,6 +319,8 @@ module.exports = [
                 .withDescription('Operating mode/probe'),
             exposes.numeric('current_summation', ea.SET)
                 .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh'),
+            exposes.binary('check_meter', ea.STATE, true, false)
+                .withDescription('Is true if communication problem with meter is experienced'),
         ],
     },
     {
