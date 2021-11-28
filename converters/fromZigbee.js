@@ -668,6 +668,10 @@ const converters = {
                         constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
                         msg.data['develcoInterfaceMode'];
             }
+            if (msg.data.hasOwnProperty('status')) {
+                result['battery_low'] = (msg.data.status & 2) > 0;
+                result['check_meter'] = (msg.data.status & 1) > 0;
+            }
 
             return result;
         },
