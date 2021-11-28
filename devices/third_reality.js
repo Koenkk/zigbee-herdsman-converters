@@ -85,4 +85,16 @@ module.exports = [
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
     },
+    {
+        zigbeeModel: ['3RSP019BZ'],
+        model: '3RSP019BZ',
+        vendor: 'Third Reality',
+        description: 'Zigbee / BLE smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];

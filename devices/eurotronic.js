@@ -19,7 +19,8 @@ module.exports = [
             tz.thermostat_remote_sensing, tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])
+            .withLocalTemperatureCalibration(-20, 20, 1)
             .withPiHeatingDemand(),
         exposes.enum('trv_mode', exposes.access.ALL, [1, 2])
             .withDescription('Select between direct control of the valve via the `valve_position` or automatic control of the '+
@@ -34,12 +35,12 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 4151};
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 1});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
-            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.MINUTES_10, change: 25});
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4003, type: 41}, minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.MINUTES_10, reportableChange: 25}], options);
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 25}], options);
             await endpoint.configureReporting('hvacThermostat', [{attribute: {ID: 0x4008, type: 34}, minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}], options);
         },

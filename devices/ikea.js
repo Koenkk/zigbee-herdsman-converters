@@ -4,9 +4,14 @@ const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const {repInterval} = require('../lib/constants');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const herdsman = require('zigbee-herdsman');
+const {
+    calibrateAndPrecisionRoundOptions, postfixWithEndpointName, getMetaValue,
+} = require('../lib/utils');
 
 const bulbOnEvent = async (type, data, device) => {
     /**
@@ -48,6 +53,161 @@ const tradfriExtend = {
     }),
 };
 
+const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
+
+const ikea = {
+    fz: {
+        air_purifier: {
+            cluster: 'manuSpecificIkeaAirPurifier',
+            type: ['attributeReport', 'readResponse'],
+            options: [exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+
+                if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
+                    const pm25Property = postfixWithEndpointName('pm25', msg, model);
+                    let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
+
+                    // Air Quality
+                    // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
+                    // Using German IAQ labels to match the Develco Air Quality Sensor
+                    let airQuality;
+                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
+                    if (pm25 <= 10) {
+                        airQuality = 'excellent';
+                    } else if (pm25 <= 20) {
+                        airQuality = 'good';
+                    } else if (pm25 <= 25) {
+                        airQuality = 'moderate';
+                    } else if (pm25 <= 50) {
+                        airQuality = 'poor';
+                    } else if (pm25 <= 75) {
+                        airQuality = 'unhealthy';
+                    } else if (pm25 <= 800) {
+                        airQuality = 'hazardous';
+                    } else if (pm25 < 65535) {
+                        airQuality = 'out_of_range';
+                    } else {
+                        airQuality = 'unknown';
+                    }
+
+                    // calibrate and round pm25 unless invalid
+                    pm25 = (pm25 == 65535) ? -1 : calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+
+                    state[pm25Property] = calibrateAndPrecisionRoundOptions(pm25, options, 'pm25');
+                    state[airQualityProperty] = airQuality;
+                }
+
+                if (msg.data.hasOwnProperty('filterRunTime')) {
+                // Filter needs to be replaced after 6 months
+                    state['replace_filter'] = (parseInt(msg.data['filterRunTime']) >= 259200);
+                }
+
+                if (msg.data.hasOwnProperty('controlPanelLight')) {
+                    state['led_enable'] = (msg.data['controlPanelLight'] == 0);
+                }
+
+                if (msg.data.hasOwnProperty('childLock')) {
+                    state['child_lock'] = (msg.data['childLock'] > 0 ? 'LOCK' : 'UNLOCK');
+                }
+
+                if (msg.data.hasOwnProperty('fanSpeed')) {
+                    let fanSpeed = msg.data['fanSpeed'];
+                    if (fanSpeed >= 10) {
+                        fanSpeed = (((fanSpeed - 5) * 2) / 10);
+                    } else {
+                        fanSpeed = 0;
+                    }
+
+                    state['fan_speed'] = fanSpeed;
+                }
+
+                if (msg.data.hasOwnProperty('fanMode')) {
+                    let fanMode = msg.data['fanMode'];
+                    if (fanMode >= 10) {
+                        fanMode = (((fanMode - 5) * 2) / 10).toString();
+                    } else if (fanMode == 1) {
+                        fanMode = 'auto';
+                    } else {
+                        fanMode = 'off';
+                    }
+
+                    state['fan_mode'] = fanMode;
+                    state['fan_state'] = (fanMode === 'off' ? 'OFF' : 'ON');
+                }
+
+                return state;
+            },
+        },
+    },
+    tz: {
+        air_purifier_fan_mode: {
+            key: ['fan_mode', 'fan_state'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key == 'fan_state' && value.toLowerCase() == 'on') {
+                    value = getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
+                }
+
+                let fanMode;
+                switch (value.toLowerCase()) {
+                case 'off':
+                    fanMode = 0;
+                    break;
+                case 'auto':
+                    fanMode = 1;
+                    break;
+                default:
+                    fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
+                }
+
+                await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
+                return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
+            },
+        },
+        air_purifier_fan_speed: {
+            key: ['fan_speed'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['fanSpeed']);
+            },
+        },
+        air_purifier_pm25: {
+            key: ['pm25', 'air_quality'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['particulateMatter25Measurement']);
+            },
+        },
+        air_purifier_replace_filter: {
+            key: ['replace_filter'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['filterRunTime']);
+            },
+        },
+        air_purifier_child_lock: {
+            key: ['child_lock'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificIkeaAirPurifier', {'childLock': ((value.toLowerCase() === 'lock') ? 1 : 0)},
+                    manufacturerOptions);
+                return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['childLock']);
+            },
+        },
+        air_purifier_led_enable: {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificIkeaAirPurifier', {'controlPanelLight': ((value) ? 0 : 1)}, manufacturerOptions);
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificIkeaAirPurifier', ['controlPanelLight']);
+            },
+        },
+    },
+};
 
 module.exports = [
     {
@@ -194,7 +354,7 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
         meta: {supportsHueAndSaturation: false},
     },
     {
@@ -216,7 +376,7 @@ module.exports = [
         model: 'LED1732G11',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 1000 lumen, dimmable, white spectrum, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp({colorTempRange: [250, 454]}),
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E26 WW 806lm'],
@@ -446,8 +606,8 @@ module.exports = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'brightness_move_up', 'brightness_stop'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
@@ -593,14 +753,14 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb GU10 CWS 345lm'],
+        zigbeeModel: ['TRADFRI bulb GU10 CWS 345lm', 'TRADFRI bulb GU10 CWS 380lm'],
         model: 'LED1923R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum, color spectrum',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm'],
         model: 'LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 470 lumen, opal, dimmable, white spectrum, color spectrum',
@@ -621,17 +781,50 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['STARKVIND Air purifier'],
+        zigbeeModel: ['STARKVIND Air purifier', 'STARKVIND Air purifier table'],
         model: 'E2007',
         vendor: 'IKEA',
         description: 'STARKVIND air purifier',
-        exposes: [e.fan().withModes(['off', 'low', 'medium', 'high', 'on', 'auto'])],
-        fromZigbee: [fz.fan],
-        toZigbee: [tz.fan_mode],
+        exposes: [
+            e.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+            exposes.numeric('fan_speed', exposes.access.STATE_GET).withValueMin(0).withValueMax(9)
+                .withDescription('Current fan speed'),
+            e.pm25().withAccess(ea.STATE_GET),
+            exposes.enum('air_quality', ea.STATE_GET, [
+                'excellent', 'good', 'moderate', 'poor',
+                'unhealthy', 'hazardous', 'out_of_range',
+                'unknown',
+            ]).withDescription('Measured air quality'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enabled LED'),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('replace_filter', ea.STATE_GET, true, false)
+                .withDescription('Filter is older than 6 months and needs replacing'),
+        ],
+        meta: {fanStateOn: 'auto'},
+        fromZigbee: [ikea.fz.air_purifier],
+        toZigbee: [
+            ikea.tz.air_purifier_fan_mode, ikea.tz.air_purifier_fan_speed,
+            ikea.tz.air_purifier_pm25, ikea.tz.air_purifier_child_lock, ikea.tz.air_purifier_led_enable,
+            ikea.tz.air_purifier_replace_filter,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
-            await reporting.fanMode(endpoint);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ['manuSpecificIkeaAirPurifier']);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'particulateMatter25Measurement',
+                minimumReportInterval: repInterval.MINUTE, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'filterRunTime',
+                minimumReportInterval: repInterval.HOUR, maximumReportInterval: repInterval.HOUR, reportableChange: 0}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanMode',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            manufacturerOptions);
+            await endpoint.configureReporting('manuSpecificIkeaAirPurifier', [{attribute: 'fanSpeed',
+                minimumReportInterval: 0, maximumReportInterval: repInterval.HOUR, reportableChange: 1}],
+            manufacturerOptions);
+
+            await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
     },
     {

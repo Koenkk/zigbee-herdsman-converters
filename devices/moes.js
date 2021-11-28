@@ -86,7 +86,7 @@ module.exports = [
             tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
@@ -202,14 +202,16 @@ module.exports = [
             tz.moesS_thermostat_boost_heating_countdown, tz.moesS_thermostat_system_mode,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
-            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode],
+            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
+            tz.moesS_thermostat_schedule_programming],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
             e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(ea.STATE_SET).withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
+                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                 'PROGRAMMING MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
@@ -217,11 +219,9 @@ module.exports = [
                 'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
                 'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set ' +
                 'temperature and returns to the weekly programming mode in the next time period. '),
-            exposes.composite('programming_mode').withDescription('PROGRAMMING MODE ⏱ - In this mode, ' +
-                'the device executes a preset week programming temperature time and temperature. ')
-                .withFeature(exposes.text('program_weekday', ea.STATE))
-                .withFeature(exposes.text('program_saturday', ea.STATE))
-                .withFeature(exposes.text('program_sunday', ea.STATE)),
+            exposes.text('programming_mode', ea.STATE_SET).withDescription('PROGRAMMING MODE ⏱ - In this mode, ' +
+                'the device executes a preset week programming temperature time and temperature. ' +
+                'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
@@ -288,11 +288,13 @@ module.exports = [
             exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}],
         model: 'TV01-ZB',
         vendor: 'Moes',
         description: 'Thermostat radiator valve',
         fromZigbee: [fz.moes_thermostat_tv, fz.ignore_tuya_set_time],
+        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'}],
         toZigbee: [tz.moes_thermostat_tv],
         exposes: [
             e.battery(), e.child_lock(), e.window_detection(),
@@ -306,7 +308,7 @@ module.exports = [
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
             // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)
                 .withPreset(Object.values(tuya.tvThermostatPreset)),
         ],

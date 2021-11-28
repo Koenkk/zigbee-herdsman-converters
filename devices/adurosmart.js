@@ -1,10 +1,29 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['AD-SmartPlug3001'],
+        model: '81848',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart plug (with power measurements)',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
     {
         zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor', 'AD-RGBW3001'],
         model: '81809/81813',

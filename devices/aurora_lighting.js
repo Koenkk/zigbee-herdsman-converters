@@ -5,6 +5,31 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const batteryRotaryDimmer = (...endpointsIds) => ({
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+    toZigbee: [],
+    exposes: [e.battery(), e.action([
+        'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
+
+        // Battery level is only reported on first endpoint
+        await reporting.batteryVoltage(endpoints[0]);
+
+        for await (const endpoint of endpoints) {
+            logger.debug(`processing endpoint ${endpoint.ID}`);
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+
+            // The default is for the device to also report the on/off and
+            // brightness at the same time as sending on/off and step commands.
+            // Disable the reporting by setting the max interval to 0xFFFF.
+            await reporting.brightness(endpoint, {max: 0xFFFF});
+            await reporting.onOff(endpoint, {max: 0xFFFF});
+        }
+    },
+});
+
 module.exports = [
     {
         zigbeeModel: ['TWGU10Bulb50AU'],
@@ -167,38 +192,20 @@ module.exports = [
         model: 'AU-A1ZBR1GW',
         vendor: 'Aurora Lighting',
         description: 'AOne one gang wireless battery rotary dimmer',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint,
-                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1);
-        },
+        // One gang battery rotary dimmer with endpoint ID 1
+        ...batteryRotaryDimmer(1),
     },
     {
         zigbeeModel: ['2GBatteryDimmer50AU'],
         model: 'AU-A1ZBR2GW',
         vendor: 'Aurora Lighting',
         description: 'AOne two gang wireless battery rotary dimmer',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
             return {'right': 1, 'left': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint,
-                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
-        },
+        // Two gang battery rotary dimmer with endpoint IDs 1 and 2
+        ...batteryRotaryDimmer(1, 2),
     },
 ];
