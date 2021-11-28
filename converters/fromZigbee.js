@@ -596,7 +596,7 @@ const converters = {
             // handle color property sync
             // NOTE: this should the last thing we do, as we need to have processed all attributes,
             //       we use assign here so we do not lose other attributes.
-            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
     },
     metering_datek: {
@@ -1962,7 +1962,7 @@ const converters = {
                 result.color.s = result.color.saturation;
             }
 
-            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
     },
     tuya_cover: {
