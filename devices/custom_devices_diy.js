@@ -287,6 +287,6 @@ module.exports = [
             await reporting.temperature(endpoint, overides);
             await reporting.humidity(endpoint, overides);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(),
+        exposes: [e.battery(), e.temperature(), e.humidity()],
     },
 ];
