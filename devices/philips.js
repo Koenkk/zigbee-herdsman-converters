@@ -2245,6 +2245,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['5047230P6', '5047230P6'],
+        model: '5047230P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Buckram double spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5047430P6'],
         model: '5047430P6',
         vendor: 'Philips',
