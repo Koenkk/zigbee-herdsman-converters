@@ -271,4 +271,22 @@ module.exports = [
         },
         exposes: [e.soil_moisture(), e.battery()],
     },
+    {
+        zigbeeModel: ['EFEKTA_eON213z'],
+        model: 'EFEKTA_eON213z',
+        vendor: 'Custom devices (DiY)',
+        description: '[DIY temperature and humidity sensor with e-paper 2.13](https://efektalab.com/eON213z)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(),
+    },
 ];
