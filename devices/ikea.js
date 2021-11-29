@@ -147,9 +147,12 @@ const ikea = {
                 if (key == 'fan_state' && value.toLowerCase() == 'on') {
                     value = getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
                 }
+                else {
+                    value = value.toString().toLowerCase();
+                }
 
                 let fanMode;
-                switch (value.toLowerCase()) {
+                switch (value) {
                 case 'off':
                     fanMode = 0;
                     break;
@@ -157,11 +160,11 @@ const ikea = {
                     fanMode = 1;
                     break;
                 default:
-                    fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
+                    fanMode = (+value / 0.2) + 5;
                 }
 
                 await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
-                return {state: {fan_mode: value.toLowerCase(), fan_state: value.toLowerCase() === 'off' ? 'OFF' : 'ON'}};
+                return {state: {fan_mode: value, fan_state: value === 'off' ? 'OFF' : 'ON'}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificIkeaAirPurifier', ['fanMode']);
