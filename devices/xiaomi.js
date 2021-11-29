@@ -1773,6 +1773,21 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['lumi.remote.acn003'],
+        model: 'WXKG16LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch E1 (single rocker)',
+        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [tz.xiaomi_switch_click_mode],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']),
+            exposes.enum('click_mode', ea.SET, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
+        },
+    },
+    {
         zigbeeModel: ['lumi.remote.acn004'],
         model: 'WXKG17LM',
         vendor: 'Xiaomi',
