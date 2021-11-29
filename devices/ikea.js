@@ -146,8 +146,7 @@ const ikea = {
             convertSet: async (entity, key, value, meta) => {
                 if (key == 'fan_state' && value.toLowerCase() == 'on') {
                     value = getMetaValue(entity, meta.mapped, 'fanStateOn', 'allEqual', 'on');
-                }
-                else {
+                } else {
                     value = value.toString().toLowerCase();
                 }
 
