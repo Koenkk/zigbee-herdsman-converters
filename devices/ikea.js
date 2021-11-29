@@ -160,7 +160,7 @@ const ikea = {
                     fanMode = 1;
                     break;
                 default:
-                    fanMode = (+value / 0.2) + 5;
+                    fanMode = parseInt(((parseInt(value) / 2.0) * 10) + 5);
                 }
 
                 await entity.write('manuSpecificIkeaAirPurifier', {'fanMode': fanMode}, manufacturerOptions.ikea);
