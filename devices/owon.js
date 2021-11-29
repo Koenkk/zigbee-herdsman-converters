@@ -87,7 +87,7 @@ module.exports = [
         zigbeeModel: ['THS317'],
         model: 'THS317',
         vendor: 'OWON',
-        description: 'OWON temperature and humidity sensor',
+        description: 'Temperature and humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
