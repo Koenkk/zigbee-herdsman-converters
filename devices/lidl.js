@@ -655,7 +655,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
         model: '368308_2010',
         vendor: 'Lidl',
-        description: 'Silvercrest rdiator valve with thermostat',
+        description: 'Silvercrest radiator valve with thermostat',
         fromZigbee: [fz.ignore_tuya_set_time, fzLocal.zs_thermostat, fz.tuya_data_point_dump],
         toZigbee: [tzLocal.zs_thermostat_current_heating_setpoint, tzLocal.zs_thermostat_child_lock,
             tzLocal.zs_thermostat_comfort_temp, tzLocal.zs_thermostat_eco_temp, tzLocal.zs_thermostat_preset_mode,
