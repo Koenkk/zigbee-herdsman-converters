@@ -85,7 +85,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['ZHA-PIRSensor'],
+        fingerprint: [{modelID: 'ZHA-PIRSensor', manufacturerName: 'Leedarson'}],
         model: '5AA-SS-ZA-H0',
         vendor: 'Leedarson',
         description: 'Motion sensor',

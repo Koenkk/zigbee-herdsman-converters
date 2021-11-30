@@ -33,4 +33,19 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        fingerprint: [{modelID: 'ZHA-PirSensor', manufacturerName: 'LDS'}],
+        model: 'PECMS01',
+        vendor: 'Perenio',
+        description: 'Motion sensor',
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
