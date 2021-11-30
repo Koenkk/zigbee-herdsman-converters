@@ -141,7 +141,6 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
-        _comment: 'Zigbee model TS0202 and manufacturer name _TZ3210_jijr1sss - copy of Fantem ZB003-X',
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_jijr1sss'}],
         model: '07502L',
         vendor: 'Immax',
