@@ -556,13 +556,8 @@ module.exports = [
         description: 'Wireless switch with 4 buttons',
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
-        fromZigbee: [
-            fz.battery,
-            fz.tuya_on_off_action
-        ],
-
+        fromZigbee: [fz.battery, fz.tuya_on_off_action],
         toZigbee: [tz.tuya_operation_mode],
-
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
@@ -570,7 +565,7 @@ module.exports = [
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
             try {
                 await endpoint.read(0xE001, [0xD011]);
-            } catch {};
+            } catch (err) {/* do nothing */}
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
