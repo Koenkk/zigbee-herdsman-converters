@@ -297,6 +297,6 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 1000});
             await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
-		},
+        },
     },
 ];
