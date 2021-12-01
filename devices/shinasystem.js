@@ -282,4 +282,21 @@ module.exports = [
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
         },
     },
+    {
+        zigbeeModel: ['PMM-300Z1'],
+        model: 'PMM-300Z1',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS energy monitor',
+        fromZigbee: [fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.electrical_measurement_power],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 1000});
+            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+		},
+    },
 ];
