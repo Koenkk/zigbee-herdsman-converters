@@ -50,6 +50,15 @@ module.exports = [
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
     },
     {
+        zigbeeModel: ['lumi.magnet.ac01'],
+        model: 'MCCGQ13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara P1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
