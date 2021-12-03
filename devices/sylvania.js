@@ -194,7 +194,7 @@ module.exports = [
         model: '75564',
         vendor: 'Sylvania',
         description: 'Smart+ Adjustable White and Full Color Bulb A19',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({"colorTempPhysicalMin":142,"colorTempPhysicalMax":555}),
         ota: ota.ledvance,
     },
 ];
