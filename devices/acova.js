@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 module.exports = [{
     zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00'],
-    model: '5008-0040',
+    model: 'PERCALE2',
     vendor: 'Acova',
     description: 'Acova Percale 2 Heater',
     fromZigbee: [
