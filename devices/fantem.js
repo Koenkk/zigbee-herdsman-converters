@@ -40,4 +40,19 @@ module.exports = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
+    {
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_ngqk6jia'}],
+        model: 'TS110E',
+        vendor: 'Fantem',
+        description: 'Smart dimmer module with neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            },
+    },
+
 ];
