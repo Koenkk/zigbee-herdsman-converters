@@ -2318,20 +2318,20 @@ const converters = {
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
-            if (dp === 101) return {occupancy: msg.data.data[0] > 0};
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            if (dp === 101) return {occupancy: value > 0 ? true : false};
             else if (dp === 102) {
-                const value = msg.data.data[0];
                 return {
                     power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                     battery_low: value === 3,
                 };
             } else if (dp === 103) {
-                return {tamper: msg.data.data[0] > 0 ? true : false};
+                return {tamper: value > 0 ? true : false};
             } else if (dp === 104) {
-                const temperature = parseFloat(msg.data.data[3]) / 10.0;
-                return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             } else if (dp === 105) {
-                return {humidity: calibrateAndPrecisionRoundOptions(msg.data.data[3], options, 'humidity')};
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             } else {
                 meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`);
             }
