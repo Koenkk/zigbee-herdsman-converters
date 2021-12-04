@@ -452,4 +452,19 @@ describe('index.js', () => {
         const definition = index.findByZigbeeModel('MCT-340 SMA');
         expect(index.getConfigureKey(definition)).toBe(1);
     });
+
+    it('Number exposes with set access should have a range', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                const toCheck = [];
+                for (const expose of device.exposes) {
+                    if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
+                        if (expose.value_min == null || expose.value_max == null) {
+                            throw new Error(`Value min or max unknown for ${expose.property}`);
+                        }
+                    }
+                }
+            }
+        });
+    });
 });
