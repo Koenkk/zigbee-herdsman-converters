@@ -7533,14 +7533,14 @@ const converters = {
             if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {
-		0x21: 'press_on', 
-		0x20: 'press_off', 
-		0x37: 'press_high', 
-		0x38: 'press_low', 
-		0x35: 'hold_high', 
-		0x36: 'hold_low', 
-		0x34: 'release',
-	    };
+                0x21: 'press_on',
+                0x20: 'press_off',
+                0x37: 'press_high',
+                0x38: 'press_low',
+                0x35: 'hold_high',
+                0x36: 'hold_low',
+                0x34: 'release',
+            };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Sunricher: missing command '${commandID}'`);
             } else {
