@@ -23,7 +23,7 @@ module.exports = [{
             .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
             .withLocalTemperature()
             .withSystemMode(['off', 'heat', 'auto'])
-            .withRunningState(['idle', 'heat'], ea.STATE),
+            .withRunningState(['idle', 'heat']),
     ],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
