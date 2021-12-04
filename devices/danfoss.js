@@ -34,7 +34,9 @@ module.exports = [
             exposes.binary('viewing_direction', ea.ALL, true, false)
                 .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
-                .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
+                .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
+                    'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
+                    'system is not energized (e.g. during summer). `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
