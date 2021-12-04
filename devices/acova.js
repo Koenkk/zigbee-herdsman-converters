@@ -2,7 +2,6 @@ const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
-const ea = exposes.access;
 
 module.exports = [{
     zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00'],
