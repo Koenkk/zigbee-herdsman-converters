@@ -189,4 +189,12 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['A19 G2 RGBW'],
+        model: '75564',
+        vendor: 'Sylvania',
+        description: 'Smart+ adjustable white and full color bulb A19',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [142, 555]}),
+        ota: ota.ledvance,
+    },
 ];

@@ -39,6 +39,27 @@ const gledoptoExtend = {
             [tz.gledopto_light_onoff_brightness, tz.gledopto_light_color_colortemp],
         ),
     }),
+    switch: (options={}) => ({
+        ...extend.switch(options),
+        onEvent: async (type, data, device) => {
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const interval = setInterval(async () => {
+                    try {
+                        await device.endpoints[0].read('genOnOff', ['onOff']);
+                    } catch (error) {
+                        // Do nothing
+                    }
+                }, 5000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
+    }),
 };
 
 module.exports = [
@@ -580,32 +601,21 @@ module.exports = [
         zigbeeModel: ['GL-G-007Z'],
         model: 'GL-G-007Z',
         vendor: 'Gledopto',
-        description: 'Zigbee 9W Garden Lamp RGB+CCT',
+        description: 'Zigbee 9W garden lamp RGB+CCT',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-W-001Z'],
         model: 'GL-W-001Z',
         vendor: 'Gledopto',
-        description: 'Zigbee On/Off Wall Switch',
-        extend: extend.switch(),
-        onEvent: async (type, data, device) => {
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 5 seconds.
-            // This is the same way as the Hue bridge does it.
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const interval = setInterval(async () => {
-                    try {
-                        await device.endpoints[0].read('genOnOff', ['onOff']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, 5000);
-                globalStore.putValue(device, 'interval', interval);
-            }
-        },
+        description: 'Zigbee on/off wall switch',
+        extend: gledoptoExtend.switch(),
+    },
+    {
+        zigbeeModel: ['GL-SD-002'],
+        model: 'GL-SD-002',
+        vendor: 'Gledopto',
+        description: 'Zigbee 3.0 smart home switch',
+        extend: gledoptoExtend.switch(),
     },
 ];
