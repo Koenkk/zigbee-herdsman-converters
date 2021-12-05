@@ -185,6 +185,13 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['3802961'],
+        model: '3802961',
+        vendor: 'Namron',
+        description: 'LED 9W CCT E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['3802962'],
         model: '3802962',
         vendor: 'Namron',
