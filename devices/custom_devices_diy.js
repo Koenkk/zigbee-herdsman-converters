@@ -256,7 +256,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_miniPWS'],
         model: 'EFEKTA_miniPWS',
         vendor: 'Custom devices (DiY)',
-        description: '[Mini plant Wattering Sensor](http://efektalab.com/miniPWS)',
+        description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
         fromZigbee: [fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
