@@ -456,7 +456,6 @@ describe('index.js', () => {
     it('Number exposes with set access should have a range', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
-                const toCheck = [];
                 for (const expose of device.exposes) {
                     if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
                         if (expose.value_min == null || expose.value_max == null) {
