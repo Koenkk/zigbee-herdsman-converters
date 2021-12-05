@@ -831,7 +831,7 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
-                    'time for the function will be counted down in seconds ( 465 to 0 ).'),
+                    'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
                     ' is activated, the temperature in the house is kept at 8 °C ‚the device display "AF".press the '+
                     'pair button to cancel.'),
@@ -840,7 +840,8 @@ module.exports = [
                     'heating stop, the device display "HS" ‚press the pair button to cancel.'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
             exposes.numeric('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
+                    'automatically start at the set time starting point and run the holiday temperature.')
+                .withValueMin(0).withValueMax(1000),
             exposes.composite('programming').withDescription('Auto Mode ⏱ - In this mode,'+
                     ' the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('schedule_monday', ea.STATE))
@@ -942,7 +943,8 @@ module.exports = [
                 .withFeature(exposes.text('sunday_schedule', ea.STATE)),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(1000),
         ],
     },
     {
@@ -1604,9 +1606,12 @@ module.exports = [
             exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
             exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
             exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
-            exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay'),
-            exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer'),
-            exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer'),
+            exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay').withValueMin(0)
+                .withValueMax(1000),
+            exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer')
+                .withValueMin(0).withValueMax(10000),
+            exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer')
+                .withValueMin(0).withValueMax(10000),
             exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
             exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
             exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),

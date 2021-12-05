@@ -225,9 +225,10 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(1000),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
@@ -285,8 +286,8 @@ module.exports = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'},
@@ -301,10 +302,7 @@ module.exports = [
             e.battery(), e.child_lock(), e.window_detection(),
             exposes.binary('frost_detection', ea.STATE_SET, true, false).withDescription('Enables/disables frost detection on the device'),
             exposes.binary('heating_stop', ea.STATE_SET, true, false).withDescription('Stop heating'),
-            exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
-            exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
-            exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
-            exposes.numeric('open_window_temperature', ea.STATE_SET).withDescription('Open window mode temperature'),
+            e.holiday_temperature(), e.comfort_temperature(), e.eco_temperature(), e.open_window_temperature(),
             exposes.numeric('boost_heating_countdown', ea.STATE).withDescription('Boost heating countdown'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
             // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
