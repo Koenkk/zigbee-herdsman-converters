@@ -795,9 +795,9 @@ module.exports = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn', /* model: 'TV02-Zigbee', vendor: 'TuYa' */},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf', /* model: 'TV01-ZB', vendor: 'Moes' */},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn',/* model: 'TV02-Zigbee', vendor: 'TuYa' */},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf',/* model: 'TV01-ZB', vendor: 'Moes' */},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux',/* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */},
         ],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
@@ -812,7 +812,7 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
             e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
-            e.holiday_temperature().withValueMin(0).withValueMax(30),e.comfort_temperature().withValueMin(0).withValueMax(30),
+            e.holiday_temperature().withValueMin(0).withValueMax(30), e.comfort_temperature().withValueMin(0).withValueMax(30),
             e.eco_temperature().withValueMin(0).withValueMax(30),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
