@@ -835,8 +835,6 @@ module.exports = [
             e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
             e.holiday_temperature().withValueMin(0).withValueMax(30), e.comfort_temperature().withValueMin(0).withValueMax(30),
             e.eco_temperature().withValueMin(0).withValueMax(30),
-            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature(), e.holiday_temperature(),
-            e.comfort_temperature(), e.eco_temperature(),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
@@ -849,8 +847,6 @@ module.exports = [
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
                     'heating stop, the device display "HS" ‚press the pair button to cancel.'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
-            exposes.text('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
             exposes.numeric('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
                     'automatically start at the set time starting point and run the holiday temperature.')
                 .withValueMin(0).withValueMax(1000),
