@@ -596,7 +596,7 @@ const converters = {
             // handle color property sync
             // NOTE: this should the last thing we do, as we need to have processed all attributes,
             //       we use assign here so we do not lose other attributes.
-            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
     },
     metering_datek: {
@@ -667,6 +667,10 @@ const converters = {
                     constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
                         constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
                         msg.data['develcoInterfaceMode'];
+            }
+            if (msg.data.hasOwnProperty('status')) {
+                result['battery_low'] = (msg.data.status & 2) > 0;
+                result['check_meter'] = (msg.data.status & 1) > 0;
             }
 
             return result;
@@ -1753,6 +1757,29 @@ const converters = {
             }
         },
     },
+    tuya_illuminance_temperature_humidity_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandSetDataResponse', 'commandGetData'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.thitTemperature:
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.thitHumidity:
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+            case tuya.dataPoints.thitBatteryPercentage:
+                return {battery: value};
+            case tuya.dataPoints.thitIlluminanceLux:
+                return {illuminance_lux: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_illuminance_temperature_humidity_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     ts0201_temperature_humidity_alarm: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -1958,7 +1985,7 @@ const converters = {
                 result.color.s = result.color.saturation;
             }
 
-            return Object.assign(result, libColor.syncColorState(result, meta.state, options));
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, meta.logger));
         },
     },
     tuya_cover: {
@@ -2444,7 +2471,7 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'TS0043') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
-            } else if (['TS0044', 'YSR-MINI-Z'].includes(model.model)) {
+            } else if (['TS0044', 'YSR-MINI-Z', 'TS004F'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
@@ -7480,6 +7507,44 @@ const converters = {
                 const value = msg.data['tuyaOperationMode'];
                 const lookup = {0: 'command', 1: 'event'};
                 return {operation_mode: lookup[value]};
+            }
+        },
+    },
+    sunricher_switch2801K2: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {0x21: 'press_on', 0x20: 'press_off', 0x34: 'release', 0x35: 'hold_on', 0x36: 'hold_off'};
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Sunricher: missing command '${commandID}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+    sunricher_switch2801K4: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {
+                0x21: 'press_on',
+                0x20: 'press_off',
+                0x37: 'press_high',
+                0x38: 'press_low',
+                0x35: 'hold_high',
+                0x36: 'hold_low',
+                0x34: 'release',
+            };
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Sunricher: missing command '${commandID}'`);
+            } else {
+                return {action: lookup[commandID]};
             }
         },
     },

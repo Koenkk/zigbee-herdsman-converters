@@ -34,7 +34,9 @@ module.exports = [
             exposes.binary('viewing_direction', ea.ALL, true, false)
                 .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
             exposes.binary('heat_available', ea.ALL, true, false)
-                .withDescription('Not clear how this affects operation. `false` No Heat Available or `true` Heat Available'),
+                .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
+                    'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
+                    'system is not energized (e.g. during summer). `false` No Heat Available or `true` Heat Available'),
             exposes.binary('heat_required', ea.STATE_GET, true, false)
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
@@ -42,8 +44,9 @@ module.exports = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
-                .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes at every 100 ' +
-                    'value change. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).'),
+                .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes and 0.1 ' +
+                    'degrees difference. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).')
+                .withValueMin(-8000).withValueMax(3500),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -62,7 +65,8 @@ module.exports = [
                 .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             exposes.numeric('load_room_mean', ea.ALL)
-                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes'),
+                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes')
+                .withValueMin(-30).withValueMax(30),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,

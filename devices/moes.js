@@ -76,7 +76,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -225,8 +226,10 @@ module.exports = [
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(1000),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
@@ -284,7 +287,7 @@ module.exports = [
         supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
 ];

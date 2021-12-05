@@ -50,6 +50,15 @@ module.exports = [
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
     },
     {
+        zigbeeModel: ['lumi.magnet.ac01'],
+        model: 'MCCGQ13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara P1 door & window contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+    },
+    {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
@@ -1770,6 +1779,21 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.remote.acn003'],
+        model: 'WXKG16LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch E1 (single rocker)',
+        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [tz.xiaomi_switch_click_mode],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']),
+            exposes.enum('click_mode', ea.SET, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
         },
     },
     {

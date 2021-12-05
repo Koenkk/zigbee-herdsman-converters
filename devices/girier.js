@@ -6,7 +6,10 @@ const extend = require('../lib/extend');
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_majwnphg'}],
+        fingerprint: [
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_majwnphg'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_6axxqqi2'},
+        ],
         model: 'JR-ZDS01',
         vendor: 'Girier',
         description: '1 gang mini switch',

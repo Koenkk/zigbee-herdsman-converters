@@ -311,13 +311,16 @@ module.exports = [
         exposes: [
             e.power(),
             e.energy(),
+            e.battery_low(),
             exposes.numeric('pulse_configuration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535'),
             exposes.enum('interface_mode', ea.ALL,
                 ['electricity', 'gas', 'water', 'kamstrup-kmp', 'linky', 'IEC62056-21', 'DSMR-2.3', 'DSMR-4.0'])
                 .withDescription('Operating mode/probe'),
             exposes.numeric('current_summation', ea.SET)
-                .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh'),
+                .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh').withValueMin(0).withValueMax(10000),
+            exposes.binary('check_meter', ea.STATE, true, false)
+                .withDescription('Is true if communication problem with meter is experienced'),
         ],
     },
     {

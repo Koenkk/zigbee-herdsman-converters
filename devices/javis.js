@@ -31,6 +31,7 @@ module.exports = [
             exposes.enum('keep_time', ea.STATE_SET, ['0', '1', '2', '3', '4', '5', '6', '7'])
                 .withDescription('PIR keep time 0:5s|1:30s|2:60s|3:180s|4:300s|5:600s|6:1200s|7:1800s'),
             exposes.enum('sensitivity', ea.STATE_SET, ['25', '50', '75', '100']),
-            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration')],
+            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration')
+                .withValueMin(-10000).withValueMax(10000)],
     },
 ];
