@@ -63,8 +63,8 @@ module.exports = [
                 .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             exposes.numeric('load_room_mean', ea.ALL)
-                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes')
-                .withValueMin(-30).withValueMax(30),
+                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
+                .withValueMin(-8000).withValueMax(100),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,
