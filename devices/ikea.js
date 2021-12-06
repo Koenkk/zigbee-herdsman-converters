@@ -302,10 +302,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm', 'TRADFRI bulb E17 WS 440lm'],
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14 WS 450/470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14/E17 WS 450/470/440 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
