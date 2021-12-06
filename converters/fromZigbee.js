@@ -2735,7 +2735,7 @@ const converters = {
             const currentTime = new Date().getTime();
             const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
             const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
-            const endpoint = msg.device.getEndpoint(1);
+            const endpoint = msg.endpoint;
             const payload = {
                 payloadSize: 8,
                 payload: [
