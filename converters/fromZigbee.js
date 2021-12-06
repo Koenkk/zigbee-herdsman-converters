@@ -4927,6 +4927,11 @@ const converters = {
                         value = data.readUInt32LE(i+2);
                         i += 5;
                         break;
+                    case 36:
+                        // 0x24 Zcl40BitUint
+                        value = [data.readUInt32LE(i+2), data.readUInt8(i+6)];
+                        i += 6;
+                        break;
                     case 39:
                         // 0x27 Zcl64BitUint
                         value = data.readBigUInt64BE(i+2);
