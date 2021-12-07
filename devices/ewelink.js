@@ -20,7 +20,7 @@ module.exports = [
             device.skipDefaultResponse = true;
         },
     },
-        {
+    {
         zigbeeModel: ['SWITCH-ZR02'],
         model: 'SWITCH-ZR02',
         vendor: 'eWeLink',
