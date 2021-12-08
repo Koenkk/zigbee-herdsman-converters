@@ -38,7 +38,8 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
     // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
     const endpoint = device.getEndpoint(1);
     const version = device.softwareBuildID.split('.').map((n) => Number(n));
-    const bindTarget = version[0] >= 2 && version[1] >= 3 && version[2] >= 75 ? coordinatorEndpoint : constants.defaultBindGroup;
+    const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
+        coordinatorEndpoint : constants.defaultBindGroup;
     await endpoint.bind('genOnOff', bindTarget);
     await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
     await reporting.batteryPercentageRemaining(endpoint);
