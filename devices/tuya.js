@@ -824,8 +824,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Thermostat radiator valve',
         whiteLabel: [
-            {vendor: 'Moes', model: 'TV01-ZB'},
-            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+----->            {vendor: 'Moes', model: 'TV01-ZB'},
+----->            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
