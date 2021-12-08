@@ -271,7 +271,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['EFEKTA_eON213wz'],
-        model: 'EFEKTA_eON213z',
+        model: 'EFEKTA_eON213wz',
         vendor: 'Custom devices (DiY)',
         description: '[Mini weather station, digital barometer, forecast, charts, temperature, humidity](http://efektalab.com/eON213wz)',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
