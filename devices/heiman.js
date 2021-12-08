@@ -73,6 +73,7 @@ module.exports = [
                 globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                if (seconds === -1) return;
                 const interval = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
@@ -85,7 +86,8 @@ module.exports = [
     },
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab'],
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
+            'SmokeSensor-EF-3.0'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -99,7 +101,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0', 'SmokeSensor-EM'],
+        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
         model: 'HS3SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',

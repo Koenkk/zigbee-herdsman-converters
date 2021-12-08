@@ -80,12 +80,16 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_backlight_mode]),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous']),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])],
         whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -816,22 +820,30 @@ module.exports = [
     },
     {
         fingerprint: [
-            {/* model: 'TV02-Zigbee', vendor: 'TuYa',  */modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
+            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}, /* model: 'TV01-ZB', vendor: 'Moes' */
+            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+        ],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
         description: 'Thermostat radiator valve',
+        whiteLabel: [
+            {vendor: 'Moes', model: 'TV01-ZB'},
+            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+        ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
         toZigbee: [tz.tvtwo_thermostat],
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
-            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature(), e.holiday_temperature(),
-            e.comfort_temperature(), e.eco_temperature(),
+            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
+            e.holiday_temperature().withValueMin(0).withValueMax(30), e.comfort_temperature().withValueMin(0).withValueMax(30),
+            e.eco_temperature().withValueMin(0).withValueMax(30),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
-                    'time for the function will be counted down in seconds ( 465 to 0 ).'),
+                    'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
                     ' is activated, the temperature in the house is kept at 8 °C ‚the device display "AF".press the '+
                     'pair button to cancel.'),
@@ -840,7 +852,8 @@ module.exports = [
                     'heating stop, the device display "HS" ‚press the pair button to cancel.'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
             exposes.numeric('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
+                    'automatically start at the set time starting point and run the holiday temperature.')
+                .withValueMin(0).withValueMax(1000),
             exposes.composite('programming').withDescription('Auto Mode ⏱ - In this mode,'+
                     ' the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('schedule_monday', ea.STATE))
@@ -942,7 +955,8 @@ module.exports = [
                 .withFeature(exposes.text('sunday_schedule', ea.STATE)),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(1000),
         ],
     },
     {
@@ -974,6 +988,7 @@ module.exports = [
                 globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                if (seconds === -1) return;
                 const interval = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
@@ -1070,6 +1085,7 @@ module.exports = [
                 globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                if (seconds === -1) return;
                 const interval = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
@@ -1216,7 +1232,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'}],
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
+            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
@@ -1227,7 +1244,7 @@ module.exports = [
             exposes.presets.power_on_behavior(),
             exposes.presets.switch_type_2(),
         ],
-        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}],
+        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -1604,9 +1621,12 @@ module.exports = [
             exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
             exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
             exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
-            exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay'),
-            exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer'),
-            exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer'),
+            exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay').withValueMin(0)
+                .withValueMax(1000),
+            exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer')
+                .withValueMin(0).withValueMax(10000),
+            exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer')
+                .withValueMin(0).withValueMax(10000),
             exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
             exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
             exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),

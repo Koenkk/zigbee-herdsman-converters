@@ -243,12 +243,12 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCP001', 'LCP002', '4090331P9_01', '4090331P9_02'],
+        zigbeeModel: ['LCP001', 'LCP002', '4090331P9_01', '4090331P9_02', '929003053301_01', '929003053301_02'],
         model: '4090331P9',
         vendor: 'Philips',
-        description: 'Hue Ensis',
+        description: 'Hue Ensis (white)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {

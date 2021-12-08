@@ -610,7 +610,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.lidl_watering_timer],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {},
-        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1)
+        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1).withValueMax(10000)
             .withUnit('min').withDescription('Auto off after specific time.')],
     },
     {
@@ -677,8 +677,10 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'holiday', 'boost']),
-            exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature'),
-            exposes.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute'),
+            exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
+                .withValueMin(-10).withValueMax(35),
+            exposes.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute')
+                .withValueMin(0).withValueMax(1000),
             exposes.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
             exposes.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
             exposes.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),

@@ -45,7 +45,8 @@ module.exports = [
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes and 0.1 ' +
-                    'degrees difference. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).'),
+                    'degrees difference. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).')
+                .withValueMin(-8000).withValueMax(3500),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -64,7 +65,8 @@ module.exports = [
                 .withDescription('Whether or not the thermostat acts as standalone thermostat or shares load with other ' +
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             exposes.numeric('load_room_mean', ea.ALL)
-                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes'),
+                .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
+                .withValueMin(-8000).withValueMax(100),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,
