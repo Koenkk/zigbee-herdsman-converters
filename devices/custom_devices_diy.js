@@ -269,4 +269,25 @@ module.exports = [
         },
         exposes: [e.soil_moisture(), e.battery()],
     },
+    {
+        zigbeeModel: ['EFEKTA_eON213wz'],
+        model: 'EFEKTA_eON213wz',
+        vendor: 'Custom devices (DiY)',
+        description: '[Mini weather station, digital barometer, forecast, charts, temperature, humidity](http://efektalab.com/eON213wz)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+            await reporting.pressureExtended(endpoint, overides);
+            await endpoint.read('msPressureMeasurement', ['scale']);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
+    },
 ];
