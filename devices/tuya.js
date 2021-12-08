@@ -816,16 +816,16 @@ module.exports = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */               // <------------------------<<<<<<<<<<<<
+            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}, /* model: 'TV01-ZB', vendor: 'Moes' */                   // <------------------------<<<<<<<<<<<<
+            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */     // <------------------------<<<<<<<<<<<<
         ],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
         description: 'Thermostat radiator valve',
         whiteLabel: [
------>            {vendor: 'Moes', model: 'TV01-ZB'},
------>            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+            {vendor: 'Moes', model: 'TV01-ZB'},                                                                                 // <------------------------<<<<<<<<<<<<
+            {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},                                                                   // <------------------------<<<<<<<<<<<<
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
