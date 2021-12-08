@@ -261,8 +261,8 @@ module.exports = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
-        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], disableColorTempStartup: true}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 370]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
     {
