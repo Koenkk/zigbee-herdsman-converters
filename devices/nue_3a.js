@@ -286,7 +286,7 @@ module.exports = [
         zigbeeModel: ['LXN-2S27LX1.0'],
         model: 'NUE-AUWZO2',
         vendor: 'Nue / 3A',
-        description: 'Smart Zigbee Double Power Point',
+        description: 'Smart Zigbee double power point',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {multiEndpoint: true},
