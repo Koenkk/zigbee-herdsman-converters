@@ -834,7 +834,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCT024', '440400982841'],
+        zigbeeModel: ['LCT024', '440400982841', '440400982842'],
         model: '915005733701',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Play Lightbar',
