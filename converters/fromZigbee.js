@@ -2727,25 +2727,6 @@ const converters = {
             }
         },
     },
-    hy_set_time_request: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetTimeRequest'],
-        convert: async (model, msg, publish, options, meta) => {
-            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-            const currentTime = new Date().getTime();
-            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
-            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
-            const endpoint = msg.endpoint;
-            const payload = {
-                payloadSize: 8,
-                payload: [
-                    ...tuya.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...tuya.convertDecimalValueTo4ByteHexArray(localTime),
-                ],
-            };
-            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
-        },
-    },
     ptvo_switch_uart: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
@@ -7703,7 +7684,7 @@ const converters = {
     },
     ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetTimeRequest'],
+        type: ['commandMcuSyncTime'],
         convert: (model, msg, publish, options, meta) => null,
     },
     // #endregion
