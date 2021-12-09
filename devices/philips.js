@@ -1274,6 +1274,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003099001'],
+        model: '929003099001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle square panel light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC015'],
         model: '3216331P5',
         vendor: 'Philips',
