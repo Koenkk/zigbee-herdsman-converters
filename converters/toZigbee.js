@@ -3155,7 +3155,7 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             // Always use same transid as tuya_dimmer_level (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'setData', 1);
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'ON', 'dataRequest', 1);
         },
     },
     tuya_dimmer_level: {
@@ -3194,7 +3194,7 @@ const converters = {
                 }
             }
             // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-            await tuya.sendDataPointValue(entity, dp, newValue, 'setData', 1);
+            await tuya.sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
         },
     },
     tuya_switch_state: {
@@ -3239,7 +3239,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // input to multiple of 10 with max value of 100
             const thresh = Math.abs(Math.min(10 * (Math.floor(value / 10)), 100));
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTreshold, thresh, 'setData', 1);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTreshold, thresh, 'dataRequest', 1);
             return {state: {threshold: value}};
         },
     },
@@ -3249,7 +3249,7 @@ const converters = {
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTimer, timer, 'setData', 1);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTimer, timer, 'dataRequest', 1);
             return {state: {timer: value}};
         },
     },
@@ -3318,7 +3318,7 @@ const converters = {
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
-            await tuya.sendDataPointValue(entity, 11, timer, 'setData', 1);
+            await tuya.sendDataPointValue(entity, 11, timer, 'dataRequest', 1);
             return {state: {timer: value}};
         },
     },
@@ -3328,7 +3328,7 @@ const converters = {
             let timerState = 2;
             if (value === 'disabled') timerState = 0;
             else if (value === 'active') timerState = 1;
-            await tuya.sendDataPointValue(entity, 11, timerState, 'setData', 1);
+            await tuya.sendDataPointValue(entity, 11, timerState, 'dataRequest', 1);
             return {state: {timer_state: value}};
         },
     },
@@ -6110,18 +6110,18 @@ const converters = {
 
             switch (key) {
             case 'state':
-                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'setData', 1);
+                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'dataRequest', 1);
                 break;
 
             case 'brightness':
                 if (value >= 0 && value <= 254) {
                     const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                     if (newValue === 0) {
-                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'dataRequest', 1);
                     } else {
-                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'setData', 1);
+                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'dataRequest', 1);
                     }
-                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'setData', 1);
+                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'dataRequest', 1);
                     break;
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..254');
