@@ -38,7 +38,7 @@ const tuyaLocal = {
 const fzLocal = {
     zs_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandDataReport'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
