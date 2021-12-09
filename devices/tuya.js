@@ -1539,8 +1539,9 @@ module.exports = [
         model: 'HY08WE',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report, fz.hy_set_time_request],
+        fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report],
         toZigbee: [tz.hy_thermostat],
+        onEvent: tuya.onEventSetTime,
         exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
             .withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)],
