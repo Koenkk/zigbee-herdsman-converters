@@ -30,7 +30,7 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.command('manuSpecificTuya', 'resetDevice', {});
+            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
             await endpoint.command('manuSpecificTuya', 'unknown0x10', {'data': [0x00, 0x02]});
         },
     },
