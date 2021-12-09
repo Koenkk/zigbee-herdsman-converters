@@ -158,13 +158,13 @@ def main():
         tokens = line.split(" ")
         time = datetime.datetime.fromtimestamp(int(int(tokens[0]) / 1000))
         address = tokens[1]
-        status = int(tokens[2], 16)
-        transid = int(tokens[3], 16)
 
-        (name, value) = get_values(tokens[4:])
+        seq = int(tokens[2], 16)
+
+        (name, value) = get_values(tokens[3:])
         print(
-            "{} {} (tid: {:3d}, s: {}) [{}] => {}".format(
-                time.isoformat(), address, transid, status, name, value
+            "{} {} (seq: {:4d}) [{}] => {}".format(
+                time.isoformat(), address, seq, name, value
             )
         )
 

@@ -4203,8 +4203,7 @@ const converters = {
             let dataStr =
                 Date.now().toString() + ' ' +
                 meta.device.ieeeAddr + ' ' +
-                getHex(msg.data.status) + ' ' +
-                getHex(msg.data.transid) + ' ' +
+                getHex(msg.data.seq) + ' ' +
                 getHex(msg.data.dp) + ' ' +
                 getHex(msg.data.datatype) + ' ' +
                 getHex(msg.data.fn);
