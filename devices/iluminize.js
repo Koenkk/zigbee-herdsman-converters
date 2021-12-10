@@ -5,7 +5,6 @@ const extend = require('../lib/extend');
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
@@ -119,7 +118,7 @@ module.exports = [
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_state, tz.cover_via_brightness],
         meta: {coverInverted: false},
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        exposes: [e.cover_position()],
         ota: ota.zigbeeOTA,
     },
     {
