@@ -3,7 +3,9 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const tz = require('../converters/toZigbee');
+const ota = require('../lib/ota');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -116,13 +118,9 @@ module.exports = [
         description: 'Zigbee 3.0 switch shutter SW with level control',
         fromZigbee: [fz.cover_position_tilt, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {coverInverted: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
+        meta: {coverInverted: false},
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
