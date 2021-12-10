@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
 module.exports = [
@@ -107,6 +108,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['5128.10'],
+        model: '5128.10',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 switch shutter SW with level control',
+        fromZigbee: [fz.cover_position_tilt, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
