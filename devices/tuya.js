@@ -1658,7 +1658,7 @@ module.exports = [
         toZigbee: [tz.tuya_radar_sensor],
         exposes: [
             e.illuminance_lux(), e.presence(),
-            exposes.enum('motion', ea.STATE, ['true', 'false']).withDescription('moving inside the range of the sensor'),
+            exposes.binary('motion', ea.STATE, ['true', 'false']).withDescription('moving inside the range of the sensor'),
             exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
             exposes.enum('motion_direction', ea.STATE, ['standing still', 'moving forward', 'moving backward'])
                 .withDescription('direction of movement from the point of view of the radar'),
