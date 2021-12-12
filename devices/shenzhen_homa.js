@@ -50,4 +50,15 @@ module.exports = [
         description: 'Wireless dimmable controller',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['HOMA1001'],
+        model: 'HOMA1001',
+        vendor: 'ShenZhen_Homa',
+        description: 'HOMA1001 - Single Colour, Colour Tunable, RGB and RGBW controller',
+        extend: extend.light_onoff_brightness_color(),
+        exposes: [e.light_brightness_colorxy().withEndpoint('rgb'), e.light_brightness().withEndpoint('white')],
+        endpoint: (device) => {
+            return {white:10, rgb: 11};
+        },
+    },
 ];
