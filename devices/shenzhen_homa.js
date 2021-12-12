@@ -58,7 +58,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_color(),
         exposes: [e.light_brightness_colorxy().withEndpoint('rgb'), e.light_brightness().withEndpoint('white')],
         endpoint: (device) => {
-            return {white:10, rgb: 11};
+            return {white: 10, rgb: 11};
         },
     },
 ];
