@@ -3,6 +3,7 @@ const exposes = require('../lib/exposes');
 const globalStore = require('../lib/store');
 const {repInterval} = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const {Buffer} = require('buffer');
 
 const ea = exposes.access;
 
