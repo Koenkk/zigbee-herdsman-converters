@@ -1,5 +1,9 @@
 const index = require('../index');
-const devices = require('../devices');
+const exposes = require('../lib/exposes');
+const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+const equals = require('fast-deep-equal/es6');
+const fs = require('fs');
+const path = require('path');
 
 function containsOnly(array1, array2){
     for (const elem of array2) {
@@ -12,37 +16,154 @@ function containsOnly(array1, array2){
 }
 
 describe('index.js', () => {
-    it('Find device by model ID', () => {
+    it('Legacy: Find by zigbeeModel', () => {
         const device = index.findByZigbeeModel('WaterSensor-N');
         expect(device.model).toBe('HS1WL/HS3WL')
     });
 
-    it('Find device by model ID with strange characters 1', () => {
+    it('Legacy: Find by zigbeeModel with strange characters 1', () => {
         const device = index.findByZigbeeModel('lumi.remote.b1acn01\u0000\u0000\u0000\u0000\u0000\u0000');
         expect(device.model).toBe('WXKG11LM')
     });
 
-    it('Find device by model ID with strange characters 2', () => {
+    it('Legacy: Find by zigbeeModel with strange characters 2', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1\u0000lu');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
-    it('Find device by model ID with strange characters 3', () => {
+    it('Legacy: Find by zigbeeModel with strange characters 3', () => {
         const device = index.findByZigbeeModel('lumi.sensor_86sw1');
-        expect(device.model).toBe('WXKG03LM')
+        expect(device.model).toBe('WXKG03LM_rev1')
     });
 
-    it('Find device by model ID without strange characters', () => {
+    it('Legacy: Find by zigbeeModel without strange characters', () => {
         const device = index.findByZigbeeModel('lumi.sensor_switch.aq2\u0000\u0000\u0000\u0000\u0000\u0000');
         expect(device.model).toBe('WXKG11LM')
     });
 
-    it('Find device by model ID null', () => {
+    it('Legacy: Find by zigbeeModel with model ID null', () => {
         const device = index.findByZigbeeModel(null);
         expect(device).toBe(null)
     });
 
-    it('Verify devices.js definitions', () => {
+    it('Find by device where modelID is null', () => {
+        const endpoints = [
+            {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+            {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: 'Router',
+            manufacturerID: 4126,
+            modelID: undefined,
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe('XBee');
+    });
+
+    it('Find by device shouldn\'t match when modelID is null and there is no fingerprint match', () => {
+        const endpoints = [
+            {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: undefined,
+            manufacturerID: undefined,
+            modelID: undefined,
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition).toBeNull();
+    });
+
+    it('Find by device when device has modelID should match', () => {
+        const endpoints = [
+            {ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []},
+        ];
+        const device = {
+            type: undefined,
+            manufacturerID: undefined,
+            modelID: "lumi.sensor_motion",
+            endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("RTCGQ01LM");
+    });
+
+    it('Find by device should prefer fingerprint match over zigbeeModel', () => {
+        const mullerEndpoints = [
+            {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
+            {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
+        ];
+        const muller = {
+            type: 'Router',
+            manufacturerID: 4635,
+            manufacturerName: 'MLI',
+            modelID: 'CCT Lighting',
+            powerSource: 'Mains (single phase)',
+            endpoints: mullerEndpoints,
+            getEndpoint: (ID) => mullerEndpoints.find((e) => e.ID === ID),
+        };
+
+        const sunricher = {
+            // Mock, not the actual fingerprint.
+            type: 'Router',
+            manufacturerID: 9999,
+            manufacturerName: 'SunRicher',
+            modelID: 'CCT Lighting',
+            powerSource: 'Mains (single phase)',
+            endpoints: [],
+            getEndpoint: (ID) => null,
+        };
+
+        expect(index.findByDevice(sunricher).model).toBe('ZG192910-4');
+        expect(index.findByDevice(muller).model).toBe('404031');
+    });
+
+    it('Find by device when fingerprint has zigbeeModel of other definition', () => {
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
+        const endpoints = [
+            {ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0,3,1280,1], outputClusters: [3]},
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: 0,
+            manufacturerName: 'eWeLink',
+            modelID: 'TH01',
+            powerSource: 'Battery',
+            endpoints: endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("SNZB-04");
+    });
+
+    it('Find by device when fingerprint has zigbeeModel of other definition shouldn\'t match when fingerprint doesn\t match', () => {
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
+        const endpoints = [
+            {ID: 1, profileID: 260, deviceID: 770, inputClusters: [0,3,1026,1029,1], outputClusters: [3]},
+        ];
+        const device = {
+            type: 'EndDevice',
+            manufacturerID: 0,
+            manufacturerName: 'eWeLink',
+            modelID: 'TH01',
+            powerSource: 'Battery',
+            endpoints: endpoints,
+            getEndpoint: (ID) => endpoints.find((e) => e.ID === ID),
+        };
+
+        const definition = index.findByDevice(device);
+        expect(definition.model).toBe("SNZB-02");
+    });
+
+    it('Verify definitions', () => {
         function verifyKeys(expected, actual, id) {
             expected.forEach((key) => {
                 if (!actual.includes(key)) {
@@ -53,15 +174,25 @@ describe('index.js', () => {
 
         let foundZigbeeModels = [];
         let foundModels = [];
+        let foundFingerprints = [];
 
-        devices.forEach((device) => {
+        index.definitions.forEach((device) => {
             // Verify device attributes.
             verifyKeys(
-                ['model', 'vendor', 'description', 'supports', 'fromZigbee', 'toZigbee', 'zigbeeModel'],
+                ['model', 'vendor', 'description', 'fromZigbee', 'toZigbee', 'exposes'],
                 Object.keys(device),
                 device.model,
             );
 
+            if (!device.hasOwnProperty('zigbeeModel') && !device.hasOwnProperty('fingerprint')) {
+                throw new Error(`'${device.model}' has no zigbeeModel or fingerprint`);
+            }
+
+            if (device.fromZigbee.includes(undefined)) {
+                console.log(device.model);
+            }
+
+            expect(device.fromZigbee).not.toContain(undefined);
             expect(device.fromZigbee.length).toBe(new Set(device.fromZigbee).size)
 
             // Verify fromConverters
@@ -102,38 +233,237 @@ describe('index.js', () => {
             });
 
             // Check for duplicate zigbee model ids
-            device.zigbeeModel.forEach((m) => {
-                if (foundZigbeeModels.includes(m.toLowerCase())) {
-                    throw new Error(`Duplicate zigbee model ${m}`)
-                }
-            });
+            if (device.hasOwnProperty('zigbeeModel')) {
+                device.zigbeeModel.forEach((m) => {
+                    if (foundZigbeeModels.includes(m.toLowerCase())) {
+                        throw new Error(`Duplicate zigbee model ${m}`)
+                    }
+                });
+            }
 
             // Check for duplicate model ids
             if (foundModels.includes(device.model)) {
                 throw new Error(`Duplicate model ${device.model}`)
             }
 
-            // Verify meta
-            if (device.configure && (!device.meta || !device.meta.configureKey)) {
-                throw new Error(`${device.model} requires configureKey because it has configure`)
+            // Check for duplicate foundFingerprints
+            if (device.fingerprint) {
+                for (const fingerprint of device.fingerprint) {
+                    for (const foundFingerprint of foundFingerprints) {
+                        if (equals(foundFingerprint, fingerprint)) {
+                            throw new Error(`Duplicate fingerprint for ${device.model}: ${JSON.stringify(fingerprint)}`);
+                        }
+                    }
+
+                    foundFingerprints.push(fingerprint);
+                }
             }
 
             if (device.whiteLabel) {
                 for (const definition of device.whiteLabel) {
-                    expect(['vendor', 'model']).toStrictEqual(Object.keys(definition));
+                    containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
                 }
             }
 
             if (device.meta) {
-                containsOnly(['configureKey', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue'], Object.keys(device.meta));
-
-                if (device.meta.multiEndpoint && !device.endpoint) {
-                    throw new Error(`multiEndpoint specified but no endpoint function defined`);
-                }
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn'], Object.keys(device.meta));
             }
 
-            foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            if (device.zigbeeModel) {
+                foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
+            }
+
             foundModels.push(device.model);
+        });
+    });
+
+    it('Verify addDeviceDefinition', () => {
+        const mockZigbeeModel = 'my-mock-device';
+        let mockDevice = {toZigbee: []};
+        const undefinedDevice = index.findByZigbeeModel(mockDevice.model);
+        expect(undefinedDevice).toBeNull();
+        const beforeAdditionDeviceCount = index.devices.length;
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field model is undefined");
+        mockDevice.model = 'mock-model';
+        expect(()=> index.addDeviceDefinition(mockDevice)).toThrow("Converter field vendor is undefined");
+        mockDevice = {
+            model: 'mock-model',
+            vendor: 'dummy',
+            zigbeeModel: [mockZigbeeModel],
+            description: 'dummy',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
+        index.addDeviceDefinition(mockDevice);
+        expect(beforeAdditionDeviceCount + 1).toBe(index.devices.length);
+        const device = index.findByZigbeeModel(mockZigbeeModel);
+        expect(device.model).toBe(mockDevice.model);
+    });
+
+    it('Verify addDeviceDefinition overwrite existing', () => {
+        const device = {type: 'Router', modelID: 'lumi.light.aqcn02'};
+        expect(index.findByDevice(device).vendor).toBe('Xiaomi');
+
+        const overwriteDefinition = {
+            model: 'mock-model',
+            vendor: 'other-vendor',
+            zigbeeModel: ['lumi.light.aqcn02'],
+            description: '',
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: []
+        };
+        index.addDeviceDefinition(overwriteDefinition);
+        expect(index.findByDevice(device).vendor).toBe('other-vendor');
+    });
+
+    it('Exposes light with endpoint', () => {
+        const expected = {
+            "type":"light",
+            "features":[
+              {
+                "type":"binary",
+                "name":"state",
+                "description": "On/off state of this light",
+                "property":"state_rgb",
+                "access":7,
+                "value_on":"ON",
+                "value_off":"OFF",
+                "value_toggle":"TOGGLE",
+                "endpoint":"rgb"
+              },
+              {
+                "type":"numeric",
+                "name":"brightness",
+                "description": "Brightness of this light",
+                "property":"brightness_rgb",
+                "access":7,
+                "value_min":0,
+                "value_max":254,
+                "endpoint":"rgb"
+              },
+              {
+                "type":"composite",
+                "property":"color_rgb",
+                "name":"color_xy",
+                "description": "Color of this light in the CIE 1931 color space (x/y)",
+                "features":[
+                  {
+                    "type":"numeric",
+                    "name":"x",
+                    "property":"x",
+                    "access":7
+                  },
+                  {
+                    "type":"numeric",
+                    "name":"y",
+                    "property":"y",
+                    "access":7
+                  }
+                ],
+                "endpoint":"rgb"
+              }
+            ],
+            "endpoint":"rgb"
+        };
+        const actual = exposes.presets.light_brightness_colorxy().withEndpoint('rgb');
+        expect(expected).toStrictEqual(deepClone(actual));
+    });
+
+    it('Exposes access matches toZigbee', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                const toCheck = [];
+                for (const expose of device.exposes) {
+                    if (expose.hasOwnProperty('access')) {
+                        toCheck.push(expose)
+                    } else if (expose.features && expose.type !== 'composite') {
+                        toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
+                    }
+                }
+
+                for (const expose of toCheck) {
+                    let property = expose.property;
+                    if (expose.endpoint && expose.property.length > expose.endpoint.length) {
+                        property = expose.property.slice(0, (expose.endpoint.length + 1) * -1);
+                    }
+
+                    const toZigbee = device.toZigbee.find(item => item.key.includes(property));
+
+                    if ((expose.access & exposes.access.SET) != (toZigbee && toZigbee.convertSet ? exposes.access.SET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
+                    }
+
+                    if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
+                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                    }
+                }
+            }
+        });
+    });
+
+    it('Check if all exposes have a color temp range', () => {
+        const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
+        for (const definition of index.definitions) {
+            for (const expose of definition.exposes.filter(e => e.type === 'light')) {
+                const colorTemp = expose.features.find(f => f.name === 'color_temp');
+                if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
+                    throw new Error(`'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`);
+                }
+            }
+        }
+    });
+
+    it('Calculate configure key', () => {
+        const definition = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition)).toBe(-1738355762);
+    });
+
+    it('Calculate configure key whitespace shouldnt matter', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');console.log('bye world');
+        }}
+        expect(index.getConfigureKey(definition1)).toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure diff', () => {
+        const definition1 = {configure: () => {
+            console.log('hello world');
+            console.log('bye world');
+        }}
+
+        const definition2 = {configure: () => {
+            console.log('hello world');
+            console.log('bye mars');
+        }}
+        expect(index.getConfigureKey(definition1)).not.toBe(index.getConfigureKey(definition2));
+    });
+
+    it('Calculate configure key legacy', () => {
+        const definition = index.findByZigbeeModel('MCT-340 SMA');
+        expect(index.getConfigureKey(definition)).toBe(1);
+    });
+
+    it('Number exposes with set access should have a range', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                for (const expose of device.exposes) {
+                    if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
+                        if (expose.value_min == null || expose.value_max == null) {
+                            throw new Error(`Value min or max unknown for ${expose.property}`);
+                        }
+                    }
+                }
+            }
         });
     });
 });

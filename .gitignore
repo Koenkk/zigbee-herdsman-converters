@@ -1,1 +1,9 @@
 node_modules/
+.vs/slnx.sqlite
+.vs/ProjectSettings.json
+.idea
+.DS_Store
+.remote-sync.json
+.eslintrc.js
+.vscode
+tmp

@@ -1,0 +1,51 @@
+name: Create new release
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Release type (patch/minor/major)'
+        default: 'patch'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: 14
+        registry-url: https://registry.npmjs.org/
+    - name: Install dependencies
+      run: npm ci
+    - name: Test
+      run: npm test
+    - name: Lint
+      run: npm run lint
+    - name: Setup Git
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+    - name: Bump version
+      run: "npm version ${{ github.event.inputs.type }}"
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        tags: true
+        branch: master
+    - name: Publish to npm
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
+    - name: Get zigbee-herdsman-converters version
+      id: zchversion
+      run: |
+        version=$(node -p "require('./package.json').version")
+        echo "::set-output name=version::$version"
+    - name: Wait till package is in NPM # otherwise Z2M job fails
+      run: sleep 120
+    - name: Trigger Zigbee2MQTT update
+      run: |
+        curl -XPOST -H "Authorization: token ${{ secrets.TRIGGER_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "${{ steps.zchversion.outputs.version }}"}}'
