@@ -1644,7 +1644,7 @@ const converters = {
     },
     moes_105_dimmer: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
@@ -1738,7 +1738,7 @@ const converters = {
     },
     tuya_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
@@ -1759,7 +1759,7 @@ const converters = {
     },
     tuya_illuminance_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
@@ -1811,7 +1811,7 @@ const converters = {
     },
     tuya_thermostat_weekly_schedule: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -1860,7 +1860,7 @@ const converters = {
     },
     hy_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -1990,7 +1990,7 @@ const converters = {
     },
     tuya_cover: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             // Protocol description
@@ -2313,7 +2313,7 @@ const converters = {
     },
     neo_nas_pd07: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
@@ -2339,7 +2339,7 @@ const converters = {
     },
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -2484,7 +2484,7 @@ const converters = {
     },
     tuya_water_leak: {
         cluster: 'manuSpecificTuya',
-        type: 'commandSetDataResponse',
+        type: 'commandDataReport',
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.dp === tuya.dataPoints.waterLeak) {
                 return {water_leak: tuya.getDataValue(msg.data.datatype, msg.data.data)};
@@ -2727,25 +2727,6 @@ const converters = {
             }
         },
     },
-    hy_set_time_request: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandSetTimeRequest'],
-        convert: async (model, msg, publish, options, meta) => {
-            const OneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
-            const currentTime = new Date().getTime();
-            const utcTime = Math.round((currentTime - OneJanuary2000) / 1000);
-            const localTime = Math.round(currentTime / 1000) - (new Date()).getTimezoneOffset() * 60;
-            const endpoint = msg.endpoint;
-            const payload = {
-                payloadSize: 8,
-                payload: [
-                    ...tuya.convertDecimalValueTo4ByteHexArray(utcTime),
-                    ...tuya.convertDecimalValueTo4ByteHexArray(localTime),
-                ],
-            };
-            await endpoint.command('manuSpecificTuya', 'setTime', payload, {});
-        },
-    },
     ptvo_switch_uart: {
         cluster: 'genMultistateValue',
         type: ['attributeReport', 'readResponse'],
@@ -2867,7 +2848,7 @@ const converters = {
     },
     silvercrest_smart_led_string: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -3487,7 +3468,7 @@ const converters = {
     },
     moes_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -3560,7 +3541,7 @@ const converters = {
     },
     moesS_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp; // First we get the data point ID
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -3620,7 +3601,7 @@ const converters = {
     },
     tvtwo_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -3771,7 +3752,7 @@ const converters = {
     },
     haozee_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp; // First we get the data point ID
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -3886,7 +3867,7 @@ const converters = {
     },
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
             exposes.options.precision('co2'), exposes.options.calibration('co2'),
@@ -3915,7 +3896,7 @@ const converters = {
     },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -4036,7 +4017,7 @@ const converters = {
     },
     etop_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -4085,7 +4066,7 @@ const converters = {
     },
     tuya_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -4191,7 +4172,7 @@ const converters = {
     },
     tuya_dimmer: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             if (msg.data.dp === tuya.dataPoints.state) {
@@ -4208,7 +4189,7 @@ const converters = {
     },
     tuya_data_point_dump: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse', 'commandActiveStatusReport'],
+        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport'],
         convert: (model, msg, publis, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
@@ -4222,8 +4203,7 @@ const converters = {
             let dataStr =
                 Date.now().toString() + ' ' +
                 meta.device.ieeeAddr + ' ' +
-                getHex(msg.data.status) + ' ' +
-                getHex(msg.data.transid) + ' ' +
+                getHex(msg.data.seq) + ' ' +
                 getHex(msg.data.dp) + ' ' +
                 getHex(msg.data.datatype) + ' ' +
                 getHex(msg.data.fn);
@@ -4274,7 +4254,7 @@ const converters = {
     },
     blitzwolf_occupancy_with_timeout: {
         cluster: 'manuSpecificTuya',
-        type: 'commandGetData',
+        type: 'commandDataResponse',
         convert: (model, msg, publish, options, meta) => {
             msg.data.occupancy = msg.data.dp === tuya.dataPoints.occupancy ? 1 : 0;
             return converters.occupancy_with_timeout.convert(model, msg, publish, options, meta);
@@ -4568,7 +4548,7 @@ const converters = {
     },
     frankever_valve: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse', 'commandActiveStatusReport'],
+        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport'],
         convert: (model, msg, publish, options, meta) => {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const dp = msg.data.dp;
@@ -4591,7 +4571,7 @@ const converters = {
     },
     tuya_smoke: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -4605,7 +4585,7 @@ const converters = {
     },
     tuya_woox_smoke: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -4623,7 +4603,7 @@ const converters = {
     },
     tuya_switch: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],
+        type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
         convert: (model, msg, publish, options, meta) => {
             const multiEndpoint = model.meta && model.meta.multiEndpoint;
             const dp = msg.data.dp;
@@ -4643,7 +4623,7 @@ const converters = {
     },
     tuya_dinrail_switch: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData', 'commandActiveStatusReport'],
+        type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -5997,7 +5977,7 @@ const converters = {
     },
     javis_microwave_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetDataResponse', 'commandGetData'],
+        type: ['commandDataReport', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -6204,7 +6184,7 @@ const converters = {
     },
     ZVG1: {
         cluster: 'manuSpecificTuya',
-        type: 'commandGetData',
+        type: 'commandDataResponse',
         convert: (model, msg, publish, options, meta) => {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             const dp = msg.data.dp;
@@ -6768,7 +6748,7 @@ const converters = {
     },
     SLUXZB: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -6851,7 +6831,7 @@ const converters = {
     },
     tuya_gas: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -7221,7 +7201,7 @@ const converters = {
     },
     tuya_motion_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -7269,7 +7249,7 @@ const converters = {
     },
     tuya_radar_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -7293,7 +7273,7 @@ const converters = {
     },
     moes_thermostat_tv: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse', 'raw'],
+        type: ['commandDataResponse', 'commandDataReport', 'raw'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             let value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -7402,7 +7382,7 @@ const converters = {
     },
     hoch_din: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
@@ -7703,7 +7683,7 @@ const converters = {
     },
     ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
-        type: ['commandSetTimeRequest'],
+        type: ['commandMcuSyncTime'],
         convert: (model, msg, publish, options, meta) => null,
     },
     // #endregion
