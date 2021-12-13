@@ -401,7 +401,7 @@ module.exports = [
             {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
                 {ID: 10},
                 {ID: 25},
-                {ID: 242}
+                {ID: 242},
             ]},
         ],
         model: '4062172044776_1',
@@ -420,7 +420,7 @@ module.exports = [
             {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
                 {ID: 10},
                 {ID: 11},
-                {ID: 242}
+                {ID: 242},
             ]},
         ],
         model: '4062172044776_2',
@@ -447,7 +447,7 @@ module.exports = [
                 {ID: 10},
                 {ID: 11},
                 {ID: 25},
-                {ID: 242}
+                {ID: 242},
             ]},
         ],
         model: '4062172044776_3',
