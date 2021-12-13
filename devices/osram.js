@@ -170,6 +170,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Classic A60 W clear - LIGHTIFY'],
+        model: 'AC03641-DIM',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY LED Classic A60 clear',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Surface Light W �C LIGHTIFY'],
         model: '4052899926158',
         vendor: 'OSRAM',
