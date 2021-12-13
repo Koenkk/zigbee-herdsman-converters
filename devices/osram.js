@@ -404,7 +404,7 @@ module.exports = [
                 {ID: 242}
             ]},
         ],
-        model: '4062172044776',
+        model: '4062172044776_1',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one Device and Pushbutton)',
         extend: extend.ledvance.light_onoff_brightness(),
@@ -423,7 +423,7 @@ module.exports = [
                 {ID: 242}
             ]},
         ],
-        model: '4062172044776',
+        model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices)',
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
@@ -450,7 +450,7 @@ module.exports = [
                 {ID: 242}
             ]},
         ],
-        model: '4062172044776',
+        model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices and Pushbutton)',
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
