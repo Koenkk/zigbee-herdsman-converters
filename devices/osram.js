@@ -393,12 +393,85 @@ module.exports = [
         zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
         model: '4062172044776',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one Device)',
         extend: extend.ledvance.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
+                {ID: 10},
+                {ID: 25},
+                {ID: 242}
+            ]},
+        ],
+        model: '4062172044776',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one Device and Pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness(),
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
+                {ID: 10},
+                {ID: 11},
+                {ID: 242}
+            ]},
+        ],
+        model: '4062172044776',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11};
         },
         meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
+                {ID: 10},
+                {ID: 11},
+                {ID: 25},
+                {ID: 242}
+            ]},
+        ],
+        model: '4062172044776',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices and Pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
     },
 ];
