@@ -18,7 +18,8 @@ module.exports = [
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log,
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withLocalTemperatureCalibration()
+            .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])
+            .withLocalTemperatureCalibration(-30, 30, 0.1)
             .withPiHeatingDemand(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);

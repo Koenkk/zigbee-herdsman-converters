@@ -266,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -449,7 +449,21 @@ describe('index.js', () => {
     });
 
     it('Calculate configure key legacy', () => {
-        const definition = index.findByZigbeeModel('WaterSensor-N');
+        const definition = index.findByZigbeeModel('MCT-340 SMA');
         expect(index.getConfigureKey(definition)).toBe(1);
+    });
+
+    it('Number exposes with set access should have a range', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                for (const expose of device.exposes) {
+                    if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
+                        if (expose.value_min == null || expose.value_max == null) {
+                            throw new Error(`Value min or max unknown for ${expose.property}`);
+                        }
+                    }
+                }
+            }
+        });
     });
 });

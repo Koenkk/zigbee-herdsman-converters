@@ -220,7 +220,7 @@ module.exports = [
         model: 'RS 228 T',
         vendor: 'Innr',
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -476,6 +476,30 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['SP 234'],
+        model: 'SP 234',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readEletricalMeasurementMultiplierDivisors.
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acCurrentDivisor: 1000,
+                acCurrentMultiplier: 1,
+            });
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
+            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
+        },
+        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['OFL 120 C'],

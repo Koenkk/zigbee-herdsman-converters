@@ -31,3 +31,4 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `battery`:
   - `{dontDividePercentage: true}`: prevents batteryPercentageRemainig from being divided (ZCL 200=100%, but some report 100=100%) (default: false)
   - `{voltageToPercentage: '3V_2100'}`: convert voltage to percentage using specified option. See utils.batteryVoltageToPercentage() (default: null, no voltage to percentage conversion)
+- `fanStateOn`: value used for fan_mode when using fan_state="ON", the default is "on"

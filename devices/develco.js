@@ -297,15 +297,31 @@ module.exports = [
         model: 'ZHEMI101',
         vendor: 'Develco',
         description: 'Energy meter',
-        fromZigbee: [fz.metering],
-        toZigbee: [],
+        fromZigbee: [fz.metering, fz.develco_metering],
+        toZigbee: [tz.develco_pulse_configuration, tz.develco_interface_mode, tz.develco_current_summation],
+        endpoint: (device) => {
+            return {'default': 2};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.instantaneousDemand(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
-        exposes: [e.power(), e.energy()],
+        exposes: [
+            e.power(),
+            e.energy(),
+            e.battery_low(),
+            exposes.numeric('pulse_configuration', ea.ALL).withValueMin(0).withValueMax(65535)
+                .withDescription('Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535'),
+            exposes.enum('interface_mode', ea.ALL,
+                ['electricity', 'gas', 'water', 'kamstrup-kmp', 'linky', 'IEC62056-21', 'DSMR-2.3', 'DSMR-4.0'])
+                .withDescription('Operating mode/probe'),
+            exposes.numeric('current_summation', ea.SET)
+                .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh').withValueMin(0).withValueMax(10000),
+            exposes.binary('check_meter', ea.STATE, true, false)
+                .withDescription('Is true if communication problem with meter is experienced'),
+        ],
     },
     {
         zigbeeModel: ['SMRZB-332'],

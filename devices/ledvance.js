@@ -31,7 +31,7 @@ module.exports = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.ledvance,
     },
     {
@@ -47,7 +47,7 @@ module.exports = [
         model: '4058075208414',
         vendor: 'LEDVANCE',
         description: 'SMART+ candle E14 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {

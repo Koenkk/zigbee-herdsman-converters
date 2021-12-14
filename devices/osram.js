@@ -31,6 +31,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['LIGHTIFY RT RGBW'],
+        model: '73741_LIGHTIFY',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY RT5/6 LED',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',
@@ -51,7 +59,7 @@ module.exports = [
         model: 'AC10787',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -118,7 +126,7 @@ module.exports = [
         model: 'AA70155',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -126,7 +134,7 @@ module.exports = [
         model: 'AA68199',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -134,7 +142,7 @@ module.exports = [
         model: '4058075148338',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -220,7 +228,7 @@ module.exports = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
         ota: ota.ledvance,
     },
     {
@@ -253,8 +261,8 @@ module.exports = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
-        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], disableColorTempStartup: true}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 370]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
     {
@@ -270,7 +278,7 @@ module.exports = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
         ota: ota.ledvance,
     },
     {
@@ -310,7 +318,7 @@ module.exports = [
         model: 'AC03648',
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -385,8 +393,12 @@ module.exports = [
         zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
         model: '4062172044776',
         vendor: 'OSRAM',
-        description: 'OSRAM Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
         extend: extend.ledvance.light_onoff_brightness(),
-        ota: ota.ledvance,
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
     },
 ];

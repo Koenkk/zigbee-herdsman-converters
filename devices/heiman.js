@@ -10,6 +10,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
         zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
@@ -58,6 +59,7 @@ module.exports = [
         vendor: 'HEIMAN',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
+        options: [exposes.options.measurement_poll_interval()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
@@ -71,6 +73,7 @@ module.exports = [
                 globalStore.clearValue(device, 'interval');
             } else if (!globalStore.hasValue(device, 'interval')) {
                 const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                if (seconds === -1) return;
                 const interval = setInterval(async () => {
                     try {
                         await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
@@ -83,7 +86,8 @@ module.exports = [
     },
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
-            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab'],
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
+            'SmokeSensor-EF-3.0'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -97,7 +101,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EF-3.0', 'SmokeSensor-EM'],
+        zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
         model: 'HS3SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -147,7 +151,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
@@ -162,7 +166,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
@@ -186,7 +190,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
@@ -202,7 +206,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -217,7 +221,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         onEvent: async (type, data, device) => {
@@ -239,7 +243,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -332,7 +336,7 @@ module.exports = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
-            await reporting.batteryPercentageRemaining(endpoint1, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint1);
             await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
 
             const endpoint2 = device.getEndpoint(2);
@@ -403,7 +407,7 @@ module.exports = [
             const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
             await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint, {min: 0, change: 25});
+            await reporting.humidity(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.humidity(), e.battery()],
@@ -419,7 +423,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
@@ -434,7 +438,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -466,7 +470,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
@@ -481,7 +485,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
@@ -562,7 +566,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {

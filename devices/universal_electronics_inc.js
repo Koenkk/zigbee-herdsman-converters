@@ -8,6 +8,22 @@ const globalStore = require('../lib/store');
 
 module.exports = [
     {
+        zigbeeModel: ['URC4470BC0-X-R'],
+        model: 'XHS1-UE',
+        vendor: 'Universal Electronics Inc',
+        description: 'Wireless digital pet resistant PIR detector',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+    },
+    {
         zigbeeModel: ['URC4460BC0-X-R'],
         model: 'XHS2-UE',
         vendor: 'Universal Electronics Inc',
