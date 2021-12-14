@@ -4957,15 +4957,15 @@ const converters = {
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 100) {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
-                            const mapping = model.model === 'QBCZ15LM' ? ['relay'] : ['left'];
-                            payload[`state_${mapping[0]}`] = value === 1 ? 'ON' : 'OFF';
+                            const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
+                            payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 101) {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
-                            const mapping = model.model === 'QBCZ15LM' ? ['usb'] : ['right'];
-                            payload[`state_${mapping[0]}`] = value === 1 ? 'ON' : 'OFF';
+                            const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
+                            payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
