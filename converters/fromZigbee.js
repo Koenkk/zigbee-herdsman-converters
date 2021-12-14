@@ -652,6 +652,18 @@ const converters = {
             return payload;
         },
     },
+    EKO09738_metering: {
+        /**
+         * Elko EKO09738 and EKO09716 reports power in mW, scale to W
+         */
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.metering.convert(model, msg, publish, options, meta);
+            result.power /= 1000;
+            return result;
+        },
+    },
     develco_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
