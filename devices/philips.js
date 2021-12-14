@@ -509,7 +509,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Lux A19 bulb E27',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
     {
