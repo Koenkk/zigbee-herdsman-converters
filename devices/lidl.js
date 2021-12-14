@@ -662,7 +662,7 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-        {
+    {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
         model: 'HG06620',
         vendor: 'Lidl',
