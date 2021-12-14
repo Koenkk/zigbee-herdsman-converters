@@ -652,6 +652,46 @@ const converters = {
             return payload;
         },
     },
+    EKO09738_metering: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * await readMeteringPowerConverterAttributes(endpoint);
+         */
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
+            const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
+            const factor = multiplier && divisor ? multiplier / divisor : null;
+
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                let power = msg.data['instantaneousDemand'];
+                if (factor != null) {
+                    power = (power * factor); // Unit reports in mW
+                }
+                payload.power = precisionRound(power, 2);
+            }
+
+            if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
+                msg.data.hasOwnProperty('currentSummReceived'))) {
+                let energy = 0;
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy += value * factor;
+                }
+                if (msg.data.hasOwnProperty('currentSummReceived')) {
+                    const data = msg.data['currentSummReceived'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy -= value * factor;
+                }
+                payload.energy = precisionRound(energy, 2);
+            }
+
+            return payload;
+        },
+    },
     develco_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
