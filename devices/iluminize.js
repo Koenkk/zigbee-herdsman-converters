@@ -117,7 +117,6 @@ module.exports = [
         description: 'Zigbee 3.0 switch shutter SW with level control',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_state, tz.cover_via_brightness],
-        meta: {coverInverted: false},
         exposes: [e.cover_position()],
         ota: ota.zigbeeOTA,
     },
