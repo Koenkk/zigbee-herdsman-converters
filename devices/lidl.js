@@ -640,6 +640,18 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        model: 'HG06620',
+        vendor: 'Lidl',
+        description: 'Silvercrest garden spike with 2 sockets',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_nbnmw9nc'}, // UK
