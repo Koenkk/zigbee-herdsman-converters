@@ -1773,15 +1773,15 @@ const converters = {
             case tuya.dataPoints.nousBattery:
                 return {battery: value};
             case tuya.dataPoints.nousTempUnitConvert:
-                return {temp_unit_convert: {0x00: '°C', 0x01: '°F'}[value]};
+                return {temperature_unit_convert: {0x00: '°C', 0x01: '°F'}[value]};
             case tuya.dataPoints.nousMaxTemp:
-                return {maxtemp: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {max_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.nousMinTemp:
-                return {mintemp: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {min_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.nousTempAlarm:
-                return {temp_alarm: {0x00: 'canceled', 0x01: 'loweralarm', 0x02: 'upperalarm'}[value]};
+                return {temperature_alarm: {0x00: 'canceled', 0x01: 'loweralarm', 0x02: 'upperalarm'}[value]};
             case tuya.dataPoints.nousTempSensitivity:
-                return {temp_sensitivity: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+                return {temperature_sensitivity: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
                     `DP #${dp} with data ${JSON.stringify(msg.data)}`);

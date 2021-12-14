@@ -4974,19 +4974,19 @@ const converters = {
         },
     },
     nous_lcd_temperature_humidity_sensor: {
-        key: ['mintemp', 'maxtemp', 'temp_sensitivity', 'temp_unit_convert'],
+        key: ['min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-            case 'temp_unit_convert':
+            case 'temperature_unit_convert':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['°C', '°F'].indexOf(value));
                 break;
-            case 'mintemp':
+            case 'min_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinTemp, Math.round(value * 10));
                 break;
-            case 'maxtemp':
+            case 'max_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxTemp, Math.round(value * 10));
                 break;
-            case 'temp_sensitivity':
+            case 'temperature_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousTempSensitivity, Math.round(value * 10));
                 break;
             default: // Unknown key

@@ -1626,35 +1626,6 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nnrfa68v'}],
-        model: 'E6',
-        vendor: 'Nous',
-        description: 'Temperature & humidity LCD sensor',
-        fromZigbee: [fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [
-            e.temperature(),
-            e.humidity(),
-            e.battery(),
-            exposes.enum('temp_unit_convert', ea.STATE_SET, ['°C', '°F']).withDescription('Current display unit'),
-            exposes.enum('temp_alarm', ea.STATE, ['canceled', 'loweralarm', 'upperalarm']).withDescription('Temperature alarm status'),
-            exposes.numeric('maxtemp', ea.STATE_SET)
-                .withUnit('°C').withValueMin(-20).withValueMax(60)
-                .withDescription('Alarm temperature max'),
-            exposes.numeric('mintemp', ea.STATE_SET).withUnit('°C')
-                .withValueMin(-20).withValueMax(60)
-                .withDescription('Alarm temperature min'),
-            exposes.numeric('temp_sensitivity', ea.STATE_SET)
-                .withUnit('°C').withValueMin(0.1).withValueMax(50).withValueStep(0.1)
-                .withDescription('Temperature sensitivity'),
-        ],
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
         model: 'TS0601_motion_sensor',
         vendor: 'TuYa',
