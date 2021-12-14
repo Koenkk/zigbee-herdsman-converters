@@ -1779,7 +1779,7 @@ const converters = {
             case tuya.dataPoints.nousMinTemp:
                 return {min_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.nousTempAlarm:
-                return {temperature_alarm: {0x00: 'canceled', 0x01: 'loweralarm', 0x02: 'upperalarm'}[value]};
+                return {temperature_alarm: {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value]};
             case tuya.dataPoints.nousTempSensitivity:
                 return {temperature_sensitivity: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             default:
