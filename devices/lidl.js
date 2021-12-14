@@ -662,6 +662,18 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+        {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        model: 'HG06620',
+        vendor: 'Lidl',
+        description: 'Silvercrest dual oudoor plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
         model: '368308_2010',
