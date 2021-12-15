@@ -7312,9 +7312,9 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
             switch (dp) {
             case tuya.dataPoints.trsPresenceState:
-                return {presence: {0: 'false', 1: 'true'}[value]};
+                return {presence: {0: false, 1: true}[value]};
             case tuya.dataPoints.trsMotionState:
-                return {motion: {1: 'false', 2: 'true'}[value]};
+                return {motion: {1: false, 2: true}[value]};
             case tuya.dataPoints.trsMotionSpeed:
                 return {motion_speed: value};
             case tuya.dataPoints.trsMotionDirection:
