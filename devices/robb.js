@@ -164,7 +164,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['ROB_200-017-1'],
-        model: 'ROB_200-017-1', 
+        model: 'ROB_200-017-1',
         vendor: 'ROBB',
         description: 'Zigbee smart plug',
         fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering, fz.temperature],
