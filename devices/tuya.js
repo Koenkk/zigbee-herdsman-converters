@@ -1026,6 +1026,7 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_u5u4cakc'},
         ],
         model: 'TS011F_plug_1',
         description: 'Smart plug (with power monitoring)',
