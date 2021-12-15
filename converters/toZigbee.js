@@ -5373,6 +5373,7 @@ const converters = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 0xFFFFFFFF + value + 1;
+            if (value % 1 !== 0) value = Math.round(Number(value));
             await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
         },
     },
