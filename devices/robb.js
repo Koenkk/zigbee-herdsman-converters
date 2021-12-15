@@ -171,8 +171,8 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, 
-                ['genOnOff', 'haElectricalMeasurement', 'seMetering','msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
