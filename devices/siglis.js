@@ -13,10 +13,12 @@ module.exports = [
         description: 'Smart In-Wall Switch',
         exposes: [e.light_brightness_colorxy().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.light_brightness().withEndpoint('l3')],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step, tz.level_config, tz.power_on_behavior, tz.light_hue_saturation_move, tz.light_hue_saturation_step, tz.light_color_options, tz.light_color_mode],
-        meta: { multiEndpoint: true },
+        toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
+            tz.light_brightness_step, tz.level_config, tz.power_on_behavior, tz.light_hue_saturation_move,
+            tz.light_hue_saturation_step, tz.light_color_options, tz.light_color_mode],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return { 'l1': 5, 'l2': 6, 'l3': 7 };
+            return {'l1': 5, 'l2': 6, 'l3': 7};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const controlEp = device.getEndpoint(5);
@@ -35,6 +37,6 @@ module.exports = [
             await reporting.bind(dimmerEp, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.onOff(dimmerEp);
             await reporting.brightness(dimmerEp);
-        }
-    }
+        },
+    },
 ];
