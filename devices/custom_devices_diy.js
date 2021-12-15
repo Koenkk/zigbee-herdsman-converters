@@ -315,7 +315,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_PWS_Max'],
         model: 'EFEKTA_PWS_Max',
         vendor: 'Custom devices (DiY)',
-        description: '[Plant Watering Sensor EFEKTA PWS Max](http://efektalab.com/PWS_Max)',
+        description: '[Plant watering sensor EFEKTA PWS max](http://efektalab.com/PWS_Max)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
         toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
