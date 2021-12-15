@@ -20,8 +20,8 @@ module.exports = [
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
-            tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean],
+            tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean],
         exposes: [e.battery(), e.keypad_lockout(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -44,9 +44,14 @@ module.exports = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
-                .withDescription('Set at maximum 3 hours interval but not more often than every 30 minutes and 0.1 ' +
-                    'degrees difference. Resets every 3hours to standard. e.g. 21C = 2100 (-8000=undefined).')
+                .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
+                '5 minutes and 0.1 degrees difference. Resets every 35 minutes to standard. If `radiator_covered` is `false`: ' +
+                'Set at maximum 3 hours interval but not more often than every 30 minutes and 0.1 degrees difference. ' +
+                'Resets every 3 hours to standard. Value 21C = 2100 (-8000=undefined).')
                 .withValueMin(-8000).withValueMax(3500),
+            exposes.binary('radiator_covered', ea.ALL, true, false)
+                .withDescription('Set if the TRV should solely rely on external_measured_room_sensor or operate in offset mode. ' +
+                    '`false` = Auto Offset Mode or `true` = Room Sensor Mode'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -116,6 +121,7 @@ module.exports = [
                 'danfossMountedModeControl',
                 'danfossMountedModeActive',
                 'danfossExternalMeasuredRoomSensor',
+                'danfossRadiatorCovered',
                 'danfossLoadBalancingEnable',
                 'danfossLoadRoomMean',
             ], options);
