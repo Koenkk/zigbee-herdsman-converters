@@ -45,5 +45,4 @@ module.exports = [
         description: 'LED bulb GU10 350 lumen, dimmable, color, white 2700-6500K',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
-    
 ];
