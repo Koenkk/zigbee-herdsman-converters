@@ -311,4 +311,25 @@ module.exports = [
         },
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
     },
+    {
+        zigbeeModel: ['EFEKTA_PWS_Max'],
+        model: 'EFEKTA_PWS_Max',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant Watering Sensor EFEKTA PWS Max](http://efektalab.com/PWS_Max)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.humidity(firstEndpoint, overides);
+            await reporting.illuminance(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
+    },
 ];
