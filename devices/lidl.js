@@ -580,6 +580,16 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_8uaoilu9'}],
+        model: '14153905L',
+        vendor: 'Lidl',
+        description: 'Livarno Home LED floor lamp',
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 333]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_9cpuaca6'}],
         model: '14148906L',
         vendor: 'Lidl',
@@ -630,6 +640,18 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        model: 'HG06620',
+        vendor: 'Lidl',
+        description: 'Silvercrest garden spike with 2 sockets',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_nbnmw9nc'}, // UK
@@ -674,7 +696,7 @@ module.exports = [
             exposes.numeric('current_heating_setpoint_auto', ea.STATE_SET).withValueMin(0.5).withValueMax(29.5)
                 .withValueStep(0.5).withUnit('°C').withDescription('Temperature setpoint automatic'),
             exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'holiday', 'boost']),
             exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
