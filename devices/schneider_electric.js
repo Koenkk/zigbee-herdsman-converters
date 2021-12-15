@@ -444,7 +444,7 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -531,6 +531,42 @@ module.exports = [
             const endpoint = device.getEndpoint(21);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SOCKET/OUTLET/2'],
+        model: 'EKO09738',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee smart socket with power meter',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SOCKET/OUTLET/1'],
+        model: 'EKO09716',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee smart socket with power meter',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
 ];

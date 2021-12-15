@@ -136,7 +136,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'},
-            {modelID: 'TS0503B', manufacturerName: '_TZ3210_a5fxguxr'}],
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_a5fxguxr'},
+            {modelID: 'TS0503B', manufacturerName: '_TZ3000_g5xawfcq'}],
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
@@ -170,6 +171,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
         model: 'TS0202',
@@ -544,6 +546,11 @@ module.exports = [
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['TS0044'],
@@ -809,7 +816,7 @@ module.exports = [
             e.child_lock(), e.window_detection(), e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSystemMode(['heat', 'auto', 'off'], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
@@ -840,7 +847,7 @@ module.exports = [
             e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
             e.holiday_temperature().withValueMin(0).withValueMax(30), e.comfort_temperature().withValueMin(0).withValueMax(30),
             e.eco_temperature().withValueMin(0).withValueMax(30),
-            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
@@ -939,7 +946,7 @@ module.exports = [
             exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
                     'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                     'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
@@ -1073,6 +1080,7 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125', applicationVersion: 69},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 64},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 69},
         ],
@@ -1484,7 +1492,7 @@ module.exports = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat'], ea.ALL)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-            .withLocalTemperatureCalibration(-20, 20, 1, ea.ALL).withPiHeatingDemand()],
+            .withLocalTemperatureCalibration(-30, 30, 0.1, ea.ALL).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat', 'hvacFanCtrl']);

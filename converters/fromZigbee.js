@@ -652,6 +652,18 @@ const converters = {
             return payload;
         },
     },
+    EKO09738_metering: {
+        /**
+         * Elko EKO09738 and EKO09716 reports power in mW, scale to W
+         */
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.metering.convert(model, msg, publish, options, meta);
+            result.power /= 1000;
+            return result;
+        },
+    },
     develco_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -1753,6 +1765,37 @@ const converters = {
                 return {battery: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:maa_tuya_temp_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
+    nous_lcd_temperature_humidity_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.nousTemperature:
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.nousHumidity:
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+            case tuya.dataPoints.nousBattery:
+                return {battery: value};
+            case tuya.dataPoints.nousTempUnitConvert:
+                return {temperature_unit_convert: {0x00: '°C', 0x01: '°F'}[value]};
+            case tuya.dataPoints.nousMaxTemp:
+                return {max_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.nousMinTemp:
+                return {min_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.nousTempAlarm:
+                return {temperature_alarm: {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value]};
+            case tuya.dataPoints.nousTempSensitivity:
+                return {temperature_sensitivity: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
                     `DP #${dp} with data ${JSON.stringify(msg.data)}`);
             }
         },
@@ -4955,8 +4998,19 @@ const converters = {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
-                    else if (index === 100) payload.state = value === 1 ? 'ON' : 'OFF'; // 0x64
-                    else if (index === 149) {
+                    else if (index === 100) {
+                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                            const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
+                            payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else {
+                            payload.state = value === 1 ? 'ON' : 'OFF';
+                        }
+                    } else if (index === 101) {
+                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                            const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
+                            payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        }
+                    } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
