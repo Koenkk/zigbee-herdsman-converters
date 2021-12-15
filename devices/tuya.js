@@ -136,7 +136,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3000_i8l0nqdu'},
-            {modelID: 'TS0503B', manufacturerName: '_TZ3210_a5fxguxr'}],
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_a5fxguxr'},
+            {modelID: 'TS0503B', manufacturerName: '_TZ3000_g5xawfcq'}],
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
@@ -170,6 +171,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
         model: 'TS0202',
@@ -544,6 +546,11 @@ module.exports = [
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['TS0044'],
@@ -1073,6 +1080,7 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125', applicationVersion: 69},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 69},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 64},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 68},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 69},
         ],

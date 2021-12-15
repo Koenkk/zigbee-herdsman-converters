@@ -4973,6 +4973,27 @@ const converters = {
             }
         },
     },
+    nous_lcd_temperature_humidity_sensor: {
+        key: ['min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_unit_convert':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['°C', '°F'].indexOf(value));
+                break;
+            case 'min_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinTemp, Math.round(value * 10));
+                break;
+            case 'max_temperature':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxTemp, Math.round(value * 10));
+                break;
+            case 'temperature_sensitivity':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousTempSensitivity, Math.round(value * 10));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {

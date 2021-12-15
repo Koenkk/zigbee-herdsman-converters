@@ -580,6 +580,16 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_8uaoilu9'}],
+        model: '14153905L',
+        vendor: 'Lidl',
+        description: 'Livarno Home LED floor lamp',
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 333]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_9cpuaca6'}],
         model: '14148906L',
         vendor: 'Lidl',
@@ -628,6 +638,18 @@ module.exports = [
         description: 'Livarno Lux E27 G95 filament bulb',
         extend: extend.light_onoff_brightness({disableEffect: true}),
         meta: {turnsOffAtBrightness1: false},
+    },
+    {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        model: 'HG06620',
+        vendor: 'Lidl',
+        description: 'Silvercrest garden spike with 2 sockets',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         fingerprint: [
