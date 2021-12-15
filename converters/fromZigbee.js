@@ -3116,6 +3116,9 @@ const converters = {
                 result[postfixWithEndpointName('external_measured_room_sensor', msg, model)] =
                     msg.data['danfossExternalMeasuredRoomSensor'];
             }
+            if (msg.data.hasOwnProperty('danfossRadiatorCovered')) {
+                result[postfixWithEndpointName('radiator_covered', msg, model)] = (msg.data['danfossRadiatorCovered'] === 1);
+            }
             if (msg.data.hasOwnProperty('danfossViewingDirection')) {
                 result[postfixWithEndpointName('viewing_direction', msg, model)] = (msg.data['danfossViewingDirection'] === 1);
             }

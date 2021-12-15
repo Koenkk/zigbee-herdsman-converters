@@ -2467,6 +2467,16 @@ const converters = {
             await entity.read('hvacThermostat', ['danfossExternalMeasuredRoomSensor'], manufacturerOptions.danfoss);
         },
     },
+    danfoss_radiator_covered: {
+        key: ['radiator_covered'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossRadiatorCovered': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'radiator_covered': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossRadiatorCovered'], manufacturerOptions.danfoss);
+        },
+    },
     danfoss_viewing_direction: {
         key: ['viewing_direction'],
         convertSet: async (entity, key, value, meta) => {
