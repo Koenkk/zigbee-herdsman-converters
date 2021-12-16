@@ -3213,8 +3213,14 @@ const converters = {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
             const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            let newState = await converters.on_off.convertSet(entity, key, value, meta);
-            await tuya.sendDataPointBool(entity, keyid, newState.state.state === 'ON');
+            // let newState = await converters.on_off.convertSet(entity, key, value, meta);
+            // await tuya.sendDataPointBool(entity, keyid, newState.state.state === 'ON');
+            if (value.toLowerCase() === 'toggle') {
+                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                value = currentState === 'ON' ? 'OFF' : 'ON';
+            }
+            await tuya.sendDataPointBool(entity, keyid, value === 'ON');
+            return {state: {state: value.toUpperCase()}};
         },
     },
     tuya_switch_type: {
