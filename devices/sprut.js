@@ -11,7 +11,7 @@ module.exports = [
         vendor: 'Sprut.device',
         description: 'WB-MSW v.3 Zigbee Sensor',
         fromZigbee: [fz.temperature, fz.illuminance, fz.humidity, fz.occupancy, fz.sprut_occupancy, fz.co2, fz.sprut_voc,
-            fz.sprut_noise, fz.sprut_noise_detected, fz.on_off, fz.sw_version],
+            fz.sprut_noise, fz.sprut_noise_detected, fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.temperature().withEndpoint(1), e.illuminance(), e.illuminance_lux(), e.humidity(),
             e.occupancy(), e.occupancy_level(), e.co2(), e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint(2),
