@@ -391,22 +391,16 @@ module.exports = [
     },
     {
         zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
-        model: '4062172044776',
+        model: '4062172044776_1',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one Device)',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
         extend: extend.ledvance.light_onoff_brightness(),
     },
     {
-        fingerprint: [
-            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
-                {ID: 10},
-                {ID: 25},
-                {ID: 242},
-            ]},
-        ],
-        model: '4062172044776_1',
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_2',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one Device and Pushbutton)',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
         extend: extend.ledvance.light_onoff_brightness(),
         onEvent: async (type, data, device) => {
             if (type === 'deviceInterview') {
@@ -416,16 +410,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
-                {ID: 10},
-                {ID: 11},
-                {ID: 242},
-            ]},
-        ],
-        model: '4062172044776_2',
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
+        model: '4062172044776_3',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices)',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         endpoint: (device) => {
@@ -442,17 +430,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [
-                {ID: 10},
-                {ID: 11},
-                {ID: 25},
-                {ID: 242},
-            ]},
-        ],
-        model: '4062172044776_3',
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_4',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two Devices and Pushbutton)',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         endpoint: (device) => {
