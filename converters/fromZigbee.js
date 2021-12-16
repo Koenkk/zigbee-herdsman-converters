@@ -7590,15 +7590,6 @@ const converters = {
             }
         },
     },
-    sw_version: {
-        cluster: 'genBasic',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('swBuildId')) {
-                return {sw_version: msg.data['swBuildId']};
-            }
-        },
-    },
     sprut_occupancy: {
         cluster: 'msOccupancySensing',
         type: ['readResponse', 'attributeReport'],
@@ -7631,7 +7622,7 @@ const converters = {
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('noise_detected')) {
-                return {noise_detected: msg.data['noise_detected'] === 1 ? true : false};
+                return {noise_detected: msg.data['noise_detected'] === 1};
             }
         },
     },
