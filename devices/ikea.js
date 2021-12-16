@@ -32,6 +32,19 @@ const bulbOnEvent = async (type, data, device) => {
     }
 };
 
+const configureRemote = async (device, coordinatorEndpoint, logger) => {
+    // Firmware 2.3.75 >= only supports binding to endpoint, before only to group
+    // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
+    // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
+    const endpoint = device.getEndpoint(1);
+    const version = device.softwareBuildID.split('.').map((n) => Number(n));
+    const bindTarget = version[0] > 2 || (version[0] == 2 && version[1] > 3) || (version[0] == 2 && version[1] == 3 && version[2] >= 75) ?
+        coordinatorEndpoint : constants.defaultBindGroup;
+    await endpoint.bind('genOnOff', bindTarget);
+    await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+    await reporting.batteryPercentageRemaining(endpoint);
+};
+
 const tradfriExtend = {
     light_onoff_brightness: (options = {}) => ({
         ...extend.light_onoff_brightness(options),
@@ -302,10 +315,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS 470lm', 'TRADFRI bulb E12 WS 450lm', 'TRADFRI bulb E17 WS 440lm'],
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E12/E14 WS 450/470 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14/E17 WS 450/470/440 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -518,14 +531,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // See explanation in E1743, only applies to E1810 (for E1524 it has no effect)
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', constants.defaultBindGroup);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['Remote Control N2'],
@@ -540,12 +546,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind('genOnOff', constants.defaultBindGroup);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -558,16 +559,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // By default this device controls group 0, some devices are by default in
-            // group 0 causing the remote to control them.
-            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', constants.defaultBindGroup);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['KNYCKLAN Open/Close remote'],
@@ -579,16 +571,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // By default this device controls group 0, some devices are by default in
-            // group 0 causing the remote to control them.
-            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', constants.defaultBindGroup);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['KNYCKLAN receiver'],
@@ -613,14 +596,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // By default this device controls group 0, some devices are by default in
-            // group 0 causing the remote to control them.
-            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
-            await reporting.bind(endpoint, constants.defaultBindGroup, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],
@@ -722,16 +698,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // By default this device controls group 0, some devices are by default in
-            // group 0 causing the remote to control them.
-            // By binding it to a random group, e.g. 901, it will send the commands to group 901 instead of 0
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
-            await endpoint.bind('genOnOff', constants.defaultBindGroup);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: configureRemote,
     },
     {
         zigbeeModel: ['GUNNARP panel round'],

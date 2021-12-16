@@ -269,4 +269,67 @@ module.exports = [
         },
         exposes: [e.soil_moisture(), e.battery()],
     },
+    {
+        zigbeeModel: ['EFEKTA_eON213wz'],
+        model: 'EFEKTA_eON213wz',
+        vendor: 'Custom devices (DiY)',
+        description: '[Mini weather station, digital barometer, forecast, charts, temperature, humidity](http://efektalab.com/eON213wz)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+            await reporting.pressureExtended(endpoint, overides);
+            await endpoint.read('msPressureMeasurement', ['scale']);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_THP'],
+        model: 'EFEKTA_THP',
+        vendor: 'Custom devices (DiY)',
+        description: '[DIY temperature, humidity and atmospheric pressure sensor, long battery life](http://efektalab.com/eON_THP)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+            await reporting.pressureExtended(endpoint, overides);
+            await endpoint.read('msPressureMeasurement', ['scale']);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_PWS_Max'],
+        model: 'EFEKTA_PWS_Max',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant watering sensor EFEKTA PWS max](http://efektalab.com/PWS_Max)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.humidity(firstEndpoint, overides);
+            await reporting.illuminance(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
+    },
 ];

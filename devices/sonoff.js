@@ -104,7 +104,7 @@ module.exports = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 50});
+                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
                 await reporting.batteryPercentageRemaining(endpoint);

@@ -30,8 +30,8 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.command('manuSpecificTuya', 'resetDevice', {});
-            await endpoint.command('manuSpecificTuya', 'unknown0x10', {'data': [0x00, 0x02]});
+            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+            await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
         },
     },
     {
@@ -41,7 +41,7 @@ module.exports = [
         description: 'Motion, temperature & humidity sensor',
         fromZigbee: [fz.neo_nas_pd07],
         toZigbee: [],
-        onEvent: tuya.setTime,
+        onEvent: tuya.onEventSetTime,
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb'])],
     },
