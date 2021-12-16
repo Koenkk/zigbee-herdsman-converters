@@ -3571,7 +3571,7 @@ const converters = {
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:
-                return {local_temperature: (value / 10)};
+                return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.moesSboostHeating:
                 return {boost_heating: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSboostHeatingCountdown:
