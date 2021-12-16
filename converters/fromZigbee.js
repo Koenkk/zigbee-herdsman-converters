@@ -7590,6 +7590,51 @@ const converters = {
             }
         },
     },
+    sw_version: {
+        cluster: 'genBasic',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('swBuildId')) {
+                return {sw_version: msg.data['swBuildId']};
+            }
+        },
+    },
+    sprut_occupancy: {
+        cluster: 'msOccupancySensing',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('sprutOccupancyLevel')) {
+                return {occupancy_level: msg.data['sprutOccupancyLevel']};
+            }
+        },
+    },
+    sprut_voc: {
+        cluster: 'sprutVoc',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('voc')) {
+                return {voc: msg.data['voc']};
+            }
+        },
+    },
+    sprut_noise: {
+        cluster: 'sprutNoise',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('noise')) {
+                return {noise: msg.data['noise'].toFixed(2)};
+            }
+        },
+    },
+    sprut_noise_detected: {
+        cluster: 'sprutNoise',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('noise_detected')) {
+                return {noise_detected: msg.data['noise_detected'] === 1 ? true : false};
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
