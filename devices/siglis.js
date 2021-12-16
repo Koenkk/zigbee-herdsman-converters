@@ -8,9 +8,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['zigfred uno'],
-        model: 'zigfred uno',
+        model: 'ZFU-1D-CH',
         vendor: 'Siglis',
-        description: 'Smart In-Wall Switch',
+        description: 'zigfred uno Smart In-Wall Switch',
         exposes: [e.light_brightness_colorxy().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.light_brightness().withEndpoint('l3')],
         fromZigbee: [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
