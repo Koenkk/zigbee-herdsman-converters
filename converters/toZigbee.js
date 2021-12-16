@@ -3213,8 +3213,8 @@ const converters = {
             const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
             const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await tuya.sendDataPointBool(entity, keyid, value === 'ON');
-            return {state: {state: value.toUpperCase()}};
+            let newState = await converters.on_off.convertSet(entity, key, value, meta);
+            await tuya.sendDataPointBool(entity, keyid, newState.state.state === 'ON');
         },
     },
     tuya_switch_type: {
