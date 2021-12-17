@@ -103,7 +103,7 @@ module.exports = [
         model: '4058075168572',
         vendor: 'LEDVANCE',
         description: 'SMART+ lamp E27 turntable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
 ];
