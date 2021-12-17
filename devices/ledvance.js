@@ -98,4 +98,12 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['Tibea TW Z3'],
+        model: '4058075168572',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E27 turntable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        ota: ota.ledvance,
+    },
 ];
