@@ -862,8 +862,6 @@ module.exports = [
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
             exposes.text('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
                     'automatically start at the set time starting point and run the holiday temperature.'),
-            exposes.text('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
             exposes.composite('programming').withDescription('Auto Mode ⏱ - In this mode,'+
                     ' the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('schedule_monday', ea.STATE))
