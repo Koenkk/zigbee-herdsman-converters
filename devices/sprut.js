@@ -17,19 +17,19 @@ module.exports = [
             e.occupancy(), e.occupancy_level(), e.co2(), e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'),
             e.switch().withEndpoint('l2'), e.switch().withEndpoint('relay')],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint('default');
+            const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
                 'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds);
 
             // led_red
-            await device.getEndpoint('l1').read('genOnOff', ['onOff']);
+            await device.getEndpoint(2).read('genOnOff', ['onOff']);
 
             // led_green
-            await device.getEndpoint('l2').read('genOnOff', ['onOff']);
+            await device.getEndpoint(3).read('genOnOff', ['onOff']);
 
             // buzzer
-            await device.getEndpoint('relay').read('genOnOff', ['onOff']);
+            await device.getEndpoint(4).read('genOnOff', ['onOff']);
 
             // Read data at start
             await endpoint1.read('msTemperatureMeasurement', ['measuredValue']);
