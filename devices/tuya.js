@@ -9,6 +9,10 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+
+const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx',
+    '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc'];
+
 module.exports = [
     {
         zigbeeModel: ['TS0203'],
@@ -1016,18 +1020,9 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_dpo1ysak'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_u5u4cakc'},
-        ],
+        fingerprint: TS011Fplugs.map((manufacturerName) => {
+            return {modelID: 'TS011F', manufacturerName};
+        }),
         model: 'TS011F_plug_1',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
@@ -1067,27 +1062,11 @@ module.exports = [
             .withDescription('Recover state after power outage')],
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_5f43h46b', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cphmq0q7', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ew3ldmgx', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_jvzvulen', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_mraovvmm', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125', applicationVersion: 65},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nfnmi125', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ps3dmato', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 64},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 68},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_w0qqde0g', applicationVersion: 69},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_u5u4cakc', applicationVersion: 69},
-        ],
+        fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
+            return [69, 68, 65, 64].map((applicationVersion) => {
+                return {modelID: 'TS011F', manufacturerName, applicationVersion};
+            });
+        })),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
