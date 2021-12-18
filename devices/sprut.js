@@ -64,7 +64,7 @@ module.exports = [
         toZigbee: [tz.on_off],
         exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(),
             e.occupancy(), e.occupancy_level(), e.co2(), e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'), e.switch().withEndpoint('relay')],
+            e.switch().withEndpoint('l2'), e.switch().withEndpoint('default')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
@@ -89,7 +89,7 @@ module.exports = [
             await endpoint1.read('sprutNoise', ['noise_detected']);
         },
         endpoint: (device) => {
-            return {'default': 1, 'l1': 2, 'l2': 3, 'relay': 4};
+            return {'system': 1, 'l1': 2, 'l2': 3, 'default': 4};
         },
         meta: {multiEndpoint: true},
     },
