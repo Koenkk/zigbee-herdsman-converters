@@ -284,7 +284,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
         },
-        exposes: [exposes.binary('card', ea.STATE, true, false).withDescription('Indicates if the card is inserted (= true) or not (= false)')],
+        exposes: [exposes.binary('card', ea.STATE, true, false)
+            .withDescription('Indicates if the card is inserted (= true) or not (= false)')],
     },
     {
         zigbeeModel: ['KB-B540R-ZB'],
