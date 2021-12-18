@@ -128,7 +128,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'haElectricalMeasurement','msTemperatureMeasurement', 'manuSpecificSinope'];
+                'haElectricalMeasurement', 'msTemperatureMeasurement', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
