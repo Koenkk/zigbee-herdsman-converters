@@ -284,7 +284,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
             const payload = [{
-                attribute: 'zoneState', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0, }];
+                attribute: 'zoneState', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('ssIasZone', payload);
         },
         exposes: [exposes.binary('card', ea.STATE, true, false)
