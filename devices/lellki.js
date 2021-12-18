@@ -95,7 +95,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-			await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+	    await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
@@ -105,7 +105,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+            .withDescription('Recover state after power outage')],
 	    endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
