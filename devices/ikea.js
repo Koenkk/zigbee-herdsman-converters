@@ -47,7 +47,6 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
 
 const tradfriExtend = {
     light_onoff_brightness: (options = {}) => ({
-        ...extend.light_onoff_brightness(options),
         exposes: extend.light_onoff_brightness(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
@@ -744,6 +743,13 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WW 345lm'],
+        model: 'LED2005R5',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'IKEA of Sweden'],
         model: 'LED2005R5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
