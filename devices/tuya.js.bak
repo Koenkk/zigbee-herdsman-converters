@@ -556,7 +556,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch (error) {/* Fails for some*/}            
         },
     },
     {
