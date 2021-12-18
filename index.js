@@ -75,9 +75,7 @@ function addDefinition(definition) {
         };
     }
 
-    if (definition.toZigbee.length > 0) {
-        definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
-    }
+    definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
 
     if (definition.exposes) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
