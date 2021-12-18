@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -271,5 +272,18 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.switch()],
+    },
+    {
+        zigbeeModel: ['KB-HD100-ZB'],
+        model: 'KB-HD100-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT Card holder',
+        fromZigbee: [fz.dawon_card_holder],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
+        },
+        exposes: [exposes.binary('card', ea.STATE, true, false).withDescription('Indicates if the card is inserted (= true) or not (= false)')],
     },
 ];
