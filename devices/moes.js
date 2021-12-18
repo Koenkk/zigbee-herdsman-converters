@@ -200,11 +200,10 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.moesS_thermostat],
         toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
             tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
-            tz.moesS_thermostat_boost_heating_countdown, tz.moesS_thermostat_system_mode,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
             e.position(), e.window_detection(),
@@ -225,7 +224,8 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
     },
