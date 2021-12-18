@@ -85,10 +85,10 @@ module.exports = [
     },
     	{
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_c7nc9w3c'}],
-        model: 'W30-EU',
+        model: 'WP30-EU',
         description: 'Power Coord 4 sockets EU (with power monitoring)',
         vendor: 'LELLKI',
-        whiteLabel: [{vendor: 'LELLKI', model: 'W30-EU'}],
+        whiteLabel: [{vendor: 'LELLKI', model: 'WP30-EU'}],
 		extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
