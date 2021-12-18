@@ -645,7 +645,7 @@ const definition = {
             .withDescription(`Power with single or three phase. Requires re-configuration (default: single_phase)`),
         exposes.binary(`production`, ea.SET, true, false).withDescription(`If you produce energy back to the grid. Requires re-configuration (only linky_mode: ${linkyModeDef.standard}, default: false)`),
     ],
-    configure: async (device, coordinatorEndpoint, logger, options) => {
+    configure: async (device, coordinatorEndpoint, logger) => {
         const SW1_ENDPOINT = 1;
         const endpoint = device.getEndpoint(SW1_ENDPOINT);
 
@@ -662,15 +662,15 @@ const definition = {
         // ZLinky don't emit divisor and multiplier
         await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1, acCurrentMultiplier: 1});
         await endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1, multiplier: 1});
-
-
-        await dynamicExposedEndpoints(endpoint, options, true, logger);
     },
     onEvent: (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
+        } else if (type === 'deviceJoined') {
+            dynamicExposedEndpoints(endpoint, options, true)
+                .then(() => {/* Just wait */});
         } else if (type === 'start') {
             const SW1_ENDPOINT = 1;
             const endpoint = device.getEndpoint(SW1_ENDPOINT);
