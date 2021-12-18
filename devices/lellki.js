@@ -105,7 +105,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.switch().withEndpoint('l3'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                    .withDescription('Recover state after power outage')],
+		  .withDescription('Recover state after power outage')],
 	    endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
