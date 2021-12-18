@@ -645,12 +645,6 @@ const definition = {
             .withDescription(`Power with single or three phase. Requires re-configuration (default: single_phase)`),
         exposes.binary(`production`, ea.SET, true, false).withDescription(`If you produce energy back to the grid. Requires re-configuration (only linky_mode: ${linkyModeDef.standard}, default: false)`),
     ],
-    start: async (device, coordinatorEndpoint, logger, options) => {
-        const SW1_ENDPOINT = 1;
-        const endpoint = device.getEndpoint(SW1_ENDPOINT);
-
-        await dynamicExposedEndpoints(endpoint, options, true, logger);
-    },
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const SW1_ENDPOINT = 1;
         const endpoint = device.getEndpoint(SW1_ENDPOINT);
@@ -677,6 +671,12 @@ const definition = {
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
+        } else if (type === 'start') {
+            const SW1_ENDPOINT = 1;
+            const endpoint = device.getEndpoint(SW1_ENDPOINT);
+
+            dynamicExposedEndpoints(endpoint, options, true)
+                .then(() => {/* Just wait */});
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
