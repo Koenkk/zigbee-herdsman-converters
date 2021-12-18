@@ -668,7 +668,7 @@ const definition = {
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
-        } else if (type === 'deviceJoined') {
+        } else if (type === 'devicesChanged') {
             dynamicExposedEndpoints(endpoint, options, true)
                 .then(() => {/* Just wait */});
         } else if (type === 'start') {
