@@ -286,4 +286,20 @@ module.exports = [
         },
         exposes: [exposes.binary('card', ea.STATE, true, false).withDescription('Indicates if the card is inserted (= true) or not (= false)')],
     },
+    {
+        zigbeeModel: ['KB-B540R-ZB'],
+        model: 'KB-B540R-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart plug 16A',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
 ];
