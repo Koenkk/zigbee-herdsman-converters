@@ -6,7 +6,7 @@ module.exports = [
         zigbeeModel: ['Lamp_01'],
         model: 'KS-SM001',
         vendor: 'Ksentry Electronics',
-        description: 'Zigbee OnOff Controller',
+        description: 'Zigbee on/off controller',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
