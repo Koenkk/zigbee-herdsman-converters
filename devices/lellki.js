@@ -89,7 +89,7 @@ module.exports = [
         description: 'Touch Switch 1 Gang (with power monitoring)',
         vendor: 'LELLKI',
         whiteLabel: [{vendor: 'LELLKI', model: 'XF-EU-S100-1-M'}],
-            extend: extend.switch(),
+        extend: extend.switch(),
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
