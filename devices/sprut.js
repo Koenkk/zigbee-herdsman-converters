@@ -3,7 +3,7 @@ const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
-const {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} = require('../lib/utils');
+const {calibrateAndPrecisionRoundOptions} = require('../lib/utils');
 
 const fzLocal = {
     temperature: {
@@ -12,8 +12,7 @@ const fzLocal = {
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const property = postfixWithEndpointName('temperature', msg, model);
-            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
     occupancy: {
