@@ -2739,12 +2739,6 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'ON');
         },
     },
-    moesS_thermostat_boost_heating_countdown: {
-        key: ['boost_heating_countdown'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdown, value);
-        },
-    },
     moesS_thermostat_window_detection: {
         key: ['window_detection'],
         convertSet: async (entity, key, value, meta) => {
