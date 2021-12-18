@@ -83,7 +83,7 @@ module.exports = [
         description: 'Circuit switch',
         extend: extend.switch(),
     },
-    	{
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_z6fgd73r'}],
         model: 'XF-EU-S100-1-M',
         description: 'Touch Switch 1 Gang (with power monitoring)',
