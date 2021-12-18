@@ -288,7 +288,7 @@ module.exports = [
             await endpoint.configureReporting('ssIasZone', payload);
         },
         exposes: [exposes.binary('card', ea.STATE, true, false)
-            .withDescription('Indicates if the card is inserted (= true) or not (= false)')],
+            .withDescription('Indicates if the card is inserted (= true) or not (= false)'), e.battery_low()],
     },
     {
         zigbeeModel: ['KB-B540R-ZB'],
