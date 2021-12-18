@@ -83,7 +83,7 @@ module.exports = [
         description: 'Circuit switch',
         extend: extend.switch(),
     },
-    	{
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_c7nc9w3c'}],
         model: 'WP30-EU',
         description: 'Power Coord 4 sockets EU (with power monitoring)',
