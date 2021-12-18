@@ -8,9 +8,9 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, 
-                      {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'}, 
-                      {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'}, 
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
         zigbeeModel: ['JZ-ZB-005'],
         model: 'WP33-EU',
         vendor: 'LELLKI',
