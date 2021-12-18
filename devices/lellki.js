@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
 
 module.exports = [
     {
