@@ -844,6 +844,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Moes', model: 'TV01-ZB'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+            {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
