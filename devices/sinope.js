@@ -113,8 +113,8 @@ module.exports = [
         model: 'TH1300ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.ignore_temperature_report,
-            fz.legacy.sinope_thermostat_state, fz.sinope_TH1300ZB_specific],
+        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement,
+            fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_TH1300ZB_specific],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
@@ -128,7 +128,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement', 'manuSpecificSinope'];
+                'haElectricalMeasurement', 'msTemperatureMeasurement', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -137,6 +137,17 @@ module.exports = [
             try {
                 await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            try {
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
 
             try {
                 await reporting.thermostatKeypadLockMode(endpoint);
