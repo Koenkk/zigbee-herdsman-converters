@@ -125,7 +125,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_0yxeawjt'}],
         model: 'WK34-EU',
-        description: 'Power socket EU (with power monitoring) ',
+        description: 'Power socket EU (with power monitoring)',
         vendor: 'LELLKI',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
