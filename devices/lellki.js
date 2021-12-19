@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -81,6 +82,27 @@ module.exports = [
         vendor: 'LELLKI',
         description: 'Circuit switch',
         extend: extend.switch(),
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_z6fgd73r'}],
+        model: 'XF-EU-S100-1-M',
+        description: 'Touch switch 1 gang (with power monitoring)',
+        vendor: 'LELLKI',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        exposes: [e.switch().withEndpoint('l1'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        onEvent: tuya.onEventMeasurementPoll,
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
