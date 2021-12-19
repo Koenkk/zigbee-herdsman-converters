@@ -86,7 +86,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
         model: 'WP34-EU',
         vendor: 'LELLKI',
-        description: 'Outlet Power Cord 4 Sockets 2 USB, with 2 USB',
+        description: 'Outlet power cord with 4 sockets and 2 USB',
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
             e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
         extend: extend.switch(),
