@@ -1,7 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
@@ -996,22 +995,7 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-                if (seconds === -1) return;
-                const interval = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                    } catch (error) {/* Do nothing*/}
-                }, seconds*1000);
-                globalStore.putValue(device, 'interval', interval);
-            }
-        },
+        onEvent: tuya.onEventMeasurementPoll,
     },
     {
         fingerprint: [{modelID: 'TS0111', manufacturerName: '_TYZB01_ymcdbl3u'}],
@@ -1085,23 +1069,7 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-                if (seconds === -1) return;
-                const interval = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                        await endpoint.read('seMetering', ['currentSummDelivered']);
-                    } catch (error) {/* Do nothing*/}
-                }, seconds*1000);
-                globalStore.putValue(device, 'interval', interval);
-            }
-        },
+        onEvent: tuya.onEventMeasurementPoll,
     },
     {
         zigbeeModel: ['5p1vj8r'],
