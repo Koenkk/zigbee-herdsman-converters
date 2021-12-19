@@ -56,9 +56,9 @@ const fzLocal = {
 module.exports = [
     {
         zigbeeModel: ['WBMSW3'],
-        model: 'WBMSW3',
+        model: 'WB-MSW-ZIGBEE v.3',
         vendor: 'Sprut.device',
-        description: 'WB-MSW v.3 Zigbee Sensor',
+        description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off],
         toZigbee: [tz.on_off],
