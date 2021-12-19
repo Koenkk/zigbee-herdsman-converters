@@ -102,4 +102,23 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['THS317-ET'],
+        model: 'THS317-ET',
+        vendor: 'OWON',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
 ];
