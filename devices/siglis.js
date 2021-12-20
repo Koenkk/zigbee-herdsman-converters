@@ -45,9 +45,9 @@ const zifgredFromZigbee = {
 module.exports = [
     {
         zigbeeModel: ['zigfred uno'],
-        model: 'zigfred uno',
+        model: 'ZFU-1D-CH',
         vendor: 'Siglis',
-        description: 'smart in-Wall switch',
+        description: 'zigfred uno smart in-wall switch',
         exposes: [e.light_brightness_colorxy().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.light_brightness().withEndpoint('l3'),
             e.action([
                 'button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
