@@ -35,15 +35,28 @@ module.exports = [
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
-                await reporting.thermostatRunningState(endpoint);
-                await reporting.readMeteringMultiplierDivisor(endpoint);
-                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-                await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
-                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
             } catch (error) {/* Not all support this */}
+
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
+
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            try {
+                await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
+            } catch (error) {/* Do nothing*/}
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            try {
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
 
             // Disable default reporting
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF});
