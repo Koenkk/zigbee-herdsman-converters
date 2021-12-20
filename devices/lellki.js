@@ -142,4 +142,31 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
         onEvent: tuya.onEventMeasurementPoll,
     },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_c7nc9w3c'}],
+        model: 'WP30-EU',
+        description: 'Power cord 4 sockets EU (with power monitoring)',
+        vendor: 'LELLKI',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        onEvent: tuya.onEventMeasurementPoll,
+    },
 ];
