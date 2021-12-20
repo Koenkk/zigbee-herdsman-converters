@@ -121,7 +121,7 @@ module.exports = [
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_floor_control_mode,
             tz.sinope_ambiant_max_heat_setpoint, tz.sinope_floor_min_heat_setpoint, tz.sinope_floor_max_heat_setpoint,
             tz.sinope_temperature_sensor, tz.sinope_time_format],
-        exposes: [e.local_temperature(), e.keypad_lockout(),
+        exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
