@@ -1725,6 +1725,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.magnet.agl02'],
