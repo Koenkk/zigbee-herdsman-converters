@@ -1740,7 +1740,7 @@ module.exports = [
             fz.legacy.hue_dimmer_switch, fz.battery],
         exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
             'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release']),
-            exposes.numeric('duration', ea.STATE).withUnit('ms')],
+        exposes.numeric('duration', ea.STATE).withUnit('ms')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
