@@ -36,6 +36,21 @@ module.exports = [
         exposes: [e.lock(), e.battery()],
     },
     {
+        zigbeeModel: ['SMARTCODE_DEADBOLT_10_W3'],
+        model: '99140-031',
+        vendor: 'Kwikset',
+        description: 'SmartCode traditional electronic deadbolt',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        toZigbee: [tz.lock],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery()],
+    },
+    {
         zigbeeModel: ['SMARTCODE_DEADBOLT_5'],
         model: '99100-045',
         vendor: 'Kwikset',
