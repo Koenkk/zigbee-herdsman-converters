@@ -97,15 +97,14 @@ module.exports = [
         model: 'PS600',
         vendor: 'Computime',
         description: 'Pipe temperature sensor',
-		supports: 'warning, temperature',
+        supports: 'warning, temperature',
         fromZigbee: [fz.temperature],
         toZigbee: [],
         exposes: [e.temperature(), e.battery_low(), e.tamper()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-			await configureReporting.temperature(endpoint);
-		},
+        },
         ota: ota.salus,
     },
     {
