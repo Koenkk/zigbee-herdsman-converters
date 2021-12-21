@@ -23,7 +23,7 @@ const zifgredFromZigbee = {
 
             const actionLookup = {
                 0: 'release',
-                1: 'click',
+                1: 'single',
                 2: 'double',
                 3: 'hold',
             };
@@ -50,8 +50,11 @@ module.exports = [
         description: 'zigfred uno smart in-wall switch',
         exposes: [e.light_brightness_colorxy().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.light_brightness().withEndpoint('l3'),
             e.action([
-                'button_1_click', 'button_1_hold', 'button_1_release', 'button_2_click', 'button_2_hold', 'button_2_release',
-                'button_3_click', 'button_3_hold', 'button_3_release', 'button_4_click', 'button_4_hold', 'button_4_release'])],
+                'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
+                'button_2_single', 'button_2_double', 'button_2_hold', 'button_2_release',
+                'button_3_single', 'button_3_double', 'button_3_hold', 'button_3_release',
+                'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
+            ])],
         fromZigbee: [
             zifgredFromZigbee,
             fz.color_colortemp,
