@@ -6,6 +6,12 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const bind = async (endpoint, target, clusters) => {
+    for (const cluster of clusters) {
+        await endpoint.bind(cluster, target);
+    }
+};
+
 module.exports = [
     {
         zigbeeModel: ['SPE600'],
@@ -84,6 +90,22 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
+        ota: ota.salus,
+    },
+    {
+        zigbeeModel: ['SS909ZB'],
+        model: 'PS600',
+        vendor: 'Computime',
+        description: 'Pipe temperature sensor',
+		supports: 'warning, temperature',
+        fromZigbee: [fz.temperature],
+        toZigbee: [],
+        exposes: [e.temperature(), e.battery_low(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+			await configureReporting.temperature(endpoint);
+		},
         ota: ota.salus,
     },
     {
