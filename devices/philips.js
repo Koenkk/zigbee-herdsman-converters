@@ -1459,7 +1459,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (black)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -1468,7 +1468,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (silver)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
