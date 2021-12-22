@@ -584,7 +584,7 @@ module.exports = [
         model: 'QBKG25LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
-        fromZigbee: [fz.on_off, fz.legacy.QBKG25LM_click, fz.aqara_opple],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
             tz.aqara_switch_mode_switch],
         meta: {multiEndpoint: true},
@@ -607,9 +607,9 @@ module.exports = [
                     'Quick mode makes the device respond faster.'),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
-                'left_single', 'left_double', 'left_triple', 'left_hold', 'left_release',
-                'center_single', 'center_double', 'center_triple', 'center_hold', 'center_release',
-                'right_single', 'right_double', 'right_triple', 'right_hold', 'right_release']),
+                'left_single', 'left_double', 'center_single', 'center_double','right_single', 'right_double',
+                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
+                'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -622,11 +622,8 @@ module.exports = [
         model: 'QBKG26LM',
         vendor: 'Xiaomi',
         description: 'Aqara D1 3 gang smart wall switch (with neutral wire)',
-        extend: extend.switch(),
         exposes: [
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('center'),
-            e.switch().withEndpoint('right'),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -636,27 +633,22 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.action([
-                'hold_left', 'single_left', 'double_left', 'triple_left', 'release_left',
-                'hold_center', 'single_center', 'double_center', 'triple_center', 'release_center',
-                'hold_right', 'single_right', 'double_right', 'triple_right', 'release_right',
+            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(),
+            e.temperature().withAccess(ea.STATE),
+            e.action([
+                'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
-        fromZigbee: [fz.on_off, fz.aqara_opple, fz.xiaomi_multistate_action, fz.xiaomi_power],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action,],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3, 'system': 1};
+            return {'left': 1, 'center': 2, 'right': 3};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(device.getEndpoint(1));
-            await reporting.onOff(device.getEndpoint(2));
-            await reporting.onOff(device.getEndpoint(3));
         },
         onEvent: preventReset,
     },
