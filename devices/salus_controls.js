@@ -83,7 +83,7 @@ module.exports = [
         description: 'Door or window contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        exposes: [e.contact()],
         ota: ota.salus,
     },
     {
