@@ -1,7 +1,7 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const exposes = require('../lib/exposes');
+const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
 const siglisManufacturerCode = 0x129C;
