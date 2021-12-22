@@ -411,7 +411,7 @@ const definition = {
             .withDescription(`Power with single or three phase. Requires re-configuration (default: single_phase)`),
         exposes.binary(`production`, ea.SET, true, false).withDescription(`If you produce energy back to the grid. Requires re-configuration (only linky_mode: ${linkyModeDef.standard}, default: false)`),
     ],
-    configure: async (device, coordinatorEndpoint, logger, options) => {
+    configure: async (device, coordinatorEndpoint, logger) => {
         const SW1_ENDPOINT = 1;
         const endpoint = device.getEndpoint(SW1_ENDPOINT);
 
@@ -428,28 +428,28 @@ const definition = {
         // ZLinky don't emit divisor and multiplier
         await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1, acCurrentMultiplier: 1});
         await endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1, multiplier: 1});
-
-        getCurrentConfig(device, options)
-            .filter((e) => e.reportable) // we must subscribe just to reportable entities
-            .forEach((e) => {
-                let change = 1;
-                if (e.hasOwnProperty('reportChange')) {
-                    change = e['reportChange'];
-                }
-
-                endpoint
-                    .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
-                    .catch((err) => {
-                        logger.debug(`ZLINKY_DEBUG: Error ${e.cluster}/${e.exposes.property}: ${err}`);
-                        logger.warn(`Error configuring report for ${e.cluster}/${e.exposes.property}`);
-                    });
-            });
     },
     onEvent: (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
+        } else if (type === 'start') {
+            getCurrentConfig(device, options)
+                .filter((e) => e.reportable) // we must subscribe just to reportable entities
+                .forEach((e) => {
+                    let change = 1;
+                    if (e.hasOwnProperty('reportChange')) {
+                        change = e['reportChange'];
+                    }
+
+                    endpoint
+                        .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
+                        .catch((err) => {
+                            console.debug(`ZLINKY_DEBUG: Error ${e.cluster}/${e.exposes.property}: ${err}`);
+                            console.warn(`Error configuring report for ${e.cluster}/${e.exposes.property}`);
+                        });
+                });
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
