@@ -607,7 +607,7 @@ module.exports = [
                     'Quick mode makes the device respond faster.'),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
-                'left_single', 'left_double', 'center_single', 'center_double','right_single', 'right_double',
+                'left_single', 'left_double', 'center_single', 'center_double', 'right_single', 'right_double',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
@@ -640,7 +640,7 @@ module.exports = [
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
         ],
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action,],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night],
         meta: {multiEndpoint: true},
