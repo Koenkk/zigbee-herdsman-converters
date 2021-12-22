@@ -1463,8 +1463,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['1746430P7'],
-        model: '1746430P7',
+        zigbeeModel: ['1746447P7'],
+        model: '1746447P7',
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (silver)',
         meta: {turnsOffAtBrightness1: true},
