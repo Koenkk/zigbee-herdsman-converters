@@ -420,10 +420,7 @@ const definition = {
             clustersDef._0x0B01, /* haMeterIdentification */
             clustersDef._0x0B04, /* haElectricalMeasurement */
             clustersDef._0xFF66, /* liXeePrivate */
-        ])
-            .catch((e) => {
-                logger.error(`ZLINKY_DEBUG: failed to bind: ${e.message}`);
-            });
+        ]);
 
         // ZLinky don't emit divisor and multiplier
         await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1, acCurrentMultiplier: 1});
