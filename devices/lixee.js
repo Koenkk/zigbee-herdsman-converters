@@ -465,11 +465,6 @@ const definition = {
             globalStore.putValue(device, 'interval', interval);
         }
     },
-    endpoint: (dev) => {
-        return {
-            'haElectricalMeasurement': 1, 'liXeePrivate': 1, 'seMetering': 1, 'haMeterIdentification': 1, 'default': 1,
-        };
-    },
 };
 
 module.exports = [definition];
