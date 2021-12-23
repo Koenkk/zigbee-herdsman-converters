@@ -1721,7 +1721,7 @@ module.exports = [
         description: 'Hue wall switch module',
         fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch],
         exposes: [e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release']),
-        exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
+            exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
         toZigbee: [tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1740,7 +1740,7 @@ module.exports = [
             fz.legacy.hue_dimmer_switch, fz.battery],
         exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
             'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release', 'duration']),
-            exposes.numeric('action_duration', ea.STATE).withUnit('second')],
+        exposes.numeric('action_duration', ea.STATE).withUnit('second')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
