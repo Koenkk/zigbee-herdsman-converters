@@ -1798,7 +1798,7 @@ const converters = {
     },
     nous_lcd_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
