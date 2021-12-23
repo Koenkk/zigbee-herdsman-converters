@@ -1733,7 +1733,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['RDM001'],
+        zigbeeModel: ['RDM001', '9290030171'],
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
