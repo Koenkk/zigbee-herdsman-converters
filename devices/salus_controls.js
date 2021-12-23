@@ -100,7 +100,7 @@ module.exports = [
         supports: 'warning, temperature',
         fromZigbee: [fz.temperature],
         toZigbee: [],
-        exposes: [e.temperature()],
+        exposes: [e.temperature(), e.battery_low(), e.tamper()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
