@@ -87,6 +87,20 @@ module.exports = [
         ota: ota.salus,
     },
     {
+        zigbeeModel: ['SS909ZB'],
+        model: 'PS600',
+        vendor: 'Salus Controls',
+        description: 'Pipe temperature sensor',
+        fromZigbee: [fz.temperature],
+        toZigbee: [],
+        exposes: [e.temperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+        },
+        ota: ota.salus,
+    },
+    {
         zigbeeModel: ['RE600'],
         model: 'RE600',
         vendor: 'Salus Controls',
