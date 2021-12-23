@@ -45,4 +45,27 @@ module.exports = [
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb'])],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}],
+        zigbeeModel: ['t1blo2bj'],
+        model: 'NAS-AB02',
+        vendor: 'Neo',
+        description: 'Siren alarm',
+        fromZigbee: [fz.neo_siren_alarm, fz.ignore_basic_report],
+        toZigbee: [tz.neo_siren_alarm],
+        exposes: [
+            e.battery_low(),
+            exposes.binary('alarm', ea.STATE_SET, true, false),
+            exposes.enum('melody', ea.STATE_SET, Array.from(Array(18).keys()).map((x)=>(x+1).toString())),
+            exposes.numeric('duration', ea.STATE_SET).withUnit('second').withValueMin(0).withValueMax(1000),
+            exposes.enum('volume', ea.STATE_SET, ['low', 'medium', 'high']),
+            exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
+        ],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+            await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
+        },
+    },
 ];
