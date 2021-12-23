@@ -93,7 +93,7 @@ module.exports = [
         description: 'Pipe temperature sensor',
         fromZigbee: [fz.temperature],
         toZigbee: [],
-        exposes: [e.temperature(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
