@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Zigbee2MQTT issue tracker
+    url: https://github.com/Koenkk/zigbee2mqtt/discussions/new
+    about: Preferably create an issue in the Zigbee2MQTT issue tracker
