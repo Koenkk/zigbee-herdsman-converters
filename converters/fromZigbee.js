@@ -4280,18 +4280,22 @@ const converters = {
                 }
                 return hex;
             };
-            let dataStr =
-                Date.now().toString() + ' ' +
-                meta.device.ieeeAddr + ' ' +
-                getHex(msg.data.seq) + ' ' +
-                getHex(msg.data.dp) + ' ' +
-                getHex(msg.data.datatype) + ' ' +
-                getHex(msg.data.fn);
+            const now = Date.now().toString();
+            let dataStr = '';
+            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+                dataStr +=
+                    now + ' ' +
+                    meta.device.ieeeAddr + ' ' +
+                    getHex(msg.data.seq) + ' ' +
+                    getHex(i) + ' ' +
+                    getHex(dpValue.dp) + ' ' +
+                    getHex(dpValue.datatype);
 
-            msg.data.data.forEach((elem) => {
-                dataStr += ' ' + getHex(elem);
-            });
-            dataStr += '\n';
+                dpValue.data.forEach((elem) => {
+                    dataStr += ' ' + getHex(elem);
+                });
+                dataStr += '\n';
+            }
             const fs = require('fs');
             fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
                 if (err) throw err;
