@@ -46,7 +46,6 @@ const converterRequiredFields = {
     description: 'String',
     fromZigbee: 'Array',
     toZigbee: 'Array',
-    exposes: 'Array',
 };
 
 function validateDefinition(definition) {
@@ -56,6 +55,7 @@ function validateDefinition(definition) {
         const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
+    assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
 function addDefinition(definition) {
@@ -77,7 +77,7 @@ function addDefinition(definition) {
 
     definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
 
-    if (definition.exposes) {
+    if (definition.exposes && Array.isArray(definition.exposes)) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
     }
 

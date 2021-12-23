@@ -546,7 +546,12 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
-        configure: configureRemote,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Binding genOnOff is not required to make device send events.
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -596,7 +601,12 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: configureRemote,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Binding genOnOff is not required to make device send events.
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],

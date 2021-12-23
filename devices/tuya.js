@@ -9,8 +9,9 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 
-const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx',
-    '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc'];
+const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
+    '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
+    '_TZ3000_rdtixbnu'];
 
 module.exports = [
     {
@@ -125,6 +126,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_x2fqbdun'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_589kq4ul'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_1mtktxdk'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_remypqqm'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_0rn9qhnu'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
@@ -844,6 +846,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Moes', model: 'TV01-ZB'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
+            {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
@@ -1187,7 +1190,7 @@ module.exports = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
         zigbeeModel: ['TS0011'],
         model: 'TS0011',
         vendor: 'TuYa',
@@ -1207,7 +1210,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
             {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
