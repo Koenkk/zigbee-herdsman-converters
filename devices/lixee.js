@@ -237,8 +237,13 @@ function getCurrentConfig(device, options) {
     // Filter even more, based on our current tarif
     if (device && linkyMode == linkyModeDef.legacy) {
         const endpoint = device.getEndpoint(1);
-        // Remove atributes which doesn't match current tarif
-        const currentTarf = endpoint.clusters.liXeePrivate.attributes.currentTarif.replace(/\0/g, '');
+        let currentTarf;
+        try {
+            // Try to remove atributes which doesn't match current tarif
+            currentTarf = endpoint.clusters.liXeePrivate.attributes.currentTarif.replace(/\0/g, '');
+        } catch (error) {
+            currentTarf = '';
+        }
         switch (currentTarf) {
         case 'BASE':
             myExpose = myExpose.filter((a) => ![
@@ -338,7 +343,7 @@ const definition = {
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
-        } else if (type === 'start') {
+        } else if (type === 'start' || type == 'deviceInterview' && data.status == 'successful') {
             getCurrentConfig(device, options)
                 .filter((e) => e.reportable) // we must subscribe just to reportable entities
                 .forEach((e) => {
