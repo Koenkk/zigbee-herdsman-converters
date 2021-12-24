@@ -66,4 +66,29 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        fingerprint: [
+                {modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'},
+                ],
+        model: 'ZM-RM02',
+        vendor: 'Zemismart',
+        description: 'Smart 6 key scene switch (Portable and Battery powered)',
+        fromZigbee: [
+            fz.tuya_6_scene_switch,
+        ],
+        toZigbee: [],
+        onEvent: tuya.setTime, 
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+        },
+        exposes: [e.battery(), e.action([
+            'button_1_hold', 'button_1_single', 'button_1_double',
+            'button_2_hold', 'button_2_single', 'button_2_double',
+            'button_3_hold', 'button_3_single', 'button_3_double',
+            'button_4_hold', 'button_4_single', 'button_4_double',
+            'button_5_hold', 'button_5_single', 'button_5_double',
+            'button_6_hold', 'button_6_single', 'button_6_double'])],
+    },
 ];
