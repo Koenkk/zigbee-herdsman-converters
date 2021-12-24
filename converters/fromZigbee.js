@@ -7630,23 +7630,6 @@ const converters = {
             };
         },
     },
-    tuya_6_scene_switch: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const button = msg.data.dp;
-            const actionValue = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            const lookup = {
-                0: 'single',
-                1: 'double',
-                2: 'hold',
-            };
-            const action = lookup[actionValue];
-            return {
-                action: `button_${button}_${action}`,
-            };
-        },
-    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
