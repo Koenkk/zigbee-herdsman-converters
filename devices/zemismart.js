@@ -6,6 +6,20 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const tuya = require('../lib/tuya');
 
+const fzLocal = {
+    ZMRM02: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const button = msg.data.dp;
+            const actionValue = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const lookup = {0: 'single', 1: 'double', 2: 'hold'};
+            const action = lookup[actionValue];
+            return {action: `button_${button}_${action}`};
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['NUET56-DL27LX1.1'],
@@ -72,7 +86,7 @@ module.exports = [
         model: 'ZM-RM02',
         vendor: 'Zemismart',
         description: 'Smart 6 key scene switch',
-        fromZigbee: [fz.tuya_6_scene_switch],
+        fromZigbee: [fzLocal.ZMRM02],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         exposes: [e.battery(), e.action([
