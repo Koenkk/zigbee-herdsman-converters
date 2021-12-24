@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -67,22 +68,13 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-                {modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'},
-                ],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'}],
         model: 'ZM-RM02',
         vendor: 'Zemismart',
-        description: 'Smart 6 key scene switch (Portable and Battery powered)',
-        fromZigbee: [
-            fz.tuya_6_scene_switch,
-        ],
+        description: 'Smart 6 key scene switch',
+        fromZigbee: [fz.tuya_6_scene_switch],
         toZigbee: [],
-        onEvent: tuya.setTime, 
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-        },
+        onEvent: tuya.onEventSetTime,
         exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_single', 'button_1_double',
             'button_2_hold', 'button_2_single', 'button_2_double',
