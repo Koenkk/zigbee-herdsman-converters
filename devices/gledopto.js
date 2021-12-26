@@ -237,7 +237,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {disableDefaultResponse: true},
     },
     {
