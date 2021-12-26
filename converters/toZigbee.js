@@ -1154,6 +1154,20 @@ const converters = {
             await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
         },
     },
+    thermostat_programming_operation_mode: {
+        key: ['programming_operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(constants.thermostatProgrammingOperationModes, value, undefined, Number);
+            if (val === undefined) {
+                throw new Error('Programming operation mode invalid, must be one of: ' +
+                    Object.values(constants.thermostatProgrammingOperationModes).join(', '));
+            }
+            await entity.write('hvacThermostat', {programingOperMode: val});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['programingOperMode']);
+        },
+    },
     thermostat_temperature_display_mode: {
         key: ['temperature_display_mode'],
         convertSet: async (entity, key, value, meta) => {
