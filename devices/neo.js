@@ -7,8 +7,7 @@ const tuya = require('../lib/tuya');
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_d0yu2xgi'}],
         zigbeeModel: ['0yu2xgi'],
         model: 'NAS-AB02B0',
         vendor: 'Neo',
