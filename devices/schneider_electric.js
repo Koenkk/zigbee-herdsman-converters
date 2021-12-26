@@ -9,6 +9,21 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['PUCK/SHUTTER/1'],
+        model: 'CCT5015-0001',
+        vendor: 'Schneider Electric',
+        description: 'Roller shutter module',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        exposes: [e.cover_position()],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(5);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['NHPB/SHUTTER/1'],
         model: 'S520567',
         vendor: 'Schneider Electric',

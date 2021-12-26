@@ -1526,6 +1526,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['915005986901'],
+        model: '915005986901',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Gradient Signe table lamp (white)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5060730P7_01', '5060730P7_02', '5060730P7_03', '5060730P7_04', '5060730P7_05'],
         model: '5060730P7',
         vendor: 'Philips',
@@ -1724,7 +1733,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['RDM001'],
+        zigbeeModel: ['RDM001', '9290030171'],
         model: '929003017102',
         vendor: 'Philips',
         description: 'Hue wall switch module',
@@ -1748,7 +1757,8 @@ module.exports = [
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
             fz.legacy.hue_dimmer_switch, fz.battery],
         exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
-            'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release'])],
+            'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release']),
+        exposes.numeric('action_duration', ea.STATE).withUnit('second')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
