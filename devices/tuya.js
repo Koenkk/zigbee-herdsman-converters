@@ -103,7 +103,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}],
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'}],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
