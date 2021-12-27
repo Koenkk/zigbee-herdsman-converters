@@ -327,7 +327,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['GL-S-007Z'],
+        zigbeeModel: ['GL-S-007Z', 'GL-S-007Z(lk)'],
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W GU10 Bulb RGB+CCT',
