@@ -937,7 +937,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_battery, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
         exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'),
-            e.cube_side('from_side'), e.cube_side('side'), e.cube_side('to_side'),
+            e.cube_side('side'),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
