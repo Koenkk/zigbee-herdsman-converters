@@ -151,14 +151,18 @@ module.exports = [
                 await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
 
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             try {
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
-            } catch (error) {/* Do nothing*/}
+            } catch (error) {
+                endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
+            }
             try {
+                await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
                 await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             } catch (error) {/* Do nothing*/}
             try {
+                await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
                 await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
             } catch (error) {/* Do nothing*/}
 
