@@ -7,11 +7,41 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
-
+const libColor = require('../lib/color');
+const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_v1pdxuqq'];
+
+const tzLocal = {
+    TS0504B_color: {
+        key: ['color'],
+        convertSet: async (entity, key, value, meta) => {
+            const color = libColor.Color.fromConverterArg(value);
+            console.log(color);
+            const enableWhite =
+                (color.isRGB() && (color.rgb.red === 1 && color.rgb.green === 1 && color.rgb.blue === 1)) ||
+                // Zigbee2MQTT frontend white value
+                (color.isXY() && (color.xy.x === 0.3125 || color.xy.y === 0.32894736842105265)) ||
+                // Home Assistant white color picker value
+                (color.isXY() && (color.xy.x === 0.323 || color.xy.y === 0.329));
+
+            if (enableWhite) {
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: false});
+                const newState = {color_mode: 'xy'};
+                if (color.isXY()) {
+                    newState.color = color.xy;
+                } else {
+                    newState.color = color.rgb.gammaCorrected().toXY().rounded(4);
+                }
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger)};
+            } else {
+                return await tz.light_color.convertSet(entity, key, value, meta);
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -103,7 +133,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}],
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'}],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
@@ -151,11 +181,13 @@ module.exports = [
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
-        fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'}],
+        fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'}],
         model: 'TS0504B',
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
         extend: extend.light_onoff_brightness_color(),
+        toZigbee: utils.replaceInArray(extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
     },
     {

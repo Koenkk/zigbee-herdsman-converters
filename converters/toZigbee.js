@@ -785,7 +785,7 @@ const converters = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
+            let state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
             if (message.hasOwnProperty('brightness')) {
                 brightness = Number(message.brightness);
@@ -803,7 +803,11 @@ const converters = {
             }
 
             if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
-                if (transition.specified && (state === 'off' || state === 'on')) {
+                if (transition.specified) {
+                    if (state === 'toggle') {
+                        state = meta.state.state === 'ON' ? 'OFF' : 'ON';
+                    }
+
                     if (state === 'off' && meta.state.brightness && meta.state.state === 'ON') {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
