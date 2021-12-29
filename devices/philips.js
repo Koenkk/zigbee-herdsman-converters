@@ -1923,6 +1923,39 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['SML004'],
+        model: '9290030674',
+        vendor: 'Philips',
+        description: 'Hue motion outdoor sensor',
+        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.illuminance, fz.occupancy_timeout,
+            fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        exposes: [e.temperature(), e.occupancy(), e.battery(), e.illuminance_lux(), e.illuminance(),
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        endpoint: (device) => {
+            return {
+                'default': 2, // default
+                'ep1': 1,
+                'ep2': 2, // e.g. for write to msOccupancySensing
+            };
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.illuminance(endpoint);
+            // read occupancy_timeout and motion_sensitivity
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('msOccupancySensing', [48], {manufacturerCode: 4107});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LOM001'],
         model: '929002240401',
         vendor: 'Philips',
