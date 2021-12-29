@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['929003054001'],
+        model: '929003054001',
+        vendor: 'Philips',
+        description: 'Hue Wellness table lamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['4076131P6'],
         model: '4076131P6',
         vendor: 'Philips',
