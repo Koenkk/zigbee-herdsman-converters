@@ -538,6 +538,15 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'}],
+        model: 'WSD500A',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+    },
+    {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
         model: 'SM0201',
         vendor: 'TuYa',
