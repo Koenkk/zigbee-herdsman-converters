@@ -1782,4 +1782,15 @@ module.exports = [
             exposes.enum('clear_device_data', ea.SET, ['clear']),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'}],
+        zigbeeModel: ['TS004F'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'ERS-10TZBVK-AA', // Vendor model number, look on the device for a model number
+        vendor: 'Smart Life', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Smart Knob', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        fromZigbee: [fz.command_step, fz.command_toggle, fz.command_move_hue],
+        toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
+        // Defines what this device exposes, used for e.g. Home Assistant discovery and in the frontend
+        exposes: [e.action(['button_*_hold', 'button_*_single', 'button_*_double', 'button_*_triple', 'button_*_quadruple', 'button_*_release'])],  
+    },
 ];
