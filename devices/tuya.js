@@ -1149,22 +1149,25 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'},
-            {modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
-        model: 'TS1101_dimmer_module',
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
+        model: 'TS1101_dimmer_module_1ch',
         vendor: 'TuYa',
-        description: '2CH Zigbee dimmer module',
+        description: 'Zigbee dimmer module 1 channel',
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.tuya_min_brightness]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tuya_min_brightness]),
+        exposes: [e.light_brightness().withMinBrightness()],
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_7ysdnebc'}],
+        model: 'TS1101_dimmer_module_2ch',
+        vendor: 'TuYa',
+        description: 'Zigbee dimmer module 2 channel',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ25'}],
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
-            fz.tuya_min_brightness,
-        ]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([
-            tz.tuya_min_brightness,
-        ]),
-        exposes: [
-            e.light_brightness().withMinBrightness().withEndpoint('l1'),
-            e.light_brightness().withMinBrightness().withEndpoint('l2'),
-        ],
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.tuya_min_brightness]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tuya_min_brightness]),
+        exposes: [e.light_brightness().withMinBrightness().withEndpoint('l1'),
+            e.light_brightness().withMinBrightness().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
