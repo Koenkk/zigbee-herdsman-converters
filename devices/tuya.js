@@ -1669,7 +1669,7 @@ module.exports = [
             e.illuminance_lux(), e.presence(),
             exposes.binary('motion', ea.STATE, [true, false]).withDescription('moving inside the range of the sensor'),
             exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, ['standing still', 'moving forward', 'moving backward'])
+            exposes.enum('motion_direction', ea.STATE, ['standing_still', 'moving_forward', 'moving_backward'])
                 .withDescription('direction of movement from the point of view of the radar'),
             exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
                 .withDescription('sensitivity of the radar'),

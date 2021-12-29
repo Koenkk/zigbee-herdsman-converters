@@ -7351,7 +7351,7 @@ const converters = {
             case tuya.dataPoints.trsMotionSpeed:
                 return {motion_speed: value};
             case tuya.dataPoints.trsMotionDirection:
-                return {motion_direction: {0: 'still', 1: 'forward', 2: 'backward'}[value]};
+                return {motion_direction: {0: 'standing_still', 1: 'moving_forward', 2: 'moving_backward'}[value]};
             case tuya.dataPoints.trsScene:
                 return {radar_scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
             case tuya.dataPoints.trsSensitivity:
