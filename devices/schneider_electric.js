@@ -283,7 +283,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['on_s*', 'off_s*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.endpoints.forEach(async (ep) => {
-                if (ep.outputClusters.includes(6)) {
+                if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
                     if (ep.ID <= 2) {
                         await reporting.onOff(ep);
