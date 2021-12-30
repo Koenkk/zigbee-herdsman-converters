@@ -805,7 +805,7 @@ const converters = {
             if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
                 if (transition.specified) {
                     if (state === 'toggle') {
-                        state = meta.state.state === 'ON' ? 'OFF' : 'ON';
+                        state = meta.state.state === 'ON' ? 'off' : 'on';
                     }
 
                     if (state === 'off' && meta.state.brightness && meta.state.state === 'ON') {
