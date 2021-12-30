@@ -1789,7 +1789,6 @@ module.exports = [
         description: 'Smart knob',
         fromZigbee: [fz.command_step, fz.command_toggle, fz.command_move_hue],
         toZigbee: [],
-        exposes: [e.action(['button_*_hold', 'button_*_single', 'button_*_double', 'button_*_triple', 'button_*_quadruple',
-            'button_*_release'])],
+        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
     },
 ];
