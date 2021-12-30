@@ -1792,4 +1792,13 @@ module.exports = [
             exposes.enum('clear_device_data', ea.SET, ['clear']),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'}],
+        model: 'ERS-10TZBVK-AA',
+        vendor: 'TuYa',
+        description: 'Smart knob',
+        fromZigbee: [fz.command_step, fz.command_toggle, fz.command_move_hue],
+        toZigbee: [],
+        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
+    },
 ];
