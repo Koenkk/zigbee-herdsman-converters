@@ -997,6 +997,9 @@ module.exports = [
         model: 'TS0601_thermostat_1',
         vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
+        whiteLabel: [
+            {vendor: 'Unknown/id3.pl', model: 'GTZ06'},
+        ],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.haozee_thermostat],
         toZigbee: [
