@@ -3979,6 +3979,9 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
+            case tuya.dataPoints.saswellHeating:
+                // heating status 1 - heating
+                return {'heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.saswellWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.saswellFrostDetection:
