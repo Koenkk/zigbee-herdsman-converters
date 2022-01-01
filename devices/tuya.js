@@ -1692,7 +1692,7 @@ module.exports = [
             exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
                 .withDescription('sensitivity of the radar'),
             exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
-                .withDescription('presets for sensivity for presence and movement'),
+                .withDescription('presets for sensitivity for presence and movement'),
         ],
     },
     {
