@@ -4985,6 +4985,11 @@ const converters = {
                         value = data.readUInt16LE(i+2);
                         i += 3;
                         break;
+                    case 34:
+                        // 0x22 Zcl24BitUint
+                        value = data.readUIntLE(i+2, 3)
+                        i += 4;
+                        break;
                     case 35:
                         // 0x23 Zcl32BitUint
                         value = data.readUInt32LE(i+2);
@@ -4992,8 +4997,18 @@ const converters = {
                         break;
                     case 36:
                         // 0x24 Zcl40BitUint
-                        value = [data.readUInt32LE(i+2), data.readUInt8(i+6)];
+                        value = data.readUIntLE(i+2, 5)
                         i += 6;
+                        break;
+                    case 37:
+                        // 0x25 Zcl48BitUint
+                        value = data.readUIntLE(i+2, 6)
+                        i += 7;
+                        break;
+                    case 38:
+                        // 0x26 Zcl56BitUint
+                        value = data.readUIntLE(i+2, 7)
+                        i += 8;
                         break;
                     case 39:
                         // 0x27 Zcl64BitUint
@@ -5010,10 +5025,30 @@ const converters = {
                         value = data.readInt16LE(i+2);
                         i += 3;
                         break;
+                    case 42:
+                        // 0x2A Zcl24BitInt
+                        value = data.readIntLE(i+2, 3)
+                        i += 4;
+                        break;
                     case 43:
                         // 0x2B Zcl32BitInt
                         value = data.readInt32LE(i+2);
                         i += 5;
+                        break;
+                    case 44:
+                        // 0x2C Zcl40BitInt
+                        value = data.readIntLE(i+2, 5)
+                        i += 6;
+                        break;
+                    case 45:
+                        // 0x2D Zcl48BitInt
+                        value = data.readIntLE(i+2, 6)
+                        i += 7;
+                        break;
+                    case 46:
+                        // 0x2E Zcl56BitInt
+                        value = data.readIntLE(i+2, 7)
+                        i += 8;
                         break;
                     case 47:
                         // 0x2F Zcl64BitInt
