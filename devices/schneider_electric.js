@@ -7,6 +7,16 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const tzLocal = {
+    lift_duration: {
+        key: ['lift_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
+            return {state: {lift_duration: value}};
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['PUCK/SHUTTER/1'],
@@ -14,8 +24,9 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Roller shutter module',
         fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
-        exposes: [e.cover_position()],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
+        exposes: [e.cover_position(), exposes.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+            .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -283,7 +294,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['on_s*', 'off_s*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.endpoints.forEach(async (ep) => {
-                if (ep.outputClusters.includes(6)) {
+                if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
                     if (ep.ID <= 2) {
                         await reporting.onOff(ep);

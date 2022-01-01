@@ -3979,6 +3979,9 @@ const converters = {
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
 
             switch (dp) {
+            case tuya.dataPoints.saswellHeating:
+                // heating status 1 - heating
+                return {'heating': value ? 'ON' : 'OFF'};
             case tuya.dataPoints.saswellWindowDetection:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.saswellFrostDetection:
@@ -4982,6 +4985,11 @@ const converters = {
                         value = data.readUInt16LE(i+2);
                         i += 3;
                         break;
+                    case 34:
+                        // 0x22 Zcl24BitUint
+                        value = data.readUIntLE(i+2, 3);
+                        i += 4;
+                        break;
                     case 35:
                         // 0x23 Zcl32BitUint
                         value = data.readUInt32LE(i+2);
@@ -4989,8 +4997,18 @@ const converters = {
                         break;
                     case 36:
                         // 0x24 Zcl40BitUint
-                        value = [data.readUInt32LE(i+2), data.readUInt8(i+6)];
+                        value = data.readUIntLE(i+2, 5);
                         i += 6;
+                        break;
+                    case 37:
+                        // 0x25 Zcl48BitUint
+                        value = data.readUIntLE(i+2, 6);
+                        i += 7;
+                        break;
+                    case 38:
+                        // 0x26 Zcl56BitUint
+                        value = data.readUIntLE(i+2, 7);
+                        i += 8;
                         break;
                     case 39:
                         // 0x27 Zcl64BitUint
@@ -5007,10 +5025,30 @@ const converters = {
                         value = data.readInt16LE(i+2);
                         i += 3;
                         break;
+                    case 42:
+                        // 0x2A Zcl24BitInt
+                        value = data.readIntLE(i+2, 3);
+                        i += 4;
+                        break;
                     case 43:
                         // 0x2B Zcl32BitInt
                         value = data.readInt32LE(i+2);
                         i += 5;
+                        break;
+                    case 44:
+                        // 0x2C Zcl40BitInt
+                        value = data.readIntLE(i+2, 5);
+                        i += 6;
+                        break;
+                    case 45:
+                        // 0x2D Zcl48BitInt
+                        value = data.readIntLE(i+2, 6);
+                        i += 7;
+                        break;
+                    case 46:
+                        // 0x2E Zcl56BitInt
+                        value = data.readIntLE(i+2, 7);
+                        i += 8;
                         break;
                     case 47:
                         // 0x2F Zcl64BitInt
@@ -7351,7 +7389,7 @@ const converters = {
             case tuya.dataPoints.trsMotionSpeed:
                 return {motion_speed: value};
             case tuya.dataPoints.trsMotionDirection:
-                return {motion_direction: {0: 'still', 1: 'forward', 2: 'backward'}[value]};
+                return {motion_direction: {0: 'standing_still', 1: 'moving_forward', 2: 'moving_backward'}[value]};
             case tuya.dataPoints.trsScene:
                 return {radar_scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
             case tuya.dataPoints.trsSensitivity:

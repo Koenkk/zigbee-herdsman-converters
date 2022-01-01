@@ -65,7 +65,7 @@ module.exports = [
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             exposes.numeric('load_room_mean', ea.ALL)
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
-                .withValueMin(-8000).withValueMax(100),
+                .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,

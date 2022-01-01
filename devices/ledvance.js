@@ -1,5 +1,6 @@
 const ota = require('../lib/ota');
 const extend = require('../lib/extend');
+const reporting = require('../lib/reporting');
 
 module.exports = [
     {
@@ -9,6 +10,11 @@ module.exports = [
         description: 'Smart Zigbee outdoor plug',
         extend: extend.switch(),
         ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['Panel TW Z3'],
