@@ -872,18 +872,16 @@ module.exports = [
         model: 'RTCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara high precision motion sensor',
-        fromZigbee: [fz.occupancy, fz.occupancy_timeout, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.occupancy_timeout, tz.RTCGQ13LM_motion_sensitivity],
-        exposes: [e.occupancy(), exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
-            exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
-                .withDescription('Time in seconds till occupancy goes to false'), e.battery()],
+        fromZigbee: [fz.occupancy, fz.occupancy_with_timeout, fz.aqara_opple, fz.battery],
+        toZigbee: [tz.RTCGQ13LM_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
+        exposes: [e.occupancy(), e.battery(),
+            exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('detection_interval', exposes.access.ALL).withValueMin(0).withValueMax(180).withUnit('s')
+                .withDescription('Time interval for detecting actions')],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
-            await reporting.occupancy(endpoint);
-            await reporting.batteryVoltage(endpoint);
-            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
         },
     },
