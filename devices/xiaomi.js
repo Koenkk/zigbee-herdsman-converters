@@ -872,7 +872,7 @@ module.exports = [
         model: 'RTCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara high precision motion sensor',
-        fromZigbee: [fz.occupancy, fz.occupancy_with_timeout, fz.aqara_opple, fz.battery],
+        fromZigbee: [fz.occupancy_with_timeout, fz.aqara_opple, fz.battery],
         toZigbee: [tz.RTCGQ13LM_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
         exposes: [e.occupancy(), e.battery(),
             exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
