@@ -121,4 +121,11 @@ module.exports = [
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
     },
+    {
+        zigbeeModel: ['TS0501B'],
+        model: 'ED-10042',
+        vendor: 'EcoDim',
+        description: 'Zigbee led filament lamp dimbaar E27, globe G125, flame 2200K',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
