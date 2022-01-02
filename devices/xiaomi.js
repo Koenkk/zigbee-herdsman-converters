@@ -876,7 +876,7 @@ module.exports = [
         toZigbee: [tz.RTCGQ13LM_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
         exposes: [e.occupancy(), e.battery(),
             exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
-            exposes.numeric('detection_interval', exposes.access.ALL).withValueMin(0).withValueMax(180).withUnit('s')
+            exposes.numeric('detection_interval', exposes.access.ALL).withValueMin(2).withValueMax(180).withUnit('s')
                 .withDescription('Time interval for detecting actions')],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
