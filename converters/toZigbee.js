@@ -2076,6 +2076,17 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
+    RTCGQ13LM_detection_interval: {
+        key: ['detection_interval'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            await entity.write('aqaraOpple', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {detection_interval: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0102], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
