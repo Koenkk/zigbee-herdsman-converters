@@ -1073,7 +1073,6 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = converters.command_arm.convert(model, msg, publish, options, meta);
             if (!payload) return;
             payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
