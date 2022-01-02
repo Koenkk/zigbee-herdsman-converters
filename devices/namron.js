@@ -207,6 +207,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['3802966'],
+        model: '3802966',
+        vendor: 'Namron',
+        description: 'LED 4.8W CCT GU10',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['89665'],
         model: '89665',
         vendor: 'Namron',
