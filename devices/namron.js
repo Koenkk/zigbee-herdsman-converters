@@ -185,6 +185,13 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['3802960'],
+        model: '3802960',
+        vendor: 'Namron',
+        description: 'LED 9W DIM E27',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['3802961'],
         model: '3802961',
         vendor: 'Namron',
@@ -198,6 +205,13 @@ module.exports = [
         description: 'LED 9W RGBW E27',
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['3802963'],
+        model: '3802963',
+        vendor: 'Namron',
+        description: 'LED 5,3W DIM E14',
+        extend: extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['3802964'],
