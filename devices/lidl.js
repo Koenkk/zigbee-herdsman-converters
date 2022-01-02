@@ -40,8 +40,9 @@ const fzLocal = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dpValue = tuya.firstDpValue(msg, meta, 'zs_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
             const ret = {};
             const daysMap = {1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 7: 'sunday'};
             const day = daysMap[value[0]];
@@ -135,7 +136,7 @@ const fzLocal = {
                 ret.away_preset_days = (value[6]<<8)+value[7];
                 return ret;
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
