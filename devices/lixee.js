@@ -117,6 +117,98 @@ const seLixeePrivateFZ = {
     },
 };
 
+const haElectricalMeasurementFZ = {
+    cluster: clustersDef._0x0B04,
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const result = {};
+
+        const elements = [
+            /* 0x0305 */ 'totalReactivePower',
+            /* 0x0505 */ 'rmsVoltage',
+            /* 0x0508 */ 'rmsCurrent',
+            /* 0x050A */ 'rmsCurrentMax',
+            /* 0x050B */ 'activePower',
+            /* 0x050D */ 'activePowerMax',
+            /* 0x050E */ 'reactivePower',
+            /* 0x050F */ 'apparentPower',
+            /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
+            /* 0x0905 */ 'rmsVoltagePhB',
+            /* 0x0908 */ 'rmsCurrentPhB',
+            /* 0x090A */ 'rmsCurrentMaxPhB',
+            /* 0x090B */ 'activePowerPhB',
+            /* 0x090E */ 'reactivePowerPhB',
+            /* 0x090D */ 'activePowerMaxPhB',
+            /* 0x090F */ 'apparentPowerPhB',
+            /* 0x0911 */ 'averageRmsVoltageMeasurePeriodPhB',
+            /* 0x0A05 */ 'rmsVoltagePhC',
+            /* 0x0A08 */ 'rmsCurrentPhC',
+            /* 0x0A0A */ 'rmsCurrentMaxPhC',
+            /* 0x0A0D */ 'activePowerMaxPhC',
+            /* 0x0A0E */ 'reactivePowerPhC',
+            /* 0x0A0F */ 'apparentPowerPhC',
+            /* 0x0A11 */ 'averageRmsVoltageMeasPeriodPhC',
+        ];
+
+        for (const at of elements) {
+            if (msg.data[at]) {
+                result[at] = msg.data[at];
+            }
+        }
+
+        return result;
+    },
+};
+
+const seMeteringFZ = {
+    cluster: clustersDef._0x0702,
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const result = {};
+
+        const elements = [
+            /* 0x0000 */ 'currentSummDelivered',
+            /* 0x0001 */ 'currentSummReceived',
+            /* 0x0020 */ 'activeRegisterTierDelivered',
+            /* 0x0100 */ 'currentTier1SummDelivered',
+            /* 0x0102 */ 'currentTier2SummDelivered',
+            /* 0x0104 */ 'currentTier3SummDelivered',
+            /* 0x0106 */ 'currentTier4SummDelivered',
+            /* 0x0108 */ 'currentTier5SummDelivered',
+            /* 0x010A */ 'currentTier6SummDelivered',
+            /* 0x010C */ 'currentTier7SummDelivered',
+            /* 0x010E */ 'currentTier8SummDelivered',
+            /* 0x0110 */ 'currentTier9SummDelivered',
+            /* 0x0112 */ 'currentTier10SummDelivered',
+            /* 0x0307 */ 'siteId',
+            /* 0x0308 */ 'meterSerialNumber',
+        ];
+
+        for (const at of elements) {
+            const val = msg.data[at];
+            if (val) {
+                result[at] = val; // By default we assign raw value
+                switch (at) {
+                // If we receive a Buffer, transform to human readable text
+                case 'meterSerialNumber':
+                case 'siteId':
+                    if (Buffer.isBuffer(val)) {
+                        result[at] = val.toString();
+                    }
+                    break;
+                }
+            }
+        }
+
+        // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
+        if (result['currentSummDelivered'] == 0 && (result['currentTier1SummDelivered'] > 0 || result['currentTier2SummDelivered'] > 0)) {
+            result['currentSummDelivered'] = result['currentTier1SummDelivered'] + result['currentTier2SummDelivered'];
+        }
+
+        return result;
+    },
+};
+
 const exposedData = [
     // Historique
     {cluster: clustersDef._0x0702, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('ADCO', ea.STATE).withProperty('meterSerialNumber').withDescription('Serial Number')},
@@ -152,7 +244,7 @@ const exposedData = [
     {cluster: clustersDef._0xFF66, reportable: true, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR1', ea.STATE).withUnit('A').withProperty('warnDIR1').withDescription('Over Current Warning (phase 1)')},
     {cluster: clustersDef._0xFF66, reportable: true, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR2', ea.STATE).withUnit('A').withProperty('warnDIR2').withDescription('Over Current Warning (phase 2)')},
     {cluster: clustersDef._0xFF66, reportable: true, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR3', ea.STATE).withUnit('A').withProperty('warnDIR3').withDescription('Over Current Warning (phase 3)')},
-    {cluster: clustersDef._0x0702, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('ADSC', ea.STATE).withProperty('meterSerialNumber').withDescription('Secondary meter address')},
+    {cluster: clustersDef._0x0702, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('ADSC', ea.STATE).withProperty('meterSerialNumber').withDescription('Serial Number')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('NGTF', ea.STATE).withProperty('currentTarif').withDescription('Supplier pricing schedule name')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('LTARF', ea.STATE).withProperty('currentPrice').withDescription('Current supplier price label')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NTARF', ea.STATE).withProperty('currentIndexTarif').withDescription('Current tariff index number')},
@@ -211,7 +303,7 @@ const exposedData = [
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXN3-1', ea.STATE).withUnit('VA').withProperty('drawnVAMaxN1P3').withDescription('Apparent power max. draw-off n-1 (phase 3)')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG1', ea.STATE).withProperty('message1').withDescription('Message short')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG2', ea.STATE).withProperty('message2').withDescription('Message ultra-short')},
-    {cluster: clustersDef._0x0702, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PRM', ea.STATE).withProperty('siteId')},
+    {cluster: clustersDef._0x0702, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PRM', ea.STATE).withProperty('siteId').withDescription('PRM number')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM1', ea.STATE).withProperty('startMobilePoint1').withDescription('Start mobile point 1')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM1', ea.STATE).withProperty('stopMobilePoint1').withDescription('Stop mobile point 1')},
     {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM2', ea.STATE).withProperty('startMobilePoint2').withDescription('Start mobile point 2')},
@@ -310,7 +402,7 @@ const definition = {
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
     description: 'Lixee ZLinky',
-    fromZigbee: [fz.metering, haMeterIdentificationFZ, fz.electrical_measurement, seLixeePrivateFZ],
+    fromZigbee: [seMeteringFZ, haMeterIdentificationFZ, haElectricalMeasurementFZ, seLixeePrivateFZ],
     toZigbee: [],
     exposes: (device, options) => {
         return getCurrentConfig(device, options)
@@ -334,9 +426,15 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        // ZLinky don't emit divisor and multiplier
-        // await endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1, acCurrentMultiplier: 1});
-        // await endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1, multiplier: 1});
+        // for (const e of getCurrentConfig(device, {'linky_mode': linkyModeDef.standard}).filter((e) => e.reportable)) {
+        //     let change = 1;
+        //     if (e.hasOwnProperty('reportChange')) {
+        //         change = e['reportChange'];
+        //     }
+
+        //     await endpoint
+        //         .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change));
+        // }
     },
     onEvent: (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
@@ -344,32 +442,25 @@ const definition = {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
         } else if (type === 'start' || type == 'deviceInterview' && data.status == 'successful') {
-            getCurrentConfig(device, options)
-                .filter((e) => e.reportable) // we must subscribe just to reportable entities
-                .forEach((e) => {
-                    let change = 1;
-                    if (e.hasOwnProperty('reportChange')) {
-                        change = e['reportChange'];
-                    }
+            for (const e of getCurrentConfig(device, options).filter((e) => e.reportable)) {
+                let change = 1;
+                if (e.hasOwnProperty('reportChange')) {
+                    change = e['reportChange'];
+                }
 
-                    endpoint
-                        .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
-                        .catch((err) => {
-                            console.debug(`ZLINKY_DEBUG: Error ${e.cluster}/${e.exposes.property}: ${err}`);
-                            console.warn(`Error configuring report for ${e.cluster}/${e.exposes.property}`);
-                        });
-                });
+                endpoint
+                    .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
+                    .catch((err) => console.error(`ZLINKY_DEBUG: ` + err));
+            }
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                getCurrentConfig(device, options)
-                    .filter((e) => !e.reportable) // Just what must be readed manually
-                    .forEach((e) => {
-                        endpoint
-                            .read(e.cluster, [e.exposes.property])
-                            .catch((err) => console.debug(`ZLINKY_DEBUG: READ error ${e.cluster}/${e.exposes.property}: ${err}`));
-                    });
+                for (const e of getCurrentConfig(device, options).filter((e) => !e.reportable)) {
+                    endpoint
+                        .read(e.cluster, [e.exposes.property])
+                        .catch((err) => console.error(`ZLINKY_DEBUG: ` + err));
+                }
             }, seconds * 1000);
             globalStore.putValue(device, 'interval', interval);
         }
