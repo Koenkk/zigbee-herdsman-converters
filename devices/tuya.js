@@ -1155,7 +1155,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ewxhg6o9'}],
         model: 'TS0601_din',
         vendor: 'TuYa',
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
