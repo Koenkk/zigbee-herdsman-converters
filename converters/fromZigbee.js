@@ -5945,8 +5945,10 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [
             exposes.options.invert_cover(),
-            exposes.numeric('time_close').withDescription(`Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s).`),
-            exposes.numeric('time_open').withDescription(`Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s).`),
+            exposes.numeric('time_close')
+                .withDescription(`Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s).`),
+            exposes.numeric('time_open')
+                .withDescription(`Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s).`),
         ],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
@@ -7873,3 +7875,4 @@ const converters = {
 };
 
 module.exports = converters;
+
