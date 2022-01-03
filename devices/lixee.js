@@ -396,7 +396,6 @@ function getCurrentConfig(device, options) {
 
     return myExpose;
 }
-
 const definition = {
     zigbeeModel: ['ZLinky_TIC'],
     model: 'ZLinky_TIC',
@@ -441,22 +440,11 @@ const definition = {
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
-        } else if (type === 'start' || type == 'deviceInterview' && data.status == 'successful') {
-            for (const e of getCurrentConfig(device, options).filter((e) => e.reportable)) {
-                let change = 1;
-                if (e.hasOwnProperty('reportChange')) {
-                    change = e['reportChange'];
-                }
-
-                endpoint
-                    .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
-                    .catch((err) => console.error(`ZLINKY_DEBUG: ` + err));
-            }
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                for (const e of getCurrentConfig(device, options).filter((e) => !e.reportable)) {
+                for (const e of getCurrentConfig(device, options)) {
                     endpoint
                         .read(e.cluster, [e.exposes.property])
                         .catch((err) => console.error(`ZLINKY_DEBUG: ` + err));
