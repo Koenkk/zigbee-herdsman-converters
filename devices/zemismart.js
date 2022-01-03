@@ -4,6 +4,22 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const tuya = require('../lib/tuya');
+
+const fzLocal = {
+    ZMRM02: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandSetDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
+            const button = dpValue.dp;
+            const actionValue = tuya.getDataValue(dpValue);
+            const lookup = {0: 'single', 1: 'double', 2: 'hold'};
+            const action = lookup[actionValue];
+            return {action: `button_${button}_${action}`};
+        },
+    },
+};
 
 module.exports = [
     {
@@ -65,5 +81,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zqtiam4u'}],
+        model: 'ZM-RM02',
+        vendor: 'Zemismart',
+        description: 'Smart 6 key scene switch',
+        fromZigbee: [fzLocal.ZMRM02],
+        toZigbee: [],
+        onEvent: tuya.onEventSetTime,
+        exposes: [e.action([
+            'button_1_hold', 'button_1_single', 'button_1_double',
+            'button_2_hold', 'button_2_single', 'button_2_double',
+            'button_3_hold', 'button_3_single', 'button_3_double',
+            'button_4_hold', 'button_4_single', 'button_4_double',
+            'button_5_hold', 'button_5_single', 'button_5_double',
+            'button_6_hold', 'button_6_single', 'button_6_double'])],
     },
 ];

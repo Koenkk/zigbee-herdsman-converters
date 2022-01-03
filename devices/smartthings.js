@@ -133,12 +133,18 @@ module.exports = [
         model: 'IM6001-OTP05',
         vendor: 'SmartThings',
         description: 'Outlet',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
         },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
         zigbeeModel: ['outletv4'],

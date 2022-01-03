@@ -208,6 +208,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RS 227 T'],
+        model: 'RS 227 T',
+        vendor: 'Innr',
+        description: 'GU10 spot 420 lm, dimmable, white spectrum',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RS 128 T'],
         model: 'RS 128 T',
         vendor: 'Innr',
