@@ -1164,7 +1164,8 @@ const converters = {
 
             if (options.simulated_brightness) {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
-                payload.brightness = msg.data.level;
+                const property = postfixWithEndpointName('brightness', msg, model);
+                payload[property] = msg.data.level;
             }
 
             return payload;
@@ -1195,7 +1196,8 @@ const converters = {
                         brightness += delta;
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                        publish({brightness});
+                        const property = postfixWithEndpointName('brightness', msg, model);
+                        publish({[property]: brightness});
                     }, intervalOpts);
 
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
@@ -1225,7 +1227,8 @@ const converters = {
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                payload.brightness = brightness;
+                const property = postfixWithEndpointName('brightness', msg, model);
+                payload[property] = brightness;
             }
 
             return payload;
