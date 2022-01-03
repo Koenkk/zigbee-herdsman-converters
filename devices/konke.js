@@ -74,7 +74,6 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-
         zigbeeModel: ['TS0222'],
         model: 'KK-ES-J01W',
         vendor: 'Konke',
@@ -82,6 +81,6 @@ module.exports = [
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
-};
+    },
 
 ];
