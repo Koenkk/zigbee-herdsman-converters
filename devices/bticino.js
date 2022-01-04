@@ -15,9 +15,9 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
-            e.switch(), e.action(['identify', 'on', 'off'])
+            e.switch(), e.action(['identify', 'on', 'off']),
             exposes.binary('permanent_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
-            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -34,7 +34,7 @@ module.exports = [
             e.light_brightness(),
             exposes.binary('dimmer_enabled', ea.STATE_SET, 'ON', 'OFF').withDescription('Allow the device to change brightness'),
             exposes.binary('permanent_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
-            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on'),
         ],
         fromZigbee: [fz.brightness, fz.identify, fz.on_off],
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
