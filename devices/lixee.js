@@ -98,18 +98,17 @@ const seLixeePrivateFZ = {
         ];
 
         for (const at of elements) {
-            const val = msg.data[at];
+            let val = msg.data[at];
             if (val) {
-                result[at] = val;
-                switch (at) {
-                case 'currentTarif':
-                case 'tomorrowColor':
-                case 'currentDate':
-                case 'message1':
-                case 'message2':
-                    result[at] = val.replace(/\0/g, ''); // Remove all null chars
-                    break;
+                if (Buffer.isBuffer(val)) {
+                    val = val.toString(); // Convert buffer to string
                 }
+
+                if (typeof val === 'string' || val instanceof String) {
+                    val = val.replace(/\0/g, ''); // Remove all null chars when str
+                    val = val.replace(/\s+/g, ' ').trim(); // Remove extra and leading spaces
+                }
+                result[at] = val;
             }
         }
 
@@ -424,30 +423,31 @@ const definition = {
             clustersDef._0x0B04, /* haElectricalMeasurement */
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
-
-        // for (const e of getCurrentConfig(device, {'linky_mode': linkyModeDef.standard}).filter((e) => e.reportable)) {
-        //     let change = 1;
-        //     if (e.hasOwnProperty('reportChange')) {
-        //         change = e['reportChange'];
-        //     }
-
-        //     await endpoint
-        //         .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change));
-        // }
     },
-    onEvent: (type, data, device, options) => {
+    onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
+        } else if (type === 'start' || type == 'deviceInterview' && data.status == 'successful') {
+            for (const e of getCurrentConfig(device, options).filter((e) => e.reportable)) {
+                let change = 1;
+                if (e.hasOwnProperty('reportChange')) {
+                    change = e['reportChange'];
+                }
+
+                await endpoint
+                    .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
+                    .catch((err) => { }); // TODO: Retry if failed?
+            }
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                for (const e of getCurrentConfig(device, options)) {
+                for (const e of getCurrentConfig(device, options).filter((e) => !e.reportable)) {
                     endpoint
                         .read(e.cluster, [e.exposes.property])
-                        .catch((err) => console.error(`ZLINKY_DEBUG: ` + err));
+                        .catch((err) => { }); // TODO: Ignore reads error?
                 }
             }, seconds * 1000);
             globalStore.putValue(device, 'interval', interval);
