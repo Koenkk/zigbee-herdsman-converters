@@ -7725,7 +7725,7 @@ const converters = {
             };
         },
     },
-    tuya_light_commands: {
+    tuya_light_wz5: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {

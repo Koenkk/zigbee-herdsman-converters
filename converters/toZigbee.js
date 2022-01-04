@@ -6404,7 +6404,7 @@ const converters = {
             return {state: {click_mode: value}};
         },
     },
-    tuya_light_commands: {
+    tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness', 'white_brightness'],
         convertSet: async (entity, key, value, meta) => {
             const separateWhite = (meta.mapped.meta && meta.mapped.meta.separate_white);
