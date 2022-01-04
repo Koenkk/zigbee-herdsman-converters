@@ -445,7 +445,7 @@ const definition = {
 
             const interval = setInterval(async () => {
                 for (const e of getCurrentConfig(device, options).filter((e) => !e.reportable)) {
-                    endpoint
+                    await endpoint
                         .read(e.cluster, [e.exposes.property])
                         .catch((err) => { }); // TODO: Ignore reads error?
                 }
