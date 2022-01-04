@@ -178,11 +178,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Surface Light TW'],
+        zigbeeModel: ['Surface Light TW', 'ZLO-CeilingTW-OS'],
         model: 'AB401130055',
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light LED Tunable White',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
