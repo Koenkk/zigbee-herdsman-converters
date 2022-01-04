@@ -13,7 +13,8 @@ module.exports = [
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
-            e.light_brightness(),
+            exposes.light().withBrightness().setAccess('state',
+                ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
         ],
     },
     {
