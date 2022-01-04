@@ -610,4 +610,24 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
     },
+    {
+        zigbeeModel: ['LK/OUTLET/1'],
+        model: '545D6115',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless socket outlet',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), e.current(), e.voltage(),
+            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+                .withDescription('Controls the behaviour when the device is powered on')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+        },
+    },
 ];
