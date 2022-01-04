@@ -6508,9 +6508,9 @@ const converters = {
                     value.h || value.hue || null,
                     value.s || value.saturation || null,
                     value.b || value.brightness || (key == 'brightness') ? value : null,
-                    meta.state
+                    meta.state,
                 );
-                
+
 
                 let data = [];
                 data = data.concat(tuya.convertStringToHexArray(hsb.h));
