@@ -6,7 +6,7 @@ const reporting = require('../lib/reporting');
 // const {Buffer} = require('buffer');
 const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
-
+const ota = require('../lib/ota');
 
 const linkyModeDef = {
     standard: 'standard',
@@ -424,6 +424,7 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
     },
+    ota: ota.zigbeeOTA,
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'stop') {
