@@ -15,14 +15,15 @@ module.exports = [
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
-        fromZigbee: [fz.battery, fz.thermostat, fz.hvac_user_interface, fz.danfoss_thermostat],
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean],
-        exposes: [e.battery(), e.keypad_lockout(),
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode],
+        exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
                     'the radiator) or `true` for not mounted (after factory reset)'),
@@ -71,7 +72,7 @@ module.exports = [
                     'thermostats in the room. The gateway must update load_room_mean if enabled.'),
             exposes.numeric('load_room_mean', ea.ALL)
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
-                .withValueMin(-8000).withValueMax(100),
+                .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')],
         ota: ota.zigbeeOTA,

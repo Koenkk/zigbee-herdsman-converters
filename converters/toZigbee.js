@@ -785,7 +785,7 @@ const converters = {
             const {message} = meta;
             const transition = utils.getTransition(entity, 'brightness', meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, 'turnsOffAtBrightness1', 'allEqual', false);
-            const state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
+            let state = message.hasOwnProperty('state') ? message.state.toLowerCase() : undefined;
             let brightness = undefined;
             if (message.hasOwnProperty('brightness')) {
                 brightness = Number(message.brightness);
@@ -803,7 +803,11 @@ const converters = {
             }
 
             if (state === 'toggle' || state === 'off' || (brightness === undefined && state === 'on')) {
-                if (transition.specified && (state === 'off' || state === 'on')) {
+                if (transition.specified) {
+                    if (state === 'toggle') {
+                        state = meta.state.state === 'ON' ? 'off' : 'on';
+                    }
+
                     if (state === 'off' && meta.state.brightness && meta.state.state === 'ON') {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
                         // We need to remember the state before turning the device off as we need to restore
@@ -1152,6 +1156,20 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
+        },
+    },
+    thermostat_programming_operation_mode: {
+        key: ['programming_operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(constants.thermostatProgrammingOperationModes, value, undefined, Number);
+            if (val === undefined) {
+                throw new Error('Programming operation mode invalid, must be one of: ' +
+                    Object.values(constants.thermostatProgrammingOperationModes).join(', '));
+            }
+            await entity.write('hvacThermostat', {programingOperMode: val});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['programingOperMode']);
         },
     },
     thermostat_temperature_display_mode: {
@@ -1982,9 +2000,9 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG31LM', 'QBCZ15LM', 'QBKG20LM', 'QBKG38LM',
-                'QBKG34LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2005,9 +2023,9 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'QBKG25LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM', 'QBKG39LM', 'QBKG41LM', 'ZNCZ15LM',
-                'WS-EUK02', 'WS-EUK01', 'QBKG31LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG34LM', 'QBKG19LM',
-                'QBKG38LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -2058,6 +2076,17 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
+    RTCGQ13LM_detection_interval: {
+        key: ['detection_interval'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            await entity.write('aqaraOpple', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {detection_interval: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0102], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_overload_protection: {
         key: ['overload_protection'],
         convertSet: async (entity, key, value, meta) => {
@@ -2105,8 +2134,8 @@ const converters = {
     xiaomi_led_disabled_night: {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM', 'DLKZMK11LM',
-                'QBKG34LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2120,8 +2149,8 @@ const converters = {
             return {state: {led_disabled_night: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG20LM', 'QBKG25LM', 'QBKG19LM', 'DLKZMK11LM',
-                'QBKG34LM'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -2737,12 +2766,6 @@ const converters = {
         key: ['boost_heating'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSboostHeating, value === 'ON');
-        },
-    },
-    moesS_thermostat_boost_heating_countdown: {
-        key: ['boost_heating_countdown'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesSboostHeatingCountdown, value);
         },
     },
     moesS_thermostat_window_detection: {
@@ -5450,7 +5473,7 @@ const converters = {
                     }
                 }
 
-                await tuya.sendDataPoint(entity, tuya.dataTypes.string, tuya.dataPoints.silvercrestSetEffect, data);
+                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetEffect, data);
             } else if (key === 'brightness') {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
                 // It expects 2 leading zero's.
@@ -5460,7 +5483,10 @@ const converters = {
                 const scaled = utils.mapNumberRange(value, 0, 255, 0, 1000);
                 data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(scaled));
 
-                await tuya.sendDataPoint(entity, tuya.dataTypes.value, tuya.dataPoints.silvercrestSetBrightness, data);
+                await tuya.sendDataPoint(
+                    entity,
+                    {dp: tuya.dataPoints.silvercrestSetBrightness, datatype: tuya.dataTypes.value, data: data},
+                );
             } else if (key === 'color') {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color);
 
@@ -5532,7 +5558,7 @@ const converters = {
                 data = data.concat(tuya.convertStringToHexArray(hsb.s));
                 data = data.concat(tuya.convertStringToHexArray(hsb.b));
 
-                await tuya.sendDataPoint(entity, tuya.dataTypes.string, tuya.dataPoints.silvercrestSetColor, data);
+                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetColor, data);
             }
         },
     },

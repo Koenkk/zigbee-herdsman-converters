@@ -1,5 +1,6 @@
 const ota = require('../lib/ota');
 const extend = require('../lib/extend');
+const reporting = require('../lib/reporting');
 
 module.exports = [
     {
@@ -9,6 +10,11 @@ module.exports = [
         description: 'Smart Zigbee outdoor plug',
         extend: extend.switch(),
         ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['Panel TW Z3'],
@@ -96,6 +102,14 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'SMART+ gardenpole multicolour',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['Tibea TW Z3'],
+        model: '4058075168572',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E27 turntable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
 ];

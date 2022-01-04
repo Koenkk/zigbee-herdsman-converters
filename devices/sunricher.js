@@ -7,6 +7,22 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ON/OFF(2CH)'],
+        model: 'UP-SA-9127D',
+        vendor: 'Sunricher',
+        description: 'LED-trading 2 channel AC switch',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['HK-ZD-CCT-A'],
         model: 'HK-ZD-CCT-A',
         vendor: 'Sunricher',

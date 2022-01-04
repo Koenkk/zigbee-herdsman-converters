@@ -74,7 +74,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3450-L'],
+        zigbeeModel: ['3450-L', '3450-L2'],
         model: '3450-L',
         vendor: 'Iris',
         description: 'Smart fob',
