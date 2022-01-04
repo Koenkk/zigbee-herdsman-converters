@@ -323,7 +323,7 @@ function getCurrentConfig(device, options) {
 
     // Main filter
     let myExpose = exposedData
-        .filter((e) => e.linkyMode == linkyMode && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && e.linkyProduction == linkyProduction);
+        .filter((e) => e.linkyMode == linkyMode && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && (linkyProduction || !e.linkyProduction));
 
     // Filter even more, based on our current tarif
     if (device && linkyMode == linkyModeDef.legacy) {
