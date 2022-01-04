@@ -11,6 +11,7 @@ const ota = require('../lib/ota');
 const linkyModeDef = {
     standard: 'standard',
     legacy: 'historique',
+    all: 'both',
 };
 
 const linkyPhaseDef = {
@@ -276,7 +277,7 @@ const exposedData = [
     {cluster: clustersDef._0x0B04, reportable: true, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('URMS2', ea.STATE).withUnit('V').withProperty('rmsVoltagePhB').withDescription('RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, reportable: true, linkyProduction: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('URMS3', ea.STATE).withUnit('V').withProperty('rmsVoltagePhC').withDescription('RMS voltage (phase 3)')},
     {cluster: clustersDef._0x0B01, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PREF', ea.STATE).withUnit('kVA').withProperty('availablePower').withDescription('Apparent power of reference')},
-    {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('STGE', ea.STATE).withProperty('statusRegister').withDescription('Register of Statutes')},
+    {cluster: clustersDef._0xFF66, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.all, exposes: exposes.text('STGE', ea.STATE).withProperty('statusRegister').withDescription('Register of Statutes')},
     {cluster: clustersDef._0x0B01, reportable: false, linkyProduction: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PCOUP', ea.STATE).withUnit('kVA').withProperty('powerThreshold').withDescription('Apparent power threshold')},
     {cluster: clustersDef._0xFF66, reportable: true, linkyProduction: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SINSTI', ea.STATE).withUnit('VA').withProperty('injectedVA').withDescription('Instantaneous apparent power injected')},
     {cluster: clustersDef._0xFF66, reportable: true, linkyProduction: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXIN', ea.STATE).withUnit('VA').withProperty('injectedVAMaxN').withDescription('Apparent power max. injected n')},
@@ -323,7 +324,7 @@ function getCurrentConfig(device, options) {
 
     // Main filter
     let myExpose = exposedData
-        .filter((e) => e.linkyMode == linkyMode && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && (linkyProduction || !e.linkyProduction));
+        .filter((e) => (e.linkyMode == linkyMode || e.linkyMode == linkyModeDef.all) && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && (linkyProduction || !e.linkyProduction));
 
     // Filter even more, based on our current tarif
     if (device && linkyMode == linkyModeDef.legacy) {
