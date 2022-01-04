@@ -7729,7 +7729,7 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const separateWhite = (model.meta && model.meta.separate_white);
+            const separateWhite = (model.meta && model.meta.separateWhite);
             const result = {};
             // eslint-disable-next-line no-unused-vars
             for (const [i, dpValue] of msg.data.dpValues.entries()) {

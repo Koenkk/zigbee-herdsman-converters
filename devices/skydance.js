@@ -53,7 +53,7 @@ module.exports = [
             exposes.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
                 'White brightness of this light'),
         ],
-        meta: {separate_white: true},
+        meta: {separateWhite: true},
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'}],
@@ -69,6 +69,6 @@ module.exports = [
             exposes.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
                 'White brightness of this light'),
         ],
-        meta: {separate_white: true},
+        meta: {separateWhite: true},
     },
 ];

@@ -6407,7 +6407,7 @@ const converters = {
     tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness', 'white_brightness'],
         convertSet: async (entity, key, value, meta) => {
-            const separateWhite = (meta.mapped.meta && meta.mapped.meta.separate_white);
+            const separateWhite = (meta.mapped.meta && meta.mapped.meta.separateWhite);
             if (key == 'white_brightness' || (!separateWhite && (key == 'brightness'))) {
                 // upscale to 1000
                 let newValue;
