@@ -74,7 +74,7 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['TS0222'],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_fi5yftwv'}],
         model: 'KK-ES-J01W',
         vendor: 'Konke',
         description: 'Room temperature, relative humidity and illuminance sensor',
@@ -82,5 +82,4 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
-
 ];
