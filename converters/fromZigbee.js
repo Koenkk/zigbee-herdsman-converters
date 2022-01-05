@@ -7448,7 +7448,7 @@ const converters = {
     },
     tuya_smart_vibration_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData','commandDataResponse','raw'],
+        type: ['commandGetData', 'commandDataResponse', 'raw'],
         convert: (model, msg, publish, options, meta) => {
             const dp = msg.data.dp;
             const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
