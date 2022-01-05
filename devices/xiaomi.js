@@ -90,6 +90,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.cwac02'],
+        model: 'ZNLDP13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 smart LED bulb',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.cwopcn01'],
         model: 'XDD11LM',
         vendor: 'Xiaomi',
