@@ -1682,7 +1682,9 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'}],
         model: 'MIR-HE200-TY',
         vendor: 'TuYa',
         description: 'Human presence sensor',
