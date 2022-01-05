@@ -122,28 +122,25 @@ PROGRAM_MODES = {
 
 DATA_POINT_NAMES = SASWELL_DATA_POINT_NAMES
 DATA_TYPE_PARSERS = [parse_raw, parse_bool, parse_value, parse_string, parse_enum, parse_bitmap]
+DATA_TYPE_NAME = ["raw", "bool", "int", "string", "enum", "bitmap"]
 EXTRA_PARSERS = SASWELL_PARSERS
 
 
 def get_values(numbers):
-    data = bytearray()
     dp = int(numbers[0], 16)
     dtype = int(numbers[1], 16)
-    fn = int(numbers[2], 16)
-    for number in numbers[3:]:
-        data += bytes([int(number, 16)])
-
+    data = bytes.fromhex("".join(numbers[2:]))
+    name = "DP {:3d} ".format(dp)
     if dp in DATA_POINT_NAMES.keys():
-        name = DATA_POINT_NAMES[dp]
+        name += DATA_POINT_NAMES[dp]
     else:
-        name = "unknown     "
+        name += "unknown     "
     length = len(data)
 
-    value = "{:d} ".format(fn)
     if dp in EXTRA_PARSERS.keys():
-        value += EXTRA_PARSERS[dp](length, data)
+        value = EXTRA_PARSERS[dp](length, data)
     else:
-        value += DATA_TYPE_PARSERS[dtype](length, data)
+        value = DATA_TYPE_NAME[dtype] + ": " + DATA_TYPE_PARSERS[dtype](length, data)
     return (name, value)
 
 
@@ -155,16 +152,17 @@ def main():
         line = line[:-1]
         if len(line) == 0:
             continue
-        tokens = line.split(" ")
+        tokens = line.split()
         time = datetime.datetime.fromtimestamp(int(int(tokens[0]) / 1000))
         address = tokens[1]
 
         seq = int(tokens[2], 16)
+        seq_dp = int(tokens[3], 16)
 
-        (name, value) = get_values(tokens[3:])
+        (name, value) = get_values(tokens[4:])
         print(
-            "{} {} (seq: {:4d}) [{}] => {}".format(
-                time.isoformat(), address, seq, name, value
+            "{} {} (seq: {:4d}, value: #{}) [{}] => {}".format(
+                time.isoformat(), address, seq, seq_dp, name, value
             )
         )
 

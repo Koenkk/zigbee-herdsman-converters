@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "14.0.366",
+  "version": "14.0.371",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -852,9 +852,9 @@
       "dev": true
     },
     "@types/node": {
-      "version": "17.0.5",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-17.0.5.tgz",
-      "integrity": "sha512-w3mrvNXLeDYV1GKTZorGJQivK6XLCoGwpnyJFbJVK/aTBQUxOCaa/GlFAAN3OTDFcb7h5tiFG+YXCO2By+riZw==",
+      "version": "17.0.6",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-17.0.6.tgz",
+      "integrity": "sha512-+XBAjfZmmivILUzO0HwBJoYkAyyySSLg5KCGBDFLomJo0sV6szvVLAf4ANZZ0pfWzgEds5KmGLG9D5hfEqOhaA==",
       "dev": true
     },
     "@types/prettier": {
@@ -1286,9 +1286,9 @@
       "dev": true
     },
     "caniuse-lite": {
-      "version": "1.0.30001294",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001294.tgz",
-      "integrity": "sha512-LiMlrs1nSKZ8qkNhpUf5KD0Al1KCBE3zaT7OLOwEkagXMEDij98SiOovn9wxVGQpklk9vVC/pUSqgYmkmKOS8g==",
+      "version": "1.0.30001295",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001295.tgz",
+      "integrity": "sha512-lSP16vcyC0FEy0R4ECc9duSPoKoZy+YkpGkue9G4D81OfPnliopaZrU10+qtPdT8PbGXad/PNx43TIQrOmJZSQ==",
       "dev": true
     },
     "chalk": {
@@ -1673,9 +1673,9 @@
       "dev": true
     },
     "eslint-plugin-jest": {
-      "version": "25.3.3",
-      "resolved": "https://registry.npmjs.org/eslint-plugin-jest/-/eslint-plugin-jest-25.3.3.tgz",
-      "integrity": "sha512-qi7aduaU4/oWegWo0zH4kbJbx8+Be+ABTr72OnO68zTMcJeeSuyH1CduTGF4ATyNFgpE1zp0u10/gIhe+QDSfg==",
+      "version": "25.3.4",
+      "resolved": "https://registry.npmjs.org/eslint-plugin-jest/-/eslint-plugin-jest-25.3.4.tgz",
+      "integrity": "sha512-CCnwG71wvabmwq/qkz0HWIqBHQxw6pXB1uqt24dxqJ9WB34pVg49bL1sjXphlJHgTMWGhBjN1PicdyxDxrfP5A==",
       "dev": true,
       "requires": {
         "@typescript-eslint/experimental-utils": "^5.0.0"
@@ -2723,9 +2723,9 @@
       },
       "dependencies": {
         "camelcase": {
-          "version": "6.2.1",
-          "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-6.2.1.tgz",
-          "integrity": "sha512-tVI4q5jjFV5CavAU8DXfza/TJcZutVKo/5Foskmsqcm0MsL91moHvwiGNnqaa2o6PF/7yT5ikDRcVcl8Rj6LCA==",
+          "version": "6.3.0",
+          "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-6.3.0.tgz",
+          "integrity": "sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==",
           "dev": true
         }
       }

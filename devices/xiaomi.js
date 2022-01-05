@@ -47,7 +47,7 @@ module.exports = [
         description: 'Aqara E1 door & window contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.temperature(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
@@ -87,6 +87,22 @@ module.exports = [
         // power_on_behavior 'toggle' does not seem to be supported
         exposes: xiaomiExtend.light_onoff_brightness_colortemp().exposes.concat([
             e.power_outage_memory().withAccess(ea.STATE_SET)]),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.acn003'],
+        model: 'ZNXDD01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara ceiling light L1-350',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.cwac02'],
+        model: 'ZNLDP13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 smart LED bulb',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -872,18 +888,16 @@ module.exports = [
         model: 'RTCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara high precision motion sensor',
-        fromZigbee: [fz.occupancy, fz.occupancy_timeout, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.occupancy_timeout, tz.RTCGQ13LM_motion_sensitivity],
-        exposes: [e.occupancy(), exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
-            exposes.numeric('occupancy_timeout', exposes.access.ALL).withValueMin(0).withValueMax(65535).withUnit('s')
-                .withDescription('Time in seconds till occupancy goes to false'), e.battery()],
+        fromZigbee: [fz.occupancy_with_timeout, fz.aqara_opple, fz.battery],
+        toZigbee: [tz.RTCGQ13LM_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
+        exposes: [e.occupancy(), e.battery(),
+            exposes.enum('motion_sensitivity', exposes.access.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('detection_interval', exposes.access.ALL).withValueMin(2).withValueMax(180).withUnit('s')
+                .withDescription('Time interval for detecting actions')],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msOccupancySensing']);
-            await reporting.occupancy(endpoint);
-            await reporting.batteryVoltage(endpoint);
-            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
         },
     },

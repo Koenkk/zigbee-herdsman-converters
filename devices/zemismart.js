@@ -11,8 +11,9 @@ const fzLocal = {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandSetDataResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const button = msg.data.dp;
-            const actionValue = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
+            const button = dpValue.dp;
+            const actionValue = tuya.getDataValue(dpValue);
             const lookup = {0: 'single', 1: 'double', 2: 'hold'};
             const action = lookup[actionValue];
             return {action: `button_${button}_${action}`};
