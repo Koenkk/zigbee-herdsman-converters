@@ -669,11 +669,7 @@ module.exports = [
         model: 'WLS-100z',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_tuya_raw,
-            fz.wls100z_water_leak,
-        ],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, fz.wls100z_water_leak],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {
