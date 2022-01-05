@@ -90,6 +90,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.acn003'],
+        model: 'ZNXDD01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara ceiling light L1-350',
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.light.cwac02'],
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
