@@ -7540,7 +7540,11 @@ const converters = {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            return {people: msg.data.presentValue};
+            const lookup = {'0': 'idle', '1': 'in', '2': 'out'};
+            const value = precisionRound(parseFloat(msg.data['presentValue']), 1);
+            let result = null;
+            result = {people: precisionRound(msg.data.presentValue, 0), status: lookup[value*10%10]};
+            return result;
         },
     },
     sihas_action: {
