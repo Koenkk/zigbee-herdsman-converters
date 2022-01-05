@@ -1812,4 +1812,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kzm5w4iz'}],
+        model: 'TS0601_vibration_sensor',
+        vendor: 'TuYa',
+        description: 'Smart vibration sensor',
+        fromZigbee: [fz.tuya_smart_vibration_sensor],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.vibration()],
+    },
 ];

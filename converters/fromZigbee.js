@@ -7450,6 +7450,25 @@ const converters = {
             }
         },
     },
+    tuya_smart_vibration_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandDataResponse', 'raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            switch (dp) {
+            case tuya.dataPoints.state:
+                return {contact: Boolean(value)};
+            case tuya.dataPoints.thitBatteryPercentage:
+                return {battery: value};
+            case tuya.dataPoints.tuyaVibration:
+                return {vibration: Boolean(value)};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
+                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     moes_thermostat_tv: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'raw'],
