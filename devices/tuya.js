@@ -665,6 +665,20 @@ module.exports = [
         whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_jthf7vb6'}],
+        model: 'WLS-100z',
+        vendor: 'TuYa',
+        description: 'Water leak sensor',
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, fz.wls100z_water_leak],
+        toZigbee: [],
+        onEvent: tuya.onEventSetTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.battery(), e.water_leak()],
+    },
+    {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
         vendor: 'TuYa',

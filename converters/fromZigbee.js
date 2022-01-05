@@ -2577,6 +2577,28 @@ const converters = {
             }
         },
     },
+    wls100z_water_leak: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.wlsWaterLeak:
+                    result.water_leak = value < 1;
+                    break;
+                case tuya.dataPoints.wlsBatteryPercentage:
+                    result.battery = value;
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:wls100z_water_leak:` +
+                        `NOT RECOGNIZED DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
     livolo_switch_state: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -7899,6 +7921,11 @@ const converters = {
     ignore_tuya_set_time: {
         cluster: 'manuSpecificTuya',
         type: ['commandMcuSyncTime'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_tuya_raw: {
+        cluster: 'manuSpecificTuya',
+        type: ['raw'],
         convert: (model, msg, publish, options, meta) => null,
     },
     // #endregion
