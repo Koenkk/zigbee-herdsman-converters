@@ -469,7 +469,7 @@ const definition = {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                for (const e of getCurrentConfig(device, options).filter((e) => !e.reportable)) {
+                for (const e of getCurrentConfig(device, options)) {
                     await endpoint
                         .read(e.cluster, [e.exposes.property])
                         .catch((err) => { }); // TODO: Ignore reads error?
