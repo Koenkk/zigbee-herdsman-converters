@@ -12,11 +12,15 @@ const fzLocal = {
         type: ['commandGetData', 'commandSetDataResponse', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
-            const button = dpValue.dp;
-            const actionValue = tuya.getDataValue(dpValue);
-            const lookup = {0: 'single', 1: 'double', 2: 'hold'};
-            const action = lookup[actionValue];
-            return {action: `button_${button}_${action}`};
+            if (dpValue.dp === 10) {
+                return {battery: tuya.getDataValue(dpValue)};
+            } else {
+                const button = dpValue.dp;
+                const actionValue = tuya.getDataValue(dpValue);
+                const lookup = {0: 'single', 1: 'double', 2: 'hold'};
+                const action = lookup[actionValue];
+                return {action: `button_${button}_${action}`};
+            }
         },
     },
 };
