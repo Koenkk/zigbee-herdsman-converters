@@ -5336,7 +5336,7 @@ const converters = {
                 }
 
                 const illuminance = msg.data['illuminance'] - 65536;
-                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')}
+                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
             }
         },
     },
@@ -5369,7 +5369,7 @@ const converters = {
                 globalStore.getValue(msg.endpoint, 'timers').push(timer);
             }
 
-            return {occupancy: true}
+            return {occupancy: true};
         },
     },
     xiaomi_WXKG01LM_action: {
