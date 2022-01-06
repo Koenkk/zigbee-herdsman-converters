@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['929003047501'],
+        model: '929003047501',
+        vendor: 'Philips',
+        description: 'Centura recessed spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['915005996401'],
         model: '915005996401',
         vendor: 'Philips',
