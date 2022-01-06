@@ -94,7 +94,7 @@ module.exports = [
         fromZigbee: [fzLocal.ZMRM02],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
-        exposes: [e.action([
+        exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_single', 'button_1_double',
             'button_2_hold', 'button_2_single', 'button_2_double',
             'button_3_hold', 'button_3_single', 'button_3_double',
