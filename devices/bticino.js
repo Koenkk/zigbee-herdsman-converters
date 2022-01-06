@@ -70,7 +70,7 @@ module.exports = [
     {
         zigbeeModel: ['Bticino Din power consumption module '],
         model: 'F20T60A',
-        description: 'DIN power consumption module',
+        description: 'DIN power consumption module (same as Legrand 412015)',
         vendor: 'BTicino',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
