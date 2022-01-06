@@ -7,6 +7,7 @@ const {Buffer} = require('buffer');
 const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const linkyModeDef = {
     standard: 'standard',
@@ -115,7 +116,7 @@ const seLixeePrivateFZ = {
                 case 'activeEnerfyOutD02':
                 case 'activeEnerfyOutD03':
                 case 'activeEnerfyOutD04':
-                    val = val / 1000; // from Wh to kWh
+                    val = parseInt(utils.precisionRound(val / 1000, 1)); // from Wh to kWh
                     break;
                 }
                 result[at] = val;
@@ -217,7 +218,7 @@ const seMeteringFZ = {
                 case 'currentTier8SummDelivered':
                 case 'currentTier9SummDelivered':
                 case 'currentTier10SummDelivered':
-                    result[at] = val / 1000; // from Wh to kWh
+                    result[at] = parseInt(utils.precisionRound((parseInt(val[0]) << 32) + parseInt(val[1]) / 1000, 1)); // from Wh to kWh
                     break;
                 }
             }
