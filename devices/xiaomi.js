@@ -686,6 +686,11 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.type = 'Router';
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
