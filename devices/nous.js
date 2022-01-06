@@ -14,11 +14,7 @@ module.exports = [
         description: 'Temperature & humidity',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        exposes: [
-            e.temperature(),
-            e.humidity(),
-            e.battery(),
-        ],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nnrfa68v'}],
