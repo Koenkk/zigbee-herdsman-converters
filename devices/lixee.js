@@ -4,10 +4,13 @@ const globalStore = require('../lib/store');
 const {repInterval} = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const {Buffer} = require('buffer');
-const fz = require('../converters/fromZigbee');
+// const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
 const ota = require('../lib/ota');
 const utils = require('../lib/utils');
+
+
+const MAX_UINT16 = 65535;
 
 const linkyModeDef = {
     standard: 'standard',
@@ -102,6 +105,9 @@ const seLixeePrivateFZ = {
         for (const at of elements) {
             let val = msg.data[at];
             if (val) {
+                if (val.hasOwnProperty('type') && val.type === 'Buffer') {
+                    val = Buffer.from(val.data);
+                }
                 if (Buffer.isBuffer(val)) {
                     val = val.toString(); // Convert buffer to string
                 }
@@ -236,7 +242,7 @@ const seMeteringFZ = {
 const exposedData = [
     // Historique
     {cluster: clustersDef._0x0702, reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('ADCO', ea.STATE).withProperty('meterSerialNumber').withDescription('Serial Number')},
-    {cluster: clustersDef._0x0702, reportable: true, reportChange: 10, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BASE', ea.STATE).withUnit('kWh').withProperty('currentSummDelivered').withDescription('Base index')},
+    {cluster: clustersDef._0x0702, reportable: true, reportChange: 100, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BASE', ea.STATE).withUnit('kWh').withProperty('currentSummDelivered').withDescription('Base index')},
     {cluster: clustersDef._0xFF66, reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('OPTARIF', ea.STATE).withProperty('currentTarif').withDescription('Tarif option')},
     {cluster: clustersDef._0x0B01, reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ISOUSC', ea.STATE).withUnit('A').withProperty('availablePower').withDescription('Subscribed intensity level')},
     {cluster: clustersDef._0x0702, reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HCHC', ea.STATE).withUnit('kWh').withProperty('currentTier1SummDelivered').withDescription('HCHC index')},
@@ -342,9 +348,52 @@ const exposedData = [
 ];
 
 function getCurrentConfig(device, options) {
-    const linkyMode = (options && options.hasOwnProperty('linky_mode')? options['linky_mode'] : linkyModeDef.legacy);
-    const linkyPhase = (options && options.hasOwnProperty('energy_phase')? options['energy_phase'] : linkyPhaseDef.single);
-    const linkyProduction = (options && options.hasOwnProperty('production')? options['production'] : false);
+    const endpoint = device.getEndpoint(1);
+
+    function getProcesedData(cluster, att, converter) {
+        try {
+            endpoint.clusters[cluster].attributes[att].raiseError; // raise if undefined
+        } catch (error) {
+            endpoint.read(cluster, [att]);
+        }
+
+        let readData;
+        if (endpoint.clusters.hasOwnProperty(cluster)) {
+            readData = converter(undefined, {'data': endpoint.clusters[cluster].attributes});
+        }
+
+        return readData;
+    }
+
+    const linkyMode = ((d) => {
+        if (d && d.hasOwnProperty('statusRegister')) {
+            const val = Number(`0x` + d.statusRegister); // hex to data
+            const bit17 = (val >> 17) & 1; // mode
+            return (bit17 == 1? linkyModeDef.standard: linkyModeDef.legacy);
+        }
+        console.warn('Was not able to detect the Linky mode. Default to historique');
+        return linkyModeDef.legacy; // default value in the worst case
+    })(getProcesedData(clustersDef._0xFF66, 'statusRegister', seLixeePrivateFZ.convert));
+
+    const linkyPhase = ((d) => {
+        if (d && d.hasOwnProperty('rmsCurrentPhB')) {
+            return (d.rmsCurrentPhB == MAX_UINT16 ? linkyPhaseDef.single: linkyPhaseDef.three);
+        }
+        console.warn('Was not able to detect the Linky phase. Default to single');
+        return linkyPhaseDef.single; // default value in the worst case
+    })(getProcesedData(clustersDef._0x0B04, 'rmsCurrentPhB', haElectricalMeasurementFZ.convert));
+
+    let linkyProduction = false; // In historique we can't be producer
+
+    if (linkyMode == linkyModeDef.standard) {
+        linkyProduction = ((d) => {
+            if (d && d.hasOwnProperty('currentSummReceived')) {
+                return d.currentSummReceived != 0; // if there are reads, is a producer
+            }
+            console.warn('Was not able to detect the Linky production. Default to false');
+            return linkyPhaseDef.single; // default value in the worst case
+        })(getProcesedData(clustersDef._0x0702, 'currentSummReceived', seMeteringFZ.convert));
+    }
 
     // Main filter
     let myExpose = exposedData
@@ -352,7 +401,6 @@ function getCurrentConfig(device, options) {
 
     // Filter even more, based on our current tarif
     if (device && linkyMode == linkyModeDef.legacy) {
-        const endpoint = device.getEndpoint(1);
         let currentTarf;
         try {
             // Try to remove atributes which doesn't match current tarif
@@ -433,11 +481,6 @@ const definition = {
     },
     options: [
         exposes.options.measurement_poll_interval(),
-        exposes.enum(`linky_mode`, ea.SET, [linkyModeDef.legacy, linkyModeDef.standard])
-            .withDescription(`Counter with TIC in mode standard or historique. Requires re-configuration (default: historique)`),
-        exposes.enum(`energy_phase`, ea.SET, [linkyPhaseDef.single, linkyPhaseDef.three])
-            .withDescription(`Power with single or three phase. Requires re-configuration (default: single_phase)`),
-        exposes.binary(`production`, ea.SET, true, false).withDescription(`If you produce energy back to the grid. Requires re-configuration (only linky_mode: ${linkyModeDef.standard}, default: false)`),
     ],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
@@ -448,29 +491,32 @@ const definition = {
             clustersDef._0x0B04, /* haElectricalMeasurement */
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
+
+        const currentExposes = await getCurrentConfig(device);
+        for (const e of currentExposes.filter((e) => e.reportable)) {
+            let change = 1;
+            if (e.hasOwnProperty('reportChange')) {
+                change = e['reportChange'];
+            }
+
+            await endpoint
+                .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change));
+        }
     },
-    ota: ota.zigbeeOTA,
+    ota: ota.lixee,
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
-        } else if (type === 'start' || type == 'deviceInterview' && data.status == 'successful') {
-            for (const e of getCurrentConfig(device, options).filter((e) => e.reportable)) {
-                let change = 1;
-                if (e.hasOwnProperty('reportChange')) {
-                    change = e['reportChange'];
-                }
-
-                await endpoint
-                    .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.HOUR, change))
-                    .catch((err) => { }); // TODO: Retry if failed?
-            }
         } else if (!globalStore.hasValue(device, 'interval')) {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                for (const e of getCurrentConfig(device, options)) {
+                let currentExposes = await getCurrentConfig(device, options);
+                currentExposes = currentExposes
+                    .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.exposes.property));
+                for (const e of currentExposes) {
                     await endpoint
                         .read(e.cluster, [e.exposes.property])
                         .catch((err) => { }); // TODO: Ignore reads error?
