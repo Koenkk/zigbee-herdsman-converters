@@ -9,7 +9,7 @@ const tuya = require('../lib/tuya');
 const fzLocal = {
     ZMRM02: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandGetData', 'commandSetDataResponse', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
             const button = dpValue.dp;
