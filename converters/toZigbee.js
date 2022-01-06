@@ -1915,6 +1915,8 @@ const converters = {
                     }
                 }
             }
+
+            return {state: {hue_power_on_behavior: value}};
         },
     },
     hue_power_on_error: {
