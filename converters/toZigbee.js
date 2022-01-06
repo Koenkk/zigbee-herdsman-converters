@@ -2076,12 +2076,12 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
-    RTCGQ13LM_detection_interval: {
-        key: ['detection_interval'],
+    aqara_occupancy_timeout: {
+        key: ['occupancy_timeout'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
             await entity.write('aqaraOpple', {0x0102: {value: [value], type: 0x20}}, manufacturerOptions.xiaomi);
-            return {state: {detection_interval: value}};
+            return {state: {occupancy_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0102], manufacturerOptions.xiaomi);

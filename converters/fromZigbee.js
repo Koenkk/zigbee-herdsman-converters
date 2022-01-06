@@ -5017,7 +5017,8 @@ const converters = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('247')) {
@@ -5142,6 +5143,8 @@ const converters = {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['RTCGQ12LM'].includes(model.model)) {
+                            payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                         }
                     } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
@@ -5157,7 +5160,7 @@ const converters = {
             if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
-            if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
+            if (msg.data.hasOwnProperty('258')) payload.occupancy_timeout = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -5308,6 +5311,65 @@ const converters = {
             payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
             return payload;
+        },
+    },
+    RTCGQ12LM_occupancy_illuminance: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('illuminance')) {
+                // The occupancy sensor only sends a message when motion detected.
+                // Therefore we need to publish the no_motion detected by ourselves.
+                const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+
+                // Stop existing timers because motion is detected and set a new one.
+                globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
+                globalStore.putValue(msg.endpoint, 'timers', []);
+
+                if (timeout !== 0) {
+                    const timer = setTimeout(() => {
+                        publish({occupancy: false});
+                    }, timeout * 1000);
+
+                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                }
+
+                const illuminance = msg.data['illuminance'] - 65536;
+                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')}
+            }
+        },
+    },
+    RTCGQ13LM_occupancy: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+
+            // Stop existing timers because motion is detected and set a new one.
+            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
+            globalStore.putValue(msg.endpoint, 'timers', []);
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                }, timeout * 1000);
+
+                globalStore.getValue(msg.endpoint, 'timers').push(timer);
+            }
+
+            return {occupancy: true}
         },
     },
     xiaomi_WXKG01LM_action: {
