@@ -144,4 +144,18 @@ module.exports = [
         },
         exposes: [e.switch(), e.battery()],
     },
+    {
+        zigbeeModel: ['1113-S'],
+        model: 'iL03_1',
+        vendor: 'Iris',
+        description: 'Smart Plug',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
