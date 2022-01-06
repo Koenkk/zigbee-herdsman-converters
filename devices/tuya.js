@@ -1273,7 +1273,8 @@ module.exports = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'},
+            {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
         zigbeeModel: ['TS0011'],
         model: 'TS0011',
         vendor: 'TuYa',
@@ -1294,7 +1295,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
-            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
+            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
