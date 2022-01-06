@@ -20,7 +20,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'}],
         model: 'WZ5_cct',
         vendor: 'Skydance',
-        description: 'Zigbee & RF 5 in 1 LED controller WZ5 (CCT mode)',
+        description: 'Zigbee & RF 5 in 1 LED controller (CCT mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
@@ -58,7 +58,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'}],
         model: 'WZ5_rgbcct',
-        vendor: 'TuYa',
+        vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
