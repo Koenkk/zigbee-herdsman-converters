@@ -7,8 +7,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_6qoazbre'}],
         model: 'WZ5_dim',
-        vendor: 'TuYa',
-        description: 'Zigbee & RF 5 in 1 LED Controller WZ5 (DIM mode)',
+        vendor: 'Skydance',
+        description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
@@ -19,8 +19,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'}],
         model: 'WZ5_cct',
-        vendor: 'TuYa',
-        description: 'Zigbee & RF 5 in 1 LED Controller WZ5 (CCT mode)',
+        vendor: 'Skydance',
+        description: 'Zigbee & RF 5 in 1 LED controller WZ5 (CCT mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
@@ -31,8 +31,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9hghastn'}],
         model: 'WZ5_rgb',
-        vendor: 'TuYa',
-        description: 'Zigbee & RF 5 in 1 LED Controller WZ5 (RGB mode)',
+        vendor: 'Skydance',
+        description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
@@ -43,8 +43,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3thxjahu'}],
         model: 'WZ5_rgbw',
-        vendor: 'TuYa',
-        description: 'Zigbee & RF 5 in 1 LED Controller WZ5 (RGBW mode)',
+        vendor: 'Skydance',
+        description: 'Zigbee & RF 5 in 1 LED controller (RGBW mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
@@ -59,7 +59,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'}],
         model: 'WZ5_rgbcct',
         vendor: 'TuYa',
-        description: 'Zigbee & RF 5 in 1 LED Controller WZ5 (RGB+CCT mode)',
+        description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',
         fromZigbee: [fz.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
