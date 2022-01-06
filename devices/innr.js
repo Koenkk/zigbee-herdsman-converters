@@ -80,6 +80,14 @@ module.exports = [
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 251 C'],
+        model: 'RB 251 C',
+        vendor: 'Innr',
+        description: 'E14 bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 265'],
         model: 'RB 265',
         vendor: 'Innr',
