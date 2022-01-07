@@ -5428,9 +5428,6 @@ const converters = {
             case 'heat':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 2 /* manual */);
                 break;
-//            case 'sleep':
-//                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 1 /* vacation */);
-//                break;
             case 'auto':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 0 /* auto */);
                 break;
