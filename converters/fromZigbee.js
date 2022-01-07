@@ -4136,6 +4136,43 @@ const converters = {
             }
         },
     },
+    evanell_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp; // First we get the data point ID
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data); // This function will take care of converting the data to proper JS type
+
+            switch (dp) {
+            case tuya.dataPoints.evanellChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.evanellBattery: 
+                return {battery: value};
+            case tuya.dataPoints.evanellHeatingSetpoint: // DPID that we added to common
+                return {current_heating_setpoint: (value / 10).toFixed(1)}; // value is already converted to a number in JS, and we deduced that it needs to be divided by 10
+            case tuya.dataPoints.evanellLocalTemp:
+                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.evanellMode:
+                switch (value) {
+                case 0: // manual
+                    return {system_mode: 'auto'};
+//                case 1: // manual
+//                    return {system_mode: 'sleep'};
+                case 2: // away
+                    return {system_mode: 'heat'};
+                case 3: // auto
+                    return {system_mode: 'off'};
+                default:
+                    meta.logger.warn('zigbee-herdsman-converters:evanell_thermostat: ' +
+                        `Mode ${value} is not recognized.`);
+                    break;
+                }
+                break;
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:EvanellThermostat: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)}`); // This will cause zigbee2mqtt to print similar data to what is dumped in tuya.dump.txt
+            }
+        },
+    },
     etop_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],

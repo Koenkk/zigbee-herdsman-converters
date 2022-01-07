@@ -5411,6 +5411,38 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
         },
     },
+    evanell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.evanellHeatingSetpoint, temp);
+        },
+    },
+    evanell_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 3 /* off */);
+                break;
+            case 'heat':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 2 /* manual */);
+                break;
+//            case 'sleep':
+//                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 1 /* vacation */);
+//                break;
+            case 'auto':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 0 /* auto */);
+                break;
+            }
+        },
+    },
+    evanell_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.evanellChildLock, value === 'LOCK');
+        },
+    },
     silvercrest_smart_led_string: {
         key: ['color', 'brightness', 'effect'],
         convertSet: async (entity, key, value, meta) => {
