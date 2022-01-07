@@ -4150,9 +4150,9 @@ const converters = {
                 return {battery: value};
             case tuya.dataPoints.evanellHeatingSetpoint:
                 // value is already converted to a number in JS, and we deduced that it needs to be divided by 10
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
+                return {current_heating_setpoint: (value / 10)};
             case tuya.dataPoints.evanellLocalTemp:
-                return {local_temperature: parseFloat((value / 10).toFixed(1))};
+                return {local_temperature: parseFloat((value / 10))};
             case tuya.dataPoints.evanellMode:
                 switch (value) {
                 case 0: // manual
