@@ -5160,7 +5160,7 @@ const converters = {
             if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
-            if (msg.data.hasOwnProperty('258')) payload.occupancy_timeout = msg.data['258'];
+            if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -5321,7 +5321,7 @@ const converters = {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
-                const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
 
                 // Stop existing timers because motion is detected and set a new one.
                 globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
@@ -5355,7 +5355,7 @@ const converters = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
 
             // Stop existing timers because motion is detected and set a new one.
             globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));

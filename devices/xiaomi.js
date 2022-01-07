@@ -875,10 +875,10 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara T1 human body movement and illuminance sensor',
         fromZigbee: [fz.RTCGQ12LM_occupancy_illuminance, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_occupancy_timeout],
+        toZigbee: [tz.aqara_detection_interval],
         exposes: [e.occupancy(), e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time in seconds till occupancy goes to false'), e.battery()],
+            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+                .withDescription('Time interval for detecting actions'), e.battery()],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -892,10 +892,10 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara high precision motion sensor',
         fromZigbee: [fz.RTCGQ13LM_occupancy, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_occupancy_timeout, tz.RTCGQ13LM_motion_sensitivity],
+        toZigbee: [tz.aqara_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
-            exposes.numeric('occupancy_timeout', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time in seconds till occupancy goes to false'), e.battery()],
+            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+                .withDescription('Time interval for detecting actions'), e.battery()],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
