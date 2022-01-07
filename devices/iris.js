@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const extend = require('../lib/extend');
 
 module.exports = [
     {
@@ -148,14 +149,14 @@ module.exports = [
         zigbeeModel: ['1113-S'],
         model: 'iL03_1',
         vendor: 'Iris',
-        description: 'Smart Plug',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        description: 'Smart plug',
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
 ];
