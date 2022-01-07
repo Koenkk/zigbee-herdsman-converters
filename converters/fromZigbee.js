@@ -5197,7 +5197,7 @@ const converters = {
             if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
-            if (msg.data.hasOwnProperty('258')) payload.occupancy_timeout = msg.data['258'];
+            if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -5358,7 +5358,7 @@ const converters = {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
-                const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
 
                 // Stop existing timers because motion is detected and set a new one.
                 globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
@@ -5392,7 +5392,7 @@ const converters = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = meta && meta.state && meta.state.hasOwnProperty('occupancy_timeout') ? meta.state.occupancy_timeout : 60;
+            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
 
             // Stop existing timers because motion is detected and set a new one.
             globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
@@ -7575,19 +7575,25 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandDataResponse', 'raw'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {contact: Boolean(value)};
-            case tuya.dataPoints.thitBatteryPercentage:
-                return {battery: value};
-            case tuya.dataPoints.tuyaVibration:
-                return {vibration: Boolean(value)};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
-                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.state:
+                    result.contact = Boolean(value);
+                    break;
+                case tuya.dataPoints.thitBatteryPercentage:
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.tuyaVibration:
+                    result.vibration = Boolean(value);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
+                        `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
             }
+            return result;
         },
     },
     moes_thermostat_tv: {
