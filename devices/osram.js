@@ -390,14 +390,15 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
+        zigbeeModel: ['Zigbee 3.0 DALI CONV LI', 'Zigbee 3.0 DALI CONV LI\u0000'],
         model: '4062172044776_1',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
         extend: extend.ledvance.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
         model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
@@ -410,7 +411,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
         model: '4062172044776_3',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
@@ -430,7 +432,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
