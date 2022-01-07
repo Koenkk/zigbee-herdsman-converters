@@ -667,7 +667,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
         model: 'HG06619',
         vendor: 'Lidl',
-        description: 'Silvercrest oudoor plug',
+        description: 'Silvercrest outdoor plug',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
