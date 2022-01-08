@@ -9,14 +9,18 @@ const tuya = require('../lib/tuya');
 const fzLocal = {
     ZMRM02: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandGetData', 'commandSetDataResponse', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
-            const button = dpValue.dp;
-            const actionValue = tuya.getDataValue(dpValue);
-            const lookup = {0: 'single', 1: 'double', 2: 'hold'};
-            const action = lookup[actionValue];
-            return {action: `button_${button}_${action}`};
+            if (dpValue.dp === 10) {
+                return {battery: tuya.getDataValue(dpValue)};
+            } else {
+                const button = dpValue.dp;
+                const actionValue = tuya.getDataValue(dpValue);
+                const lookup = {0: 'single', 1: 'double', 2: 'hold'};
+                const action = lookup[actionValue];
+                return {action: `button_${button}_${action}`};
+            }
         },
     },
 };
@@ -90,7 +94,7 @@ module.exports = [
         fromZigbee: [fzLocal.ZMRM02],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
-        exposes: [e.action([
+        exposes: [e.battery(), e.action([
             'button_1_hold', 'button_1_single', 'button_1_double',
             'button_2_hold', 'button_2_single', 'button_2_double',
             'button_3_hold', 'button_3_single', 'button_3_double',

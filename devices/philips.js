@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['929003047501'],
+        model: '929003047501',
+        vendor: 'Philips',
+        description: 'Centura recessed spotlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['915005996401'],
         model: '915005996401',
         vendor: 'Philips',
@@ -2562,6 +2571,15 @@ module.exports = [
         model: '8719514302235',
         vendor: 'Philips',
         description: 'Hue White Filament Bulb E14',
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWA019'],
+        model: '9290024691',
+        vendor: 'Philips',
+        description: 'Hue white single filament bulb A19 E26 with Bluetooth (1100 Lumen)',
+        meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },

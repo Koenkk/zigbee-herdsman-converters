@@ -8,6 +8,15 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_lbtpiody'}],
+        model: 'E5',
+        vendor: 'Nous',
+        description: 'Temperature & humidity',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nnrfa68v'}],
         model: 'E6',
         vendor: 'Nous',

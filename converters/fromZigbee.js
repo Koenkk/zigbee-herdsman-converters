@@ -5017,7 +5017,8 @@ const converters = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('247')) {
@@ -5142,6 +5143,8 @@ const converters = {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['RTCGQ12LM'].includes(model.model)) {
+                            payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                         }
                     } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
@@ -5308,6 +5311,65 @@ const converters = {
             payload.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
             payload.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
             return payload;
+        },
+    },
+    RTCGQ12LM_occupancy_illuminance: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('illuminance')) {
+                // The occupancy sensor only sends a message when motion detected.
+                // Therefore we need to publish the no_motion detected by ourselves.
+                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+
+                // Stop existing timers because motion is detected and set a new one.
+                globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
+                globalStore.putValue(msg.endpoint, 'timers', []);
+
+                if (timeout !== 0) {
+                    const timer = setTimeout(() => {
+                        publish({occupancy: false});
+                    }, timeout * 1000);
+
+                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                }
+
+                const illuminance = msg.data['illuminance'] - 65536;
+                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+            }
+        },
+    },
+    RTCGQ13LM_occupancy: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.occupancy !== 1) {
+                // In case of 0 no occupancy is reported.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/467
+                return;
+            }
+
+            // The occupancy sensor only sends a message when motion detected.
+            // Therefore we need to publish the no_motion detected by ourselves.
+            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+
+            // Stop existing timers because motion is detected and set a new one.
+            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
+            globalStore.putValue(msg.endpoint, 'timers', []);
+
+            if (timeout !== 0) {
+                const timer = setTimeout(() => {
+                    publish({occupancy: false});
+                }, timeout * 1000);
+
+                globalStore.getValue(msg.endpoint, 'timers').push(timer);
+            }
+
+            return {occupancy: true};
         },
     },
     xiaomi_WXKG01LM_action: {
@@ -7476,19 +7538,25 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandDataResponse', 'raw'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {contact: Boolean(value)};
-            case tuya.dataPoints.thitBatteryPercentage:
-                return {battery: value};
-            case tuya.dataPoints.tuyaVibration:
-                return {vibration: Boolean(value)};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
-                    `DP #${dp} with data ${JSON.stringify(msg.data)}`);
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.state:
+                    result.contact = Boolean(value);
+                    break;
+                case tuya.dataPoints.thitBatteryPercentage:
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.tuyaVibration:
+                    result.vibration = Boolean(value);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
+                        `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
             }
+            return result;
         },
     },
     moes_thermostat_tv: {
@@ -7768,6 +7836,40 @@ const converters = {
                 card: (zoneStatus & 1) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
             };
+        },
+    },
+    tuya_light_wz5: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const separateWhite = (model.meta && model.meta.separateWhite);
+            const result = {};
+            // eslint-disable-next-line no-unused-vars
+            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                if (dp === tuya.dataPoints.state) {
+                    result.state = value ? 'ON': 'OFF';
+                } else if (dp === tuya.dataPoints.silvercrestSetBrightness) {
+                    const brightness = mapNumberRange(value, 0, 1000, 0, 255);
+                    if (separateWhite) {
+                        result.white_brightness = brightness;
+                    } else {
+                        result.brightness = brightness;
+                    }
+                } else if (dp === tuya.dataPoints.silvercrestSetColor) {
+                    const h = parseInt(value.substring(0, 4), 16);
+                    const s = parseInt(value.substring(4, 8), 16);
+                    const b = parseInt(value.substring(8, 12), 16);
+                    result.color_mode = 'hs';
+                    result.color = {hue: h, saturation: mapNumberRange(s, 0, 1000, 0, 100)};
+                    result.brightness = mapNumberRange(b, 0, 1000, 0, 255);
+                } else if (dp === tuya.dataPoints.silvercrestSetColorTemp) {
+                    const [colorTempMin, colorTempMax] = [250, 454];
+                    result.color_temp = mapNumberRange(value, 0, 1000, colorTempMax, colorTempMin);
+                }
+            }
+            return result;
         },
     },
     // #endregion
