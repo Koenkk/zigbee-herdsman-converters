@@ -2574,4 +2574,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LWA019'],
+        model: '9290024691',
+        vendor: 'Philips',
+        description: 'Hue white single filament bulb A19 E26 with Bluetooth (1100 Lumen)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
 ];
