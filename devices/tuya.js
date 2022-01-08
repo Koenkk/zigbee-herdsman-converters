@@ -1658,7 +1658,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Temperature & humidity & illuminance sensor with display',
         fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
-        toZigbee: [],
+        toZigbee: [tz.ts0201_temperature_humidity_alarm],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // Enables reporting of measurement state changes
@@ -1667,10 +1667,10 @@ module.exports = [
                 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity', 'manuSpecificTuya_2']);
         },
         exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
-            exposes.numeric('alarm_temperature_max', ea.STATE).withUnit('°C').withDescription('Alarm temperature max'),
-            exposes.numeric('alarm_temperature_min', ea.STATE).withUnit('°C').withDescription('Alarm temperature min'),
-            exposes.numeric('alarm_humidity_max', ea.STATE).withUnit('%').withDescription('Alarm humidity max'),
-            exposes.numeric('alarm_humidity_min', ea.STATE).withUnit('%').withDescription('Alarm humidity min'),
+            exposes.numeric('alarm_temperature_max', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature max').withValueMin(-20).withValueMax(80),
+            exposes.numeric('alarm_temperature_min', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature min').withValueMin(-20).withValueMax(80),
+            exposes.numeric('alarm_humidity_max', ea.STATE_SET).withUnit('%').withDescription('Alarm humidity max').withValueMin(0).withValueMax(100),
+            exposes.numeric('alarm_humidity_min', ea.STATE_SET).withUnit('%').withDescription('Alarm humidity min').withValueMin(0).withValueMax(100),
             exposes.enum('alarm_humidity', ea.STATE, ['below_min_humdity', 'over_humidity', 'off'])
                 .withDescription('Alarm humidity status'),
             exposes.enum('alarm_temperature', ea.STATE, ['below_min_temperature', 'over_temperature', 'off'])
