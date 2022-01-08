@@ -6,7 +6,7 @@ module.exports = [
         zigbeeModel: ['35938'],
         model: 'ZB3102',
         vendor: 'Jasco Products',
-        description: 'ZigBee plug-in smart dimmer',
+        description: 'Zigbee plug-in smart dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
