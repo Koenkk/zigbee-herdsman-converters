@@ -7586,6 +7586,7 @@ const converters = {
             default:
                 meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);    
             }
+            return result;
         },
     },
     tuya_smart_vibration_sensor: {
