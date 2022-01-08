@@ -3672,7 +3672,7 @@ const converters = {
             case tuya.dataPoints.moesSboostHeatingCountdown:
                 return {boost_heating_countdown: value};
             case tuya.dataPoints.moesSreset:
-                break;
+                return {valve_state: value ? 'CLOSED' : 'OPEN' };
             case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSwindowDetection:
