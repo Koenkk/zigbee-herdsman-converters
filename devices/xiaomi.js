@@ -923,6 +923,10 @@ module.exports = [
         fromZigbee: [fz.xiaomi_battery, fz.xiaomi_contact, fz.xiaomi_contact_interval],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.temperature(), e.battery_voltage()],
+        configure: async (device) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.sensor_wleak.aq1'],
