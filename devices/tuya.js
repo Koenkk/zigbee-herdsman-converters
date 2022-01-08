@@ -62,6 +62,16 @@ module.exports = [
         },
     },
     {
+		zigbeeModel: ['TS0202'],
+		model: 'TY-ZPR06',
+		vendor: '_TZ3000_msl6wxk9',
+		description: 'PIR Motion Sensor',
+		fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report],
+		toZigbee: [],
+		meta: {battery: {voltageToPercentage: '3V_2500'}},
+		exposes: [e.battery(), e.battery_low(), e.tamper(), e.occupancy()],
+    },	
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
