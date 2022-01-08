@@ -6278,8 +6278,8 @@ const converters = {
             case 'radar_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
                 break;
-			default: // Unknown Key
-				meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
+	    default: // Unknown Key
+		meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
             }
         },
     },
