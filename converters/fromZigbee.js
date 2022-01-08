@@ -4141,6 +4141,7 @@ const converters = {
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
           const result = {};
+          meta.logger.debug(JSON.stringify(msg.data))
           for (const dpValue of msg.data.dpValues) {
               const value = tuya.getDataValue(dpValue);
               switch (dpValue.dp) {
