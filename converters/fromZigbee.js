@@ -7561,22 +7561,33 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            let result = null;
             switch (dp) {
             case tuya.dataPoints.trsPresenceState:
-                return {presence: {0: false, 1: true}[value]};
+                result = {presence: {0: false, 1: true}[value]};
+                break;
             case tuya.dataPoints.trsMotionState:
-                return {motion: {1: false, 2: true}[value]};
+                result = {occupancy: {1: false, 2: true}[value]};
+                break;
             case tuya.dataPoints.trsMotionSpeed:
-                return {motion_speed: value};
+                result = {motion_speed: value};
+                break;
             case tuya.dataPoints.trsMotionDirection:
-                return {motion_direction: {0: 'standing_still', 1: 'moving_forward', 2: 'moving_backward'}[value]};
+                result = {motion_direction: tuya.tuyaRadar.motionDirection[value]};
+                break;
             case tuya.dataPoints.trsScene:
-                return {radar_scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
+                result = {radar_scene: tuya.tuyaRadar.radarScene[value]};
+                break;
             case tuya.dataPoints.trsSensitivity:
-                return {radar_sensitivity: value};
+                result = {radar_sensitivity: value};
+                break;
             case tuya.dataPoints.trsIlluminanceLux:
-                return {illuminance_lux: value};
+                result = {illuminance_lux: value};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
+            return result;
         },
     },
     tuya_smart_vibration_sensor: {
