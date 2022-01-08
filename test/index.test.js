@@ -266,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -406,7 +406,8 @@ describe('index.js', () => {
     it('Check if all exposes have a color temp range', () => {
         const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
         for (const definition of index.definitions) {
-            for (const expose of definition.exposes.filter(e => e.type === 'light')) {
+            const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes();
+            for (const expose of exposes.filter(e => e.type === 'light')) {
                 const colorTemp = expose.features.find(f => f.name === 'color_temp');
                 if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
                     throw new Error(`'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`);
@@ -463,6 +464,14 @@ describe('index.js', () => {
                         }
                     }
                 }
+            }
+        });
+    });
+
+    it('Function exposes should have linkquality sensor', () => {
+        index.definitions.forEach((definition) => {
+            if (typeof definition.exposes == 'function') {
+                expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
             }
         });
     });

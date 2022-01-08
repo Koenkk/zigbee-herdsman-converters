@@ -24,6 +24,7 @@ module.exports = [
             await endpoint.configureReporting('genAnalogInput', payload);
         },
         exposes: [e.battery(), e.battery_voltage(),
+            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
     },
     {

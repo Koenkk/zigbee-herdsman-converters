@@ -19,7 +19,7 @@ module.exports = [
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'FC80CC',
-        description: 'Legrand (or Bticino) DIN contactor module (note: Legrand 412171 may be similar to Bticino FC80CC)',
+        description: 'Legrand (or Bticino) DIN contactor module',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],

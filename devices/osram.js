@@ -178,11 +178,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Surface Light TW'],
+        zigbeeModel: ['Surface Light TW', 'ZLO-CeilingTW-OS'],
         model: 'AB401130055',
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light LED Tunable White',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -191,7 +191,7 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}],
+        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}, {vendor: 'LEDVANCE', model: 'AC03360'}],
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -390,15 +390,72 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
-        model: '4062172044776',
+        zigbeeModel: ['Zigbee 3.0 DALI CONV LI', 'Zigbee 3.0 DALI CONV LI\u0000'],
+        model: '4062172044776_1',
         vendor: 'OSRAM',
-        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
         extend: extend.ledvance.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_2',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness(),
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
+        model: '4062172044776_3',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11};
         },
         meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_4',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
     },
 ];

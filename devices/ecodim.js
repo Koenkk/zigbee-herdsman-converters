@@ -121,4 +121,11 @@ module.exports = [
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
     },
+    {
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_yluvwhjc'}],
+        model: 'ED-10042',
+        vendor: 'EcoDim',
+        description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
