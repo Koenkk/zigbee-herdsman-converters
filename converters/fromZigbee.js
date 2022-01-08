@@ -4141,7 +4141,6 @@ const converters = {
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
           const result = {};
-          meta.logger.debug(JSON.stringify(msg.data))
           for (const dpValue of msg.data.dpValues) {
               const value = tuya.getDataValue(dpValue);
               switch (dpValue.dp) {
@@ -4154,17 +4153,20 @@ const converters = {
               case tuya.dataPoints.evanellHeatingSetpoint:
                   result.current_heating_setpoint = value/10;
                   break;
-              case tuya.tuya.dataPoints.evanellLocalTemp:
+              case tuya.dataPoints.evanellLocalTemp:
                   result.local_temperature = value/10;
                   break;
               case tuya.dataPoints.evanellMode:
                   switch (value) {
                   case 0: // manual
                       result.system_mode = 'auto';
+                      break;
                   case 2: // away
                       result.system_mode = 'heat';
+                      break;
                   case 3: // auto
                       result.system_mode = 'off';
+                      break;
                   default:
                       meta.logger.warn('zigbee-herdsman-converters:evanell_thermostat: ' +
                           `Mode ${value} is not recognized.`);
