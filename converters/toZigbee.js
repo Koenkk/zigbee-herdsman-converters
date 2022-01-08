@@ -6273,11 +6273,13 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'radar_scene':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsScene, value);
-                return {state: {radar_scene: value}};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
+                break;
             case 'radar_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
-                return {state: {radar_sensitivity: value}};
+                break;
+			default: // Unknown Key
+				meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
             }
         },
     },

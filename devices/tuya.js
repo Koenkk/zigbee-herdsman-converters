@@ -1708,17 +1708,16 @@ module.exports = [
         model: 'MIR-HE200-TY',
         vendor: 'TuYa',
         description: 'Human presence sensor',
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_radar_sensor],
+        fromZigbee: [fz.tuya_radar_sensor],
         toZigbee: [tz.tuya_radar_sensor],
         exposes: [
-            e.illuminance_lux(), e.presence(),
-            exposes.binary('motion', ea.STATE, [true, false]).withDescription('moving inside the range of the sensor'),
+            e.illuminance_lux(), e.presence(), e.occupancy(),
             exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, ['standing_still', 'moving_forward', 'moving_backward'])
+            exposes.enum('motion_direction', ea.STATE, Object.values(tuya.tuyaRadar.motionDirection))
                 .withDescription('direction of movement from the point of view of the radar'),
             exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
                 .withDescription('sensitivity of the radar'),
-            exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
+                exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene)).withDescription('presets for sensitivity for presence and movement')
                 .withDescription('presets for sensitivity for presence and movement'),
         ],
     },
