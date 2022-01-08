@@ -7561,6 +7561,7 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            let result = null;
             switch (dp) {
             case tuya.dataPoints.trsPresenceState:
                 result = {presence: {0: false, 1: true}[value]};
