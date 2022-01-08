@@ -4140,37 +4140,42 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp; // First we get the data point ID
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
-
-            switch (dp) {
-            case tuya.dataPoints.evanellChildLock:
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            case tuya.dataPoints.evanellBattery:
-                return {battery: value};
-            case tuya.dataPoints.evanellHeatingSetpoint:
-                // value is already converted to a number in JS, and we deduced that it needs to be divided by 10
-                return {current_heating_setpoint: (value / 10)};
-            case tuya.dataPoints.evanellLocalTemp:
-                return {local_temperature: parseFloat((value / 10))};
-            case tuya.dataPoints.evanellMode:
-                switch (value) {
-                case 0: // manual
-                    return {system_mode: 'auto'};
-                case 2: // away
-                    return {system_mode: 'heat'};
-                case 3: // auto
-                    return {system_mode: 'off'};
-                default:
-                    meta.logger.warn('zigbee-herdsman-converters:evanell_thermostat: ' +
-                        `Mode ${value} is not recognized.`);
-                    break;
-                }
-                break;
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:EvanellThermostat: NOT RECOGNIZED DP #${dp} with ` +
-                    `data ${JSON.stringify(msg.data)}`);
-            }
+          const result = {};
+          for (const dpValue of msg.data.dpValues) {
+              const value = tuya.getDataValue(dpValue);
+              switch (dpValue.dp) {
+              case tuya.dataPoints.evanellChildLock:
+                  result.child_lock = value ? 'LOCK' : 'UNLOCK';
+                  break;
+              case tuya.dataPoints.evanellBattery:
+                  result.battery = value;
+                  break;
+              case tuya.dataPoints.evanellHeatingSetpoint:
+                  result.current_heating_setpoint = value/10;
+                  break;
+              case tuya.tuya.dataPoints.evanellLocalTemp:
+                  result.local_temperature = value/10;
+                  break;
+              case tuya.dataPoints.evanellMode:
+                  switch (value) {
+                  case 0: // manual
+                      result.system_mode = 'auto';
+                  case 2: // away
+                      result.system_mode = 'heat';
+                  case 3: // auto
+                      result.system_mode = 'off';
+                  default:
+                      meta.logger.warn('zigbee-herdsman-converters:evanell_thermostat: ' +
+                          `Mode ${value} is not recognized.`);
+                      break;
+                  }
+                  break;
+              default:
+                  meta.logger.warn(`zigbee-herdsman-converters:evanell_thermostat: NOT RECOGNIZED ` +
+                      `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+              }
+          }
+          return result;
         },
     },
     etop_thermostat: {
