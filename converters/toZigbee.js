@@ -5029,7 +5029,7 @@ const converters = {
             }
         },
     },
-    ts0201_temperature_humidity_alarm = {
+    ts0201_temperature_humidity_alarm: {
         key: ['alarm_humidity_max', 'alarm_humidity_min', 'alarm_temperature_max', 'alarm_temperature_min'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
