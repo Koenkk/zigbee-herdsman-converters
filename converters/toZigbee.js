@@ -5066,7 +5066,7 @@ const converters = {
         key: ['scene_store'],
         convertSet: async (entity, key, value, meta) => {
             const isGroup = entity.constructor.name === 'Group';
-            const groupid = isGroup ? entity.groupID : 0;
+            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             let sceneid = value;
             let scenename = null;
             if (typeof value === 'object') {
@@ -5166,7 +5166,7 @@ const converters = {
             }
 
             const isGroup = entity.constructor.name === 'Group';
-            const groupid = isGroup ? entity.groupID : 0;
+            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             const sceneid = value.ID;
             const scenename = value.name;
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
