@@ -6472,9 +6472,9 @@ const converters = {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue, 'dataRequest', 1);
 
-                return {state: {white_brightness: value}};
+                return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
             } else if (key == 'color_temp') {
                 const [colorTempMin, colorTempMax] = [250, 454];
                 const preset = {
@@ -6497,7 +6497,7 @@ const converters = {
                 const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
 
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.silvercrestSetColorTemp, data);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.silvercrestSetColorTemp, data, 'dataRequest', 1);
 
                 return {state: {color_temp: value}};
             } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
@@ -6573,13 +6573,13 @@ const converters = {
                 data = data.concat(tuya.convertStringToHexArray(hsb.b));
 
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color);
-                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetColor, data);
+                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetColor, data, 'dataRequest', 1);
 
                 if (separateWhite && meta.state.white_brightness != undefined) {
                     // restore white state
                     const newValue = utils.mapNumberRange(meta.state.white_brightness, 0, 255, 0, 1000);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue, 'dataRequest', 1);
                 }
 
                 return {state: newState};
