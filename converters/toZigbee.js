@@ -5036,15 +5036,16 @@ const converters = {
             case 'alarm_temperature_max':
             case 'alarm_temperature_min':
             case 'alarm_humidity_max':
-            case 'alarm_humidity_min':
-                //await entity.write('manuSpecificTuya_2', {[key]: value});
-                //instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
-                //https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
-                const keyToAttributeLookup = {'alarm_temperature_max': 0xD00A, 'alarm_temperature_min': 0xD00B, 
-                    'alarm_humidity_max': 0xD00D, 'alarm_humidity_min': 0xD00E };
-                const payload = {[keyToAttributeLookup[key]]: {value: value, type: 0x29} };
+            case 'alarm_humidity_min': {
+                // await entity.write('manuSpecificTuya_2', {[key]: value});
+                // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
+                // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
+                const keyToAttributeLookup = {'alarm_temperature_max': 0xD00A, 'alarm_temperature_min': 0xD00B,
+                    'alarm_humidity_max': 0xD00D, 'alarm_humidity_min': 0xD00E};
+                const payload = {[keyToAttributeLookup[key]]: {value: value, type: 0x29}};
                 await entity.write('manuSpecificTuya_2', payload);
                 break;
+            }
             default: // Unknown key
                 meta.logger.warn(`Unhandled key ${key}`);
             }
