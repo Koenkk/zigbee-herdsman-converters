@@ -4,6 +4,13 @@ const reporting = require('../lib/reporting');
 
 module.exports = [
     {
+        zigbeeModel: ['A60S TW'],
+        model: 'AC33898',
+        vendor: 'LEDVANCE',
+        description: ' Smart+ LED classic E27 Zigbee 10W/810lm',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['Outdoor Plug', 'Plug Value'],
         model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
