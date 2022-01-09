@@ -310,7 +310,8 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_o1jzcxou'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
