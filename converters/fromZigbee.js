@@ -1380,8 +1380,8 @@ const converters = {
             const payload = {
                 action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
-                    x: precisionRound(msg.data.colorx / 65535, 3),
-                    y: precisionRound(msg.data.colory / 65535, 3),
+                    x: precisionRound(msg.data.colorx / 65536, 3),
+                    y: precisionRound(msg.data.colory / 65536, 3),
                 },
                 action_transition_time: msg.data.transtime,
             };
