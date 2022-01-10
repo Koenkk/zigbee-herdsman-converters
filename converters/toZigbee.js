@@ -6579,7 +6579,7 @@ const converters = {
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color),
                     tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
                 ];
-                
+
                 if (separateWhite && meta.state.white_brightness != undefined) {
                     // restore white state
                     const newValue = utils.mapNumberRange(meta.state.white_brightness, 0, 255, 0, 1000);
