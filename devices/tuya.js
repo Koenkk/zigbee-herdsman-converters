@@ -1836,9 +1836,20 @@ module.exports = [
         model: 'ERS-10TZBVK-AA',
         vendor: 'TuYa',
         description: 'Smart knob',
-        fromZigbee: [fz.command_step, fz.command_toggle, fz.command_move_hue],
+        fromZigbee: [
+            fz.command_step, fz.command_toggle, fz.command_move_hue, fz.command_step_color_temperature, fz.command_stop_move_raw,
+            fz.tuya_multi_action,
+        ],
         toZigbee: [],
-        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
+        exposes: [
+            e.action([
+                'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down',
+                'hue_move', 'hue_stop', 'single', 'double', 'hold', 'rotate_left', 'rotate_right',
+            ]),
+            exposes.numeric('action_step_size', ea.STATE).withValueMin(0).withValueMax(255),
+            exposes.numeric('action_transition_time', ea.STATE).withUnit('s'),
+            exposes.numeric('action_rate', ea.STATE).withValueMin(0).withValueMax(255),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kzm5w4iz'}],

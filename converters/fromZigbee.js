@@ -7928,6 +7928,34 @@ const converters = {
             return result;
         },
     },
+    command_stop_move_raw: {
+        cluster: 'lightingColorCtrl',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // commandStopMove without params
+            if (msg.data[2] !== 71) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
+            const movestop = 'stop';
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
+            const payload = {action};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    tuya_multi_action: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, msg.data[2])) return;
+            let action;
+            if (msg.data[2] == 253) {
+                action = {0: 'single', 1: 'double', 2: 'hold'}[msg.data[3]];
+            } else if (msg.data[2] == 252) {
+                action = {0: 'rotate_right', 1: 'rotate_left'}[msg.data[3]];
+            }
+            return {action};
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
