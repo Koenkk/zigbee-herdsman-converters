@@ -189,7 +189,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'},
-            {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'}, {modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'}],
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'}],
         model: 'TS0504B',
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
