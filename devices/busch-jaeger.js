@@ -80,9 +80,10 @@ module.exports = [
                 await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
         },
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.RM01_on_off, fz.legacy.RM01_brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
             fz.legacy.RM01_up_hold, fz.legacy.RM01_down_hold, fz.legacy.RM01_stop],
-        toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
+        toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move, 
+                   tz.RM01_row_button],
         onEvent: async (type, data, device) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
