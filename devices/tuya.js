@@ -162,7 +162,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_0rn9qhnu'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -188,7 +189,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'},
-            {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'}, {modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'}],
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'}],
         model: 'TS0504B',
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
@@ -310,7 +313,8 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_o1jzcxou'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
@@ -902,7 +906,7 @@ module.exports = [
                     'Mode of this device, in the `heat` mode the TS0601 will remain continuously heating, i.e. it does not regulate ' +
                     'to the desired temperature. If you want TRV to properly regulate the temperature you need to use mode `auto` ' +
                     'instead setting the desired temperature.')
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
