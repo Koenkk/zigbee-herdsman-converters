@@ -6471,10 +6471,12 @@ const converters = {
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                await tuya.sendDataPoints(entity, [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
+                ], 'dataRequest', 1);
 
-                return {state: {white_brightness: value}};
+                return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
             } else if (key == 'color_temp') {
                 const [colorTempMin, colorTempMax] = [250, 454];
                 const preset = {
@@ -6496,8 +6498,10 @@ const converters = {
                 }
                 const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
 
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.silvercrestSetColorTemp, data);
+                await tuya.sendDataPoints(entity, [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, data),
+                ], 'dataRequest', 1);
 
                 return {state: {color_temp: value}};
             } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
@@ -6550,12 +6554,11 @@ const converters = {
                     }
 
                     // Scale 0-255 to 0-1000 what the device expects.
-                    if (b) {
+                    if (b != null) {
                         hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
-                    } else if (state.brightness) {
+                    } else if (state.brightness != null) {
                         hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
                     }
-
                     return hsb;
                 };
 
@@ -6572,15 +6575,18 @@ const converters = {
                 data = data.concat(tuya.convertStringToHexArray(hsb.s));
                 data = data.concat(tuya.convertStringToHexArray(hsb.b));
 
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color);
-                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetColor, data);
+                const commands = [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color),
+                    tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
+                ];
 
                 if (separateWhite && meta.state.white_brightness != undefined) {
                     // restore white state
                     const newValue = utils.mapNumberRange(meta.state.white_brightness, 0, 255, 0, 1000);
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                    commands.push(tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white));
+                    commands.push(tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue));
                 }
+                await tuya.sendDataPoints(entity, commands, 'dataRequest', 1);
 
                 return {state: newState};
             }
