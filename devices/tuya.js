@@ -1838,7 +1838,7 @@ module.exports = [
         description: 'Smart knob',
         fromZigbee: [
             fz.command_step, fz.command_toggle, fz.command_move_hue, fz.command_step_color_temperature, fz.command_stop_move_raw,
-            fz.command_move_saturation, fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
+            fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
         ],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
