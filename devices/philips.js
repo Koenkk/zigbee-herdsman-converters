@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['LWA018'],
+        model: '9290024693',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb B22 1055lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCX004'],
         model: '929002994901',
         vendor: 'Philips',
