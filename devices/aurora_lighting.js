@@ -75,6 +75,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['RGBBulb51AU'],
+        model: 'AU-A1GSZ9RGBWE',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 9.5W smart RGBW GLS E27/B22',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
         zigbeeModel: ['Remote50AU'],
         model: 'AU-A1ZBRC',
         vendor: 'Aurora Lighting',
