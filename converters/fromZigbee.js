@@ -8115,11 +8115,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => null,
     },
     ignore_metering: {
-        /**
-         * When using this converter also add the following to the configure method of the device:
-         * await readMeteringPowerConverterAttributes(endpoint);
-         */
         cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_electrical_measurement: {
+        cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
     },
