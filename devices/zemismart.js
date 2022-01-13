@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const tuya = require('../lib/tuya');
+const ea = exposes.access;
 
 const fzLocal = {
     ZMRM02: {
@@ -101,5 +102,26 @@ module.exports = [
             'button_4_hold', 'button_4_single', 'button_4_double',
             'button_5_hold', 'button_5_single', 'button_5_double',
             'button_6_hold', 'button_6_single', 'button_6_double'])],
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_zigisuyh'}],
+        model: 'ZIGBEE-B09-UK',
+        vendor: 'Zemismart',
+        description: 'Zigbee smart outlet universal socket with USB port',
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+        },
     },
 ];
