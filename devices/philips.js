@@ -30,6 +30,15 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['929003056901'],
+        model: '929003056901',
+        vendor: 'Philips',
+        description: 'Hue Struana 27W',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA018'],
         model: '9290024693',
         vendor: 'Philips',
