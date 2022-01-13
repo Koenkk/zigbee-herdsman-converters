@@ -1,13 +1,12 @@
 /* eslint-disable max-len */
+'use strict';
 const exposes = require('../lib/exposes');
 const globalStore = require('../lib/store');
 const {repInterval} = require('../lib/constants');
 const reporting = require('../lib/reporting');
-const {Buffer} = require('buffer');
-// const fz = require('../converters/fromZigbee');
+const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
 const ota = require('../lib/ota');
-const utils = require('../lib/utils');
 
 
 const tarifsDef = {
@@ -108,211 +107,6 @@ const clustersDef = {
 
 
 // full list available on https://github.com/fairecasoimeme/Zlinky_TIC/blob/master/README.md
-
-const haMeterIdentificationFZ = {
-    cluster: clustersDef._0x0B01,
-    type: ['readResponse'],
-    convert: (model, msg, publish, options, meta) => {
-        const result = {};
-        const elements = [
-            /* 0x000A*/ 'softwareRevision',
-            /* 0x000D*/ 'availablePower',
-            /* 0x000E*/ 'powerThreshold',
-        ];
-
-        for (const at of elements) {
-            if (msg.data[at]) {
-                result[at] = msg.data[at];
-            }
-        }
-
-        return result;
-    },
-};
-
-const seLixeePrivateFZ = {
-    cluster: clustersDef._0xFF66,
-    type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
-        const result = {};
-
-        const elements = [
-            /* 0x0000 */ 'currentTarif',
-            /* 0x0001 */ 'tomorrowColor',
-            /* 0x0002 */ 'scheduleHPHC',
-            /* 0x0003 */ 'presencePotential',
-            /* 0x0004 */ 'startNoticeEJP',
-            /* 0x0005 */ 'warnDPS',
-            /* 0x0006 */ 'warnDIR1',
-            /* 0x0007 */ 'warnDIR2',
-            /* 0x0008 */ 'warnDIR3',
-            /* 0x0200 */ 'currentPrice',
-            /* 0x0201 */ 'currentIndexTarif',
-            /* 0x0202 */ 'currentDate',
-            /* 0x0203 */ 'activeEnerfyOutD01',
-            /* 0x0204 */ 'activeEnerfyOutD02',
-            /* 0x0205 */ 'activeEnerfyOutD03',
-            /* 0x0206 */ 'activeEnerfyOutD04',
-            /* 0x0207 */ 'injectedVA',
-            /* 0x0208 */ 'injectedVAMaxN',
-            /* 0x0209 */ 'injectedVAMaxN1',
-            /* 0x0210 */ 'injectedActiveLoadN',
-            /* 0x0211 */ 'injectedActiveLoadN1',
-            /* 0x0212 */ 'drawnVAMaxN1',
-            /* 0x0213 */ 'drawnVAMaxN1P2',
-            /* 0x0214 */ 'drawnVAMaxN1P3',
-            /* 0x0215 */ 'message1',
-            /* 0x0216 */ 'message2',
-            /* 0x0217 */ 'statusRegister',
-            /* 0x0218 */ 'startMobilePoint1',
-            /* 0x0219 */ 'stopMobilePoint1',
-            /* 0x0220 */ 'startMobilePoint2',
-            /* 0x0221 */ 'stopMobilePoint2',
-            /* 0x0222 */ 'startMobilePoint3',
-            /* 0x0223 */ 'stopMobilePoint3',
-            /* 0x0224 */ 'relais',
-            /* 0x0225 */ 'daysNumberCurrentCalendar',
-            /* 0x0226 */ 'daysNumberNextCalendar',
-            /* 0x0227 */ 'daysProfileCurrentCalendar',
-            /* 0x0228 */ 'daysProfileNextCalendar',
-        ];
-
-        for (const at of elements) {
-            let val = msg.data[at];
-            if (val) {
-                if (val.hasOwnProperty('type') && val.type === 'Buffer') {
-                    val = Buffer.from(val.data);
-                }
-                if (Buffer.isBuffer(val)) {
-                    val = val.toString(); // Convert buffer to string
-                }
-
-                if (typeof val === 'string' || val instanceof String) {
-                    val = val.replace(/\0/g, ''); // Remove all null chars when str
-                    val = val.replace(/\s+/g, ' ').trim(); // Remove extra and leading spaces
-                }
-
-                switch (at) {
-                case 'activeEnerfyOutD01':
-                case 'activeEnerfyOutD02':
-                case 'activeEnerfyOutD03':
-                case 'activeEnerfyOutD04':
-                    val = parseInt(utils.precisionRound(val / 1000, 1)); // from Wh to kWh
-                    break;
-                }
-                result[at] = val;
-            }
-        }
-
-        return result;
-    },
-};
-
-const haElectricalMeasurementFZ = {
-    cluster: clustersDef._0x0B04,
-    type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
-        const result = {};
-
-        const elements = [
-            /* 0x0305 */ 'totalReactivePower',
-            /* 0x0505 */ 'rmsVoltage',
-            /* 0x0508 */ 'rmsCurrent',
-            /* 0x050A */ 'rmsCurrentMax',
-            /* 0x050B */ 'activePower',
-            /* 0x050D */ 'activePowerMax',
-            /* 0x050E */ 'reactivePower',
-            /* 0x050F */ 'apparentPower',
-            /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
-            /* 0x0905 */ 'rmsVoltagePhB',
-            /* 0x0908 */ 'rmsCurrentPhB',
-            /* 0x090A */ 'rmsCurrentMaxPhB',
-            /* 0x090B */ 'activePowerPhB',
-            /* 0x090E */ 'reactivePowerPhB',
-            /* 0x090D */ 'activePowerMaxPhB',
-            /* 0x090F */ 'apparentPowerPhB',
-            /* 0x0911 */ 'averageRmsVoltageMeasurePeriodPhB',
-            /* 0x0A05 */ 'rmsVoltagePhC',
-            /* 0x0A08 */ 'rmsCurrentPhC',
-            /* 0x0A0A */ 'rmsCurrentMaxPhC',
-            /* 0x0A0D */ 'activePowerMaxPhC',
-            /* 0x0A0E */ 'reactivePowerPhC',
-            /* 0x0A0F */ 'apparentPowerPhC',
-            /* 0x0A11 */ 'averageRmsVoltageMeasPeriodPhC',
-        ];
-
-        for (const at of elements) {
-            if (msg.data[at]) {
-                result[at] = msg.data[at];
-            }
-        }
-
-        return result;
-    },
-};
-
-const seMeteringFZ = {
-    cluster: clustersDef._0x0702,
-    type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
-        const result = {};
-
-        const elements = [
-            /* 0x0000 */ 'currentSummDelivered',
-            /* 0x0001 */ 'currentSummReceived',
-            /* 0x0020 */ 'activeRegisterTierDelivered',
-            /* 0x0100 */ 'currentTier1SummDelivered',
-            /* 0x0102 */ 'currentTier2SummDelivered',
-            /* 0x0104 */ 'currentTier3SummDelivered',
-            /* 0x0106 */ 'currentTier4SummDelivered',
-            /* 0x0108 */ 'currentTier5SummDelivered',
-            /* 0x010A */ 'currentTier6SummDelivered',
-            /* 0x010C */ 'currentTier7SummDelivered',
-            /* 0x010E */ 'currentTier8SummDelivered',
-            /* 0x0110 */ 'currentTier9SummDelivered',
-            /* 0x0112 */ 'currentTier10SummDelivered',
-            /* 0x0307 */ 'siteId',
-            /* 0x0308 */ 'meterSerialNumber',
-        ];
-
-        for (const at of elements) {
-            const val = msg.data[at];
-            if (val) {
-                result[at] = val; // By default we assign raw value
-                switch (at) {
-                // If we receive a Buffer, transform to human readable text
-                case 'meterSerialNumber':
-                case 'siteId':
-                    if (Buffer.isBuffer(val)) {
-                        result[at] = val.toString();
-                    }
-                    break;
-                case 'currentSummDelivered':
-                case 'currentSummReceived':
-                case 'currentTier1SummDelivered':
-                case 'currentTier2SummDelivered':
-                case 'currentTier3SummDelivered':
-                case 'currentTier4SummDelivered':
-                case 'currentTier5SummDelivered':
-                case 'currentTier6SummDelivered':
-                case 'currentTier7SummDelivered':
-                case 'currentTier8SummDelivered':
-                case 'currentTier9SummDelivered':
-                case 'currentTier10SummDelivered':
-                    result[at] = parseInt(utils.precisionRound((parseInt(val[0]) << 32) + parseInt(val[1]) / 1000, 1)); // from Wh to kWh
-                    break;
-                }
-            }
-        }
-
-        // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
-        if (result['currentSummDelivered'] == 0 && (result['currentTier1SummDelivered'] > 0 || result['currentTier2SummDelivered'] > 0)) {
-            result['currentSummDelivered'] = result['currentTier1SummDelivered'] + result['currentTier2SummDelivered'];
-        }
-
-        return result;
-    },
-};
 
 const exposedData = [
     // Historique
@@ -481,6 +275,8 @@ async function getCurrentConfig(device, options, logger=console) {
         }
     }
 
+    logger.debug(`zlinky config: ` + linkyMode + `, `+ linkyPhase + `, `+ linkyProduction.toString() +`, `+ currentTarf);
+
     switch (currentTarf) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.histo_BASE.excluded.includes(a.exposes.name));
@@ -509,7 +305,7 @@ const definition = {
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
     description: 'Lixee ZLinky',
-    fromZigbee: [seMeteringFZ, haMeterIdentificationFZ, haElectricalMeasurementFZ, seLixeePrivateFZ],
+    fromZigbee: [fz.lixee_metering, fz.haMeterIdentificationFZ, fz.lixee_haElectricalMeasurement, fz.lixeePrivateFZ],
     toZigbee: [],
     exposes: async (device, options) => {
         return (await getCurrentConfig(device, options))
@@ -525,7 +321,7 @@ const definition = {
         exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
             .withDescription(`The current tarif. This option will exclude unnecesary attributes. Default: auto`),
     ],
-    configure: async (device, coordinatorEndpoint, logger) => {
+    configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);
 
         await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -535,8 +331,7 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        const currentExposes = await getCurrentConfig(device, {}, logger);
-        for (const e of currentExposes.filter((e) => e.reportable)) {
+        for (const e of (await getCurrentConfig(device, options, logger)).filter((e) => e.reportable)) {
             let change = 1;
             if (e.hasOwnProperty('reportChange')) {
                 change = e['reportChange'];
