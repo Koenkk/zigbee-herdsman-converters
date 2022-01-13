@@ -35,7 +35,6 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Struana 27W',
         meta: {turnsOffAtBrightness1: true},
-        // This color temp range is just a guess.
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
