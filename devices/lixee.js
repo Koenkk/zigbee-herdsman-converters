@@ -10,6 +10,84 @@ const ota = require('../lib/ota');
 const utils = require('../lib/utils');
 
 
+const tarifsDef = {
+    histo_BASE: {fname: 'Historique - BASE',
+        currentTarf: 'BASE', excluded: [
+            'HCHC',
+            'HCHP',
+            'HHPHC',
+            'EJPHN',
+            'EJPHPM',
+            'BBRHCJB',
+            'BBRHPJB',
+            'BBRHCJW',
+            'BBRHPJW',
+            'BBRHCJR',
+            'BBRHPJR',
+            'DEMAIN',
+            'PEJP',
+        ]},
+    histo_HCHP: {fname: 'Historique - HCHP',
+        currentTarf: 'HC..', excluded: [
+            'BASE',
+            'EJPHN',
+            'EJPHPM',
+            'BBRHCJB',
+            'BBRHPJB',
+            'BBRHCJW',
+            'BBRHPJW',
+            'BBRHCJR',
+            'BBRHPJR',
+            'DEMAIN',
+            'PEJP',
+        ]},
+    histo_EJP: {fname: 'Historique - EJP',
+        currentTarf: 'EJP.', excluded: [
+            'BASE',
+            'HCHC',
+            'HCHP',
+            'BBRHCJB',
+            'BBRHPJB',
+            'BBRHCJW',
+            'BBRHPJW',
+            'BBRHCJR',
+            'BBRHPJR',
+            'DEMAIN',
+        ]},
+    histo_BBR: {fname: 'Historique - BBR',
+        currentTarf: 'BBR', excluded: [
+            'BASE',
+            'HCHC',
+            'HCHP',
+            'EJPHN',
+            'EJPHPM',
+            'PEJP',
+        ]},
+    stand_SEM_WE_MERCR: {fname: 'Standard - Sem WE Mercredi',
+        currentTarf: 'SEM WE MERCREDI', excluded: [
+            'EASF04',
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD02',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
+};
+
 const linkyModeDef = {
     standard: 'standard',
     legacy: 'historique',
@@ -345,9 +423,13 @@ const exposedData = [
 ];
 
 async function getCurrentConfig(device, options, logger=console) {
-    const endpoint = device.getEndpoint(1);
+    let endpoint;
     try {
-        await endpoint.read(clustersDef._0xFF66, ['currentTarif', 'linkyMode']);
+        endpoint = device.getEndpoint(1);
+        await Promise.all([
+            endpoint.read(clustersDef._0xFF66, ['currentTarif']),
+            endpoint.read(clustersDef._0xFF66, ['linkyMode']),
+        ]);
     } catch (error) {
         logger.debug(error);
     }
@@ -394,80 +476,26 @@ async function getCurrentConfig(device, options, logger=console) {
         currentTarf = endpoint.clusters.liXeePrivate.attributes.currentTarif.replace(/\0/g, '');
     } catch (error) {
         currentTarf = '';
+        if (options && options.hasOwnProperty('tarif') && options['tarif'] != 'auto') {
+            currentTarf = Object.entries(tarifsDef).find(( [k, v] ) => (v.fname == options['tarif']))[1].currentTarf;
+        }
     }
 
     switch (currentTarf) {
-    case linkyMode == linkyModeDef.legacy && 'BASE':
-        myExpose = myExpose.filter((a) => ![
-            'HCHC',
-            'HCHP',
-            'HHPHC',
-            'EJPHN',
-            'EJPHPM',
-            'BBRHCJB',
-            'BBRHPJB',
-            'BBRHCJW',
-            'BBRHPJW',
-            'BBRHCJR',
-            'BBRHPJR',
-            'DEMAIN',
-            'PEJP'].includes(a.exposes.name));
+    case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.histo_BASE.excluded.includes(a.exposes.name));
         break;
-    case linkyMode == linkyModeDef.legacy && 'HC..':
-        myExpose = myExpose.filter((a) => ![
-            'BASE',
-            'EJPHN',
-            'EJPHPM',
-            'BBRHCJB',
-            'BBRHPJB',
-            'BBRHCJW',
-            'BBRHPJW',
-            'BBRHCJR',
-            'BBRHPJR',
-            'DEMAIN',
-            'PEJP'].includes(a.exposes.name));
+    case linkyMode == linkyModeDef.legacy && tarifsDef.histo_HCHP.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.histo_HCHP.excluded.includes(a.exposes.name));
         break;
-    case linkyMode == linkyModeDef.legacy && 'EJP.':
-        myExpose = myExpose.filter((a) => ![
-            'BASE',
-            'HCHC',
-            'HCHP',
-            'BBRHCJB',
-            'BBRHPJB',
-            'BBRHCJW',
-            'BBRHPJW',
-            'BBRHCJR',
-            'BBRHPJR',
-            'DEMAIN'].includes(a.exposes.name));
+    case linkyMode == linkyModeDef.legacy && tarifsDef.histo_EJP.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.histo_EJP.excluded.includes(a.exposes.name));
         break;
-    case linkyMode == linkyModeDef.legacy && currentTarf.startsWith('BBR'):
-        myExpose = myExpose.filter((a) => ![
-            'BASE',
-            'HCHC',
-            'HCHP',
-            'EJPHN',
-            'EJPHPM',
-            'PEJP'].includes(a.exposes.name));
+    case linkyMode == linkyModeDef.legacy && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
+        myExpose = myExpose.filter((a) => !tarifsDef.histo_BBR.excluded.includes(a.exposes.name));
         break;
-    case linkyMode == linkyModeDef.standard && 'SEM WE MERCREDI':
-        myExpose = myExpose.filter((a) => ![
-            'EASF04',
-            'EASF05',
-            'EASF06',
-            'EASF07',
-            'EASF08',
-            'EASF09',
-            'EASF10',
-            'EASD02',
-            'EASD03',
-            'EASD04',
-            'DPM1',
-            'DPM2',
-            'DPM3',
-            'FPM1',
-            'FPM2',
-            'FPM3',
-        ].includes(a.exposes.name));
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_MERCR.excluded.includes(a.exposes.name));
         break;
     default:
         break;
@@ -494,6 +522,8 @@ const definition = {
         exposes.enum(`energy_phase`, ea.SET, ['auto', linkyPhaseDef.single, linkyPhaseDef.three])
             .withDescription(`Power with single or three phase. Requires re-configuration (default: auto)`),
         exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (only linky_mode: ${linkyModeDef.standard}, default: auto)`),
+        exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
+            .withDescription(`The current tarif. This option will exclude unnecesary attributes. Default: auto`),
     ],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
@@ -526,8 +556,7 @@ const definition = {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                let currentExposes = await getCurrentConfig(device, options);
-                currentExposes = currentExposes
+                const currentExposes = (await getCurrentConfig(device, options))
                     .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.exposes.property));
                 for (const e of currentExposes) {
                     await endpoint
