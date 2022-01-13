@@ -509,6 +509,13 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-B-003P'],
+        model: 'GL-B-003P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 7W E26/E27 Bulb RGB+CCT (pro)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
+    },
+    {
         zigbeeModel: ['GL-FL-004TZS'],
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
