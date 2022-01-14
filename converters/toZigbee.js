@@ -6592,6 +6592,39 @@ const converters = {
             }
         },
     },
+    ZMAM02: {
+        key: ['control', 'percent_control', 'mode', 'control_back_mode', 'border', 'motor_working_mode', 'add_remoter'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'control':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, utils.getKey(tuya.ZMAM02.AM02Control, value));
+                break;
+            case 'percent_control':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.AM02PercentState, value);
+                break;
+            case 'mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMAM02.AM02Mode, value));
+                break;
+            case 'control_back_mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02ControlBackMode, utils.getKey(tuya.ZMAM02.AM02Direction, value));
+                break;
+            case 'border':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMAM02.AM02Border, value));
+                break;
+            case 'motor_working_mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMAM02.AM02MotorWorkMode, value));
+                break;
+            case 'workstate':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02WorkState, utils.getKey(tuya.ZMAM02.AM02WorkState, value));
+                break;
+            case 'situation_set':
+                await sendDataPointEnum(entity, tuya.dataPoints.AM02WorkState, utils.getKey(tuya.ZMAM02.AM02Situation, value));
+                break;
+            default: // Unknown Key
+                meta.logger.warn(`toZigbee.ZMAM02: Unhandled Key ${key}`);
+            }
+        },             
+    },
     // #endregion
 
     // #region Ignore converters
