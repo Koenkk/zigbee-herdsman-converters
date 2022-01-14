@@ -220,10 +220,12 @@ async function getCurrentConfig(device, options, logger=console) {
     let endpoint;
     try {
         endpoint = device.getEndpoint(1);
-        await Promise.all([
-            endpoint.read(clustersDef._0xFF66, ['currentTarif']),
-            endpoint.read(clustersDef._0xFF66, ['linkyMode']),
-        ]);
+        if (!endpoint.getClusterAttributeValue(clustersDef._0xFF66, 'currentTarif')) {
+            await endpoint.read(clustersDef._0xFF66, ['currentTarif']);
+        }
+        if (!endpoint.getClusterAttributeValue(clustersDef._0xFF66, 'linkyMode')) {
+            await endpoint.read(clustersDef._0xFF66, ['linkyMode']);
+        }
     } catch (error) {
         logger.debug(error);
     }
