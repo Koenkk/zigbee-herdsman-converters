@@ -216,16 +216,10 @@ const exposedData = [
     {cluster: clustersDef._0xFF66, reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PPOINTE1', ea.STATE).withProperty('daysProfileNextCalendar').withDescription('Profile of the next check-in day')},
 ];
 
-async function getCurrentConfig(device, options, logger=console) {
+function getCurrentConfig(device, options, logger=console) {
     let endpoint;
     try {
         endpoint = device.getEndpoint(1);
-        if (!endpoint.getClusterAttributeValue(clustersDef._0xFF66, 'currentTarif')) {
-            await endpoint.read(clustersDef._0xFF66, ['currentTarif']);
-        }
-        if (!endpoint.getClusterAttributeValue(clustersDef._0xFF66, 'linkyMode')) {
-            await endpoint.read(clustersDef._0xFF66, ['linkyMode']);
-        }
     } catch (error) {
         logger.debug(error);
     }
@@ -309,8 +303,8 @@ const definition = {
     description: 'Lixee ZLinky',
     fromZigbee: [fz.lixee_metering, fz.haMeterIdentificationFZ, fz.lixee_haElectricalMeasurement, fz.lixeePrivateFZ],
     toZigbee: [],
-    exposes: async (device, options) => {
-        return (await getCurrentConfig(device, options))
+    exposes: (device, options) => {
+        return getCurrentConfig(device, options)
             .map((e) => e.exposes);
     },
     options: [
@@ -333,7 +327,7 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        for (const e of (await getCurrentConfig(device, options, logger)).filter((e) => e.reportable)) {
+        for (const e of getCurrentConfig(device, options, logger).filter((e) => e.reportable)) {
             let change = 1;
             if (e.hasOwnProperty('reportChange')) {
                 change = e['reportChange'];
@@ -353,7 +347,7 @@ const definition = {
             const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
 
             const interval = setInterval(async () => {
-                const currentExposes = (await getCurrentConfig(device, options))
+                const currentExposes = getCurrentConfig(device, options)
                     .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.exposes.property));
                 for (const e of currentExposes) {
                     await endpoint
