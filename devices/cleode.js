@@ -10,7 +10,6 @@ module.exports = [
         model: 'ZPLUG_Boost',
         vendor: 'CLEODE',
         description: 'ZPlug boost',
-        meta: {multiEndpoint: true},
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
