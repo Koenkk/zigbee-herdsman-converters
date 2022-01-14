@@ -6593,7 +6593,7 @@ const converters = {
         },
     },
     ZMAM02: {
-        key: ['control', 'percent_control', 'mode', 'control_back_mode', 'border', 'motor_working_mode', 'add_remoter'],
+        key: ['control', 'percent_control', 'mode', 'control_back_mode', 'border', 'motor_working_mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'control':
