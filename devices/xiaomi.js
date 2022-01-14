@@ -81,11 +81,11 @@ module.exports = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp().toZigbee.concat([
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).toZigbee.concat([
             tz.xiaomi_light_power_outage_memory]),
-        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp().fromZigbee,
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: xiaomiExtend.light_onoff_brightness_colortemp().exposes.concat([
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).exposes.concat([
             e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
