@@ -6614,12 +6614,6 @@ const converters = {
             case 'motor_working_mode':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMAM02.AM02MotorWorkMode, value));
                 break;
-            case 'workstate':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02WorkState, utils.getKey(tuya.ZMAM02.AM02WorkState, value));
-                break;
-            case 'situation_set':
-                await sendDataPointEnum(entity, tuya.dataPoints.AM02WorkState, utils.getKey(tuya.ZMAM02.AM02Situation, value));
-                break;
             default: // Unknown Key
                 meta.logger.warn(`toZigbee.ZMAM02: Unhandled Key ${key}`);
             }
