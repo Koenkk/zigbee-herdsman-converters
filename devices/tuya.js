@@ -1717,9 +1717,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
         model: 'MIR-HE200-TY',
         vendor: 'TuYa',
         description: 'Human presence sensor',
@@ -1735,6 +1733,35 @@ module.exports = [
             exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene))
                 .withDescription('presets for sensitivity for presence and movement'),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'}],
+        model: 'MIR-HE200-TY',
+        vendor: 'TuYa',
+        description: 'Human presence sensor with fall function',
+        fromZigbee: [fz.tuya_radar_sensor_fall],
+        toZigbee: [tz.tuya_radar_sensor_fall],
+        exposes: [
+            e.illuminance_lux(), e.presence(), e.occupancy(),
+            exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
+            exposes.enum('motion_direction', ea.STATE, Object.values(tuya.tuyaRadar.motionDirection))
+                .withDescription('direction of movement from the point of view of the radar'),
+            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene))
+                .withDescription('presets for sensitivity for presence and movement'),
+           exposes.enum('tumble_switch', ea.STATE_SET, ['ON', 'OFF']).withDescription('Tumble status switch'),
+           exposes.numeric('fall_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
+                .withDescription('fall sensitivity of the radar'),
+           exposes.numeric('tumble_alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+                .withUnit('min').withDescription('tumble alarm time'),
+           exposes.binary('fall_down_status', ea.STATE).withDescription('fall down status'),
+           exposes.text('static_dwell_alarm', ea.STATE).withDescription('static dwell alarm'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+             await tuya.sendDataPointEnum(endpoint, tuya.dataPoints.trsfTumbleSwitch, false);
+        },
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_pcqjmcud'}],
