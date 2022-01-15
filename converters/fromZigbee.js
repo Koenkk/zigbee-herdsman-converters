@@ -1380,8 +1380,8 @@ const converters = {
             const payload = {
                 action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
-                    x: precisionRound(msg.data.colorx / 65535, 3),
-                    y: precisionRound(msg.data.colory / 65535, 3),
+                    x: precisionRound(msg.data.colorx / 65536, 3),
+                    y: precisionRound(msg.data.colory / 65536, 3),
                 },
                 action_transition_time: msg.data.transtime,
             };
@@ -4134,6 +4134,51 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:SaswellThermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
+        },
+    },
+    evanell_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.evanellChildLock:
+                    result.child_lock = value ? 'LOCK' : 'UNLOCK';
+                    break;
+                case tuya.dataPoints.evanellBattery:
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.evanellHeatingSetpoint:
+                    result.current_heating_setpoint = value/10;
+                    break;
+                case tuya.dataPoints.evanellLocalTemp:
+                    result.local_temperature = value/10;
+                    break;
+                case tuya.dataPoints.evanellMode:
+                    switch (value) {
+                    case 0: // manual
+                        result.system_mode = 'auto';
+                        break;
+                    case 2: // away
+                        result.system_mode = 'heat';
+                        break;
+                    case 3: // auto
+                        result.system_mode = 'off';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:evanell_thermostat: ' +
+                          `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:evanell_thermostat: NOT RECOGNIZED ` +
+                      `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
         },
     },
     etop_thermostat: {
@@ -7516,22 +7561,33 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            let result = null;
             switch (dp) {
             case tuya.dataPoints.trsPresenceState:
-                return {presence: {0: false, 1: true}[value]};
+                result = {presence: {0: false, 1: true}[value]};
+                break;
             case tuya.dataPoints.trsMotionState:
-                return {motion: {1: false, 2: true}[value]};
+                result = {occupancy: {1: false, 2: true}[value]};
+                break;
             case tuya.dataPoints.trsMotionSpeed:
-                return {motion_speed: value};
+                result = {motion_speed: value};
+                break;
             case tuya.dataPoints.trsMotionDirection:
-                return {motion_direction: {0: 'standing_still', 1: 'moving_forward', 2: 'moving_backward'}[value]};
+                result = {motion_direction: tuya.tuyaRadar.motionDirection[value]};
+                break;
             case tuya.dataPoints.trsScene:
-                return {radar_scene: {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6}[value]};
+                result = {radar_scene: tuya.tuyaRadar.radarScene[value]};
+                break;
             case tuya.dataPoints.trsSensitivity:
-                return {radar_sensitivity: value};
+                result = {radar_sensitivity: value};
+                break;
             case tuya.dataPoints.trsIlluminanceLux:
-                return {illuminance_lux: value};
+                result = {illuminance_lux: value};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
+            return result;
         },
     },
     tuya_smart_vibration_sensor: {
@@ -7872,6 +7928,34 @@ const converters = {
             return result;
         },
     },
+    command_stop_move_raw: {
+        cluster: 'lightingColorCtrl',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            // commandStopMove without params
+            if (msg.data[2] !== 71) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
+            const movestop = 'stop';
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
+            const payload = {action};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    tuya_multi_action: {
+        cluster: 'genOnOff',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, msg.data[2])) return;
+            let action;
+            if (msg.data[2] == 253) {
+                action = {0: 'single', 1: 'double', 2: 'hold'}[msg.data[3]];
+            } else if (msg.data[2] == 252) {
+                action = {0: 'rotate_right', 1: 'rotate_left'}[msg.data[3]];
+            }
+            return {action};
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
@@ -8028,6 +8112,16 @@ const converters = {
     ignore_tuya_raw: {
         cluster: 'manuSpecificTuya',
         type: ['raw'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => null,
+    },
+    ignore_electrical_measurement: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
     },
     // #endregion

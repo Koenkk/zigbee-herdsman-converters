@@ -5,7 +5,10 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_6qoazbre'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_6qoazbre'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fcooykb4'},
+        ],
         model: 'WZ5_dim',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
@@ -17,7 +20,10 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gz3n0tzf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nthosjmx'},
+        ],
         model: 'WZ5_cct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (CCT mode)',
@@ -29,7 +35,10 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9hghastn'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9hghastn'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9mt3kgn0'},
+        ],
         model: 'WZ5_rgb',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
@@ -41,7 +50,10 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3thxjahu'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_3thxjahu'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_g9jdneiu'},
+        ],
         model: 'WZ5_rgbw',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGBW mode)',
@@ -56,7 +68,10 @@ module.exports = [
         meta: {separateWhite: true},
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_mde0utnv'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_aa9awrng'},
+        ],
         model: 'WZ5_rgbcct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',

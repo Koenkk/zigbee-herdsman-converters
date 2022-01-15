@@ -30,6 +30,33 @@ const hueExtend = {
 
 module.exports = [
     {
+        zigbeeModel: ['929003056901'],
+        model: '929003056901',
+        vendor: 'Philips',
+        description: 'Hue Struana 27W',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWA018'],
+        model: '9290024693',
+        vendor: 'Philips',
+        description: 'Hue white A60 bulb B22 1055lm with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LCX004'],
+        model: '929002994901',
+        vendor: 'Philips',
+        description: 'Hue gradient lightstrip',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929003047501'],
         model: '929003047501',
         vendor: 'Philips',
@@ -911,7 +938,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance E14 (with Bluetooth)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {

@@ -5029,6 +5029,28 @@ const converters = {
             }
         },
     },
+    ts0201_temperature_humidity_alarm: {
+        key: ['alarm_humidity_max', 'alarm_humidity_min', 'alarm_temperature_max', 'alarm_temperature_min'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'alarm_temperature_max':
+            case 'alarm_temperature_min':
+            case 'alarm_humidity_max':
+            case 'alarm_humidity_min': {
+                // await entity.write('manuSpecificTuya_2', {[key]: value});
+                // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
+                // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
+                const keyToAttributeLookup = {'alarm_temperature_max': 0xD00A, 'alarm_temperature_min': 0xD00B,
+                    'alarm_humidity_max': 0xD00D, 'alarm_humidity_min': 0xD00E};
+                const payload = {[keyToAttributeLookup[key]]: {value: value, type: 0x29}};
+                await entity.write('manuSpecificTuya_2', payload);
+                break;
+            }
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
     heiman_ir_remote: {
         key: ['send_key', 'create', 'learn', 'delete', 'get_list'],
         convertSet: async (entity, key, value, meta) => {
@@ -5066,7 +5088,7 @@ const converters = {
         key: ['scene_store'],
         convertSet: async (entity, key, value, meta) => {
             const isGroup = entity.constructor.name === 'Group';
-            const groupid = isGroup ? entity.groupID : 0;
+            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             let sceneid = value;
             let scenename = null;
             if (typeof value === 'object') {
@@ -5166,7 +5188,7 @@ const converters = {
             }
 
             const isGroup = entity.constructor.name === 'Group';
-            const groupid = isGroup ? entity.groupID : 0;
+            const groupid = isGroup ? entity.groupID : value.hasOwnProperty('group_id') ? value.group_id : 0;
             const sceneid = value.ID;
             const scenename = value.name;
             const transtime = value.hasOwnProperty('transition') ? value.transition : 0;
@@ -5409,6 +5431,35 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 0xFFFFFFFF + value + 1;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.saswellTempCalibration, value);
+        },
+    },
+    evanell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const temp = Math.round(value * 10);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.evanellHeatingSetpoint, temp);
+        },
+    },
+    evanell_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 3 /* off */);
+                break;
+            case 'heat':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 2 /* manual */);
+                break;
+            case 'auto':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.evanellMode, 0 /* auto */);
+                break;
+            }
+        },
+    },
+    evanell_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.evanellChildLock, value === 'LOCK');
         },
     },
     silvercrest_smart_led_string: {
@@ -6244,11 +6295,13 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'radar_scene':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsScene, value);
-                return {state: {radar_scene: value}};
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
+                break;
             case 'radar_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
-                return {state: {radar_sensitivity: value}};
+                break;
+            default: // Unknown Key
+                meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
             }
         },
     },
@@ -6418,10 +6471,12 @@ const converters = {
                 } else {
                     throw new Error('Dimmer brightness is out of range 0..255');
                 }
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                await tuya.sendDataPoints(entity, [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
+                ], 'dataRequest', 1);
 
-                return {state: {white_brightness: value}};
+                return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
             } else if (key == 'color_temp') {
                 const [colorTempMin, colorTempMax] = [250, 454];
                 const preset = {
@@ -6443,8 +6498,10 @@ const converters = {
                 }
                 const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
 
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.silvercrestSetColorTemp, data);
+                await tuya.sendDataPoints(entity, [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, data),
+                ], 'dataRequest', 1);
 
                 return {state: {color_temp: value}};
             } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
@@ -6497,12 +6554,11 @@ const converters = {
                     }
 
                     // Scale 0-255 to 0-1000 what the device expects.
-                    if (b) {
+                    if (b != null) {
                         hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
-                    } else if (state.brightness) {
+                    } else if (state.brightness != null) {
                         hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
                     }
-
                     return hsb;
                 };
 
@@ -6519,15 +6575,18 @@ const converters = {
                 data = data.concat(tuya.convertStringToHexArray(hsb.s));
                 data = data.concat(tuya.convertStringToHexArray(hsb.b));
 
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color);
-                await tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.silvercrestSetColor, data);
+                const commands = [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color),
+                    tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
+                ];
 
                 if (separateWhite && meta.state.white_brightness != undefined) {
                     // restore white state
                     const newValue = utils.mapNumberRange(meta.state.white_brightness, 0, 255, 0, 1000);
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white);
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.dimmerLevel, newValue);
+                    commands.push(tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white));
+                    commands.push(tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue));
                 }
+                await tuya.sendDataPoints(entity, commands, 'dataRequest', 1);
 
                 return {state: newState};
             }
