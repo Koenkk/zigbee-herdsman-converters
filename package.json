@@ -36,21 +36,15 @@
   "dependencies": {
     "axios": "^0.24.0",
     "buffer-crc32": "^0.2.13",
-    "core-cli": "^0.0.0",
     "https-proxy-agent": "^5.0.0",
-    "marked": "^4.0.10",
-    "razzle-zhc": "^3.0.1",
     "tar-stream": "^2.2.0",
-    "typedoc": "^0.22.10",
-    "zhc": "^0.0.1",
     "zigbee-herdsman": "^0.13.191"
   },
   "devDependencies": {
-    "braces": "^3.0.2",
     "eslint": "*",
-    "eslint-config-google": "^0.14.0",
+    "eslint-config-google": "*",
     "eslint-plugin-jest": "*",
     "fast-deep-equal": "*",
-    "jest": "^27.4.7"
+    "jest": "*"
   }
 }
