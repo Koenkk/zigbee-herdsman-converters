@@ -132,11 +132,11 @@ module.exports = [
         fromZigbee: [fz.ZMAM02],
         toZigbee: [tz.ZMAM02],
         exposes: [exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02MotorMode)),
-            exposes.enum('control', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Control)),
+            exposes.enum('control', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Control)),
             exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-            exposes.enum('mode', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Mode)),
+            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Mode)),
             exposes.enum('control_back_mode', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Direction)),
-            exposes.enum('border', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Border)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Border)),
         // ---------------------------------------------------------------------------------
         // DP exists, but not used at the moment
         // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
