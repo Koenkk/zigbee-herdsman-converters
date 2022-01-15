@@ -7956,6 +7956,81 @@ const converters = {
             return {action};
         },
     },
+    ZMAM02: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport', 'commandSetDataresponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // let value = tuya.getDataValue(dpValue);
+            // let result = null;
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.AM02Control:
+                    result.control = tuya.ZMAM02.AM02Control[value];
+                    break;
+                case tuya.dataPoints.AM02PercentControl:
+                    result.percent_control = value;
+                    break;
+                case tuya.dataPoints.AM02ControlBackMode:
+                    result.control_back_mode = tuya.ZMAM02.AM02Direction[value];
+                    break;
+                case tuya.dataPoints.AM02MotorWorkingMode:
+                    switch (value) {
+                    case 0: // continuous 1
+                        result.motor_working_mode = 'continuous';
+                        break;
+                    case 1: // intermittently
+                        result.motor_working_mode = 'intermittently';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                        `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                case tuya.dataPoints.AM02Border:
+                    switch (value) {
+                    case 0: // up
+                        result.border = 'up';
+                        break;
+                    case 1: // down
+                        result.border = 'down';
+                        break;
+                    case 2: // down_delete
+                        result.border = 'down_delete';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                        `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                case tuya.dataPoints.AM02PercentState:
+                    result.percent_state = value;
+                    break;
+                case tuya.dataPoints.AM02Mode:
+                    switch (value) {
+                    case 0: // morning
+                        result.mode = 'morning';
+                        break;
+                    case 1: // night
+                        result.mode = 'night';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                          `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                default:
+                    meta.logger.warn(`fromZigbee.Zemismart Shader Konverter (Zm_AM02): NOT RECOGNIZED ` +
+                      `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
