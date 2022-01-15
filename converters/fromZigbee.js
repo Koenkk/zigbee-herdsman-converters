@@ -7977,7 +7977,7 @@ const converters = {
                     break;
                 case tuya.dataPoints.AM02MotorWorkingMode:
                     switch (value) {
-                    case 0: // continuous
+                    case 0: // continuous 1
                         result.motor_working_mode = 'continuous';
                         break;
                     case 1: // intermittently
