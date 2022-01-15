@@ -7594,7 +7594,7 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor_fall');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
             let result = null;
@@ -7636,7 +7636,7 @@ const converters = {
                 result = {fall_sensitivity: value};
                 break;
            default:
-                meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fromZigbee.tuya_radar_sensor_fall: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
         },
