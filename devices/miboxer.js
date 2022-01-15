@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
 const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -21,11 +22,15 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}],
+        fingerprint: [
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}, 
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_dbilpfqk'},
+        ],
         model: 'FUT036Z',
         description: 'Single color LED controller',
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness(),
+        onEvent: tuya.onEventSetTime,
     },
     {
         fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'}],
