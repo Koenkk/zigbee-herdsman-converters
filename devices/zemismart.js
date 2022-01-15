@@ -128,7 +128,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
         model: 'ZM-AM02',
         vendor: 'Zemismart',
-        description: 'ZigBee/RF curtain converter',
+        description: 'Zigbee/RF curtain converter',
         fromZigbee: [fz.ZMAM02],
         toZigbee: [tz.ZMAM02],
         exposes: [exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02MotorMode)),
