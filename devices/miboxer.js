@@ -22,10 +22,8 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'}, 
-            {modelID: 'TS0501B', manufacturerName: '_TZ3210_dbilpfqk'},
-        ],
+        fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_dbilpfqk'}],
         model: 'FUT036Z',
         description: 'Single color LED controller',
         vendor: 'Miboxer',
