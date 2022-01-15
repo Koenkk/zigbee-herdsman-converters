@@ -252,7 +252,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
