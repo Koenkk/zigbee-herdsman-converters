@@ -131,8 +131,7 @@ module.exports = [
         description: 'ZigBee/RF Courtain Converter',
         fromZigbee: [fz.ZMAM02],
         toZigbee: [tz.ZMAM02],
-        exposes: [
-            exposes.enum('motor_working_mode', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02MotorMode)),
+        exposes: [exposes.enum('motor_working_mode', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02MotorMode)),
             exposes.enum('control', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Control)),
             exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
             exposes.enum('mode', ea.STATE_ALL, Object.values(tuya.ZMAM02.AM02Mode)),
