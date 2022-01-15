@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "eslint": "*",
-    "eslint-config-google": "*",
+    "eslint-config-google": "^0.14.0",
     "eslint-plugin-jest": "*",
     "fast-deep-equal": "*",
     "jest": "*"
