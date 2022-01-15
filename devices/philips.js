@@ -1526,11 +1526,11 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: [ 'LCF003', '4080248P7' ],
+        zigbeeModel: ['LCF003', '4080248P7'],
         model: '4080248P7',
         vendor: 'Philips',
         description: 'Hue Signe floor light',
-        meta: { turnsOffAtBrightness1: true },
+        meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
