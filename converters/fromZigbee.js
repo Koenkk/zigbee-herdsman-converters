@@ -7627,7 +7627,7 @@ const converters = {
                 result = {tumble_switch: {false: 'OFF', true: 'ON'}[value]};
                 break;
             case tuya.dataPoints.trsfFallDownStatus:
-                result = {fall_down_status: {0: false,1: true}[value]};
+                result = {fall_down_status: {0: false, 1: true}[value]};
                 break;
             case tuya.dataPoints.trsfStaticDwellAlarm:
                 result = {static_dwell_alarm: value};
