@@ -5177,7 +5177,9 @@ const converters = {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
-                    else if (index === 100) {
+                    else if (index === 5) {
+                        if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
+                    } else if (index === 100) {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
@@ -5198,15 +5200,37 @@ const converters = {
                     } else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
                     else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
                     else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
+                    else if (index === 159) payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[value]; // JT-BZ-01AQ/A
+                    else if (index === 160) payload.gas = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 161) payload.gas_density = value; // JT-BZ-01AQ/A
+                    else if (index === 162) payload.test = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 163) payload.mute = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 164) payload.state = value === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
+                    else if (index === 166) payload.linkage_alarm = value === 1; // JT-BZ-01AQ/A
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
 
             if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
+            if (msg.data.hasOwnProperty('2')) {
+                if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = msg.data['2'];
+            }
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
             if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
-            if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
+            if (msg.data.hasOwnProperty('268')) {
+                if (['RTCGQ13LM'].includes(model.model)) {
+                    payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
+                } else if (['JT-BZ-01AQ/A'].includes(model.model)) {
+                    payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[msg.data['268']];
+                }
+            }
+            if (msg.data.hasOwnProperty('294')) payload.mute = msg.data['294'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('295')) payload.test = msg.data['295'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
                     payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';

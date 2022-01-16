@@ -2419,6 +2419,72 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
         },
     },
+    JTBZ01AQA_gas: {
+        key: ['gas'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x013a], manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_gas_density: {
+        key: ['gas_density'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x013b], manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_gas_sensitivity: {
+        key: ['gas_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'15%lel': 1, '10%lel': 2};
+            await entity.write('aqaraOpple', {0x010c: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {gas_sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x010c], manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_selftest: {
+        key: ['selftest'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_mute_buzzer: {
+        key: ['mute_buzzer'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x013f: {value: 15360, type: 0x23}}, manufacturerOptions.xiaomi);
+            await entity.write('aqaraOpple', {0x0126: {value: 1, type: 0x20}}, manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_mute: {
+        key: ['mute'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0126], manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_linkage_alarm: {
+        key: ['linkage_alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {true: 1, false: 0};
+            await entity.write('aqaraOpple', {0x014b: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {linkage_alarm: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x014b], manufacturerOptions.xiaomi);
+        },
+    },
+    JTBZ01AQA_state: {
+        key: ['state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0139], manufacturerOptions.xiaomi);
+        },
+    },
+    aqara_power_outage_count: {
+        key: ['power_outage_count'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0002], manufacturerOptions.xiaomi);
+        },
+    },
     LLKZMK11LM_interlock: {
         key: ['interlock'],
         convertSet: async (entity, key, value, meta) => {
