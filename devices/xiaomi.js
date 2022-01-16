@@ -1134,6 +1134,41 @@ module.exports = [
         ],
     },
     {
+        zigbeeModel: ['lumi.sensor_gas.acn02'],
+        model: 'JT-BZ-01AQ/A',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart natural gas detector',
+        fromZigbee: [fz.aqara_opple],
+        toZigbee: [tz.JTBZ01AQA_gas, tz.JTBZ01AQA_gas_density, tz.JTBZ01AQA_gas_sensitivity, tz.JTBZ01AQA_selftest,
+            tz.JTBZ01AQA_mute_buzzer, tz.JTBZ01AQA_mute, tz.JTBZ01AQA_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
+        exposes: [e.gas().withAccess(ea.STATE_GET),
+            exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
+            exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
+                'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
+            exposes.enum('selftest', ea.SET, ['Test']).withDescription('Starts the self-test process (checking the indicator ' +
+                'light and buzzer work properly)'),
+            exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
+            exposes.enum('mute_buzzer', ea.SET, ['Mute']).withDescription('Mute the buzzer for 10 minutes (buzzer cannot be ' +
+                'pre-muted, because this function only works when the alarm is triggered)'),
+            exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
+            exposes.switch().withState('linkage_alarm', true, 'After being turned on, one of the devices triggers the ' +
+                'natural gas leakage alarm, and other devices with linkage turned on', ea.ALL, true, false),
+            exposes.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
+                '(measurement of the gas concentration value and triggering of an alarm are only performed in the "work" state)'),
+            exposes.numeric('power_outage_count', ea.STATE_GET).withDescription('Number of power outages (since last pairing)')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0139], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0002], {manufacturerCode: 0x115f});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.lock.v1'],
         model: 'A6121',
         vendor: 'Xiaomi',
