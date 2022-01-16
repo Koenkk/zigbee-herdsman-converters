@@ -2862,6 +2862,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -2870,6 +2871,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -2885,7 +2887,8 @@ const converters = {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
                 break;
             case 'current_heating_setpoint':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);await utils.sleep(500);
+                await utils.sleep(500);
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 break;
             case 'holiday_temperature':
