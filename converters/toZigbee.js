@@ -2887,7 +2887,7 @@ const converters = {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvTempCalibration, value);
                 break;
             case 'current_heating_setpoint':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);await utils.sleep(500);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
                 await utils.sleep(500);
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 break;
