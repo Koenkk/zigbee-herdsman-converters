@@ -10,6 +10,27 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+        model: 'ZP-LZ-FR2U',
+        vendor: 'Moes',
+        description: 'Zigbee 3.0 dual USB wireless socket plug',
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bkfe0bab'}],
         model: 'MS-104Z',
