@@ -2621,7 +2621,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['915005997501'],
-        model: 'Infuse L',
+        model: '915005997501',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse large',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
