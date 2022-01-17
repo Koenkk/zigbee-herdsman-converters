@@ -100,4 +100,15 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['43096'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: '43096', // Vendor model number, look on the device for a model number
+        vendor: 'Enbrighten', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Zigbee Plug-In Smart Dimmer With Dual Controlled Outlets', // Description of the device, copy fro>    extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async(device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+    }
 ];
