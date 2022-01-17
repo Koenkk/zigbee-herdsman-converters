@@ -316,6 +316,7 @@ const definition = {
         exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (only linky_mode: ${linkyModeDef.standard}, default: auto)`),
         exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
             .withDescription(`The current tarif. This option will exclude unnecesary attributes. Default: auto`),
+        exposes.options.precision(`kWh`),
     ],
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);

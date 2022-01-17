@@ -697,6 +697,7 @@ const converters = {
                 /* 0x0307 */ 'siteId',
                 /* 0x0308 */ 'meterSerialNumber',
             ];
+            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const val = msg.data[at];
                 if (val) {
@@ -721,7 +722,7 @@ const converters = {
                     case 'currentTier8SummDelivered':
                     case 'currentTier9SummDelivered':
                     case 'currentTier10SummDelivered':
-                        result[at] = parseInt(utils.precisionRound((parseInt(val[0]) << 32) + parseInt(val[1]) / 1000, 1)); // Wh to kWh
+                        result[at] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
                         break;
                     }
                 }
@@ -4672,6 +4673,7 @@ const converters = {
                 /* 0x0227 */ 'daysProfileCurrentCalendar',
                 /* 0x0228 */ 'daysProfileNextCalendar',
             ];
+            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 let val = msg.data[at];
                 if (val) {
@@ -4690,7 +4692,7 @@ const converters = {
                     case 'activeEnerfyOutD02':
                     case 'activeEnerfyOutD03':
                     case 'activeEnerfyOutD04':
-                        val = parseInt(utils.precisionRound(val / 1000, 1)); // from Wh to kWh
+                        val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
                     }
                     result[at] = val;
