@@ -2619,4 +2619,12 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['915005997501'],
+        model: '915005997501',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse large',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
