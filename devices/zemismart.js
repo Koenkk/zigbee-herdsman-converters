@@ -153,6 +153,6 @@ module.exports = [
         description: `Illuminance sensor`,
         fromZigbee: [fz.tuya_illuminance_sensor],
         toZigbee: [],
-        exposes: [e.illuminance_lux()],
+        exposes: [e.illuminance_lux(), e.brightness_state()],
     },
 ];

@@ -1864,22 +1864,30 @@ const converters = {
         cluster: `manuSpecificTuya`,
         type: [`commandDataReport`, `commandDataResponse`],
         options: [],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, `tuya_illuminance_sensor`);
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            switch (dp) {
-            case tuya.dataPoints.state:
-                break;
-            case tuya.dataPoints.tIlluminanceLux:
-                return {illuminance_lux: value};
-            default:
-                meta.logger.warn(
-                    `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
-                  `DP #${dp} with data ${JSON.stringify(dpValue)}`,
-                );
-            }
-        },
+        convert: (() => {
+            const brightnessState = {
+                0: 'low',
+                1: 'middle',
+                2: 'high',
+                3: 'strong',
+            };
+            return (model, msg, publish, options, meta) => {
+                const dpValue = tuya.firstDpValue(msg, meta, `tuya_illuminance_sensor`);
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case tuya.dataPoints.state:
+                    return {brightness_state: brightnessState[value]};
+                case tuya.dataPoints.tIlluminanceLux:
+                    return {illuminance_lux: value};
+                default:
+                    meta.logger.warn(
+                        `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
+                      `DP #${dp} with data ${JSON.stringify(dpValue)}`,
+                    );
+                }
+            };
+        })(),
     },
     ts0201_temperature_humidity_alarm: {
         cluster: 'manuSpecificTuya_2',
