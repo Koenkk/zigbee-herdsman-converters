@@ -1863,7 +1863,8 @@ const converters = {
     tuya_illuminance_sensor: {
         cluster: `manuSpecificTuya`,
         type: [`commandDataReport`, `commandDataResponse`],
-        options: [],
+        options: [exposes.options.precision('illuminance_lux'),
+            exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (() => {
             const brightnessState = {
                 0: 'low',
@@ -1879,7 +1880,7 @@ const converters = {
                 case tuya.dataPoints.state:
                     return {brightness_state: brightnessState[value]};
                 case tuya.dataPoints.tIlluminanceLux:
-                    return {illuminance_lux: value};
+                    return {illuminance_lux: calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux')};
                 default:
                     meta.logger.warn(
                         `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
