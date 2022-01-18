@@ -105,6 +105,7 @@ module.exports = [
         model: '43096',
         vendor: 'Enbrighten',
         description: 'Zigbee plug-in smart dimmer with dual controlled outlets',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
