@@ -1270,7 +1270,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1287,7 +1287,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1304,7 +1304,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1321,7 +1321,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1356,7 +1356,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
@@ -1372,7 +1372,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             let result;
             if (meta.options.thermostat_unit === 'fahrenheit') {
-                result = utils.normalizeCelsiusVersionOfFahrenheit(value) * 100;
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
             } else {
                 result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
             }
