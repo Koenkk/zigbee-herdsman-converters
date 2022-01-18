@@ -271,7 +271,7 @@ function getCurrentConfig(device, options, logger=console) {
         }
     }
 
-    logger.debug(`zlinky config: ` + linkyMode + `, `+ linkyPhase + `, `+ linkyProduction.toString() +`, `+ currentTarf);
+    // logger.debug(`zlinky config: ` + linkyMode + `, `+ linkyPhase + `, `+ linkyProduction.toString() +`, `+ currentTarf);
 
     switch (currentTarf) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -328,15 +328,25 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        for (const e of getCurrentConfig(device, options, logger).filter((e) => e.reportable)) {
+        const configReportings = [];
+        const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
+
+        const unsuscribe = endpoint.configuredReportings
+            .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.exposes.property));
+        // Unsuscribe reports that doesn't correspond with the current config
+        await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange))));
+
+        for (const e of suscribeNew) {
             let change = 1;
             if (e.hasOwnProperty('reportChange')) {
                 change = e['reportChange'];
             }
-
-            await endpoint
-                .configureReporting(e.cluster, reporting.payload(e.exposes.property, 0, repInterval.MINUTES_15, change));
+            configReportings.push(endpoint
+                .configureReporting(
+                    e.cluster, reporting.payload(e.exposes.property, 0, repInterval.MINUTES_15, change)),
+            );
         }
+        await Promise.allSettled(configReportings);
     },
     ota: ota.lixee,
     onEvent: async (type, data, device, options) => {
