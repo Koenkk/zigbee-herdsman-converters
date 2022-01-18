@@ -146,13 +146,4 @@ module.exports = [
         // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
     },
-    {
-        fingerprint: [{modelID: `TS0601`, manufacturerName: `_TZE200_yi4jtqq1`}],
-        model: `XFY-CGQ-ZIGB`,
-        vendor: `Zemismart`,
-        description: `Illuminance sensor`,
-        fromZigbee: [fz.tuya_illuminance_sensor],
-        toZigbee: [],
-        exposes: [e.illuminance_lux(), e.brightness_state()],
-    },
 ];
