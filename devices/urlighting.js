@@ -9,7 +9,6 @@ module.exports = [
         model: 'TH008L10RGBCCT',
         vendor: 'UR Lighting',
         description: 'UR Lighting 10W RGB+CCT downlight',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true},
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];
