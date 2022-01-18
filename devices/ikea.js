@@ -64,6 +64,12 @@ const tradfriExtend = {
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
+    light_onoff_brightness_color: (options = {}) => ({
+        ...extend.light_onoff_brightness_color(options),
+        exposes: extend.light_onoff_brightness_color(options).exposes.concat(e.power_on_behavior()),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    }),
 };
 
 const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
@@ -369,7 +375,7 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_color(),
         meta: {supportsHueAndSaturation: false},
     },
     {
