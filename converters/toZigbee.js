@@ -5074,6 +5074,32 @@ const converters = {
             }
         },
     },
+    neo_alarm: {
+        key: [
+            'alarm', 'melody', 'volume', 'duration',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'alarm':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.neoAOAlarm, value);
+                break;
+            case 'melody':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.neoAOMelody, parseInt(value, 10));
+                break;
+            case 'volume':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.neoAOVolume,
+                    {'low': 2, 'medium': 1, 'high': 0}[value]);
+                break;
+            case 'duration':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoAODuration, value);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    },
     nous_lcd_temperature_humidity_sensor: {
         key: ['min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert'],
         convertSet: async (entity, key, value, meta) => {
