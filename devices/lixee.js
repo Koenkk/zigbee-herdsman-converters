@@ -334,7 +334,11 @@ const definition = {
         const unsuscribe = endpoint.configuredReportings
             .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.exposes.property));
         // Unsuscribe reports that doesn't correspond with the current config
-        await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange))));
+        (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange)))))
+            .filter((e) => e.status == 'rejected')
+            .forEach((e) => {
+                throw e.reason;
+            });
 
         for (const e of suscribeNew) {
             let change = 1;
@@ -346,7 +350,11 @@ const definition = {
                     e.cluster, reporting.payload(e.exposes.property, 0, repInterval.MINUTES_15, change)),
             );
         }
-        await Promise.allSettled(configReportings);
+        (await Promise.allSettled(configReportings))
+            .filter((e) => e.status == 'rejected')
+            .forEach((e) => {
+                throw e.reason;
+            });
     },
     ota: ota.lixee,
     onEvent: async (type, data, device, options) => {
