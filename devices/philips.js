@@ -66,7 +66,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['915005996401'],
+        zigbeeModel: ['915005996401', '915005996501'],
         model: '915005996401',
         vendor: 'Philips',
         description: 'Hue white ambiance ceiling light Enrave S with Bluetooth',
