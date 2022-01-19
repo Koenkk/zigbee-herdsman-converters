@@ -2628,7 +2628,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['929003045001_01','929003045001_02','929003045001_03'],
+        zigbeeModel: ['929003045001_01', '929003045001_02', '929003045001_03'],
         model: '9290019533',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
