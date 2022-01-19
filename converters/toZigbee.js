@@ -6574,6 +6574,9 @@ const converters = {
             await entity.write('aqaraOpple', {0x0125: {value: lookupState[value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {click_mode: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x125], manufacturerOptions.xiaomi);
+        },
     },
     tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness', 'white_brightness'],
