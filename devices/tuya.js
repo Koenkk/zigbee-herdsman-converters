@@ -1756,7 +1756,8 @@ module.exports = [
                 .withDescription('fall sensitivity of the radar'),
             exposes.numeric('tumble_alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
                 .withUnit('min').withDescription('tumble alarm time'),
-            exposes.binary('fall_down_status', ea.STATE).withDescription('fall down status'),
+            exposes.enum('fall_down_status', ea.STATE, Object.values(tuya.tuyaRadar.fallDown))
+                .withDescription('fall down status'),
             exposes.text('static_dwell_alarm', ea.STATE).withDescription('static dwell alarm'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
