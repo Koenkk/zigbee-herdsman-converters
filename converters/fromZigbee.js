@@ -2498,6 +2498,29 @@ const converters = {
             }
         },
     },
+    neo_alarm: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dp = msg.data.dp;
+            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+
+            switch (dp) {
+            case tuya.dataPoints.neoAOAlarm: // 0x13 [TRUE,FALSE]
+                return {alarm: value};
+            case tuya.dataPoints.neoAODuration: // 0x7 [0,0,0,10] duration alarm in second
+                return {duration: value};
+            case tuya.dataPoints.neoAOBattPerc: // 0x15 [0,0,0,100] battery percentage
+                return {battpercentage: value};
+            case tuya.dataPoints.neoAOMelody: // 0x21 [5] Melody
+                return {melody: value};
+            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-max, 2-low
+                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            default: // Unknown code
+                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     terncy_contact: {
         cluster: 'genBinaryInput',
         type: 'attributeReport',
