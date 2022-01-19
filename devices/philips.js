@@ -2636,4 +2636,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['929003045001_01', '929003045001_02', '929003045001_03'],
+        model: '9290019533',
+        vendor: 'Philips',
+        description: 'Hue white ambiance GU10 with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
