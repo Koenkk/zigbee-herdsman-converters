@@ -5268,6 +5268,7 @@ const converters = {
                     payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[msg.data['268']];
                 }
             }
+            if (msg.data.hasOwnProperty('293')) payload.click_mode = {1: 'fast', 2:'multi'}[msg.data['293']];
             if (msg.data.hasOwnProperty('294')) payload.mute = msg.data['294'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('295')) payload.test = msg.data['295'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A

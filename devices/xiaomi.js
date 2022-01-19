@@ -1864,4 +1864,23 @@ module.exports = [
             await endpoint1.write('aqaraOpple', {0x0125: {value: 0x02, type: 0x20}}, {manufacturerCode: 0x115f});
         },
     },
+    {
+        zigbeeModel: ['lumi.remote.b18ac1'],
+        model: 'WXKG14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara wireless remote switch H1 (single rocker)',
+        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'hold']),
+            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold'),
+            exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
+                .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            await endpoint1.read('aqaraOpple', [0x0125], {manufacturerCode: 0x115f});
+        },
+    },
 ];
