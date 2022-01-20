@@ -1,6 +1,8 @@
 const ota = require('../lib/ota');
 const extend = require('../lib/extend');
+const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -109,6 +111,7 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'SMART+ gardenpole multicolour',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 526]), e.effect()],
         ota: ota.ledvance,
     },
     {
