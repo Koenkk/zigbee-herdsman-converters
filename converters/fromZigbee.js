@@ -2502,8 +2502,9 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dpValue = tuya.firstDpValue(msg, meta, 'neo_alarm');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
             case tuya.dataPoints.neoAOAlarm: // 0x13 [TRUE,FALSE]
