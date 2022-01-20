@@ -36,6 +36,7 @@ module.exports = [
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
         },
+    },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_tvuarksa'}],
         model: 'SM-AZ713',
