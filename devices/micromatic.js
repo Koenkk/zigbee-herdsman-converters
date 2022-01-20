@@ -20,10 +20,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
             await reporting.brightness(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - zigbee2mqtt displays only the first decimals, so change of 10 (0,01)
+            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
         },
         exposes: [e.light_brightness(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
     },
