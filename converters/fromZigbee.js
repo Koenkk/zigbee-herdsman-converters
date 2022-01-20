@@ -699,6 +699,8 @@ const converters = {
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
+            exposes.options.calibration('voltage', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const getFactor = (key) => {
                 const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
@@ -724,7 +726,8 @@ const converters = {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
                     const property = postfixWithEndpointName(entry.name, msg, model);
-                    payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
+                    const value = msg.data[entry.key] * factor;
+                    payload[property] = calibrateAndPrecisionRoundOptions(value, options, entry.name);
                 }
             }
             return payload;
