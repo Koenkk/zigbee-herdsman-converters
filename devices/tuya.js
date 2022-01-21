@@ -1669,7 +1669,6 @@ module.exports = [
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
         description: 'Garage door opener',
-        supports: 'switch, contact',
         fromZigbee: [fz.matsee_garage_door_opener, fz.ignore_basic_report],
         toZigbee: [tz.matsee_garage_door_opener, tz.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
