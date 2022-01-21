@@ -6,7 +6,7 @@ module.exports = [
         zigbeeModel: ['12501'],
         model: '12501',
         vendor: 'Scan Products',
-        description: 'Zigbee Push Dimmer',
+        description: 'Zigbee push dimmer',
         fromZigbee: extend.light_onoff_brightness().fromZigbee,
         toZigbee: extend.light_onoff_brightness().toZigbee,
         extend: extend.light_onoff_brightness({noConfigure: true}),
