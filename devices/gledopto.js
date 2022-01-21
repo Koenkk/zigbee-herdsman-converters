@@ -237,7 +237,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -327,7 +327,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['GL-S-007Z'],
+        zigbeeModel: ['GL-S-007Z', 'GL-S-007Z(lk)'],
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W GU10 Bulb RGB+CCT',
@@ -507,6 +507,13 @@ module.exports = [
         vendor: 'Gledopto',
         description: 'Zigbee 10W Floodlight RGB+CCT',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['GL-B-003P'],
+        model: 'GL-B-003P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 7W E26/E27 Bulb RGB+CCT (pro)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004TZS'],
