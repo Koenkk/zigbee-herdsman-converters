@@ -2333,6 +2333,12 @@ const converters = {
             tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
         },
     },
+    matsee_garage_door_opener: {
+        key: ['trigger'],
+        convertSet: (entity, key, value, meta) => {
+            tuya.sendDataPointBool(entity, tuya.dataPoints.action, true);
+        },
+    },
     SPZ01_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {

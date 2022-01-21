@@ -7761,6 +7761,31 @@ const converters = {
             return result;
         },
     },
+    matsee_garage_door_opener: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.garageDoorTrigger:
+                    result.action = 'trigger';
+                    break;
+                case tuya.dataPoints.garageDoorContact:
+                    result.garage_door_contact = Boolean(!value);
+                    break;
+                case tuya.dataPoints.garageDoorStatus:
+                    // This reports a garage door status (open, closed), but it is very naive and misleading
+                    break;
+                default:
+                    meta.logger.debug(`zigbee-herdsman-converters:matsee_garage_door_opener: NOT RECOGNIZED ` +
+                        `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
     moes_thermostat_tv: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'raw'],
