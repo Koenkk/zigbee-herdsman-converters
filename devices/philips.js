@@ -268,7 +268,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LLC012', 'LLC011'],
+        zigbeeModel: ['LLC012', 'LLC011', 'LLC013'],
         model: '7299760PH',
         vendor: 'Philips',
         description: 'Hue Bloom',
