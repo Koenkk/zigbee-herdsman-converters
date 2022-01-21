@@ -1448,6 +1448,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
             device.powerSource = 'Mains (single phase)';
+            device.type = 'Router';
             device.save();
         },
     },
