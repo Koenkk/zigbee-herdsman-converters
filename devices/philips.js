@@ -2645,4 +2645,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['929003055001'],
+        model: '929003055001',
+        vendor: 'Philips',
+        description: 'Hue white philips Being ceiling lamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
 ];
