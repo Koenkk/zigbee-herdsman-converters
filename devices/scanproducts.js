@@ -1,5 +1,5 @@
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const extend = require('zigbee-herdsman-converters/lib/extend');
+const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 
 module.exports = [
     {
