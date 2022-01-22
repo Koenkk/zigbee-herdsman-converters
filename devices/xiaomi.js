@@ -1655,6 +1655,7 @@ module.exports = [
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('genAnalogInput', payload);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b2nc01'],
