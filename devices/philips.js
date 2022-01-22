@@ -1344,7 +1344,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['929003099001'],
+        zigbeeModel: ['929003099001', '929003099201'],
         model: '929003099001',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
