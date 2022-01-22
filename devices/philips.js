@@ -2653,7 +2653,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3417511P9'],
+        zigbeeModel: ['3417611P6', '3417511P9'],
         model: '3417511P9',
         vendor: 'Philips',
         description: 'Hue White Ambience Bathroom Recessed Downlight Adore with Bluetooth',
