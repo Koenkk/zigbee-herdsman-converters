@@ -2656,9 +2656,9 @@ module.exports = [
         zigbeeModel: ['3417511P9'],
         model: '3417511P9',
         vendor: 'Philips',
-        description: 'Hue Adore Recessed White Ambience Spotlight with Bluetooth',
+        description: 'Hue White Ambience Bathroom Recessed Downlight Adore with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
 ];
