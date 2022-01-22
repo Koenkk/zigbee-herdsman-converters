@@ -2,14 +2,18 @@ const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
-const e = exposes.presets;
-const {calibrateAndPrecisionRoundOptions} = require('../lib/utils');
+const ota = require('../lib/ota');
+const e = exposes;
+const ep = exposes.presets;
+const eo = exposes.options;
+const ea = exposes.access;
+const {calibrateAndPrecisionRoundOptions,getOptions} = require('../lib/utils');
 
 const fzLocal = {
     temperature: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        options: [eo.precision('temperature'), eo.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
             const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
             return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
@@ -51,6 +55,73 @@ const fzLocal = {
             }
         },
     },
+    occupancy_timeout: {
+        cluster: 'msOccupancySensing',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy_timeout: msg.data.pirOToUDelay};
+        },
+    },
+    noise_timeout: {
+        cluster: 'sprutNoise',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            return {noise_timeout: msg.data.NoiseAfterDetectDelay};
+        },
+    },
+};
+
+const tzLocal = {
+    sprut_ir_remote: {
+        key: ['play_store', 'learn_start', 'learn_stop'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = {
+                frameType: 0, manufacturerCode: 26214, disableDefaultResponse: true,
+                disableResponse: true, reservedBits: 0, direction: 0, writeUndiv: false,
+                transactionSequenceNumber: null,
+            };
+            switch (key) {
+            case 'play_store':
+                await entity.command('sprutIrBlaster', 'playStore',
+                    {param: value['rom']}, options);
+                break;
+                case 'learn_start':
+                await entity.command('sprutIrBlaster', 'learnStart',
+                    {value: value['rom']}, options);
+                break;
+                case 'learn_stop':
+                await entity.command('sprutIrBlaster', 'learnStop',
+                    {value: value['rom']}, options);
+                break;
+            }
+        },
+    },
+    occupancy_timeout: {
+        key: ['occupancy_timeout'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('msOccupancySensing', {pirOToUDelay: value}, getOptions(meta.mapped, entity));
+            return {state: {occupancy_timeout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+    },
+    noise_timeout: {
+        key: ['noise_timeout'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('sprutNoise', {NoiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
+            return {state: {noise_timeout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('sprutNoise', ['NoiseAfterDetectDelay']);
+        },
+    },
 };
 
 module.exports = [
@@ -60,15 +131,17 @@ module.exports = [
         vendor: 'Sprut.device',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy, fz.co2, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.temperature(), e.illuminance(), e.illuminance_lux(), e.humidity(),
-            e.occupancy(), e.occupancy_level(), e.co2(), e.voc(), e.noise(), e.noise_detected(), e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'), e.switch().withEndpoint('default')],
+            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout],
+        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout],
+        exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(),
+            ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(), ep.switch().withEndpoint('l1'),
+            ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
+            e.numeric('noise_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which noise is cleared after detecting it (default: 30)'),
+            e.numeric('occupancy_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 30)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
-                'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise'];
+                'msOccupancySensing', 'msCO2', 'sprutVoc', 'sprutNoise', 'sprutIrBlaster', 'genOta'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds);
 
             // led_red
@@ -79,6 +152,10 @@ module.exports = [
 
             // buzzer
             await device.getEndpoint(4).read('genOnOff', ['onOff']);
+
+            // Read settings at start
+            await endpoint1.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint1.read('sprutNoise', ['NoiseAfterDetectDelay']);
 
             // Read data at start
             await endpoint1.read('msTemperatureMeasurement', ['measuredValue']);
@@ -92,5 +169,6 @@ module.exports = [
             return {'system': 1, 'l1': 2, 'l2': 3, 'default': 4};
         },
         meta: {multiEndpoint: true},
+        ota: ota.zigbeeOTA,
     },
 ];
