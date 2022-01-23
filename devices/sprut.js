@@ -114,8 +114,8 @@ module.exports = [
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fz.occupancy_timeout, fzLocal.noise_timeout],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tz.occupancy_timeout, tzLocal.noise_timeout],
         exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(),
-            ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(), ep.switch().withEndpoint('l1'),
-            ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
+            ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(ea.STATE_GET),
+            ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
             e.numeric('noise_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 30)'),
             e.numeric('occupancy_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s')
