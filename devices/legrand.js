@@ -111,7 +111,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {handleDuplicateTransaction: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
@@ -127,7 +127,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {handleDuplicateTransaction: true, multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
