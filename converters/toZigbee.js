@@ -2336,7 +2336,7 @@ const converters = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointBool(entity, tuya.dataPoints.action, true);
+            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, true);
         },
     },
     SPZ01_power_outage_memory: {
@@ -5096,7 +5096,7 @@ const converters = {
                 await tuya.sendDataPointEnum(
                     entity,
                     tuya.dataPoints.neoAOVolume,
-                    {'low': 2, 'medium': 1, 'high': 0}[value]);
+                    {'low': 0, 'medium': 1, 'high': 2}[value]);
                 break;
             case 'duration':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.neoAODuration, value);

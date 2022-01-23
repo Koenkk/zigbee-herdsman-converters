@@ -46,7 +46,7 @@ module.exports = [
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor('hs'),
+                ea.STATE_SET).withColor(['hs']),
         ],
     },
     {
@@ -61,7 +61,7 @@ module.exports = [
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor('hs'),
+                ea.STATE_SET).withColor(['hs']),
             exposes.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
                 'White brightness of this light'),
         ],
@@ -79,7 +79,7 @@ module.exports = [
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
-                ea.STATE_SET).withColor('hs').withColorTemp([250, 454]).setAccess('color_temp',
+                ea.STATE_SET).withColor(['hs']).withColorTemp([250, 454]).setAccess('color_temp',
                 ea.STATE_SET),
             exposes.numeric('white_brightness', ea.STATE_SET).withValueMin(0).withValueMax(254).withDescription(
                 'White brightness of this light'),

@@ -510,6 +510,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pz9zmxjj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -1289,7 +1290,7 @@ module.exports = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
         zigbeeModel: ['TS0011'],
         model: 'TS0011',
         vendor: 'TuYa',
@@ -1310,7 +1311,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_qmi1cfuq'},
-            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}],
+            {modelID: 'TS0011', manufacturerName: '_TZ3000_txpirhfq'}, {modelID: 'TS0011', manufacturerName: '_TZ3000_ji4araar'}],
         model: 'TS0011_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
@@ -1678,7 +1679,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.action(), exposes.binary('garage_door_contact', ea.STATE, true, false)],
+            e.action(['trigger']), exposes.binary('garage_door_contact', ea.STATE, true, false)],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],

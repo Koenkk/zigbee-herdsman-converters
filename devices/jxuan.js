@@ -38,7 +38,6 @@ module.exports = [
         model: 'SPZ01',
         vendor: 'J.XUAN',
         description: 'plug',
-        supports: 'plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         exposes: [e.switch(), e.power(), e.power_outage_memory().withAccess(ea.STATE_SET)],
         toZigbee: [tz.on_off, tz.SPZ01_power_outage_memory],

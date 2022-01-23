@@ -1042,7 +1042,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1052,7 +1052,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`panic`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1062,7 +1062,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(constants.armMode[msg.data['armmode']], msg, model),
                 action_code: msg.data.code,
@@ -1076,6 +1076,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = converters.command_arm.convert(model, msg, publish, options, meta);
             if (!payload) return;
             payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
@@ -1086,7 +1087,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('stop', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1096,7 +1097,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('open', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1106,7 +1107,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('close', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1116,7 +1117,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('on', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1126,7 +1127,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('off', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1136,7 +1137,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`off`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1146,7 +1147,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('toggle', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1157,7 +1158,7 @@ const converters = {
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`brightness_move_to_level`, msg, model),
                 action_level: msg.data.level,
@@ -1179,7 +1180,7 @@ const converters = {
         type: ['commandMove', 'commandMoveWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
@@ -1215,7 +1216,7 @@ const converters = {
         type: ['commandStep', 'commandStepWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
                 action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model),
@@ -1242,7 +1243,7 @@ const converters = {
         type: ['commandStop', 'commandStopWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             if (options.simulated_brightness) {
                 clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
@@ -1257,7 +1258,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
@@ -1269,7 +1270,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
@@ -1288,7 +1289,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandEnhancedMoveToHueAndSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
@@ -1305,7 +1306,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
@@ -1320,7 +1321,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepSaturation'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
@@ -1335,7 +1336,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandColorLoopSet',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const updateFlags = msg.data.updateflags;
             const actionLookup = {
                 0x00: 'deactivate',
@@ -1365,7 +1366,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
@@ -1379,7 +1380,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
@@ -1396,7 +1397,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
@@ -1408,7 +1409,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName('move_to_saturation', msg, model),
                 action_saturation: msg.data.saturation,
@@ -1422,7 +1423,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToHue',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`move_to_hue`, msg, model),
                 action_hue: msg.data.hue,
@@ -1437,7 +1438,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1447,7 +1448,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const property = postfixWithEndpointName('state', msg, model);
             return {[property]: 'ON'};
         },
@@ -1456,7 +1457,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const property = postfixWithEndpointName('state', msg, model);
             return {[property]: 'OFF'};
         },
@@ -2181,7 +2182,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const lookup = {1: 'pressed'};
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -4515,7 +4516,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             if (msg.data.value === 2) {
                 // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
                 return;
@@ -4529,7 +4530,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.value === 3329 ? 'left' : 'right';
             globalStore.putValue(msg.endpoint, 'direction', direction);
             return {action: `arrow_${direction}_hold`};
@@ -4540,7 +4541,7 @@ const converters = {
         type: 'commandTradfriArrowRelease',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
                 globalStore.clearValue(msg.endpoint, 'direction');
@@ -5379,7 +5380,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             let actionLookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
             if (model.model === 'WXKG12LM') {
                 actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
@@ -5525,7 +5526,7 @@ const converters = {
                 `increase it with this option (value is in ms).`),
         ],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const state = msg.data['onOff'];
 
             // 0 = click down, 1 = click up, else = multiple clicks
@@ -5831,7 +5832,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
             const button = msg.endpoint.ID;
             const value = msg.data.presentValue;
@@ -5854,7 +5855,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -5862,7 +5863,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -5870,7 +5871,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -5880,7 +5881,7 @@ const converters = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             if (globalStore.hasValue(msg.endpoint, 'button')) {
                 const value = globalStore.getValue(msg.endpoint, 'button');
                 const duration = Date.now() - value.start;
@@ -5894,7 +5895,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.movemode === 0 ? '4' : '3';
             globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
             return {action: `button_${button}_hold`};
@@ -5904,7 +5905,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             let action;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -5921,7 +5922,7 @@ const converters = {
         type: 'commandMoveColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const stop = msg.data.movemode === 0;
             let result = null;
             if (stop) {
@@ -7327,7 +7328,7 @@ const converters = {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
 
             const data = msg.data['deviceInfo'].split(',');
             if (data[0] === 'UI' && data[1]) {
@@ -8105,7 +8106,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // commandStopMove without params
             if (msg.data[2] !== 71) return;
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
             const movestop = 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
             const payload = {action};

@@ -322,6 +322,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003055901'],
+        model: '929003055901',
+        vendor: 'Philips',
+        description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LLC020'],
         model: '7146060PH',
         vendor: 'Philips',
@@ -1021,7 +1029,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3417931P6'],
+        zigbeeModel: ['3417931P6', '929003056201'],
         model: '3417931P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (2 spots)',
@@ -1210,7 +1218,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3261031P6', '929003055001'],
+        zigbeeModel: ['3261031P6', '929003055001', '929003055101'],
         model: '3261031P6',
         vendor: 'Philips',
         description: 'Hue Being white',
@@ -1344,7 +1352,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['929003099001'],
+        zigbeeModel: ['929003099001', '929003099201'],
         model: '929003099001',
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle square panel light',
@@ -2648,6 +2656,15 @@ module.exports = [
         model: '9290019533',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['3417611P6', '3417511P9'],
+        model: '3417511P9',
+        vendor: 'Philips',
+        description: 'Hue white ambiance bathroom recessed downlight Adore with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,

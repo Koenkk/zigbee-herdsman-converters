@@ -16,6 +16,13 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['PROLIGHT E27 WARM WHITE'],
+        model: '5412748727364',
+        vendor: 'Prolight',
+        description: 'E27 bulb dimmable',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['PROLIGHT GU10 WHITE AND COLOUR'],
         model: '5412748727401',
         vendor: 'Prolight',
