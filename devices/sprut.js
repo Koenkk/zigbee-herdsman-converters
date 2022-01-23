@@ -118,7 +118,7 @@ module.exports = [
             ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
             e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 30)'),
-            e.numeric('occupancy_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s')
+            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
                 .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 30)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
