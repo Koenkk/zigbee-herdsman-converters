@@ -1210,7 +1210,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3261031P6', '929003055001'],
+        zigbeeModel: ['3261031P6', '929003055001', '929003055101'],
         model: '3261031P6',
         vendor: 'Philips',
         description: 'Hue Being white',
