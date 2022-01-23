@@ -5096,7 +5096,7 @@ const converters = {
                 await tuya.sendDataPointEnum(
                     entity,
                     tuya.dataPoints.neoAOVolume,
-                    {'low': 2, 'medium': 1, 'high': 0}[value]);
+                    {'low': 0, 'medium': 1, 'high': 2}[value]);
                 break;
             case 'duration':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.neoAODuration, value);
