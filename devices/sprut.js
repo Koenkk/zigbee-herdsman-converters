@@ -7,7 +7,7 @@ const e = exposes;
 const ep = exposes.presets;
 const eo = exposes.options;
 const ea = exposes.access;
-const {calibrateAndPrecisionRoundOptions,getOptions} = require('../lib/utils');
+const {calibrateAndPrecisionRoundOptions, getOptions} = require('../lib/utils');
 
 const fzLocal = {
     temperature: {
@@ -55,13 +55,6 @@ const fzLocal = {
             }
         },
     },
-    occupancy_timeout: {
-        cluster: 'msOccupancySensing',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            return {occupancy_timeout: msg.data.pirOToUDelay};
-        },
-    },
     noise_timeout: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -85,40 +78,27 @@ const tzLocal = {
                 await entity.command('sprutIrBlaster', 'playStore',
                     {param: value['rom']}, options);
                 break;
-                case 'learn_start':
+            case 'learn_start':
                 await entity.command('sprutIrBlaster', 'learnStart',
                     {value: value['rom']}, options);
                 break;
-                case 'learn_stop':
+            case 'learn_stop':
                 await entity.command('sprutIrBlaster', 'learnStop',
                     {value: value['rom']}, options);
                 break;
             }
         },
     },
-    occupancy_timeout: {
-        key: ['occupancy_timeout'],
-        convertSet: async (entity, key, value, meta) => {
-            value *= 1;
-            endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('msOccupancySensing', {pirOToUDelay: value}, getOptions(meta.mapped, entity));
-            return {state: {occupancy_timeout: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
-        },
-    },
     noise_timeout: {
         key: ['noise_timeout'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
-            endpoint = meta.device.getEndpoint(1);
+            const endpoint = meta.device.getEndpoint(1);
             await endpoint.write('sprutNoise', {noiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
             return {state: {noise_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
-            endpoint = meta.device.getEndpoint(1);
+            const endpoint = meta.device.getEndpoint(1);
             await endpoint.read('sprutNoise', ['noiseAfterDetectDelay']);
         },
     },
@@ -131,13 +111,15 @@ module.exports = [
         vendor: 'Sprut.device',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy, fz.co2, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout],
-        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout],
+            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fz.occupancy_timeout, fzLocal.noise_timeout],
+        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tz.occupancy_timeout, tzLocal.noise_timeout],
         exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(),
             ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(), ep.switch().withEndpoint('l1'),
             ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
-            e.numeric('noise_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which noise is cleared after detecting it (default: 30)'),
-            e.numeric('occupancy_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 30)')],
+            e.numeric('noise_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s')
+                .withDescription('Time in seconds after which noise is cleared after detecting it (default: 30)'),
+            e.numeric('occupancy_timeout', ea.SET).withValueMin(0).withValueMax(2000).withUnit('s')
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 30)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
