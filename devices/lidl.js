@@ -394,7 +394,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
-        model: 'HG06335',
+        model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
