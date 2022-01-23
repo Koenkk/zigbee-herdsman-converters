@@ -357,7 +357,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_eON29wz'],
         model: 'EFEKTA_eON29wz',
         vendor: 'Custom devices (DiY)',
-        description: '[Mini weather station, e-ink 2.9, barometer, forecast, charts, temperature, humidity, illuminance](http://efektalab.com/eON290wz)',
+        description: '[Mini weather station, barometer, forecast, charts, temperature, humidity, light](http://efektalab.com/eON290wz)',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.battery],
         toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
