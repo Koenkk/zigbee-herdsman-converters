@@ -50,8 +50,8 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('noise_detected')) {
-                return {noise_detected: msg.data['noise_detected'] === 1};
+            if (msg.data.hasOwnProperty('noiseDetected')) {
+                return {noise_detected: msg.data['noiseDetected'] === 1};
             }
         },
     },
@@ -66,7 +66,7 @@ const fzLocal = {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            return {noise_timeout: msg.data.NoiseAfterDetectDelay};
+            return {noise_timeout: msg.data.noiseAfterDetectDelay};
         },
     },
 };
@@ -114,12 +114,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
             endpoint = meta.device.getEndpoint(1);
-            await endpoint.write('sprutNoise', {NoiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
+            await endpoint.write('sprutNoise', {noiseAfterDetectDelay: value}, getOptions(meta.mapped, entity));
             return {state: {noise_timeout: value}};
         },
         convertGet: async (entity, key, meta) => {
             endpoint = meta.device.getEndpoint(1);
-            await endpoint.read('sprutNoise', ['NoiseAfterDetectDelay']);
+            await endpoint.read('sprutNoise', ['noiseAfterDetectDelay']);
         },
     },
 };
@@ -155,7 +155,7 @@ module.exports = [
 
             // Read settings at start
             await endpoint1.read('msOccupancySensing', ['pirOToUDelay']);
-            await endpoint1.read('sprutNoise', ['NoiseAfterDetectDelay']);
+            await endpoint1.read('sprutNoise', ['noiseAfterDetectDelay']);
 
             // Read data at start
             await endpoint1.read('msTemperatureMeasurement', ['measuredValue']);
@@ -163,7 +163,7 @@ module.exports = [
             await endpoint1.read('msRelativeHumidity', ['measuredValue']);
             await endpoint1.read('msOccupancySensing', ['occupancy']);
             await endpoint1.read('sprutNoise', ['noise']);
-            await endpoint1.read('sprutNoise', ['noise_detected']);
+            await endpoint1.read('sprutNoise', ['noiseDetected']);
         },
         endpoint: (device) => {
             return {'system': 1, 'l1': 2, 'l2': 3, 'default': 4};
