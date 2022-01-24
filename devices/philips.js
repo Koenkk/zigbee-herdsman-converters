@@ -564,6 +564,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWO002'],
+        model: '9290022415',
+        vendor: 'Philips',
+        description: 'Hue White G25 E26 Edison Filament Globe Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWA004'],
         model: '8718699688820',
         vendor: 'Philips',
