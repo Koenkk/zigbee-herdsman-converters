@@ -885,6 +885,7 @@ module.exports = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.motion.agl04'],
@@ -903,6 +904,7 @@ module.exports = [
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sensor_magnet'],
