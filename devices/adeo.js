@@ -7,6 +7,18 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['LDSENK01F'],
+        model: 'LDSENK01F',
+        vendor: 'ADEO',
+        description: '10A EU smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['LXEK-5'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',

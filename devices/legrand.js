@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -19,7 +20,7 @@ module.exports = [
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'FC80CC',
-        description: 'Legrand (or Bticino) DIN contactor module (note: Legrand 412171 may be similar to Bticino FC80CC)',
+        description: 'Legrand (or Bticino) DIN contactor module',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
@@ -63,6 +64,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.battery,
             fz.legrand_binary_input_moving],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -109,7 +111,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {handleDuplicateTransaction: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
@@ -125,7 +127,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {handleDuplicateTransaction: true, multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
@@ -182,6 +184,7 @@ module.exports = [
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067775/741811',
         vendor: 'Legrand',
+        ota: ota.zigbeeOTA,
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
@@ -200,6 +203,7 @@ module.exports = [
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
         configure: async (device, coordinatorEndpoint, logger) => {

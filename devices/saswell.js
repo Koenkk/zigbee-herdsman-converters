@@ -18,6 +18,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_azqp6ssj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuhszj9s'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9gvruqf5'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zr9c0day'},
         ],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
@@ -40,10 +41,12 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
-            .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
-            .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
-            .withAwayMode()],
+        exposes: [e.battery_low(), e.window_detection(), e.child_lock(),
+            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
+            exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withAwayMode()],
     },
 ];

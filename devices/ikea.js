@@ -64,6 +64,12 @@ const tradfriExtend = {
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
+    light_onoff_brightness_color: (options = {}) => ({
+        ...extend.light_onoff_brightness_color(options),
+        exposes: extend.light_onoff_brightness_color(options).exposes.concat(e.power_on_behavior()),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    }),
 };
 
 const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
@@ -252,7 +258,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
@@ -369,7 +375,7 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_color(),
         meta: {supportsHueAndSaturation: false},
     },
     {
@@ -443,27 +449,21 @@ module.exports = [
         model: 'ICPSHC24-10EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (10 watt)',
-        extend: extend.light_onoff_brightness(),
-        ota: ota.tradfri,
-        onEvent: bulbOnEvent,
+        extend: tradfriExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
         model: 'ICPSHC24-30EU-IL-1',
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (30 watt)',
-        extend: extend.light_onoff_brightness(),
-        ota: ota.tradfri,
-        onEvent: bulbOnEvent,
+        extend: tradfriExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['SILVERGLANS IP44 LED driver'],
         model: 'ICPSHC24-30-IL44-1',
         vendor: 'IKEA',
         description: 'SILVERGLANS IP44 LED driver for wireless control (30 watt)',
-        extend: extend.light_onoff_brightness(),
-        ota: ota.tradfri,
-        onEvent: bulbOnEvent,
+        extend: tradfriExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
@@ -546,7 +546,12 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {battery: {dontDividePercentage: true}},
-        configure: configureRemote,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Binding genOnOff is not required to make device send events.
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['TRADFRI on/off switch'],
@@ -596,7 +601,12 @@ module.exports = [
         toZigbee: [],
         ota: ota.tradfri,
         meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
-        configure: configureRemote,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Binding genOnOff is not required to make device send events.
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['SYMFONISK Sound Controller'],

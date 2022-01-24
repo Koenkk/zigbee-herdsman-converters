@@ -27,7 +27,6 @@ module.exports = [
         model: 'CB432',
         vendor: 'OWON',
         description: '32A/63A power circuit breaker',
-        supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
@@ -96,6 +95,24 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['THS317-ET'],
+        model: 'THS317-ET',
+        vendor: 'OWON',
+        description: 'Temperature sensor',
+        fromZigbee: [fz.temperature, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             device.powerSource = 'Battery';

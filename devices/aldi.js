@@ -13,14 +13,6 @@ module.exports = [
         meta: {applyRedFix: true},
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_kohbva1f'}],
-        model: 'L122CB63H11A9.0W',
-        vendor: 'Aldi',
-        description: 'LIGHTWAY smart home LED-lamp - bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
-        meta: {applyRedFix: true},
-    },
-    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_iivsrikg'}],
         model: 'L122AA63H11A6.5W',
         vendor: 'Aldi',
