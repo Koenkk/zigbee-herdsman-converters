@@ -5263,13 +5263,13 @@ const converters = {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
-                            payload.state_center === value === 1 ? 'ON' : 'OFF';
+                            payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
-                            payload.state_right === value === 1 ? 'ON' : 'OFF';
+                            payload.state_right = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
