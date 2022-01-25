@@ -33,6 +33,23 @@ module.exports = [
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_j1xl73iw'}],
+        model: 'TS130F',
+        vendor: 'TuYa',
+        description: 'Dual curtain/blind module',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
+            e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF').withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
+            e.cover_position().withEndpoint('right'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF').withEndpoint('right'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('right'),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'}],
         model: 'X711A',
         vendor: 'Lonsonho',
