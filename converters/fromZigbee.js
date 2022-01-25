@@ -5266,7 +5266,8 @@ const converters = {
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                         }
-                    } else if (index === 149) {
+                    } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
+                    else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
