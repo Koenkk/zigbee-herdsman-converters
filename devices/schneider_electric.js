@@ -187,6 +187,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CH2AX/SWITCH/1'],
+        model: '41E2PBSWMZ/356PB2MBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series Module Switch 2A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        }
+    },
+    {
         zigbeeModel: ['SMARTPLUG/1'],
         model: 'CCT711119',
         vendor: 'Schneider Electric',
