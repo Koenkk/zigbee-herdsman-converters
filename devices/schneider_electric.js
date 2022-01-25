@@ -190,7 +190,7 @@ module.exports = [
         zigbeeModel: ['CH2AX/SWITCH/1'],
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
-        description: 'Wiser 40/300-Series Module Switch 2A',
+        description: 'Wiser 40/300-Series module switch 2A',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
