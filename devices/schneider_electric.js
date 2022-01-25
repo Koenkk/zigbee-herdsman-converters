@@ -196,7 +196,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-        }
+        },
     },
     {
         zigbeeModel: ['SMARTPLUG/1'],
