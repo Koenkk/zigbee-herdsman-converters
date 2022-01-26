@@ -90,6 +90,15 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd()],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dwcarsat'}],
+        model: 'TS0601_smart_air_house_keeper',
+        vendor: 'TuYa',
+        description: 'Smart Air House Keeper',
+        fromZigbee: [fz.tuya_air_quality],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd(), e.pm25()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',
