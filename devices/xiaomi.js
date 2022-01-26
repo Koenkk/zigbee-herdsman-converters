@@ -736,9 +736,6 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -767,9 +764,6 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
@@ -804,10 +798,8 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         onEvent: preventReset,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
@@ -1691,7 +1683,7 @@ module.exports = [
         zigbeeModel: ['lumi.plug.macn01'],
         model: 'ZNCZ15LM',
         vendor: 'Xiaomi',
-        description: 'Aqara T1 power plug ZigBee',
+        description: 'Aqara smart plug T1 (china standard)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
             tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
@@ -1700,9 +1692,6 @@ module.exports = [
             e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         ota: ota.zigbeeOTA,
     },
     {
@@ -1755,7 +1744,7 @@ module.exports = [
         zigbeeModel: ['lumi.plug.sacn03'],
         model: 'QBCZ15LM',
         vendor: 'Xiaomi',
-        description: 'Aqara smart wall outlet H1 usb',
+        description: 'Aqara smart wall outlet H1 (USB)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
             tz.xiaomi_button_switch_mode, tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
@@ -1771,9 +1760,6 @@ module.exports = [
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         ota: ota.zigbeeOTA,
     },
     {
@@ -1805,9 +1791,6 @@ module.exports = [
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         ota: ota.zigbeeOTA,
     },
     {
@@ -1873,7 +1856,7 @@ module.exports = [
         model: 'WXKG14LM',
         vendor: 'Xiaomi',
         description: 'Aqara wireless remote switch H1 (single rocker)',
-        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
         toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'hold']),
             exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])

@@ -5250,9 +5250,11 @@ const converters = {
                     else if (index === 5) {
                         if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
+                            payload.click_mode = {1: 'fast', 2: 'multi'}[value];
                         } else {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
@@ -5260,8 +5262,14 @@ const converters = {
                         if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
+                            payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        }
+                    } else if (index ===102 ) {
+                        if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
+                            payload.state_right = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
                     else if (index === 149) {
