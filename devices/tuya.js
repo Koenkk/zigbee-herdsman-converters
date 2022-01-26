@@ -326,8 +326,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_o1jzcxou'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
         description: 'Socket module',
@@ -336,12 +335,15 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
-            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'}],
+            {modelID: 'TS011F', manufacturerName: '_TYZB01_mtunwanm'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_o1jzcxou'}],
         model: 'TS011F_wall_outlet',
         vendor: 'TuYa',
         description: 'In-wall outlet',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, {vendor: 'ClickSmart+', model: 'CMA30035'}],
+        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, 
+            {vendor: 'ClickSmart+', model: 'CMA30035'}, 
+            {vendor: 'BSEED', model: 'Zigbee Socket'}],
     },
     {
         fingerprint: [{modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'}],
