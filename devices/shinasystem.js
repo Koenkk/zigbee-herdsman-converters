@@ -325,7 +325,7 @@ module.exports = [
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
                 'acCurrentDivisor']);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
-            //await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
+            // await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
             await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
             await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
             await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
