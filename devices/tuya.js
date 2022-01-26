@@ -1590,6 +1590,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
         extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
             e.switch().withEndpoint('l4')],
         whiteLabel: [{vendor: 'LEELKI', model: 'WP33-EU'}],
