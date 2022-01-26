@@ -183,7 +183,7 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
@@ -230,11 +230,14 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long', '4_single', '4_double', '4_long']), e.battery(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -247,7 +250,7 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
@@ -260,12 +263,14 @@ module.exports = [
         fromZigbee: [fz.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long']), e.battery(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+
     },
     {
         zigbeeModel: ['SBM300ZB3'],
@@ -276,11 +281,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['1_single', '1_double', '1_long', '2_single', '2_double', '2_long',
             '3_single', '3_double', '3_long']), e.battery(), e.battery_voltage()],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
     },
     {
@@ -298,6 +305,37 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 1000});
             await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+        },
+    },
+    {
+        zigbeeModel: ['PMM-300Z2'],
+        model: 'PMM-300Z2',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS energy monitor',
+        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature, fz.powerfactor],
+        toZigbee: [tz.electrical_measurement_power],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.current(), e.voltage(), e.temperature().withDescription('temperature of device internal mcu'),
+            exposes.numeric('powerfactor', ea.STATE).withUnit('pF').withDescription('Measured electrical power factor'),
+            exposes.numeric('acfrequency', ea.STATE).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+            await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
+            await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
+            await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
+            await endpoint.configureReporting('haElectricalMeasurement', [{
+                attribute: 'acFrequency',
+                minimumReportInterval: 10,
+                maximumReportInterval: 600,
+                reportableChange: 3,
+            }]);
         },
     },
 ];
