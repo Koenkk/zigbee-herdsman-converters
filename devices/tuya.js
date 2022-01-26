@@ -341,8 +341,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'In-wall outlet',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'}, 
-            {vendor: 'ClickSmart+', model: 'CMA30035'}, 
+        whiteLabel: [{vendor: 'Teekar', model: 'SWP86-01OG'},
+            {vendor: 'ClickSmart+', model: 'CMA30035'},
             {vendor: 'BSEED', model: 'Zigbee Socket'}],
     },
     {
