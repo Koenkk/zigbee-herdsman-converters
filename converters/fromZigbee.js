@@ -7237,6 +7237,26 @@ const converters = {
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+    ZM35HQ_attr: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let result = {};
+            const data = msg.data;
+            if (data && data.hasOwnProperty('zoneStatus')) {
+                result = converters.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+            }
+            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
+                result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
+            }
+            if (data && data.hasOwnProperty('61441')) {
+                const keeptimelookup = {'0': 30, '1': 60, '2': 120};
+                result.keep_time = keeptimelookup[data['61441']];
+            }
+            return result;
+        },
+    },
     tuya_gas: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse'],
