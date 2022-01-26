@@ -34,7 +34,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_j1xl73iw'}],
-        model: 'TS130F',
+        model: 'TS130F_dual',
         vendor: 'TuYa',
         description: 'Dual curtain/blind module',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
