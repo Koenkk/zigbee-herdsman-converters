@@ -356,13 +356,6 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE12WWclear250lm'],
-        model: 'LED1935C3_E12',
-        vendor: 'IKEA',
-        description: 'LED bulb E12 250 lumen, wireless dimmable warm white/chandelier clear',
-        extend: tradfriExtend.light_onoff_brightness(),
-    },
-    {
         zigbeeModel: ['TRADFRI bulb E14 WS opal 600lm'],
         model: 'LED1733G7',
         vendor: 'IKEA',
@@ -753,10 +746,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WWclear250lm'],
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
         model: 'LED1935C3',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
+        description: 'TRADFRI LED bulb E12/E14 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
