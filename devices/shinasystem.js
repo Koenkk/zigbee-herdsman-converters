@@ -315,7 +315,7 @@ module.exports = [
         fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature, fz.powerfactor],
         toZigbee: [tz.electrical_measurement_power],
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.current(), e.voltage(), e.temperature().withDescription('temperature of device internal mcu'),
-            exposes.numeric('powerfactor', ea.STATE).withUnit('pF').withDescription('Measured electrical power factor'),
+            exposes.numeric('powerfactor', ea.STATE).withDescription('Measured electrical power factor'),
             exposes.numeric('acfrequency', ea.STATE).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
