@@ -1409,6 +1409,42 @@ const converters = {
             await entity.read('seMetering', ['instantaneousDemand']);
         },
     },
+    currentsummdelivered: {
+        key: ['energy'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('seMetering', ['currentSummDelivered']);
+        },
+    },
+    frequency: {
+        key: ['acfrequency'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['acFrequency']);
+        },
+    },
+    powerfactor: {
+        key: ['powerfactor'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['powerFactor']);
+        },
+    },
+    acvoltage: {
+        key: ['voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsVoltage']);
+        },
+    },
+    accurrent: {
+        key: ['current'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['rmsCurrent']);
+        },
+    },
+    temperature: {
+        key: ['temperature'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msTemperatureMeasurement', ['measuredValue']);
+        },
+    },
     // #endregion
 
     // #region Non-generic converters

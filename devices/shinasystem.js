@@ -313,19 +313,19 @@ module.exports = [
         vendor: 'ShinaSystem',
         description: 'SiHAS energy monitor',
         fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature, fz.powerfactor],
-        toZigbee: [tz.electrical_measurement_power],
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.current(), e.voltage(),
-            e.temperature().withDescription('temperature of device internal mcu'),
-            exposes.numeric('powerfactor', ea.STATE).withDescription('Measured electrical power factor'),
-            exposes.numeric('acfrequency', ea.STATE).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+        toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET), e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
+            e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
+            exposes.numeric('powerfactor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            exposes.numeric('acfrequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
                 'acCurrentDivisor']);
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
-            await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});
-            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 1});
+//            await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
+            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
             await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
             await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
             await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
