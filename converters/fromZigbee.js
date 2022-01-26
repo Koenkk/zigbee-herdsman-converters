@@ -741,7 +741,7 @@ const converters = {
             const payload = {};
             if (msg.data.hasOwnProperty('powerFactor')) {
                 let powerfactor = msg.data['powerFactor'];
-                    powerfactor = powerfactor / 100;
+                powerfactor = powerfactor / 100;
                 payload.powerfactor = precisionRound(powerfactor, 2);
             }
             return payload;
