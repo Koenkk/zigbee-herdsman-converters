@@ -646,7 +646,7 @@ module.exports = [
         zigbeeModel: ['NHMOTION/SWITCH/1'],
         model: '545D6306',
         vendor: 'Schneider Electric',
-        description: 'LK FUGA Wiser wireless PIR with Relay',
+        description: 'LK FUGA Wiser wireless PIR with relay',
         fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
         exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
