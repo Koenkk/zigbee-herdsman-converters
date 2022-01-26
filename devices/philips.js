@@ -1433,6 +1433,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4023330P6'],
+        model: '4023330P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Amaze',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp,
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWF001', 'LWF002', 'LWW001'],
         model: '9290011370B',
         vendor: 'Philips',
