@@ -650,14 +650,13 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
         exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
-            .withDescription('Time in seconds after which occupancy is cleared after detecting it')
-        ],
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it')],
         toZigbee: [tz.on_off, tz.occupancy_timeout],
         endpoint: (device) => {
-            return { 'default': 37, 'l1': 1, 'l2': 37 };
+            return {'default': 37, 'l1': 1, 'l2': 37};
         },
-        meta: { multiEndpoint: true },
-        configure: async(device, coordinatorEndpoint, logger) => {
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
             await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
