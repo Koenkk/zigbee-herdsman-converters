@@ -732,9 +732,7 @@ const converters = {
                 }
             }
             if (msg.data.hasOwnProperty('powerFactor')) {
-                let powerfactor = msg.data['powerFactor'];
-                powerfactor = powerfactor / 100;
-                payload.powerfactor = precisionRound(powerfactor, 2);
+                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             return payload;
         },
