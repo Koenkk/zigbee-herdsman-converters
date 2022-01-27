@@ -199,14 +199,14 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
-        model: 'TS110E',
+        model: 'TS110E_1gang',
         vendor: 'Lonsonho',
         description: 'Zigbee Smart Dimmer Module 1 Gang With Neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
     },
     {
         fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}],
-        model: 'TS110E',
+        model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee Smart Dimmer Module 2 Gang With Neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
