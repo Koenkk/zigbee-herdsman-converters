@@ -37,6 +37,15 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003045301_01', '929003045301_02', '929003045301_03'],
+        model: '929003045301',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Centura)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929003056901'],
         model: '929003056901',
         vendor: 'Philips',
