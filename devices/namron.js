@@ -221,6 +221,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['3802965'],
+        model: '3802965',
+        vendor: 'Namron',
+        description: 'LED 4,8W DIM GU10',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['3802966'],
         model: '3802966',
         vendor: 'Namron',
