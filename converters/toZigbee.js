@@ -1416,7 +1416,7 @@ const converters = {
         },
     },
     frequency: {
-        key: ['acfrequency'],
+        key: ['ac_frequency'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['acFrequency']);
         },

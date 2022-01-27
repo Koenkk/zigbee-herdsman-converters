@@ -719,7 +719,7 @@ const converters = {
                 {key: 'rmsVoltage', name: 'voltage', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
-                {key: 'acFrequency', name: 'acfrequency', factor: 'acFrequency'},
+                {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
             ];
 
             const payload = {};
@@ -731,14 +731,6 @@ const converters = {
                     payload[property] = calibrateAndPrecisionRoundOptions(value, options, entry.name);
                 }
             }
-            return payload;
-        },
-    },
-    powerfactor: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
             if (msg.data.hasOwnProperty('powerFactor')) {
                 let powerfactor = msg.data['powerFactor'];
                 powerfactor = powerfactor / 100;

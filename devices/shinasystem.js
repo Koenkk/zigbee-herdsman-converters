@@ -312,13 +312,13 @@ module.exports = [
         model: 'PMM-300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS energy monitor',
-        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature, fz.powerfactor],
+        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
         toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
             e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
             exposes.numeric('powerfactor', ea.STATE_GET).withDescription('Measured electrical power factor'),
-            exposes.numeric('acfrequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+            exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
