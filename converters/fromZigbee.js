@@ -719,6 +719,7 @@ const converters = {
                 {key: 'rmsVoltage', name: 'voltage', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
+                {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
             ];
 
             const payload = {};
@@ -729,6 +730,9 @@ const converters = {
                     const value = msg.data[entry.key] * factor;
                     payload[property] = calibrateAndPrecisionRoundOptions(value, options, entry.name);
                 }
+            }
+            if (msg.data.hasOwnProperty('powerFactor')) {
+                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             return payload;
         },
