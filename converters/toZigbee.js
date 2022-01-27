@@ -1422,7 +1422,7 @@ const converters = {
         },
     },
     powerfactor: {
-        key: ['powerfactor'],
+        key: ['power_factor'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', ['powerFactor']);
         },
