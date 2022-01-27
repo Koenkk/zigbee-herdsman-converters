@@ -213,12 +213,12 @@ module.exports = [
         meta: {multiEndpoint: true},
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         configure: async (device, coordinatorEndpoint, logger) => {
-          await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-          await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-          await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         endpoint: (device) => {
-          return {l1: 1, l2: 2};
+            return {l1: 1, l2: 2};
         },
     },
 ];
