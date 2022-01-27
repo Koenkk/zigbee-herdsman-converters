@@ -317,7 +317,7 @@ module.exports = [
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
             e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
             e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
-            exposes.numeric('powerfactor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            exposes.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
             exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
