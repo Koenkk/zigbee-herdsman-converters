@@ -197,4 +197,28 @@ module.exports = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
+        model: 'TS110E_1gang',
+        vendor: 'Lonsonho',
+        description: 'Zigbee smart dimmer module 1 gang with neutral',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}],
+        model: 'TS110E_2gang',
+        vendor: 'Lonsonho',
+        description: 'Zigbee smart dimmer module 2 gang with neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        meta: {multiEndpoint: true},
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
 ];
