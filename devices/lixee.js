@@ -304,6 +304,10 @@ const definition = {
     fromZigbee: [fz.lixee_metering, fz.haMeterIdentificationFZ, fz.lixee_haElectricalMeasurement, fz.lixeePrivateFZ],
     toZigbee: [],
     exposes: (device, options) => {
+        // docs generation
+        if (device == null && options == null) {
+            return exposedData.map((e) => e.exposes);
+        }
         return getCurrentConfig(device, options)
             .map((e) => e.exposes);
     },
