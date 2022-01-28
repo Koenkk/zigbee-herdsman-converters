@@ -5278,7 +5278,7 @@ const converters = {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_right = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCZCGQ11LM'].includes(model.model)) {
-                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave',4: 'right_enter',
+                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
                                 5: 'left_leave', 6: 'approach', 7: 'away'}[value];
                         }
                     } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
@@ -5327,10 +5327,14 @@ const converters = {
             if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('322')) payload.presence = msg.data['322'] === 1; // RTCZCGQ11LM
-            if (msg.data.hasOwnProperty('323')) payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave',
-                4: 'right_enter', 5: 'left_leave', 6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
-            if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
-            if (msg.data.hasOwnProperty('326')) payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[msg.data['326']]; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('323')) {
+                payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter', 5: 'left_leave',
+                    6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
+            }
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected';
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('326')) payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[msg.data['326']];
             if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {

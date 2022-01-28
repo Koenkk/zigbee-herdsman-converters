@@ -907,11 +907,11 @@ module.exports = [
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance],
         exposes: [e.presence().withAccess(ea.STATE_GET), exposes.text('presence_event', ea.STATE).withDescription('Presence ' +
             'events: "enter", "leave", "left_enter", "right_leave", "right_enter", "left_leave", "approach", "away"'),
-            exposes.enum('monitoring_mode', ea.ALL, ['undirected', 'left_right']).withDescription('Monitoring mode with or ' +
-                'without considering right and left sides'),
-            exposes.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
-                'sensor detects approaching'),
-            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)')],
+        exposes.enum('monitoring_mode', ea.ALL, ['undirected', 'left_right']).withDescription('Monitoring mode with or ' +
+            'without considering right and left sides'),
+        exposes.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
+           'sensor detects approaching'),
+        exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x0142], {manufacturerCode: 0x115f});
