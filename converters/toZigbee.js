@@ -2349,7 +2349,7 @@ const converters = {
             await entity.read('genAnalogOutput', [0x0055]);
         },
     },
-    xiaomi_curtain_acn002_status:{
+    xiaomi_curtain_acn002_status: {
         key: ['motor_state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genMultistateOutput', [0x0055]);
