@@ -13,7 +13,7 @@ const definition = {
     description: 'Smart Motion Sensor', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
     fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance], // We will add this later
     toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
-    exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux(),], // Defines what this device exposes, e.g. Home Assistant discovery and in the frontend
+    exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux()], // Defines what this device exposes, e.g. Home Assistant discovery and in the frontend
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
         await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
