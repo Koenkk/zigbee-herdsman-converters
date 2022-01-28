@@ -1,25 +1,30 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const fz = {...require('zigbee-herdsman-converters/converters/fromZigbee'), legacy: require('zigbee-herdsman-converters/lib/legacy').fromZigbee};
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('zigbee-herdsman-converters/lib/store');
 
-const definition = {
-    zigbeeModel: ['MS100'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-    model: 'MS100(UN)', // Vendor model number, look on the device for a model number
-    vendor: 'TP-Link', // Vendor of the device (only used for documentation and startup logging)
-    description: 'Smart Motion Sensor', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
-    fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance], // We will add this later
-    toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
-    exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux(),], // Defines what this device exposes, e.g. Home Assistant discovery and in the frontend
+module.exports = [
+    {
+    zigbeeModel: ['MS100'],
+    model: 'MS100(UN)',
+    vendor: 'TP-Link',
+    description: 'Smart Motion Sensor',
+    fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
+    toZigbee: [],
+    exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux(),],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
+        const endpoint2 = device.getEndpoint(2);
         await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
         await reporting.batteryPercentageRemaining(endpoint);
-        await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['msIlluminanceMeasurement']);
-        await reporting.illuminance(device.getEndpoint(2));
+        await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+        await reporting.illuminance(endpoint2);
         device.powerSource = 'Battery';
-        device.save();    },
-};
+        device.save();
+        },
+    }
+];
