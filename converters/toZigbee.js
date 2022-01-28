@@ -2198,12 +2198,12 @@ const converters = {
     xiaomi_flip_indicator_light: {
         key: ['flip_indicator_light'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'OFF': 0, 'ON': 1}
+            const lookup = {'OFF': 0, 'ON': 1};
             await entity.write('aqaraOpple', {0x00F0: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {flip_indicator_light: value}};
         },
         convertGet: async (entity, key, meta) => {
-                await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.xiaomi);
+            await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.xiaomi);
         },
     },
     xiaomi_switch_operation_mode_basic: {
