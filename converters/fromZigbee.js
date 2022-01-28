@@ -5255,7 +5255,7 @@ const converters = {
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 5) {
-                        if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
+                        if (['JT-BZ-01AQ/A', 'RTCZCGQ11LM'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
                         if (['QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
@@ -5277,9 +5277,18 @@ const converters = {
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_right = value === 1 ? 'ON' : 'OFF';
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave',4: 'right_enter',
+                                5: 'left_leave', 6: 'approach', 7: 'away'}[value];
                         }
-                    } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
-                    else if (index === 149) {
+                    } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
+                    else if (index === 105) {
+                        if (['RTCGQ13LM'].includes(model.model)) {
+                            payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[value];
+                        }
+                    } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
@@ -5317,6 +5326,11 @@ const converters = {
             if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('322')) payload.presence = msg.data['322'] === 1; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('323')) payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave',
+                4: 'right_enter', 5: 'left_leave', 6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('326')) payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[msg.data['326']]; // RTCZCGQ11LM
             if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
