@@ -2173,7 +2173,7 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2188,11 +2188,22 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
+        },
+    },
+    xiaomi_flip_indicator_light: {
+        key: ['flip_indicator_light'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'OFF': 0, 'ON': 1}
+            await entity.write('aqaraOpple', {0x00F0: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {flip_indicator_light: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+                await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.xiaomi);
         },
     },
     xiaomi_switch_operation_mode_basic: {

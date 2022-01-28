@@ -5257,7 +5257,7 @@ const converters = {
                     else if (index === 5) {
                         if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
-                        if (['QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
@@ -5266,7 +5266,7 @@ const converters = {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 101) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
@@ -5303,6 +5303,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
+            if (msg.data.hasOwnProperty('240')) payload.flip_indicator_light = msg.data['240'] === 1 ? 'ON' : 'OFF';
             if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) {
                 if (['RTCGQ13LM'].includes(model.model)) {
