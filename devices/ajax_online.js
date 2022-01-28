@@ -16,6 +16,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
     },
     {
+        zigbeeModel: ['TS0505B'],
+        model: 'AJ_ZIG_GU10',
+        vendor: 'Ajax Online',
+        description: 'Smart Zigbee GU10 RGB+CW+WW spotlight bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
+    },
+    {
         zigbeeModel: ['AJ_ZBPROA60'],
         model: 'AJ_ZIGPROA60',
         vendor: 'Ajax Online',
