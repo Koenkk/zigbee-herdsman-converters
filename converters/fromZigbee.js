@@ -617,7 +617,7 @@ const converters = {
             return result;
         },
     },
-    haMeterIdentificationFZ: {
+    ha_meter_identification_fz: {
         cluster: 'haMeterIdentification',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -816,7 +816,7 @@ const converters = {
             return payload;
         },
     },
-    lixee_haElectricalMeasurement: {
+    lixee_ha_electrical_measurement: {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -4628,7 +4628,7 @@ const converters = {
             }
         },
     },
-    lixeePrivateFZ: {
+    lixee_private_fz: {
         cluster: 'liXeePrivate', // 0xFF66
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {

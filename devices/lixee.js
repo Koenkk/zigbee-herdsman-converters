@@ -301,7 +301,7 @@ const definition = {
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
     description: 'Lixee ZLinky',
-    fromZigbee: [fz.lixee_metering, fz.haMeterIdentificationFZ, fz.lixee_haElectricalMeasurement, fz.lixeePrivateFZ],
+    fromZigbee: [fz.lixee_metering, fz.ha_meter_identification_fz, fz.lixee_ha_electrical_measurement, fz.lixee_private_fz],
     toZigbee: [],
     exposes: (device, options) => {
         // docs generation
