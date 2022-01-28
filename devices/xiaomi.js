@@ -1241,9 +1241,13 @@ module.exports = [
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.cover_position_tilt, fz.ignore_basic_report, fz.aqara_opple],
+        toZigbee: [tz.xiaomi_curtain_position_state],
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
         ota: ota.zigbeeOTA,
     },
     {

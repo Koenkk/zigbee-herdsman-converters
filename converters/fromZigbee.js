@@ -5273,6 +5273,8 @@ const converters = {
                             payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        } else if (['ZNJLBL01LM'].includes(model.model)) {
+                            payload.battery = value;
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
@@ -5801,6 +5803,40 @@ const converters = {
                         reverse_direction: data[2]=='\u0001',
                         hand_open: data[5]=='\u0000',
                     },
+                };
+            }
+        },
+    },
+    xiaomi_curtain_acn002_position: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position: position};
+        },
+    },
+    xiaomi_curtain_acn002_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'declining',
+                1: 'rising',
+                2: 'pause',
+                3: 'blocked',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running
                 };
             }
         },

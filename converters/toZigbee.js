@@ -2322,7 +2322,12 @@ const converters = {
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
-                await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
+                if (meta.mapped.model == 'ZNJLBL01LM') {
+                    const payload = {"presentValue":2};
+                    await entity.write('genMultistateOutput', payload);
+                } else {
+                    await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
+                }
 
                 // Xiaomi curtain does not send position update on stop, request this.
                 await entity.read('genAnalogOutput', [0x0055]);
