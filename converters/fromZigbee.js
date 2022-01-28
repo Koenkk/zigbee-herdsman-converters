@@ -5832,11 +5832,11 @@ const converters = {
             if (data && data.hasOwnProperty('presentValue')) {
                 const value = data['presentValue'];
                 if (value < 2) {
-                    running = true
+                    running = true;
                 }
                 return {
                     motor_state: lookup[value],
-                    running: running
+                    running: running,
                 };
             }
         },

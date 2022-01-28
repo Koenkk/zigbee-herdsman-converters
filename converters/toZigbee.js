@@ -2323,7 +2323,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state' && typeof value === 'string' && value.toLowerCase() === 'stop') {
                 if (meta.mapped.model == 'ZNJLBL01LM') {
-                    const payload = {"presentValue":2};
+                    const payload = {'presentValue': 2};
                     await entity.write('genMultistateOutput', payload);
                 } else {
                     await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
