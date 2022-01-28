@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable max-len */
 'use strict';
 const exposes = require('../lib/exposes');
@@ -6,8 +7,186 @@ const {repInterval} = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
+const utils = require('../lib/utils');
 const ota = require('../lib/ota');
+const {Buffer} = require('buffer');
 
+const fzLocal = {
+    lixee_ha_electrical_measurement: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+
+            const elements = [
+                /* 0x0305 */ 'totalReactivePower',
+                /* 0x0505 */ 'rmsVoltage',
+                /* 0x0508 */ 'rmsCurrent',
+                /* 0x050A */ 'rmsCurrentMax',
+                /* 0x050B */ 'activePower',
+                /* 0x050D */ 'activePowerMax',
+                /* 0x050E */ 'reactivePower',
+                /* 0x050F */ 'apparentPower',
+                /* 0x0511 */ 'averageRmsVoltageMeasPeriod',
+                /* 0x0905 */ 'rmsVoltagePhB',
+                /* 0x0908 */ 'rmsCurrentPhB',
+                /* 0x090A */ 'rmsCurrentMaxPhB',
+                /* 0x090B */ 'activePowerPhB',
+                /* 0x090E */ 'reactivePowerPhB',
+                /* 0x090D */ 'activePowerMaxPhB',
+                /* 0x090F */ 'apparentPowerPhB',
+                /* 0x0911 */ 'averageRmsVoltageMeasurePeriodPhB',
+                /* 0x0A05 */ 'rmsVoltagePhC',
+                /* 0x0A08 */ 'rmsCurrentPhC',
+                /* 0x0A0A */ 'rmsCurrentMaxPhC',
+                /* 0x0A0D */ 'activePowerMaxPhC',
+                /* 0x0A0E */ 'reactivePowerPhC',
+                /* 0x0A0F */ 'apparentPowerPhC',
+                /* 0x0A11 */ 'averageRmsVoltageMeasPeriodPhC',
+            ];
+
+            for (const at of elements) {
+                if (msg.data[at]) {
+                    result[at] = msg.data[at];
+                }
+            }
+            return result;
+        },
+    },
+    lixee_private_fz: {
+        cluster: 'liXeePrivate', // 0xFF66
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const elements = [
+                /* 0x0000 */ 'currentTarif',
+                /* 0x0001 */ 'tomorrowColor',
+                /* 0x0002 */ 'scheduleHPHC',
+                /* 0x0003 */ 'presencePotential',
+                /* 0x0004 */ 'startNoticeEJP',
+                /* 0x0005 */ 'warnDPS',
+                /* 0x0006 */ 'warnDIR1',
+                /* 0x0007 */ 'warnDIR2',
+                /* 0x0008 */ 'warnDIR3',
+                /* 0x0200 */ 'currentPrice',
+                /* 0x0201 */ 'currentIndexTarif',
+                /* 0x0202 */ 'currentDate',
+                /* 0x0203 */ 'activeEnerfyOutD01',
+                /* 0x0204 */ 'activeEnerfyOutD02',
+                /* 0x0205 */ 'activeEnerfyOutD03',
+                /* 0x0206 */ 'activeEnerfyOutD04',
+                /* 0x0207 */ 'injectedVA',
+                /* 0x0208 */ 'injectedVAMaxN',
+                /* 0x0209 */ 'injectedVAMaxN1',
+                /* 0x0210 */ 'injectedActiveLoadN',
+                /* 0x0211 */ 'injectedActiveLoadN1',
+                /* 0x0212 */ 'drawnVAMaxN1',
+                /* 0x0213 */ 'drawnVAMaxN1P2',
+                /* 0x0214 */ 'drawnVAMaxN1P3',
+                /* 0x0215 */ 'message1',
+                /* 0x0216 */ 'message2',
+                /* 0x0217 */ 'statusRegister',
+                /* 0x0218 */ 'startMobilePoint1',
+                /* 0x0219 */ 'stopMobilePoint1',
+                /* 0x0220 */ 'startMobilePoint2',
+                /* 0x0221 */ 'stopMobilePoint2',
+                /* 0x0222 */ 'startMobilePoint3',
+                /* 0x0223 */ 'stopMobilePoint3',
+                /* 0x0224 */ 'relais',
+                /* 0x0225 */ 'daysNumberCurrentCalendar',
+                /* 0x0226 */ 'daysNumberNextCalendar',
+                /* 0x0227 */ 'daysProfileCurrentCalendar',
+                /* 0x0228 */ 'daysProfileNextCalendar',
+            ];
+            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
+            for (const at of elements) {
+                let val = msg.data[at];
+                if (val) {
+                    if (val.hasOwnProperty('type') && val.type === 'Buffer') {
+                        val = Buffer.from(val.data);
+                    }
+                    if (Buffer.isBuffer(val)) {
+                        val = val.toString(); // Convert buffer to string
+                    }
+                    if (typeof val === 'string' || val instanceof String) {
+                        val = val.replace(/\0/g, ''); // Remove all null chars when str
+                        val = val.replace(/\s+/g, ' ').trim(); // Remove extra and leading spaces
+                    }
+                    switch (at) {
+                    case 'activeEnerfyOutD01':
+                    case 'activeEnerfyOutD02':
+                    case 'activeEnerfyOutD03':
+                    case 'activeEnerfyOutD04':
+                        val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
+                        break;
+                    }
+                    result[at] = val;
+                }
+            }
+            return result;
+        },
+    },
+    lixee_metering: {
+        cluster: 'seMetering', // 0x0702
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const elements = [
+                /* 0x0000 */ 'currentSummDelivered',
+                /* 0x0001 */ 'currentSummReceived',
+                /* 0x0020 */ 'activeRegisterTierDelivered',
+                /* 0x0100 */ 'currentTier1SummDelivered',
+                /* 0x0102 */ 'currentTier2SummDelivered',
+                /* 0x0104 */ 'currentTier3SummDelivered',
+                /* 0x0106 */ 'currentTier4SummDelivered',
+                /* 0x0108 */ 'currentTier5SummDelivered',
+                /* 0x010A */ 'currentTier6SummDelivered',
+                /* 0x010C */ 'currentTier7SummDelivered',
+                /* 0x010E */ 'currentTier8SummDelivered',
+                /* 0x0110 */ 'currentTier9SummDelivered',
+                /* 0x0112 */ 'currentTier10SummDelivered',
+                /* 0x0307 */ 'siteId',
+                /* 0x0308 */ 'meterSerialNumber',
+            ];
+            const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
+            for (const at of elements) {
+                const val = msg.data[at];
+                if (val) {
+                    result[at] = val; // By default we assign raw value
+                    switch (at) {
+                    // If we receive a Buffer, transform to human readable text
+                    case 'meterSerialNumber':
+                    case 'siteId':
+                        if (Buffer.isBuffer(val)) {
+                            result[at] = val.toString();
+                        }
+                        break;
+                    case 'currentSummDelivered':
+                    case 'currentSummReceived':
+                    case 'currentTier1SummDelivered':
+                    case 'currentTier2SummDelivered':
+                    case 'currentTier3SummDelivered':
+                    case 'currentTier4SummDelivered':
+                    case 'currentTier5SummDelivered':
+                    case 'currentTier6SummDelivered':
+                    case 'currentTier7SummDelivered':
+                    case 'currentTier8SummDelivered':
+                    case 'currentTier9SummDelivered':
+                    case 'currentTier10SummDelivered':
+                        result[at] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
+                        break;
+                    }
+                }
+            }
+            // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
+            if (result['currentSummDelivered'] == 0 &&
+            (result['currentTier1SummDelivered'] > 0 || result['currentTier2SummDelivered'] > 0)) {
+                result['currentSummDelivered'] = result['currentTier1SummDelivered'] + result['currentTier2SummDelivered'];
+            }
+            return result;
+        },
+    },
+};
 
 const tarifsDef = {
     histo_BASE: {fname: 'Historique - BASE',
@@ -301,7 +480,7 @@ const definition = {
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
     description: 'Lixee ZLinky',
-    fromZigbee: [fz.lixee_metering, fz.ha_meter_identification_fz, fz.lixee_ha_electrical_measurement, fz.lixee_private_fz],
+    fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
     toZigbee: [],
     exposes: (device, options) => {
         // docs generation
