@@ -328,9 +328,6 @@ module.exports = [
                 .withDescription('Decoupled mode for left button').withEndpoint('left'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button').withEndpoint('right')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
     },
