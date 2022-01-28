@@ -1243,11 +1243,11 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.cover_position_tilt, fz.ignore_basic_report,
             fz.aqara_opple],
-        toZigbee: [tz.xiaomi_curtain_position_state],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_status],
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(), 
             exposes.enum('motor_state', ea.STATE_GET, ['declining', 'rising', 'pause', 'blocked'])
                 .withDescription('The current state of the motor.'),
-            exposes.binary('running', ea.STATE_GET, true, false)
+            exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not.')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
