@@ -3829,7 +3829,7 @@ const converters = {
                 return {online: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWorkingDay:
                 // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {working_day: workDay[value]};
+                return {working_day: value};
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
                         '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
