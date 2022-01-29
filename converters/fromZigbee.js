@@ -3814,7 +3814,8 @@ const converters = {
             case tuya.dataPoints.tvOpenWindowTemp:
                 return {open_window_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvErrorStatus:
-                return {fault_alarm: value};case tuya.dataPoints.tvHolidayMode: {
+                return {fault_alarm: value};
+            case tuya.dataPoints.tvHolidayMode: {
                 const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
                 const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
                 const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
