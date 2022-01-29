@@ -1556,7 +1556,7 @@ module.exports = [
         toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         exposes: [
-            e.battery(),  e.battery_voltage(), e.action([
+            e.battery(), e.battery_voltage(), e.action([
                 'single_left', 'single_right', 'single_both',
                 'double_left', 'double_right', 'double_both',
                 'triple_left', 'triple_right', 'triple_both']),
