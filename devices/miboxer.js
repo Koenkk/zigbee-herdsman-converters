@@ -44,4 +44,11 @@ module.exports = [
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
     },
+    {
+        fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZ3210_778drfdt'}],
+        model: 'FUT037Z',
+        description: 'RGB LED controller',
+        vendor: 'Miboxer',
+        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+	},
 ];
