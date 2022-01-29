@@ -64,7 +64,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart lightstrip driver',
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
-            fz.aqara_opple]),
+            fz.xiaomi_power, fz.aqara_opple]),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
             tz.xiaomi_dimmer_mode, tz.xiaomi_switch_power_outage_memory]),
         meta: {multiEndpoint: true},
