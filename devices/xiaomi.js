@@ -1550,20 +1550,22 @@ module.exports = [
         zigbeeModel: ['lumi.remote.b28ac1'],
         model: 'WRS-R02',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'WXKG15LM'}],
         description: 'Aqara wireless remote switch H1 (double rocker)',
-        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple, fz.command_toggle],
+        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
+        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         exposes: [
-            e.battery(), e.action([
-                'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
-                'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
-                'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
-                'toggle_1',
-            ]),
+            e.battery(),  e.battery_voltage(), e.action([
+                'single_left', 'single_right', 'single_both',
+                'double_left', 'double_right', 'double_both',
+                'triple_left', 'triple_right', 'triple_both']),
+            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold'),
             exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         ],
-        toZigbee: [tz.aqara_opple_operation_mode],
-        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);
