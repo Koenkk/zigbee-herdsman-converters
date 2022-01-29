@@ -57,7 +57,8 @@ const converters = {
     command: {
         key: ['command'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(value.cluster, value.command, (value.hasOwnProperty('payload') ? value.payload : {}), utils.getOptions(meta.mapped, entity));
+            const options = utils.getOptions(meta.mapped, entity);
+            await entity.command(value.cluster, value.command, (value.hasOwnProperty('payload') ? value.payload : {}), options);
             meta.logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`);
         },
     },
