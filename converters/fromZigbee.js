@@ -5273,6 +5273,8 @@ const converters = {
                             payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        } else if (['ZNJLBL01LM'].includes(model.model)) {
+                            payload.battery = value;
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
@@ -5803,126 +5805,6 @@ const converters = {
                     },
                 };
             }
-        },
-    },
-    xiaomi_curtain_acn002_aqara_opple: {
-        cluster: 'aqaraOpple',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            if (msg.data.hasOwnProperty('247')) {
-                const data = msg.data['247'];
-                // Xiaomi struct parsing
-                const length = data.length;
-                for (let i = 0; i < length; i++) {
-                    const index = data[i];
-                    let value = null;
-                    switch (data[i + 1]) {
-                    case 16:
-                        // 0x10 ZclBoolean
-                        value = data.readUInt8(i + 2);
-                        i += 2;
-                        break;
-                    case 32:
-                        // 0x20 Zcl8BitUint
-                        value = data.readUInt8(i + 2);
-                        i += 2;
-                        break;
-                    case 33:
-                        // 0x21 Zcl16BitUint
-                        value = data.readUInt16LE(i + 2);
-                        i += 3;
-                        break;
-                    case 34:
-                        // 0x22 Zcl24BitUint
-                        value = data.readUIntLE(i + 2, 3);
-                        i += 4;
-                        break;
-                    case 35:
-                        // 0x23 Zcl32BitUint
-                        value = data.readUInt32LE(i + 2);
-                        i += 5;
-                        break;
-                    case 36:
-                        // 0x24 Zcl40BitUint
-                        value = data.readUIntLE(i + 2, 5);
-                        i += 6;
-                        break;
-                    case 37:
-                        // 0x25 Zcl48BitUint
-                        value = data.readUIntLE(i + 2, 6);
-                        i += 7;
-                        break;
-                    case 38:
-                        // 0x26 Zcl56BitUint
-                        value = data.readUIntLE(i + 2, 7);
-                        i += 8;
-                        break;
-                    case 39:
-                        // 0x27 Zcl64BitUint
-                        value = data.readBigUInt64BE(i + 2);
-                        i += 9;
-                        break;
-                    case 40:
-                        // 0x28 Zcl8BitInt
-                        value = data.readInt8(i + 2);
-                        i += 2;
-                        break;
-                    case 41:
-                        // 0x29 Zcl16BitInt
-                        value = data.readInt16LE(i + 2);
-                        i += 3;
-                        break;
-                    case 42:
-                        // 0x2A Zcl24BitInt
-                        value = data.readIntLE(i + 2, 3);
-                        i += 4;
-                        break;
-                    case 43:
-                        // 0x2B Zcl32BitInt
-                        value = data.readInt32LE(i + 2);
-                        i += 5;
-                        break;
-                    case 44:
-                        // 0x2C Zcl40BitInt
-                        value = data.readIntLE(i + 2, 5);
-                        i += 6;
-                        break;
-                    case 45:
-                        // 0x2D Zcl48BitInt
-                        value = data.readIntLE(i + 2, 6);
-                        i += 7;
-                        break;
-                    case 46:
-                        // 0x2E Zcl56BitInt
-                        value = data.readIntLE(i + 2, 7);
-                        i += 8;
-                        break;
-                    case 47:
-                        // 0x2F Zcl64BitInt
-                        value = data.readBigInt64BE(i + 2);
-                        i += 9;
-                        break;
-                    case 57:
-                        // 0x39 ZclSingleFloat
-                        value = data.readFloatLE(i + 2);
-                        i += 5;
-                        break;
-                    case 58:
-                        // 0x3a ZclDoubleFloat
-                        value = data.readDoubleLE(i + 2);
-                        i += 5;
-                        break;
-                    default:
-                        if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown vtype=${data[i + 1]}, pos=${i + 1}`);
-                    }
-
-                    if (index === 101) payload.battery = value;
-                    else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
-                }
-            }
-            if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
-            return payload;
         },
     },
     xiaomi_curtain_acn002_position: {
