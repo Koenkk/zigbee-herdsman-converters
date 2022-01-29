@@ -21,6 +21,6 @@ module.exports = [
             await reporting.illuminance(endpoint2);
             device.powerSource = 'Battery';
             device.save();
-            },
         },
-    ];
+    },
+];
