@@ -69,7 +69,7 @@ module.exports = [
             tz.xiaomi_dimmer_mode, tz.xiaomi_switch_power_outage_memory]),
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-                return {l1: 1, l2: 2};
+            return {l1: 1, l2: 2};
         },
         exposes: [e.power(), e.energy(), e.voltage(), e.temperature(), e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
@@ -77,8 +77,7 @@ module.exports = [
             e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             exposes.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
-                .withDescription('Switch between rgbw mode or dual color temperature mode')
-        ],
+                .withDescription('Switch between rgbw mode or dual color temperature mode')],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
