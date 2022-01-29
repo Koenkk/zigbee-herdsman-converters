@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_v1pdxuqq', '_TZ3000_bfn1w0mm'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_v1pdxuqq'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -203,7 +203,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3000_4whigl8i'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_4whigl8i'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'},
-            {modelID: 'TS0501B', manufacturerName: '_TZ3210_grnwgegn'}],
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_grnwgegn'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_wuheofsg'}],
         model: 'TS0501B',
         description: 'Zigbee light',
         vendor: 'TuYa',
@@ -1121,7 +1122,8 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',
@@ -1836,9 +1838,29 @@ module.exports = [
         model: 'ERS-10TZBVK-AA',
         vendor: 'TuYa',
         description: 'Smart knob',
-        fromZigbee: [fz.command_step, fz.command_toggle, fz.command_move_hue],
-        toZigbee: [],
-        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
+        fromZigbee: [
+            fz.command_step, fz.command_toggle, fz.command_move_hue, fz.command_step_color_temperature, fz.command_stop_move_raw,
+            fz.tuya_multi_action, fz.tuya_operation_mode, fz.battery,
+        ],
+        toZigbee: [tz.tuya_operation_mode],
+        exposes: [
+            e.action([
+                'toggle', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down',
+                'saturation_move', 'hue_move', 'hue_stop', 'single', 'double', 'hold', 'rotate_left', 'rotate_right',
+            ]),
+            exposes.numeric('action_step_size', ea.STATE).withValueMin(0).withValueMax(255),
+            exposes.numeric('action_transition_time', ea.STATE).withUnit('s'),
+            exposes.numeric('action_rate', ea.STATE).withValueMin(0).withValueMax(255),
+            e.battery(),
+            exposes.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+                'Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genOnOff', ['tuyaOperationMode']);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kzm5w4iz'}],
