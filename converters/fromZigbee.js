@@ -5334,6 +5334,7 @@ const converters = {
             if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2);
             if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay';
             if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
+            if (msg.data.hasOwnProperty('1289')) payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[msg.data['1289']];
             return payload;
         },
     },
