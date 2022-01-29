@@ -26,6 +26,19 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['4512733'],
+        model: '4512733',
+        vendor: 'Namron',
+        description: 'ZigBee dimmer 2-pol 400W',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['4512704'],
         model: '4512704',
         vendor: 'Namron',
@@ -219,6 +232,13 @@ module.exports = [
         vendor: 'Namron',
         description: 'LED 5,3W CCT E14',
         extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['3802965'],
+        model: '3802965',
+        vendor: 'Namron',
+        description: 'LED 4,8W DIM GU10',
+        extend: extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['3802966'],

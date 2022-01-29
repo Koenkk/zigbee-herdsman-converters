@@ -260,7 +260,8 @@ module.exports = [
         exposes: [e.action(['press_on', 'press_off', 'hold_on', 'hold_off', 'release'])],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/}],
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000057e.....$/}],
         model: 'SR-ZGP2801K4-DIM',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',

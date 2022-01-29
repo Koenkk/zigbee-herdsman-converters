@@ -124,4 +124,26 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(2));
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
+        model: 'ZM-AM02',
+        vendor: 'Zemismart',
+        description: 'Zigbee/RF curtain converter',
+        fromZigbee: [fz.ZMAM02],
+        toZigbee: [tz.ZMAM02],
+        exposes: [exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02MotorMode)),
+            exposes.enum('control', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Control)),
+            exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Mode)),
+            exposes.enum('control_back_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Border)),
+        // ---------------------------------------------------------------------------------
+        // DP exists, but not used at the moment
+        // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+        // exposes.enum('work_state', ea.STATE, Object.values(tuya.ZMAM02.AM02WorkState)),
+        // exposes.numeric('countdown_left', ea.STATE).withUnit('s'),
+        // exposes.numeric('time_total', ea.STATE).withUnit('ms'),
+        // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
+        ],
+    },
 ];

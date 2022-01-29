@@ -187,6 +187,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CH2AX/SWITCH/1'],
+        model: '41E2PBSWMZ/356PB2MBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series module switch 2A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SMARTPLUG/1'],
         model: 'CCT711119',
         vendor: 'Schneider Electric',
@@ -628,6 +640,37 @@ module.exports = [
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['NHMOTION/SWITCH/1'],
+        model: '545D6306',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA Wiser wireless PIR with relay',
+        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
+        exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it')],
+        toZigbee: [tz.on_off, tz.occupancy_timeout],
+        endpoint: (device) => {
+            return {'default': 37, 'l1': 1, 'l2': 37};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
+            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
+            await reporting.onOff(endpoint1);
+            // read switch state
+            await endpoint1.read('genOnOff', ['onOff']);
+
+            const endpoint37 = device.getEndpoint(37);
+            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
+            await reporting.occupancy(endpoint37);
+            await reporting.illuminance(endpoint37);
+            // read occupancy_timeout
+            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
 ];

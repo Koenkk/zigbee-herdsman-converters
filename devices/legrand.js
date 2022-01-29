@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -12,6 +13,16 @@ const readInitialBatteryState = async (type, data, device) => {
         const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
         await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
     }
+};
+
+const fzLocal = {
+    command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            return {action: 'off'};
+        },
+    },
 };
 
 module.exports = [
@@ -63,6 +74,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.battery,
             fz.legrand_binary_input_moving],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -105,7 +117,8 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+            fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -121,7 +134,7 @@ module.exports = [
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -182,6 +195,7 @@ module.exports = [
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067775/741811',
         vendor: 'Legrand',
+        ota: ota.zigbeeOTA,
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
@@ -200,6 +214,7 @@ module.exports = [
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
         configure: async (device, coordinatorEndpoint, logger) => {

@@ -699,6 +699,8 @@ const converters = {
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
+            exposes.options.calibration('voltage', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const getFactor = (key) => {
                 const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
@@ -717,6 +719,7 @@ const converters = {
                 {key: 'rmsVoltage', name: 'voltage', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhB', name: 'voltage_phase_b', factor: 'acVoltage'},
                 {key: 'rmsVoltagePhC', name: 'voltage_phase_c', factor: 'acVoltage'},
+                {key: 'acFrequency', name: 'ac_frequency', factor: 'acFrequency'},
             ];
 
             const payload = {};
@@ -724,8 +727,12 @@ const converters = {
                 if (msg.data.hasOwnProperty(entry.key)) {
                     const factor = getFactor(entry.factor);
                     const property = postfixWithEndpointName(entry.name, msg, model);
-                    payload[property] = precisionRound(msg.data[entry.key] * factor, 2);
+                    const value = msg.data[entry.key] * factor;
+                    payload[property] = calibrateAndPrecisionRoundOptions(value, options, entry.name);
                 }
+            }
+            if (msg.data.hasOwnProperty('powerFactor')) {
+                payload.power_factor = precisionRound(msg.data['powerFactor'] / 100, 2);
             }
             return payload;
         },
@@ -1860,6 +1867,36 @@ const converters = {
             }
         },
     },
+    tuya_illuminance_sensor: {
+        cluster: `manuSpecificTuya`,
+        type: [`commandDataReport`, `commandDataResponse`],
+        options: [exposes.options.precision('illuminance_lux'),
+            exposes.options.calibration('illuminance_lux', 'percentual')],
+        convert: (() => {
+            const brightnessState = {
+                0: 'low',
+                1: 'middle',
+                2: 'high',
+                3: 'strong',
+            };
+            return (model, msg, publish, options, meta) => {
+                const dpValue = tuya.firstDpValue(msg, meta, `tuya_illuminance_sensor`);
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case tuya.dataPoints.state:
+                    return {brightness_state: brightnessState[value]};
+                case tuya.dataPoints.tIlluminanceLux:
+                    return {illuminance_lux: calibrateAndPrecisionRoundOptions(value, options, 'illuminance_lux')};
+                default:
+                    meta.logger.warn(
+                        `zigbee-herdsman-converters:tuya_illuminance_sensor: NOT RECOGNIZED ` +
+                      `DP #${dp} with data ${JSON.stringify(dpValue)}`,
+                    );
+                }
+            };
+        })(),
+    },
     ts0201_temperature_humidity_alarm: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -2465,6 +2502,30 @@ const converters = {
                 return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
             default: // Unknown code
                 meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
+    neo_alarm: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'neo_alarm');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.neoAOAlarm: // 0x13 [TRUE,FALSE]
+                return {alarm: value};
+            case tuya.dataPoints.neoAODuration: // 0x7 [0,0,0,10] duration alarm in second
+                return {duration: value};
+            case tuya.dataPoints.neoAOBattPerc: // 0x15 [0,0,0,100] battery percentage
+                return {battpercentage: value};
+            case tuya.dataPoints.neoAOMelody: // 0x21 [5] Melody
+                return {melody: value};
+            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-max, 2-low
+                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            default: // Unknown code
+                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
         },
     },
@@ -3988,7 +4049,8 @@ const converters = {
             exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
             exposes.options.precision('co2'), exposes.options.calibration('co2'),
             exposes.options.precision('voc'), exposes.options.calibration('voc'),
-            exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd')],
+            exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
+            exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
@@ -4005,6 +4067,8 @@ const converters = {
             case tuya.dataPoints.tuyaSabFormaldehyd:
                 // Not sure which unit this is, supposedly mg/m³, but the value seems way too high.
                 return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+            case tuya.dataPoints.tuyaSahkMP25:
+                return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
@@ -4362,6 +4426,14 @@ const converters = {
         convert: (model, msg, publis, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
+            const getType = (datatype) => {
+                const entry = Object.entries(tuya.dataTypes).find(([typeName, typeId]) => typeId === datatype);
+                return (entry ? entry[0] : 'unknown');
+            };
+            const getAllDpIds = (dp) => {
+                const entries = Object.entries(tuya.dataPoints).filter(([dpName, dpId]) => dpId === dp);
+                return entries.map(([dpName, dpId]) => dpName);
+            };
             const getHex = (value) => {
                 let hex = value.toString(16);
                 if (hex.length < 2) {
@@ -4372,6 +4444,11 @@ const converters = {
             const now = Date.now().toString();
             let dataStr = '';
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
+                const value = tuya.getDataValue(dpValue);
+                meta.logger.info(`zigbee-herdsman-converters:tuya_data_point_dump: Received DP #${
+                    dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': type='${msg.type}', datatype='${
+                    getType(dpValue.datatype)}', value='${value}', known DP# usage: ${JSON.stringify(getAllDpIds(dpValue.dp))}`);
+
                 dataStr +=
                     now + ' ' +
                     meta.device.ieeeAddr + ' ' +
@@ -5177,36 +5254,71 @@ const converters = {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
-                    else if (index === 100) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                    else if (index === 5) {
+                        if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
+                    } else if (index === 100) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
+                            payload.click_mode = {1: 'fast', 2: 'multi'}[value];
                         } else {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 101) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
+                        } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
+                            payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
                         }
-                    } else if (index === 149) {
+                    } else if (index ===102 ) {
+                        if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
+                            payload.state_right = value === 1 ? 'ON' : 'OFF';
+                        }
+                    } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
+                    else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
                     } else if (index === 150) payload.voltage = precisionRound(value * 0.1, 1); // 0x96
                     else if (index === 151) payload.current = precisionRound(value * 0.001, 4); // 0x97
                     else if (index === 152) payload.power = precisionRound(value, 2); // 0x98
+                    else if (index === 159) payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[value]; // JT-BZ-01AQ/A
+                    else if (index === 160) payload.gas = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 161) payload.gas_density = value; // JT-BZ-01AQ/A
+                    else if (index === 162) payload.test = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 163) payload.mute = value === 1; // JT-BZ-01AQ/A
+                    else if (index === 164) payload.state = value === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
+                    else if (index === 166) payload.linkage_alarm = value === 1; // JT-BZ-01AQ/A
                     else if (meta.logger) meta.logger.debug(`${model.zigbeeModel}: unknown index ${index} with value ${value}`);
                 }
             }
 
             if (msg.data.hasOwnProperty('0')) payload.detection_period = msg.data['0'];
+            if (msg.data.hasOwnProperty('2')) {
+                if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = msg.data['2'];
+            }
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
+            if (msg.data.hasOwnProperty('240')) payload.flip_indicator_light = msg.data['240'] === 1 ? 'ON' : 'OFF';
             if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
-            if (msg.data.hasOwnProperty('268')) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
+            if (msg.data.hasOwnProperty('268')) {
+                if (['RTCGQ13LM'].includes(model.model)) {
+                    payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[msg.data['268']];
+                } else if (['JT-BZ-01AQ/A'].includes(model.model)) {
+                    payload.gas_sensitivity = {1: '15%LEL', 2: '10%LEL'}[msg.data['268']];
+                }
+            }
+            if (msg.data.hasOwnProperty('293')) payload.click_mode = {1: 'fast', 2: 'multi'}[msg.data['293']];
+            if (msg.data.hasOwnProperty('294')) payload.mute = msg.data['294'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('295')) payload.test = msg.data['295'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
                     payload.button_lock = msg.data['512'] === 1 ? 'OFF' : 'ON';
@@ -7133,6 +7245,26 @@ const converters = {
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+    ZM35HQ_attr: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let result = {};
+            const data = msg.data;
+            if (data && data.hasOwnProperty('zoneStatus')) {
+                result = converters.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+            }
+            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
+                result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
+            }
+            if (data && data.hasOwnProperty('61441')) {
+                const keeptimelookup = {'0': 30, '1': 60, '2': 120};
+                result.keep_time = keeptimelookup[data['61441']];
+            }
+            return result;
+        },
+    },
     tuya_gas: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse'],
@@ -7590,6 +7722,57 @@ const converters = {
             return result;
         },
     },
+    tuya_radar_sensor_fall: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor_fall');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.trsfPresenceState:
+                result = {presence: {0: false, 1: true}[value]};
+                break;
+            case tuya.dataPoints.trsfMotionState:
+                result = {occupancy: {1: false, 2: true}[value]};
+                break;
+            case tuya.dataPoints.trsfMotionSpeed:
+                result = {motion_speed: value};
+                break;
+            case tuya.dataPoints.trsfMotionDirection:
+                result = {motion_direction: tuya.tuyaRadar.motionDirection[value]};
+                break;
+            case tuya.dataPoints.trsfScene:
+                result = {radar_scene: tuya.tuyaRadar.radarScene[value]};
+                break;
+            case tuya.dataPoints.trsfSensitivity:
+                result = {radar_sensitivity: value};
+                break;
+            case tuya.dataPoints.trsfIlluminanceLux:
+                result = {illuminance_lux: value};
+                break;
+            case tuya.dataPoints.trsfTumbleAlarmTime:
+                result = {tumble_alarm_time: value+1};
+                break;
+            case tuya.dataPoints.trsfTumbleSwitch:
+                result = {tumble_switch: {false: 'OFF', true: 'ON'}[value]};
+                break;
+            case tuya.dataPoints.trsfFallDownStatus:
+                result = {fall_down_status: tuya.tuyaRadar.fallDown[value]};
+                break;
+            case tuya.dataPoints.trsfStaticDwellAlarm:
+                result = {static_dwell_alarm: value};
+                break;
+            case tuya.dataPoints.trsfFallSensitivity:
+                result = {fall_sensitivity: value};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.tuya_radar_sensor_fall: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            return result;
+        },
+    },
     tuya_smart_vibration_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandGetData', 'commandDataResponse', 'raw'],
@@ -7609,6 +7792,31 @@ const converters = {
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:tuya_smart_vibration_sensor: NOT RECOGNIZED ` +
+                        `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
+    matsee_garage_door_opener: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.garageDoorTrigger:
+                    result.action = 'trigger';
+                    break;
+                case tuya.dataPoints.garageDoorContact:
+                    result.garage_door_contact = Boolean(!value);
+                    break;
+                case tuya.dataPoints.garageDoorStatus:
+                    // This reports a garage door status (open, closed), but it is very naive and misleading
+                    break;
+                default:
+                    meta.logger.debug(`zigbee-herdsman-converters:matsee_garage_door_opener: NOT RECOGNIZED ` +
                         `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }
@@ -7954,6 +8162,81 @@ const converters = {
                 action = {0: 'rotate_right', 1: 'rotate_left'}[msg.data[3]];
             }
             return {action};
+        },
+    },
+    ZMAM02: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport', 'commandSetDataresponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            // let value = tuya.getDataValue(dpValue);
+            // let result = null;
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                switch (dpValue.dp) {
+                case tuya.dataPoints.AM02Control:
+                    result.control = tuya.ZMAM02.AM02Control[value];
+                    break;
+                case tuya.dataPoints.AM02PercentControl:
+                    result.percent_control = value;
+                    break;
+                case tuya.dataPoints.AM02ControlBackMode:
+                    result.control_back_mode = tuya.ZMAM02.AM02Direction[value];
+                    break;
+                case tuya.dataPoints.AM02MotorWorkingMode:
+                    switch (value) {
+                    case 0: // continuous 1
+                        result.motor_working_mode = 'continuous';
+                        break;
+                    case 1: // intermittently
+                        result.motor_working_mode = 'intermittently';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                        `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                case tuya.dataPoints.AM02Border:
+                    switch (value) {
+                    case 0: // up
+                        result.border = 'up';
+                        break;
+                    case 1: // down
+                        result.border = 'down';
+                        break;
+                    case 2: // down_delete
+                        result.border = 'down_delete';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                        `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                case tuya.dataPoints.AM02PercentState:
+                    result.percent_state = value;
+                    break;
+                case tuya.dataPoints.AM02Mode:
+                    switch (value) {
+                    case 0: // morning
+                        result.mode = 'morning';
+                        break;
+                    case 1: // night
+                        result.mode = 'night';
+                        break;
+                    default:
+                        meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
+                          `Mode ${value} is not recognized.`);
+                        break;
+                    }
+                    break;
+                default:
+                    meta.logger.warn(`fromZigbee.Zemismart Shader Konverter (Zm_AM02): NOT RECOGNIZED ` +
+                      `DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
         },
     },
     // #endregion

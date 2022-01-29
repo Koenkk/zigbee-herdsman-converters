@@ -64,6 +64,12 @@ const tradfriExtend = {
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
+    light_onoff_brightness_color: (options = {}) => ({
+        ...extend.light_onoff_brightness_color(options),
+        exposes: extend.light_onoff_brightness_color(options).exposes.concat(e.power_on_behavior()),
+        ota: ota.tradfri,
+        onEvent: bulbOnEvent,
+    }),
 };
 
 const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
@@ -252,7 +258,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm'],
+        zigbeeModel: ['TRADFRI bulb E27 WS clear 950lm', 'TRADFRI bulb E26 WS clear 950lm', 'TRADFRI bulb E27 WS\uFFFDclear 950lm'],
         model: 'LED1546G12',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 950 lumen, dimmable, white spectrum, clear',
@@ -369,7 +375,7 @@ module.exports = [
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
-        extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
+        extend: tradfriExtend.light_onoff_brightness_color(),
         meta: {supportsHueAndSaturation: false},
     },
     {
@@ -740,10 +746,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WWclear250lm'],
+        zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
         model: 'LED1935C3',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 WW clear 250 lumen, dimmable',
+        description: 'TRADFRI LED bulb E12/E14 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {

@@ -91,7 +91,7 @@ module.exports = [
         zigbeeModel: ['LEDVANCE DIM'],
         model: '4058075208421',
         vendor: 'LEDVANCE',
-        description: 'SMART+ candle E14 tunable white',
+        description: 'SMART+ candle E14 dimmable white',
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
