@@ -1,5 +1,7 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const exposes = require('../lib/exposes');
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -13,6 +15,21 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['43132'],
+        model: '43132',
+        vendor: 'Jasco',
+        description: 'Zigbee smart outlet',
+        extend: extend.switch(),
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
     },
 ];
