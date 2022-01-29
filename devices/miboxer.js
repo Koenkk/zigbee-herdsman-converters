@@ -50,5 +50,5 @@ module.exports = [
         description: 'RGB LED controller',
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
-	},
+    },
 ];
