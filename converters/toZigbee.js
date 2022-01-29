@@ -54,6 +54,13 @@ const converters = {
             meta.logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`);
         },
     },
+    command: {
+        key: ['command'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(value.cluster, value.command, (value.hasOwnProperty('payload') ? value.payload : {}), utils.getOptions(meta.mapped, entity));
+            meta.logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`);
+        },
+    },
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
