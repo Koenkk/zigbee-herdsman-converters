@@ -3821,7 +3821,7 @@ const converters = {
                 const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
                 const emi = value.slice(22, 24);
                 const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
-                '            stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
+                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
                 return {holiday_start_stop: hMode};
             }
             case tuya.dataPoints.tvBoostMode:
