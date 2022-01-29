@@ -3334,7 +3334,7 @@ const converters = {
     RM01_row_button: {
         key: ['rm01_row_2', 'rm01_row_3', 'rm01_row_4'],
         convertSet: async (entity, key, value, meta) => {
-            return;
+            return {state:  {action: key}};
         },
     },    
     aqara_opple_operation_mode: {
