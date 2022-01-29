@@ -6,9 +6,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['MS100'],
-        model: 'MS100(UN)',
+        model: 'MS100',
         vendor: 'TP-Link',
-        description: 'Smart Motion Sensor',
+        description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux()],
