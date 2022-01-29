@@ -3814,20 +3814,21 @@ const converters = {
             case tuya.dataPoints.tvOpenWindowTemp:
                 return {open_window_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvErrorStatus:
-                return {fault_alarm: value};
-            case tuya.dataPoints.tvHolidayMode:
-                return {holiday_mode_date: value};
-
+                return {fault_alarm: value};case tuya.dataPoints.tvHolidayMode: {
+                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
+                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
+                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
+                const emi = value.slice(22, 24);
+                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
+                '            stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
+                return {holiday_start_stop: hMode};
+            }
             case tuya.dataPoints.tvBoostMode:
-                // Online ?
+                // 115 online / Is the device online
                 return {online: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWorkingDay:
-                // tvWorkingDay: 31,
-                return {working_day: value};
-            case tuya.dataPoints.tvWeekSchedule:
-                // tvWeekSchedule: 106, Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {week_schedule: value};
-
+                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                return {working_day: workDay[value]};
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
                         '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
