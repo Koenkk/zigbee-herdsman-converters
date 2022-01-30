@@ -2978,8 +2978,8 @@ const converters = {
         key: [
             'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'heating_stop',
             'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
-            'holiday_mode_date', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
-            'working_day', 'week_schedule', 'week', 'online',
+            'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'working_day', 'week_schedule_programming', 'online', 'holiday_mode_date',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -2992,6 +2992,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -3000,6 +3001,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -3016,6 +3018,7 @@ const converters = {
                 break;
             case 'current_heating_setpoint':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                await utils.sleep(500);
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 break;
             case 'holiday_temperature':
@@ -3034,19 +3037,26 @@ const converters = {
             case 'open_window_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value * 10);
                 break;
-            case 'holiday_mode_date':
-                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvHolidayMode, value);
-                break;
-
+            case 'holiday_start_stop': {
+                const numberPattern = /\d+/g;
+                value = value.match(numberPattern).join([]).toString();
+                return tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.tvHolidayMode, value);
+            }
             case 'online':
-                // 115 ????? online
+                // 115 online / Is the device online
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
                 break;
-            case 'week': {
-                const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
-                const week = weekLookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
-                return {state: {week: value}};}
+            case 'working_day': {
+                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                const workLookup = {'0': 0, '1': 1, '2': 2, '3': 3};
+                const workDay = workLookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, workDay);
+                return {state: {working_day: value}};
+            }
+            case 'week_schedule_programming':
+                // DP-106, Send Only, raw, week_program3_day
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.tvWeekSchedule, value);
+                break;
 
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
