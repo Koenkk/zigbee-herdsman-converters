@@ -2219,7 +2219,7 @@ const converters = {
                 // Turn on dimming channel 1 and channel 2
                 await entity.write('aqaraOpple', {0x050F: {value: 3, type: 0x23}}, manufacturerOptions.xiaomi);
             }
-            return {state: {device_mode: value}};
+            return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, value, meta) => {
             await entity.read('aqaraOpple', [0x0509], manufacturerOptions.xiaomi);
