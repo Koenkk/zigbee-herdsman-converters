@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_v1pdxuqq'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -867,6 +867,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_xaabybja'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_rmymn92d'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'},
@@ -892,6 +893,7 @@ module.exports = [
             {vendor: 'Zemismart', model: 'M515EGB'},
             {vendor: 'TuYa', model: 'M515EGZT'},
             {vendor: 'TuYa', model: 'DT82LEMA-1.2N'},
+            {vendor: 'TuYa', model: 'ZD82TN', description: 'Curtain motor'},
             {vendor: 'Moes', model: 'AM43-0.45/40-ES-EB'},
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
             {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
@@ -978,35 +980,34 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
             e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
-            e.holiday_temperature().withValueMin(0).withValueMax(30), e.comfort_temperature().withValueMin(0).withValueMax(30),
-            e.eco_temperature().withValueMin(0).withValueMax(30),
+            e.comfort_temperature().withValueMin(0).withValueMax(30), e.eco_temperature().withValueMin(0).withValueMax(30),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
-                    ' is activated, the temperature in the house is kept at 8 °C ‚the device display "AF".press the '+
+                    ' is activated, the temperature in the house is kept at 8 °C, the device display "AF".press the '+
                     'pair button to cancel.'),
             exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged'+
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
-                    'heating stop, the device display "HS" ‚press the pair button to cancel.'),
+                    'heating stop, the device display "HS", press the pair button to cancel.'),
+            e.holiday_temperature(), exposes.composite('holiday_mode_date').withDescription('The holiday mode( ⛱ ) will '+
+                    'automatically start at the set time starting point and run the holiday temperature.')
+                .withFeature(exposes.text('holiday_start_stop', ea.STATE_SET)),
+            // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
+            exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
+                .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
+                    'the device executes a preset week programming temperature time and temperature. '),
+            exposes.text('schedule_monday', ea.STATE),
+            exposes.text('schedule_tuesday', ea.STATE),
+            exposes.text('schedule_wednesday', ea.STATE),
+            exposes.text('schedule_thursday', ea.STATE),
+            exposes.text('schedule_friday', ea.STATE),
+            exposes.text('schedule_saturday', ea.STATE),
+            exposes.text('schedule_sunday', ea.STATE),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
-            exposes.text('holiday_mode_date', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
-            exposes.composite('programming').withDescription('Auto Mode ⏱ - In this mode,'+
-                    ' the device executes a preset week programming temperature time and temperature. ')
-                .withFeature(exposes.text('schedule_monday', ea.STATE))
-                .withFeature(exposes.text('schedule_tuesday', ea.STATE))
-                .withFeature(exposes.text('schedule_wednesday', ea.STATE))
-                .withFeature(exposes.text('schedule_thursday', ea.STATE))
-                .withFeature(exposes.text('schedule_friday', ea.STATE))
-                .withFeature(exposes.text('schedule_saturday', ea.STATE))
-                .withFeature(exposes.text('schedule_sunday', ea.STATE)),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
-            // exposes.numeric('week_schedule', ea.STATE).withDescription('week_schedule'),
-            // exposes.numeric('working_day', ea.STATE).withDescription('working_day'),
-            // e.week(),
         ],
     },
     {
@@ -1163,6 +1164,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_v1pdxuqq'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',

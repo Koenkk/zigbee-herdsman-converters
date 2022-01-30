@@ -1308,6 +1308,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['3261330P6'],
+        model: '3261330P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Still',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTC003'],
         model: '3261331P7',
         vendor: 'Philips',
@@ -1439,6 +1448,15 @@ module.exports = [
         description: 'Hue white ambiance suspension Amaze',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4023330P6'],
+        model: '4023330P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Amaze',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {

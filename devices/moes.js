@@ -203,7 +203,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}, {modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'}],
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',

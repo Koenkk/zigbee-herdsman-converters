@@ -2173,7 +2173,7 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2188,11 +2188,41 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
             }
+        },
+    },
+    xiaomi_flip_indicator_light: {
+        key: ['flip_indicator_light'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'OFF': 0, 'ON': 1};
+            await entity.write('aqaraOpple', {0x00F0: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {flip_indicator_light: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.xiaomi);
+        },
+    },
+    xiaomi_dimmer_mode: {
+        key: ['dimmer_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'rgbw': 3, 'dual_ct': 1};
+            value = value.toLowerCase();
+            if (['rgbw'].includes(value)) {
+                await entity.write('aqaraOpple', {0x0509: {value: lookup[value], type: 0x23}}, manufacturerOptions.xiaomi);
+                await entity.write('aqaraOpple', {0x050F: {value: 1, type: 0x23}}, manufacturerOptions.xiaomi);
+            } else {
+                await entity.write('aqaraOpple', {0x0509: {value: lookup[value], type: 0x23}}, manufacturerOptions.xiaomi);
+                // Turn on dimming channel 1 and channel 2
+                await entity.write('aqaraOpple', {0x050F: {value: 3, type: 0x23}}, manufacturerOptions.xiaomi);
+            }
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, value, meta) => {
+            await entity.read('aqaraOpple', [0x0509], manufacturerOptions.xiaomi);
         },
     },
     xiaomi_switch_operation_mode_basic: {
@@ -2967,8 +2997,8 @@ const converters = {
         key: [
             'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'heating_stop',
             'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
-            'holiday_mode_date', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
-            'working_day', 'week_schedule', 'week', 'online',
+            'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'working_day', 'week_schedule_programming', 'online', 'holiday_mode_date',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -2981,6 +3011,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -2989,6 +3020,7 @@ const converters = {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
                 } else {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
+                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -3005,6 +3037,7 @@ const converters = {
                 break;
             case 'current_heating_setpoint':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvHeatingSetpoint, value * 10);
+                await utils.sleep(500);
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 break;
             case 'holiday_temperature':
@@ -3023,19 +3056,26 @@ const converters = {
             case 'open_window_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.tvOpenWindowTemp, value * 10);
                 break;
-            case 'holiday_mode_date':
-                await tuya.sendDataPointBitmap(entity, tuya.dataPoints.tvHolidayMode, value);
-                break;
-
+            case 'holiday_start_stop': {
+                const numberPattern = /\d+/g;
+                value = value.match(numberPattern).join([]).toString();
+                return tuya.sendDataPointStringBuffer(entity, tuya.dataPoints.tvHolidayMode, value);
+            }
             case 'online':
-                // 115 ????? online
+                // 115 online / Is the device online
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
                 break;
-            case 'week': {
-                const weekLookup = {'5+2': 0, '6+1': 1, '7': 2};
-                const week = weekLookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, week);
-                return {state: {week: value}};}
+            case 'working_day': {
+                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
+                const workLookup = {'0': 0, '1': 1, '2': 2, '3': 3};
+                const workDay = workLookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, workDay);
+                return {state: {working_day: value}};
+            }
+            case 'week_schedule_programming':
+                // DP-106, Send Only, raw, week_program3_day
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.tvWeekSchedule, value);
+                break;
 
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
