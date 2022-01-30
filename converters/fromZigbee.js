@@ -627,8 +627,9 @@ const converters = {
                 /* 0x000E*/ 'powerThreshold',
             ];
             for (const at of elements) {
+                const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 if (msg.data[at]) {
-                    result[at] = msg.data[at];
+                    result[at_snake] = msg.data[at];
                 }
             }
             return result;

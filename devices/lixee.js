@@ -46,8 +46,9 @@ const fzLocal = {
             ];
 
             for (const at of elements) {
+                const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 if (msg.data[at]) {
-                    result[at] = msg.data[at];
+                    result[at_snake] = msg.data[at];
                 }
             }
             return result;
@@ -100,6 +101,7 @@ const fzLocal = {
             ];
             const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
+                const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 let val = msg.data[at];
                 if (val) {
                     if (val.hasOwnProperty('type') && val.type === 'Buffer') {
@@ -120,7 +122,7 @@ const fzLocal = {
                         val = utils.precisionRound(val / 1000, kWh_p); // from Wh to kWh
                         break;
                     }
-                    result[at] = val;
+                    result[at_snake] = val;
                 }
             }
             return result;
@@ -150,6 +152,7 @@ const fzLocal = {
             ];
             const kWh_p = options && options.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
+                const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 const val = msg.data[at];
                 if (val) {
                     result[at] = val; // By default we assign raw value
@@ -158,7 +161,7 @@ const fzLocal = {
                     case 'meterSerialNumber':
                     case 'siteId':
                         if (Buffer.isBuffer(val)) {
-                            result[at] = val.toString();
+                            result[at_snake] = val.toString();
                         }
                         break;
                     case 'currentSummDelivered':
@@ -173,15 +176,15 @@ const fzLocal = {
                     case 'currentTier8SummDelivered':
                     case 'currentTier9SummDelivered':
                     case 'currentTier10SummDelivered':
-                        result[at] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
+                        result[at_snake] = utils.precisionRound(((val[0] << 32) + val[1]) / 1000, kWh_p); // Wh to kWh
                         break;
                     }
                 }
             }
             // TODO: Check if all tarifs which doesn't publish "currentSummDelivered" use just Tier1 & Tier2
-            if (result['currentSummDelivered'] == 0 &&
-            (result['currentTier1SummDelivered'] > 0 || result['currentTier2SummDelivered'] > 0)) {
-                result['currentSummDelivered'] = result['currentTier1SummDelivered'] + result['currentTier2SummDelivered'];
+            if (result['current_summ_delivered'] == 0 &&
+            (result['current_tier1_summ_delivered'] > 0 || result['current_tier2_summ_delivered'] > 0)) {
+                result['current_summ_delivered'] = result['current_tier1_summ_delivered'] + result['current_tier2_summ_delivered'];
             }
             return result;
         },
