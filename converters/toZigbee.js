@@ -2206,6 +2206,25 @@ const converters = {
             await entity.read('aqaraOpple', [0x00F0], manufacturerOptions.xiaomi);
         },
     },
+    xiaomi_dimmer_mode: {
+        key: ['dimmer_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'rgbw': 3, 'dual_ct': 1};
+            value = value.toLowerCase();
+            if (['rgbw'].includes(value)) {
+                await entity.write('aqaraOpple', {0x0509: {value: lookup[value], type: 0x23}}, manufacturerOptions.xiaomi);
+                await entity.write('aqaraOpple', {0x050F: {value: 1, type: 0x23}}, manufacturerOptions.xiaomi);
+            } else {
+                await entity.write('aqaraOpple', {0x0509: {value: lookup[value], type: 0x23}}, manufacturerOptions.xiaomi);
+                // Turn on dimming channel 1 and channel 2
+                await entity.write('aqaraOpple', {0x050F: {value: 3, type: 0x23}}, manufacturerOptions.xiaomi);
+            }
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, value, meta) => {
+            await entity.read('aqaraOpple', [0x0509], manufacturerOptions.xiaomi);
+        },
+    },
     xiaomi_switch_operation_mode_basic: {
         key: ['operation_mode'],
         convertSet: async (entity, key, value, meta) => {

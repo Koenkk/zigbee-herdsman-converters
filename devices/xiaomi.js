@@ -63,18 +63,21 @@ module.exports = [
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart lightstrip driver',
-        exposes: [e.light_brightness_colortemp([153, 370]).withEndpoint('l1'),
-            e.light_brightness_colortemp([153, 370]).withEndpoint('l2')],
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
+            fz.xiaomi_power, fz.aqara_opple]),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.xiaomi_dimmer_mode, tz.xiaomi_switch_power_outage_memory]),
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
-        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+        exposes: [e.power(), e.energy(), e.voltage(), e.temperature(), e.power_outage_memory(),
+            // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
+            // Do not control l2 in rgbw mode
+            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
+            e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
+            exposes.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
+                .withDescription('Switch between rgbw mode or dual color temperature mode')],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
