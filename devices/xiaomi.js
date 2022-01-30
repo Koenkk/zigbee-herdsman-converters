@@ -63,18 +63,21 @@ module.exports = [
         model: 'ZNDDMK11LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart lightstrip driver',
-        exposes: [e.light_brightness_colortemp([153, 370]).withEndpoint('l1'),
-            e.light_brightness_colortemp([153, 370]).withEndpoint('l2')],
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee.concat([
+            fz.xiaomi_power, fz.aqara_opple]),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.xiaomi_dimmer_mode, tz.xiaomi_switch_power_outage_memory]),
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            await endpoint1.write('aqaraOpple', {0x0509: {value: 1, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
-            await endpoint1.write('aqaraOpple', {0x050f: {value: 3, type: 0x23}}, {manufacturerCode: 0x115f, disableResponse: true});
-        },
-        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+        exposes: [e.power(), e.energy(), e.voltage(), e.temperature(), e.power_outage_memory(),
+            // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
+            // Do not control l2 in rgbw mode
+            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
+            e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
+            exposes.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
+                .withDescription('Switch between rgbw mode or dual color temperature mode')],
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
@@ -1241,9 +1244,18 @@ module.exports = [
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
+        fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.cover_position_tilt, fz.ignore_basic_report,
+            fz.aqara_opple],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_status],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
+            exposes.enum('motor_state', ea.STATE_GET, ['declining', 'rising', 'pause', 'blocked'])
+                .withDescription('The current state of the motor.'),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not.')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
         ota: ota.zigbeeOTA,
     },
     {
@@ -1550,20 +1562,22 @@ module.exports = [
         zigbeeModel: ['lumi.remote.b28ac1'],
         model: 'WRS-R02',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'WXKG15LM'}],
         description: 'Aqara wireless remote switch H1 (double rocker)',
-        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple, fz.command_toggle],
+        fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
+        toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
+        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         exposes: [
-            e.battery(), e.action([
-                'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
-                'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
-                'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
-                'toggle_1',
-            ]),
+            e.battery(), e.battery_voltage(), e.action([
+                'single_left', 'single_right', 'single_both',
+                'double_left', 'double_right', 'double_both',
+                'triple_left', 'triple_right', 'triple_both']),
+            exposes.enum('click_mode', ea.ALL, ['fast', 'multi'])
+                .withDescription('Click mode, fast: only supports single click which will be send immediately after clicking.' +
+                    'multi: supports more events like double and hold'),
             exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
         ],
-        toZigbee: [tz.aqara_opple_operation_mode],
-        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(3);

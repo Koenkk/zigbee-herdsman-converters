@@ -5275,6 +5275,8 @@ const converters = {
                             payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        } else if (['ZNJLBL01LM'].includes(model.model)) {
+                            payload.battery = value;
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
@@ -5336,6 +5338,7 @@ const converters = {
             if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2);
             if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay';
             if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
+            if (msg.data.hasOwnProperty('1289')) payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[msg.data['1289']];
             return payload;
         },
     },
@@ -5405,7 +5408,8 @@ const converters = {
             }
 
             let buttonLookup = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG17LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM',
+                'WRS-R02'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG31LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
@@ -5804,6 +5808,40 @@ const converters = {
                         reverse_direction: data[2]=='\u0001',
                         hand_open: data[5]=='\u0000',
                     },
+                };
+            }
+        },
+    },
+    xiaomi_curtain_acn002_position: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position: position};
+        },
+    },
+    xiaomi_curtain_acn002_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'declining',
+                1: 'rising',
+                2: 'pause',
+                3: 'blocked',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true;
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running,
                 };
             }
         },
