@@ -26,6 +26,29 @@ module.exports = [
         meta: {applyRedFix: true},
     },
     {
+        zigbeeModel: ['TS0201'],
+        fingerprint: [{manufacturerName: '_TZ3000_rusu2vzb'}],
+        model: 'R7048',
+        vendor: 'Woox',
+        description: 'Smart Humidity & Temperature Sensor',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                const endpoint = device.getEndpoint(1);
+                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                await reporting.temperature(endpoint);
+                await reporting.humidity(endpoint);
+                await reporting.batteryVoltage(endpoint);
+                await reporting.batteryPercentageRemaining(endpoint);
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
+                logger.error(`Configure failed: ${e}`);
+            }
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aycxwiau'}],
         model: 'R7049',
         vendor: 'Woox',
