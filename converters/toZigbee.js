@@ -4498,6 +4498,9 @@ const converters = {
                 // contactor
                 'switch': 0x0003,
                 'auto': 0x0004,
+                // pilot wire
+                'pilot_on': 0x0002,
+                'pilot_off': 0x0001,
             };
 
             value = value.toLowerCase();
@@ -4508,6 +4511,15 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
+        },
+    },
+    legrand_cableOutletMode: {
+        key: ['cable_outlet_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            meta.logger.warn('Feature under development !');
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read(64576, [0x0000], manufacturerOptions.legrand);
         },
     },
     legrand_powerAlarm: {
