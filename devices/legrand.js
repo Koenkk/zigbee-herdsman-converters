@@ -297,4 +297,16 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
     },
+    {
+        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '064882',
+        vendor: 'Legrand',
+        description: 'Cable outlet with pilot wire and consumption measurement',
+        fromZigbee: [fz.legrand_device_mode, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power],
+        exposes: [exposes.enum('device_mode', ea.ALL, ['pilot_off', 'pilot_on']),
+            exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+            exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
+            e.power().withAccess(ea.STATE_GET)],
+    },
 ];
