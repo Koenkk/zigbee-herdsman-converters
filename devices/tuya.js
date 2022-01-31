@@ -1235,7 +1235,8 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
+        fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}, 
+            {modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
         model: 'TS1101_dimmer_module_1ch',
         vendor: 'TuYa',
         description: 'Zigbee dimmer module 1 channel',
