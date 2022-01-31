@@ -232,6 +232,14 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-C-003P'],
+        model: 'GL-C-003P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee LED Controller RGB (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_color(),
+    },
+    {
         zigbeeModel: ['GL-C-008P'],
         model: 'GL-C-008P',
         vendor: 'Gledopto',
