@@ -75,6 +75,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['396483ce8b3f4e0d8e9d79079a35a420'],
+        model: 'CM10ZW',
+        vendor: 'ORVIBO',
+        description: 'Multi-functional 3 gang relay',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['b467083cfc864f5e826459e5d8ea6079'],
         model: 'ST20',
         vendor: 'ORVIBO',
