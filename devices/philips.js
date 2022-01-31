@@ -1299,7 +1299,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3261331P6'],
+        zigbeeModel: ['3261331P6', '3261330P6'], 
         model: '3261331P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Still',
