@@ -155,7 +155,7 @@ const fzLocal = {
                 const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 const val = msg.data[at];
                 if (val) {
-                    result[at] = val; // By default we assign raw value
+                    result[at_snake] = val; // By default we assign raw value
                     switch (at) {
                     // If we receive a Buffer, transform to human readable text
                     case 'meterSerialNumber':
