@@ -329,7 +329,6 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryAlarmState(endpoint);
         },
-
         exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
     },
 ];
