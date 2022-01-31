@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
@@ -33,6 +34,15 @@ module.exports = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aycxwiau'}],
