@@ -3815,19 +3815,21 @@ const converters = {
                 return {open_window_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvErrorStatus:
                 return {fault_alarm: value};
-            case tuya.dataPoints.tvHolidayMode:
-                return {holiday_mode_date: value};
-
+            case tuya.dataPoints.tvHolidayMode: {
+                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
+                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
+                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
+                const emi = value.slice(22, 24);
+                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
+                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
+                return {holiday_start_stop: hMode};
+            }
             case tuya.dataPoints.tvBoostMode:
-                // Online ?
+                // 115 online / Is the device online
                 return {online: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWorkingDay:
-                // tvWorkingDay: 31,
+                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {working_day: value};
-            case tuya.dataPoints.tvWeekSchedule:
-                // tvWeekSchedule: 106, Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {week_schedule: value};
-
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
                         '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
@@ -5257,7 +5259,7 @@ const converters = {
                     else if (index === 5) {
                         if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
-                        if (['QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
@@ -5266,13 +5268,15 @@ const converters = {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 101) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        } else if (['ZNJLBL01LM'].includes(model.model)) {
+                            payload.battery = value;
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
@@ -5303,6 +5307,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
+            if (msg.data.hasOwnProperty('240')) payload.flip_indicator_light = msg.data['240'] === 1 ? 'ON' : 'OFF';
             if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) {
                 if (['RTCGQ13LM'].includes(model.model)) {
@@ -5333,6 +5338,7 @@ const converters = {
             if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2);
             if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay';
             if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
+            if (msg.data.hasOwnProperty('1289')) payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[msg.data['1289']];
             return payload;
         },
     },
@@ -5402,7 +5408,8 @@ const converters = {
             }
 
             let buttonLookup = null;
-            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG17LM'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
+            if (['WXKG02LM_rev2', 'WXKG07LM', 'WXKG15LM', 'WXKG17LM',
+                'WRS-R02'].includes(model.model)) buttonLookup = {1: 'left', 2: 'right', 3: 'both'};
             if (['QBKG12LM', 'QBKG24LM'].includes(model.model)) buttonLookup = {5: 'left', 6: 'right', 7: 'both'};
             if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG31LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
@@ -5801,6 +5808,40 @@ const converters = {
                         reverse_direction: data[2]=='\u0001',
                         hand_open: data[5]=='\u0000',
                     },
+                };
+            }
+        },
+    },
+    xiaomi_curtain_acn002_position: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position: position};
+        },
+    },
+    xiaomi_curtain_acn002_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'declining',
+                1: 'rising',
+                2: 'pause',
+                3: 'blocked',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true;
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running,
                 };
             }
         },
