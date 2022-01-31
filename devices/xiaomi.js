@@ -905,8 +905,11 @@ module.exports = [
         description: 'Aqara Presence Detector FP1 (regions not supported for now)',
         fromZigbee: [fz.aqara_opple],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance],
-        exposes: [e.presence().withAccess(ea.STATE_GET), exposes.text('presence_event', ea.STATE).withDescription('Presence ' +
-            'events: "enter", "leave", "left_enter", "right_leave", "right_enter", "left_leave", "approach", "away"'),
+        exposes: [e.presence().withAccess(ea.STATE_GET),
+        e.action(['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave', 'approach', 'away'])
+            .withDescription('Presence event'),
+        exposes.enum('last_action', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
+            'approach', 'away']).withDescription('Last presence event'),
         exposes.enum('monitoring_mode', ea.ALL, ['undirected', 'left_right']).withDescription('Monitoring mode with or ' +
             'without considering right and left sides'),
         exposes.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
