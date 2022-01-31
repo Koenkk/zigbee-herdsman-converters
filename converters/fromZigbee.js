@@ -5278,7 +5278,7 @@ const converters = {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_right = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCZCGQ11LM'].includes(model.model)) {
-                            payload.last_action = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
                                 5: 'left_leave', 6: 'approach', 7: 'away', 255: null}[value];
                         }
                     } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
@@ -5328,11 +5328,8 @@ const converters = {
             if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('322')) payload.presence = msg.data['322'] === 1; // RTCZCGQ11LM
             if (msg.data.hasOwnProperty('323')) {
-                let action = null;
-                action = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter', 5: 'left_leave',
-                    6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
-                payload.action = action;
-                payload.last_action = action;
+                payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                    5: 'left_leave', 6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
             }
             // RTCZCGQ11LM
             if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected';
