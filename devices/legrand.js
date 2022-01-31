@@ -298,7 +298,7 @@ module.exports = [
         exposes: [e.action(['press_once', 'press_twice'])],
     },
     {
-        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' + 
+        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
             '\u0000\u0000'],
         model: '064882',
         vendor: 'Legrand',
