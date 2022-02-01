@@ -1121,6 +1121,7 @@ module.exports = [
             });
             await reporting.currentSummDelivered(endpoint);
         },
+        options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
