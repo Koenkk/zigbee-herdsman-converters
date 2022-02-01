@@ -331,4 +331,20 @@ module.exports = [
         },
         exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
     },
+    {
+        zigbeeModel: ['VA4200WZ'],
+        model: 'VA4200WZ',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water valve (3/4")',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.battery],
+        toZigbee: [tz.cover_via_brightness],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint); // valve position
+        },
+        exposes: [e.valve_switch(), e.valve_position(), e.battery_low(), e.battery()],
+    },
 ];
