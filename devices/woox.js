@@ -30,7 +30,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_rusu2vzb'}],
         model: 'R7048',
         vendor: 'Woox',
-        description: 'Smart Humidity & Temperature Sensor',
+        description: 'Smart humidity & temperature sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
