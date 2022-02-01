@@ -607,7 +607,7 @@ module.exports = [
         description: 'Aqara D1 3 gang smart wall switch (no neutral wire)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.aqara_switch_mode_switch],
+            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -626,7 +626,7 @@ module.exports = [
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
-            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'left_single', 'left_double', 'center_single', 'center_double', 'right_single', 'right_double',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
@@ -655,7 +655,7 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(),
-            e.temperature().withAccess(ea.STATE),
+            e.temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
@@ -663,7 +663,7 @@ module.exports = [
         ],
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night],
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -733,11 +733,11 @@ module.exports = [
         description: 'Aqara smart wall switch T1 (with neutral, single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night],
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         exposes: [
             e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
             e.voltage().withAccess(ea.STATE), e.temperature().withAccess(ea.STATE),
-            e.power_outage_memory(), e.led_disabled_night(),
+            e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button'),
         ],
@@ -751,14 +751,14 @@ module.exports = [
         description: 'Aqara smart wall switch T1 (with neutral, double rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night],
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE),
+            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE), e.flip_indicator_light(),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
@@ -779,14 +779,14 @@ module.exports = [
         description: 'Aqara smart wall switch T1 (with neutral, three rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_led_disabled_night],
+            tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE),
+            e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE), e.flip_indicator_light(),
             e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
@@ -1626,8 +1626,9 @@ module.exports = [
         description: 'Aqara E1 1 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_switch_mode_switch],
+            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
+            e.temperature(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
@@ -1645,13 +1646,13 @@ module.exports = [
         description: 'Aqara E1 2 gang switch (without neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
-            tz.aqara_switch_mode_switch],
+            tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -1662,7 +1663,7 @@ module.exports = [
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.power_outage_memory(),
+            e.power_outage_memory(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1697,7 +1698,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara E1 2 gang switch (with neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -1711,7 +1713,7 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.power_outage_memory(),
+            e.power_outage_memory(), e.temperature(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1740,8 +1742,9 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara E1 1 gang switch (with neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory],
-        exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(),
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light],
+        exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.temperature(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
