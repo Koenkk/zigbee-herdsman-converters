@@ -364,6 +364,6 @@ module.exports = [
         exposes: [e.battery(), e.lock(), exposes.composite('pin_code', 'pin_code')
             .withFeature(exposes.numeric('user', ea.SET).withDescription('User ID can only number 1'))
             .withFeature(exposes.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
-            exposes.enum('door_state', ea.STATE, ['open', 'closed']).withDescription('Door status')], 
+        exposes.enum('door_state', ea.STATE, ['open', 'closed']).withDescription('Door status')],
     },
 ];
