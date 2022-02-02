@@ -474,4 +474,13 @@ module.exports = [
             await reporting.onOff(endpoint3);
         },
     },
+    {
+        zigbeeModel: ['0e93fa9c36bb417a90ad5d8a184b683a'],
+        model: 'SM20',
+        vendor: ' ORVIBO',
+        description: ' Door or window contact switch',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
 ];
