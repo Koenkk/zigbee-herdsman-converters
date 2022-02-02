@@ -22,7 +22,8 @@ module.exports = [
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode],
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
+            tz.danfoss_window_open_feature_enable],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -53,6 +54,8 @@ module.exports = [
             exposes.binary('radiator_covered', ea.ALL, true, false)
                 .withDescription('Set if the TRV should solely rely on external_measured_room_sensor or operate in offset mode. ' +
                     '`false` = Auto Offset Mode or `true` = Room Sensor Mode'),
+            exposes.binary('window_open_feature_enable', ea.ALL, true, false)
+                .withDescription('Whether or not the window open feature is enabled'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
