@@ -345,6 +345,7 @@ module.exports = [
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 3 gangs',
         extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
