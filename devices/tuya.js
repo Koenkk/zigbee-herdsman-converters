@@ -1120,7 +1120,9 @@ module.exports = [
                 acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
-            await reporting.currentSummDelivered(endpoint);
+            try {
+                await reporting.currentSummDelivered(endpoint);
+            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
         },
         options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
