@@ -152,7 +152,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint2);
         },
         exposes: [e.humidity(), e.temperature(), e.battery()],
-    }, 
+    },
     {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494', '6fd24c0f58a04c848fea837aaa7d6e0f'],
         model: 'T30W3Z',
@@ -294,11 +294,11 @@ module.exports = [
     },
     {
         zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
-        model: 'T40W1Z', 
-        vendor: 'ORVIBO', 
+        model: 'T40W1Z',
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 1 gang',
         extend: extend.switch(),
-        exposes: [e.switch()], 
+        exposes: [e.switch()],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -307,9 +307,9 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['2e13af8e17434961be98f055d68c2166'], 
-        model: 'T40W2Z', 
-        vendor: 'ORVIBO', 
+        zigbeeModel: ['2e13af8e17434961be98f055d68c2166'],
+        model: 'T40W2Z',
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 2 gangs',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
@@ -327,8 +327,8 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'], 
-        model: 'T40W3Z', 
+        zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
+        model: 'T40W3Z',
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 3 gangs',
         extend: extend.switch(),
@@ -350,13 +350,12 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'], 
-        model: 'T40W4Z', 
-        vendor: 'ORVIBO', 
+        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'],
+        model: 'T40W4Z',
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 4 gangs',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
-        endpoint: (device) => {
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],        endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
         },
         meta: {multiEndpoint: true},
@@ -383,21 +382,20 @@ module.exports = [
     },
     {
         zigbeeModel: ['bcb949e87e8c4ea6bc2803052dd8fbf5'], 
-        model: 'T40S6Z', 
-        vendor: 'ORVIBO', 
+        model: 'T40S6Z',
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 6 gangs',
         fromZigbee: [fz.orvibo_raw_2],  
-        toZigbee: [], 
+        toZigbee: [],
         exposes: [e.action(['button_1_click', 'button_2_click', 'button_3_click', 'button_4_click', 'button_5_click', 'button_6_click'])],
     },
     {
         zigbeeModel: ['ba8120ad03f744ecb6a973672369e80d'], 
-        model: 'T41W1Z', 
-        vendor: 'ORVIBO', 
+        model: 'T41W1Z',
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 1 gang(without neutral wire)',
         extend: extend.switch(),
         exposes: [e.switch()], 
-
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -407,7 +405,7 @@ module.exports = [
     {
         zigbeeModel: ['7c8f476a0f764cd4b994bc73d07c906d'], 
         model: 'T41W2Z', 
-        vendor: 'ORVIBO', 
+        vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 2 gang (without neutral wire)',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
@@ -441,7 +439,7 @@ module.exports = [
     {
         zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'], 
         model: 'R30W3Z', 
-        vendor: 'ORVIBO', 
+        vendor: 'ORVIBO',
         description: 'ORVIBO InWall Switch 3 gang',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
