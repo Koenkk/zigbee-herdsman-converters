@@ -355,8 +355,8 @@ module.exports = [
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 4 gangs',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), 
-                  e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],        
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],    
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
         },
@@ -397,7 +397,7 @@ module.exports = [
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 1 gang(without neutral wire)',
         extend: extend.switch(),
-        exposes: [e.switch()], 
+        exposes: [e.switch()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -406,7 +406,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['7c8f476a0f764cd4b994bc73d07c906d'],
-        model: 'T41W2Z', 
+        model: 'T41W2Z',
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 2 gang (without neutral wire)',
         extend: extend.switch(),
@@ -440,7 +440,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'],
-        model: 'R30W3Z', 
+        model: 'R30W3Z',
         vendor: 'ORVIBO',
         description: 'ORVIBO InWall Switch 3 gang',
         extend: extend.switch(),
