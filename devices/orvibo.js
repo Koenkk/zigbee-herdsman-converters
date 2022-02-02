@@ -154,6 +154,20 @@ module.exports = [
         exposes: [e.humidity(), e.temperature(), e.battery()],
     },
     {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'], 
+        model: 'T30W1Z', 
+        vendor: 'ORVIBO', 
+        description: 'TouchClassic Switch 1 gang',
+        fromZigbee: [fz.on_off], 
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()], 
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        await reporting.onOff(endpoint);
+    },
+    {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494', '6fd24c0f58a04c848fea837aaa7d6e0f'],
         model: 'T30W3Z',
         vendor: 'ORVIBO',
