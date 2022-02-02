@@ -5021,21 +5021,43 @@ const converters = {
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            const option0 = msg.data['0'];
-            // Beware that mode depends on device type
-            // contactor
-            if (option0 === 0x0003) payload.device_mode = 'switch';
-            else if (option0 === 0x0004) payload.device_mode = 'auto';
-            // dimmer
-            else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
-            else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
-            // pilot wire
-            else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
-            else if (option0 === 0x0001) payload.device_mode = 'pilot_off';
-            // unknown case
-            else {
-                meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
-                payload.device_mode = 'unknown';
+
+            if (msg.data.hasOwnProperty('0')) {
+                const option0 = msg.data['0'];
+                // Beware that mode depends on device type
+                // contactor
+                if (option0 === 0x0003) payload.device_mode = 'switch';
+                else if (option0 === 0x0004) payload.device_mode = 'auto';
+                // dimmer
+                else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
+                else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
+                // pilot wire
+                else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
+                else if (option0 === 0x0001) payload.device_mode = 'pilot_off';
+                // unknown case
+                else {
+                    meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
+                    payload.device_mode = 'unknown';
+                }
+            }
+            if (msg.data.hasOwnProperty('1')) {
+                const option1 = msg.data['1'];
+
+                if (option1 === 0x00) payload.permanent_led = 'OFF';
+                else if (option1 === 0x01) payload.permanent_led = 'ON';
+                else {
+                    meta.logger.warn(`permanent_led ${option1} not recognized`);
+                    payload.permanent_led = 'unknown';
+                }
+            } else if (msg.data.hasOwnProperty('2')) {
+                const option2 = msg.data['2'];
+
+                if (option2 === 0x00) payload.led_when_on = 'OFF';
+                else if (option2 === 0x01) payload.led_when_on = 'ON';
+                else {
+                    meta.logger.warn(`led_when_on ${option2} not recognized`);
+                    payload.led_when_on = 'unknown';
+                }
             }
             return payload;
         },
