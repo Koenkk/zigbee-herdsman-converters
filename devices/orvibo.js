@@ -306,6 +306,20 @@ module.exports = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        model: 'T40W1Z', 
+        vendor: 'ORVIBO', 
+        description: 'ORVIBO MixSwitch 1 gang',
+        extend: extend.switch(),
+        exposes: [e.switch()], 
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['2e13af8e17434961be98f055d68c2166'], 
         model: 'T40W2Z', 
         vendor: 'ORVIBO', 
