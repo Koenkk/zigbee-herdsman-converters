@@ -451,4 +451,27 @@ module.exports = [
         description: ' Downlight(Q series)',
         extend: extend.light_onoff_brightness(),
     }，
+    {
+        zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'], 
+        model: 'R30W3Z', 
+        vendor: 'ORVIBO', 
+        description: 'ORVIBO InWall Switch 3 gang',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+        },
+    },
 ];
