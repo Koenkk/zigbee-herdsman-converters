@@ -62,6 +62,12 @@ const gledoptoExtend = {
     }),
 };
 
+const configureReadModelID = async (device, coordinatorEndpoint, logger) => {
+    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
+    const endpoint = device.endpoints[0];
+    await endpoint.read('genBasic', ['modelId']);
+};
+
 module.exports = [
     {
         fingerprint: [
@@ -117,6 +123,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller WW/CW (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp(),
+        configure: configureReadModelID,
     },
     {
         fingerprint: [
@@ -180,6 +187,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        configure: configureReadModelID,
     },
     {
         fingerprint: [
@@ -238,6 +246,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB (pro)',
         extend: gledoptoExtend.light_onoff_brightness_color(),
+        configure: configureReadModelID,
     },
     {
         zigbeeModel: ['GL-C-008P'],
@@ -247,6 +256,7 @@ module.exports = [
         description: 'Zigbee LED Controller RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
         meta: {disableDefaultResponse: true},
+        configure: configureReadModelID,
     },
     {
         zigbeeModel: ['GL-C-009'],
@@ -268,6 +278,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
         extend: gledoptoExtend.light_onoff_brightness(),
+        configure: configureReadModelID,
     },
     {
         zigbeeModel: ['GL-C-009S'],
