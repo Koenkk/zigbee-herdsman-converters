@@ -394,4 +394,13 @@ module.exports = [
             await reporting.onOff(endpoint6);
         },
     },
+    {
+        zigbeeModel: ['bcb949e87e8c4ea6bc2803052dd8fbf5'], 
+        model: 'T40S6Z', 
+        vendor: 'ORVIBO', 
+        description: 'ORVIBO MixSwitch 6 gangs',
+        fromZigbee: [fz.orvibo_raw_2],  
+        toZigbee: [], 
+        exposes: [e.action(['button_1_click', 'button_2_click', 'button_3_click', 'button_4_click', 'button_5_click', 'button_6_click'])],
+    },
 ];
