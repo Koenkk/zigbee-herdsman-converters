@@ -403,4 +403,18 @@ module.exports = [
         toZigbee: [], 
         exposes: [e.action(['button_1_click', 'button_2_click', 'button_3_click', 'button_4_click', 'button_5_click', 'button_6_click'])],
     },
+    {
+        zigbeeModel: ['ba8120ad03f744ecb6a973672369e80d'], 
+        model: 'T41W1Z', 
+        vendor: 'ORVIBO', 
+        description: 'ORVIBO MixSwitch 1 gang(without neutral wire)',
+        extend: extend.switch(),
+        exposes: [e.switch()], 
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
