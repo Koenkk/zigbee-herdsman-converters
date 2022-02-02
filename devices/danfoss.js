@@ -117,6 +117,7 @@ module.exports = [
             }], options);
 
             await endpoint.read('hvacThermostat', [
+                'danfossWindowOpenFeatureEnable',
                 'danfossWindowOpenExternal',
                 'danfossDayOfWeek',
                 'danfossTriggerTime',
