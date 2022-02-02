@@ -3211,6 +3211,10 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
+            if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
+                result[postfixWithEndpointName('window_open_feature', msg, model)] =
+                    (msg.data['danfossWindowOpenFeatureEnable'] === 1);
+            }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
                 result[postfixWithEndpointName('window_open_internal', msg, model)] =
                     constants.danfossWindowOpen.hasOwnProperty(msg.data['danfossWindowOpenInternal']) ?
