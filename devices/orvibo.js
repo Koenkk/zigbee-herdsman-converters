@@ -444,14 +444,14 @@ module.exports = [
         vendor: ' ORVIBO',
         description: ' ORVIBO 0-10v dimmer',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 371]}),
-}，
+    },
     {
         zigbeeModel: ['1a20628504bf48c88ed698fe96b7867c'],
         model: 'DTZ09039',
         vendor: ' ORVIBO',
         description: ' Downlight(Q series)',
         extend: extend.light_onoff_brightness(),
-    }，
+    },
     {
         zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'], 
         model: 'R30W3Z', 
