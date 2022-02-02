@@ -437,4 +437,11 @@ module.exports = [
             await reporting.onOff(endpoint2);
         },
     },
+    {
+        zigbeeModel: ['cb7ce9fe2cb147e69c5ea700b39b3d5b'],
+        model: 'DM10ZW',
+        vendor: ' ORVIBO',
+        description: ' ORVIBO 0-10v dimmer',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 371]}),
+}，
 ];
