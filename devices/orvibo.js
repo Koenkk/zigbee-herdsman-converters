@@ -356,7 +356,7 @@ module.exports = [
         description: 'ORVIBO MixSwitch 4 gangs',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],    
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
         },
@@ -392,7 +392,7 @@ module.exports = [
         exposes: [e.action(['button_1_click', 'button_2_click', 'button_3_click', 'button_4_click', 'button_5_click', 'button_6_click'])],
     },
     {
-        zigbeeModel: ['ba8120ad03f744ecb6a973672369e80d'], 
+        zigbeeModel: ['ba8120ad03f744ecb6a973672369e80d'],
         model: 'T41W1Z',
         vendor: 'ORVIBO',
         description: 'ORVIBO MixSwitch 1 gang(without neutral wire)',
