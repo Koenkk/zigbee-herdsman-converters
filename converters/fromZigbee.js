@@ -2522,8 +2522,8 @@ const converters = {
                 return {battpercentage: value};
             case tuya.dataPoints.neoAOMelody: // 0x21 [5] Melody
                 return {melody: value};
-            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-max, 2-low
-                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
+                return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
             default: // Unknown code
                 meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
