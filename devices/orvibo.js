@@ -362,4 +362,36 @@ module.exports = [
             await reporting.onOff(endpoint3);
         },
     },
+    {
+        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'], 
+        model: 'T40W4Z', 
+        vendor: 'ORVIBO', 
+        description: 'ORVIBO MixSwitch 4 gangs',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint4);
+            const endpoint5 = device.getEndpoint(5);
+            await reporting.bind(endpoint5, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint5);
+            const endpoint6 = device.getEndpoint(6);
+            await reporting.bind(endpoint6, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint6);
+        },
+    },
 ];
