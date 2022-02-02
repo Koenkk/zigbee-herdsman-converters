@@ -23,4 +23,20 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['CS100'],
+        model: 'CS100',
+        vendor: 'TP-Link',
+        description: 'Contact sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
 ];
