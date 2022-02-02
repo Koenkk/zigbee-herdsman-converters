@@ -2752,11 +2752,11 @@ const converters = {
             await entity.read('hvacThermostat', ['danfossTriggerTime'], manufacturerOptions.danfoss);
         },
     },
-    danfoss_window_open_feature_enabled: {
-        key: ['window_open_feature_enabled'],
+    danfoss_window_open_feature: {
+        key: ['window_open_feature'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('hvacThermostat', {'danfossWindowOpenFeatureEnable': value}, manufacturerOptions.danfoss);
-            return {readAfterWriteTime: 200, state: {'window_open_feature_enabled': value}};
+            return {readAfterWriteTime: 200, state: {'window_open_feature': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossWindowOpenFeatureEnable'], manufacturerOptions.danfoss);

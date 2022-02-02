@@ -3212,7 +3212,7 @@ const converters = {
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
-                result[postfixWithEndpointName('window_open_feature_enabled', msg, model)] =
+                result[postfixWithEndpointName('window_open_feature', msg, model)] =
                     (msg.data['danfossWindowOpenFeatureEnable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
