@@ -5016,7 +5016,7 @@ const converters = {
             }
         },
     },
-    legrand_device_mode: {
+    legrand_device_config: {
         cluster: 'manuSpecificLegrandDevices',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
