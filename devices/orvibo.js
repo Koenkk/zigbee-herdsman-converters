@@ -158,8 +158,7 @@ module.exports = [
         model: 'T30W1Z', 
         vendor: 'ORVIBO', 
         description: 'TouchClassic Switch 1 gang',
-        fromZigbee: [fz.on_off], 
-        toZigbee: [tz.on_off],
+        extend: extend.switch(),
         exposes: [e.switch()], 
 
         configure: async (device, coordinatorEndpoint, logger) => {
