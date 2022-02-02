@@ -339,4 +339,26 @@ module.exports = [
             await reporting.onOff(endpoint2);
         },
     },
+    {
+        zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'], 
+        model: 'T40W3Z', 
+        vendor: 'ORVIBO',
+        description: 'ORVIBO MixSwitch 3 gangs',
+        extend: extend.switch(),
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+        },
+    },
 ];
