@@ -107,7 +107,7 @@ module.exports = [
         zigbeeModel: ['SORB'],
         model: 'SORB',
         vendor: 'Stelpro',
-        description: 'Stelpro ORLÉANS Fan Heater',
+        description: 'ORLÉANS fan heater',
         fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state],
