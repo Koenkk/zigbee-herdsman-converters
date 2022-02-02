@@ -382,6 +382,19 @@ module.exports = [
         exposes: [e.battery(), e.illuminance_lux(), e.battery_low()],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_pisltm67'}],
+        model: 'S-LUX-ZB TS0601',
+        vendor: 'TuYa',
+        description: 'Light sensor',
+        fromZigbee: [fz.SLUXZB],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.illuminance_lux()],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
