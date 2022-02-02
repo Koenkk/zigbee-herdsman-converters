@@ -165,7 +165,8 @@ module.exports = [
         const endpoint = device.getEndpoint(1);
         await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         await reporting.onOff(endpoint);
-    },
+        },
+    },  
     {
         zigbeeModel: ['9f76c9f31b4c4a499e3aca0977ac4494', '6fd24c0f58a04c848fea837aaa7d6e0f'],
         model: 'T30W3Z',
