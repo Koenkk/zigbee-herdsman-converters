@@ -6,6 +6,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -20,7 +21,9 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            const payload = {action: utils.postfixWithEndpointName('off', msg, model)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
         },
     },
 };
