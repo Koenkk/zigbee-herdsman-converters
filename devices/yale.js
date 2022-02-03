@@ -129,6 +129,6 @@ module.exports = [
         model: 'YMF40A RL',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
 ];
