@@ -143,6 +143,9 @@ module.exports = [
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
             endpoint.write('genTime', values);
+
+            // Set min/max heat setpoint to support the maximum range
+            endpoint.write('hvacThermostat', {minHeatSetpointLimit: 500, maxHeatSetpointLimit: 3200});
         },
     },
     {
