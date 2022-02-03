@@ -2417,12 +2417,6 @@ const converters = {
             await entity.read('genAnalogOutput', [0x0055]);
         },
     },
-    xiaomi_curtain_acn002_status: {
-        key: ['motor_state'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genMultistateOutput', [0x0055]);
-        },
-    },
     ledvance_commands: {
         /* deprectated osram_*/
         key: ['set_transition', 'remember_state', 'osram_set_transition', 'osram_remember_state'],
