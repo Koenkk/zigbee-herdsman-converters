@@ -54,6 +54,14 @@ const converters = {
             meta.logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`);
         },
     },
+    command: {
+        key: ['command'],
+        convertSet: async (entity, key, value, meta) => {
+            const options = utils.getOptions(meta.mapped, entity);
+            await entity.command(value.cluster, value.command, (value.hasOwnProperty('payload') ? value.payload : {}), options);
+            meta.logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`);
+        },
+    },
     factory_reset: {
         key: ['reset'],
         convertSet: async (entity, key, value, meta) => {
@@ -2006,6 +2014,36 @@ const converters = {
             await entity.read('aqaraOpple', [0x010c], manufacturerOptions.xiaomi);
         },
     },
+    RTCZCGQ11LM_presence: {
+        key: ['presence'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0142], manufacturerOptions.xiaomi);
+        },
+    },
+    RTCZCGQ11LM_monitoring_mode: {
+        key: ['monitoring_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'undirected': 0, 'left_right': 1};
+            await entity.write('aqaraOpple', {0x0144: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {monitoring_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0144], manufacturerOptions.xiaomi);
+        },
+    },
+    RTCZCGQ11LM_approach_distance: {
+        key: ['approach_distance'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'far': 0, 'medium': 1, 'near': 2};
+            await entity.write('aqaraOpple', {0x0146: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {approach_distance: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0146], manufacturerOptions.xiaomi);
+        },
+    },
     ZigUP_lock: {
         key: ['led'],
         convertSet: async (entity, key, value, meta) => {
@@ -2040,7 +2078,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2063,7 +2101,7 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -2706,6 +2744,16 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossTriggerTime'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_window_open_feature: {
+        key: ['window_open_feature'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossWindowOpenFeatureEnable': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'window_open_feature': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossWindowOpenFeatureEnable'], manufacturerOptions.danfoss);
         },
     },
     danfoss_window_open_internal: {
@@ -4484,6 +4532,9 @@ const converters = {
                 // contactor
                 'switch': 0x0003,
                 'auto': 0x0004,
+                // pilot wire
+                'pilot_on': 0x0002,
+                'pilot_off': 0x0001,
             };
 
             value = value.toLowerCase();
@@ -4494,6 +4545,15 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices', [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
+        },
+    },
+    legrand_cableOutletMode: {
+        key: ['cable_outlet_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            meta.logger.warn('Feature under development !');
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read(64576, [0x0000], manufacturerOptions.legrand);
         },
     },
     legrand_powerAlarm: {
@@ -6703,7 +6763,7 @@ const converters = {
                 await tuya.sendDataPoints(entity, [
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
                     tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
-                ], 'dataRequest', 1);
+                ], 'dataRequest');
 
                 return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
             } else if (key == 'color_temp') {
@@ -6730,7 +6790,7 @@ const converters = {
                 await tuya.sendDataPoints(entity, [
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
                     tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, data),
-                ], 'dataRequest', 1);
+                ], 'dataRequest');
 
                 return {state: {color_temp: value}};
             } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
@@ -6809,13 +6869,7 @@ const converters = {
                     tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
                 ];
 
-                if (separateWhite && meta.state.white_brightness != undefined) {
-                    // restore white state
-                    const newValue = utils.mapNumberRange(meta.state.white_brightness, 0, 255, 0, 1000);
-                    commands.push(tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white));
-                    commands.push(tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue));
-                }
-                await tuya.sendDataPoints(entity, commands, 'dataRequest', 1);
+                await tuya.sendDataPoints(entity, commands, 'dataRequest');
 
                 return {state: newState};
             }

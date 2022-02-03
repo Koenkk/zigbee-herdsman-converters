@@ -109,7 +109,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
-            {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'}],
+            {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'}],
         model: 'WHD02',
         vendor: 'TuYa',
         description: 'Wall switch module',
@@ -1119,8 +1120,11 @@ module.exports = [
                 acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
-            await reporting.currentSummDelivered(endpoint);
+            try {
+                await reporting.currentSummDelivered(endpoint);
+            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
         },
+        options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
@@ -1841,9 +1845,16 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
+            try {
+                await endpoint.read(0xE001, [0xD011]);
+            } catch (err) {/* do nothing */}
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -1944,9 +1955,16 @@ module.exports = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genOnOff', {'tuyaOperationMode': 1});
             await endpoint.read('genOnOff', ['tuyaOperationMode']);
+            try {
+                await endpoint.read(0xE001, [0xD011]);
+            } catch (err) {/* do nothing */}
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {

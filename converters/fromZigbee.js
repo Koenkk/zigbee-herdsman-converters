@@ -2522,8 +2522,8 @@ const converters = {
                 return {battpercentage: value};
             case tuya.dataPoints.neoAOMelody: // 0x21 [5] Melody
                 return {melody: value};
-            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-max, 2-low
-                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
+                return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
             default: // Unknown code
                 meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
@@ -3210,6 +3210,10 @@ const converters = {
             if (typeof msg.data['pIHeatingDemand'] == 'number') {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                     precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
+                result[postfixWithEndpointName('window_open_feature', msg, model)] =
+                    (msg.data['danfossWindowOpenFeatureEnable'] === 1);
             }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
                 result[postfixWithEndpointName('window_open_internal', msg, model)] =
@@ -5029,10 +5033,33 @@ const converters = {
             // dimmer
             else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
             else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
+            // pilot wire
+            else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
+            else if (option0 === 0x0001) payload.device_mode = 'pilot_off';
             // unknown case
             else {
                 meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
                 payload.device_mode = 'unknown';
+            }
+            return payload;
+        },
+    },
+    legrand_cable_outlet_mode: {
+        cluster: '64576',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const mode = msg.data['0'];
+
+            if (mode === 0x00) payload.cable_outlet_mode = 'comfort';
+            else if (mode === 0x01) payload.cable_outlet_mode = 'comfort-1';
+            else if (mode === 0x02) payload.cable_outlet_mode = 'comfort-2';
+            else if (mode === 0x03) payload.cable_outlet_mode = 'eco';
+            else if (mode === 0x04) payload.cable_outlet_mode = 'frost_protection';
+            else if (mode === 0x05) payload.cable_outlet_mode = 'off';
+            else {
+                meta.logger.warn(`Bad mode : ${mode}`);
+                payload.cable_outlet_mode = 'unknown';
             }
             return payload;
         },
@@ -5257,13 +5284,16 @@ const converters = {
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 5) {
-                        if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
+                        if (['JT-BZ-01AQ/A', 'RTCZCGQ11LM'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
                         if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
                             payload.click_mode = {1: 'fast', 2: 'multi'}[value];
+                        } else if (['WXCJKG11LM ', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
+                            // We don't know what the value means for these devices.
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                         } else {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
@@ -5281,9 +5311,18 @@ const converters = {
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_right = value === 1 ? 'ON' : 'OFF';
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                                5: 'left_leave', 6: 'approach', 7: 'away', 255: null}[value];
                         }
-                    } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
-                    else if (index === 149) {
+                    } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
+                    else if (index === 105) {
+                        if (['RTCGQ13LM'].includes(model.model)) {
+                            payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[value];
+                        }
+                    } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
@@ -5322,6 +5361,15 @@ const converters = {
             if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('322')) payload.presence = msg.data['322'] === 1; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('323')) {
+                payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                    5: 'left_leave', 6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
+            }
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected';
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('326')) payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[msg.data['326']];
             if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -8194,7 +8242,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, msg.data[2])) return;
+            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
             let action;
             if (msg.data[2] == 253) {
                 action = {0: 'single', 1: 'double', 2: 'hold'}[msg.data[3]];
