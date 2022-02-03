@@ -36,7 +36,7 @@ module.exports = [
         exposes: [e.lock(), e.battery()],
     },
     {
-        zigbeeModel: ['SMARTCODE_DEADBOLT_10_W3'],
+        zigbeeModel: ['SMARTCODE_DEADBOLT_10_W3', 'SMARTCODE_DEADBOLT_10T_W3'],
         model: '99140-031',
         vendor: 'Kwikset',
         description: 'SmartCode traditional electronic deadbolt',

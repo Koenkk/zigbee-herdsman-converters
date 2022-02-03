@@ -1613,7 +1613,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4080248U9'],
+        zigbeeModel: ['4080248U9', '915005987201'],
         model: '4080248U9',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Signe floor light',

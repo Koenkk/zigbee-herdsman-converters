@@ -304,17 +304,63 @@ module.exports = [
         model: 'WL4200',
         vendor: 'Sinopé',
         description: 'Zigbee smart water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['WL4200S'],
         model: 'WL4200S',
         vendor: 'Sinopé',
-        description: 'Zigbee smart water leak detector',
-        fromZigbee: [fz.ias_water_leak_alarm_1],
+        description: 'Zigbee smart water leak detector with external sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.temperature(endpoint, {min: 600, max: constants.repInterval.MAX, change: 100});
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryAlarmState(endpoint);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
+    },
+    {
+        zigbeeModel: ['VA4200WZ'],
+        model: 'VA4200WZ',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water valve (3/4")',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.battery],
+        toZigbee: [tz.cover_via_brightness],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint); // valve position
+        },
+        exposes: [e.valve_switch(), e.valve_position(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ['VA4201WZ'],
+        model: 'VA4201WZ',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart water valve (1")',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.battery],
+        toZigbee: [tz.cover_via_brightness],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint); // valve position
+        },
+        exposes: [e.valve_switch(), e.valve_position(), e.battery_low(), e.battery()],
     },
 ];
