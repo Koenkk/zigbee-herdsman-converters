@@ -1046,7 +1046,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1056,7 +1056,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`panic`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1066,7 +1066,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(constants.armMode[msg.data['armmode']], msg, model),
                 action_code: msg.data.code,
@@ -1090,7 +1090,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('stop', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1100,7 +1100,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('open', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1110,7 +1110,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('close', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1120,7 +1120,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('on', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1130,7 +1130,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('off', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1140,7 +1140,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`off`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1150,7 +1150,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName('toggle', msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1161,7 +1161,7 @@ const converters = {
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`brightness_move_to_level`, msg, model),
                 action_level: msg.data.level,
@@ -1183,7 +1183,7 @@ const converters = {
         type: ['commandMove', 'commandMoveWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
@@ -1219,7 +1219,7 @@ const converters = {
         type: ['commandStep', 'commandStepWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
                 action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model),
@@ -1246,7 +1246,7 @@ const converters = {
         type: ['commandStop', 'commandStopWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (options.simulated_brightness) {
                 clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
@@ -1261,7 +1261,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
@@ -1273,7 +1273,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model),
@@ -1292,7 +1292,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandEnhancedMoveToHueAndSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model),
                 action_enhanced_hue: msg.data.enhancehue,
@@ -1309,7 +1309,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model),
@@ -1324,7 +1324,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepSaturation'],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model),
@@ -1339,7 +1339,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandColorLoopSet',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const updateFlags = msg.data.updateflags;
             const actionLookup = {
                 0x00: 'deactivate',
@@ -1369,7 +1369,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_move`, msg, model),
                 action_color_temperature: msg.data.colortemp,
@@ -1383,7 +1383,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_move`, msg, model),
                 action_color: {
@@ -1400,7 +1400,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
             const payload = {action, action_rate: msg.data.rate};
@@ -1412,7 +1412,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName('move_to_saturation', msg, model),
                 action_saturation: msg.data.saturation,
@@ -1426,7 +1426,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToHue',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {
                 action: postfixWithEndpointName(`move_to_hue`, msg, model),
                 action_hue: msg.data.hue,
@@ -1441,7 +1441,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1451,7 +1451,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const property = postfixWithEndpointName('state', msg, model);
             return {[property]: 'ON'};
         },
@@ -1460,7 +1460,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const property = postfixWithEndpointName('state', msg, model);
             return {[property]: 'OFF'};
         },
@@ -2185,7 +2185,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const lookup = {1: 'pressed'};
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -2522,8 +2522,8 @@ const converters = {
                 return {battpercentage: value};
             case tuya.dataPoints.neoAOMelody: // 0x21 [5] Melody
                 return {melody: value};
-            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-max, 2-low
-                return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+            case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
+                return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
             default: // Unknown code
                 meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
@@ -3211,6 +3211,10 @@ const converters = {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model)] =
                     precisionRound(msg.data['pIHeatingDemand'], 0);
             }
+            if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
+                result[postfixWithEndpointName('window_open_feature', msg, model)] =
+                    (msg.data['danfossWindowOpenFeatureEnable'] === 1);
+            }
             if (msg.data.hasOwnProperty('danfossWindowOpenInternal')) {
                 result[postfixWithEndpointName('window_open_internal', msg, model)] =
                     constants.danfossWindowOpen.hasOwnProperty(msg.data['danfossWindowOpenInternal']) ?
@@ -3815,19 +3819,21 @@ const converters = {
                 return {open_window_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvErrorStatus:
                 return {fault_alarm: value};
-            case tuya.dataPoints.tvHolidayMode:
-                return {holiday_mode_date: value};
-
+            case tuya.dataPoints.tvHolidayMode: {
+                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
+                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
+                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
+                const emi = value.slice(22, 24);
+                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
+                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
+                return {holiday_start_stop: hMode};
+            }
             case tuya.dataPoints.tvBoostMode:
-                // Online ?
+                // 115 online / Is the device online
                 return {online: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvWorkingDay:
-                // tvWorkingDay: 31,
+                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                 return {working_day: value};
-            case tuya.dataPoints.tvWeekSchedule:
-                // tvWeekSchedule: 106, Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {week_schedule: value};
-
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
                         '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
@@ -4522,7 +4528,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (msg.data.value === 2) {
                 // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
                 return;
@@ -4536,7 +4542,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = msg.data.value === 3329 ? 'left' : 'right';
             globalStore.putValue(msg.endpoint, 'direction', direction);
             return {action: `arrow_${direction}_hold`};
@@ -4547,7 +4553,7 @@ const converters = {
         type: 'commandTradfriArrowRelease',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
                 globalStore.clearValue(msg.endpoint, 'direction');
@@ -5027,10 +5033,33 @@ const converters = {
             // dimmer
             else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
             else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
+            // pilot wire
+            else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
+            else if (option0 === 0x0001) payload.device_mode = 'pilot_off';
             // unknown case
             else {
                 meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
                 payload.device_mode = 'unknown';
+            }
+            return payload;
+        },
+    },
+    legrand_cable_outlet_mode: {
+        cluster: '64576',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            const mode = msg.data['0'];
+
+            if (mode === 0x00) payload.cable_outlet_mode = 'comfort';
+            else if (mode === 0x01) payload.cable_outlet_mode = 'comfort-1';
+            else if (mode === 0x02) payload.cable_outlet_mode = 'comfort-2';
+            else if (mode === 0x03) payload.cable_outlet_mode = 'eco';
+            else if (mode === 0x04) payload.cable_outlet_mode = 'frost_protection';
+            else if (mode === 0x05) payload.cable_outlet_mode = 'off';
+            else {
+                meta.logger.warn(`Bad mode : ${mode}`);
+                payload.cable_outlet_mode = 'unknown';
             }
             return payload;
         },
@@ -5255,31 +5284,45 @@ const converters = {
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                     else if (index === 5) {
-                        if (['JT-BZ-01AQ/A'].includes(model.model)) payload.power_outage_count = value;
+                        if (['JT-BZ-01AQ/A', 'RTCZCGQ11LM'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
-                        if (['QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'relay' : 'left';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['WXKG14LM', 'WXKG16LM', 'WXKG17LM'].includes(model.model)) {
                             payload.click_mode = {1: 'fast', 2: 'multi'}[value];
+                        } else if (['WXCJKG11LM ', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
+                            // We don't know what the value means for these devices.
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                         } else {
                             payload.state = value === 1 ? 'ON' : 'OFF';
                         }
                     } else if (index === 101) {
-                        if (['QBKG19LM', 'QBKG20LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
+                        if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
                             const mapping = model.model === 'QBCZ15LM' ? 'usb' : 'right';
                             payload[`state_${mapping}`] = value === 1 ? 'ON' : 'OFF';
                         } else if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_center = value === 1 ? 'ON' : 'OFF';
                         } else if (['RTCGQ12LM'].includes(model.model)) {
                             payload.illuminance = calibrateAndPrecisionRoundOptions(value, options, 'illuminance');
+                        } else if (['ZNJLBL01LM'].includes(model.model)) {
+                            payload.battery = value;
                         }
                     } else if (index ===102 ) {
                         if (['QBKG25LM', 'QBKG34LM'].includes(model.model)) {
                             payload.state_right = value === 1 ? 'ON' : 'OFF';
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                                5: 'left_leave', 6: 'approach', 7: 'away', 255: null}[value];
                         }
-                    } else if (index === 105) payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value]; // RTCGQ13LM
-                    else if (index === 149) {
+                    } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
+                    else if (index === 105) {
+                        if (['RTCGQ13LM'].includes(model.model)) {
+                            payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
+                        } else if (['RTCZCGQ11LM'].includes(model.model)) {
+                            payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[value];
+                        }
+                    } else if (index === 149) {
                         payload.energy = precisionRound(value, 2); // 0x95
                         // Consumption is deprecated
                         payload.consumption = payload.energy;
@@ -5303,6 +5346,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('4')) payload.mode_switch = {4: 'anti_flicker_mode', 1: 'quick_mode'}[msg.data['4']];
             if (msg.data.hasOwnProperty('10')) payload.switch_type = {1: 'toggle', 2: 'momentary'}[msg.data['10']];
+            if (msg.data.hasOwnProperty('240')) payload.flip_indicator_light = msg.data['240'] === 1 ? 'ON' : 'OFF';
             if (msg.data.hasOwnProperty('258')) payload.detection_interval = msg.data['258'];
             if (msg.data.hasOwnProperty('268')) {
                 if (['RTCGQ13LM'].includes(model.model)) {
@@ -5317,6 +5361,15 @@ const converters = {
             if (msg.data.hasOwnProperty('313')) payload.state = msg.data['313'] === 1 ? 'preparation' : 'work'; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('314')) payload.gas = msg.data['314'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('315')) payload.gas_density = msg.data['315']; // JT-BZ-01AQ/A
+            if (msg.data.hasOwnProperty('322')) payload.presence = msg.data['322'] === 1; // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('323')) {
+                payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
+                    5: 'left_leave', 6: 'approach', 7: 'away'}[msg.data['323']]; // RTCZCGQ11LM
+            }
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('324')) payload.monitoring_mode = msg.data['324'] === 1 ? 'left_right' : 'undirected';
+            // RTCZCGQ11LM
+            if (msg.data.hasOwnProperty('326')) payload.approach_distance = {0: 'far', 1: 'medium', 2: 'near'}[msg.data['326']];
             if (msg.data.hasOwnProperty('331')) payload.linkage_alarm = msg.data['331'] === 1; // JT-BZ-01AQ/A
             if (msg.data.hasOwnProperty('512')) {
                 if (['ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM'].includes(model.model)) {
@@ -5333,6 +5386,7 @@ const converters = {
             if (msg.data.hasOwnProperty('523')) payload.overload_protection = precisionRound(msg.data['523'], 2);
             if (msg.data.hasOwnProperty('550')) payload.button_switch_mode = msg.data['550'] === 1 ? 'relay_and_usb' : 'relay';
             if (msg.data['mode'] !== undefined) payload.operation_mode = ['command', 'event'][msg.data['mode']];
+            if (msg.data.hasOwnProperty('1289')) payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[msg.data['1289']];
             return payload;
         },
     },
@@ -5395,7 +5449,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             let actionLookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
             if (model.model === 'WXKG12LM') {
                 actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
@@ -5542,7 +5596,7 @@ const converters = {
                 `increase it with this option (value is in ms).`),
         ],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const state = msg.data['onOff'];
 
             // 0 = click down, 1 = click up, else = multiple clicks
@@ -5806,6 +5860,40 @@ const converters = {
             }
         },
     },
+    xiaomi_curtain_acn002_position: {
+        cluster: 'genAnalogOutput',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            let position = precisionRound(msg.data['presentValue'], 2);
+            position = options.invert_cover ? 100 - position : position;
+            return {position: position};
+        },
+    },
+    xiaomi_curtain_acn002_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'declining',
+                1: 'rising',
+                2: 'pause',
+                3: 'blocked',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true;
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running,
+                };
+            }
+        },
+    },
     xiaomi_operation_mode_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -5848,7 +5936,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
             const button = msg.endpoint.ID;
             const value = msg.data.presentValue;
@@ -5871,7 +5959,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -5879,7 +5967,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -5887,7 +5975,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -5897,7 +5985,7 @@ const converters = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             if (globalStore.hasValue(msg.endpoint, 'button')) {
                 const value = globalStore.getValue(msg.endpoint, 'button');
                 const duration = Date.now() - value.start;
@@ -5911,7 +5999,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const button = msg.data.movemode === 0 ? '4' : '3';
             globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
             return {action: `button_${button}_hold`};
@@ -5921,7 +6009,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             let action;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -5938,7 +6026,7 @@ const converters = {
         type: 'commandMoveColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const stop = msg.data.movemode === 0;
             let result = null;
             if (stop) {
@@ -7364,7 +7452,7 @@ const converters = {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
 
             const data = msg.data['deviceInfo'].split(',');
             if (data[0] === 'UI' && data[1]) {
@@ -8142,7 +8230,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // commandStopMove without params
             if (msg.data[2] !== 71) return;
-            if ((!model.meta || !model.meta.handleDuplicateTransaction) && hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg)) return;
             const movestop = 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model);
             const payload = {action};
@@ -8154,7 +8242,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, msg.data[2])) return;
+            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
             let action;
             if (msg.data[2] == 253) {
                 action = {0: 'single', 1: 'double', 2: 'hold'}[msg.data[3]];

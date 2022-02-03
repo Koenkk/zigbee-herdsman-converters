@@ -6,6 +6,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -20,7 +21,9 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            return {action: 'off'};
+            const payload = {action: utils.postfixWithEndpointName('off', msg, model)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
         },
     },
 };
@@ -134,11 +137,11 @@ module.exports = [
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {handleDuplicateTransaction: true, multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
@@ -296,5 +299,25 @@ module.exports = [
         fromZigbee: [fz.legrand_zlgp17_zlgp18],
         toZigbee: [],
         exposes: [e.action(['press_once', 'press_twice'])],
+    },
+    {
+        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
+            '\u0000\u0000'],
+        model: '064882',
+        vendor: 'Legrand',
+        description: 'Cable outlet with pilot wire and consumption measurement',
+        fromZigbee: [fz.legrand_device_mode, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power],
+        exposes: [exposes.enum('device_mode', ea.ALL, ['pilot_off', 'pilot_on']),
+            exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+            exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
+            e.power().withAccess(ea.STATE_GET)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 64576]);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+        },
     },
 ];
