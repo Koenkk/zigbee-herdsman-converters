@@ -324,7 +324,7 @@ module.exports = [
         zigbeeModel: ['NLIS - Double light switch'],
         model: 'LEG600082',
         vendor: 'Legrand',
-        description: 'Interrupteur double connecté avec Neutre LEG600082',
+        description: 'Wired double switch with neutral LEG600082',
 
     	  extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off],
@@ -354,7 +354,7 @@ module.exports = [
         zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
         model: 'LEG600090',
         vendor: 'Legrand',
-        description: 'Interrupteur dimmable connecté avec Neutre LEG600081',
+        description: 'Wired dimmable switch with neutral LEG600081',
 
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration],
