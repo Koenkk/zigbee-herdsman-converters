@@ -60,13 +60,20 @@ module.exports = [
         model: 'E11-G13',
         vendor: 'Sengled',
         description: 'Element classic (A19)',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        ota: ota.zigbeeOTA,
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.metering]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             device.powerSource = 'Mains (single phase)';
             device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
+        exposes: [e.power(), e.energy(), e.light_brightness()],
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
