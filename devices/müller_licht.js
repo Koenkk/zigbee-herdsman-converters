@@ -29,7 +29,7 @@ module.exports = [
         description: 'Smart power strip',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
+            const endpoint = device.getEndpoint(11) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
