@@ -62,7 +62,7 @@ function addDefinition(definition) {
     const {extend, ...definitionWithoutExtend} = definition;
     if (extend) {
         if (extend.hasOwnProperty('configure') && definition.hasOwnProperty('configure')) {
-            console.log(`'${definition.model}' has configure in extend and device, this is not allowed`);
+            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
         definition = {
