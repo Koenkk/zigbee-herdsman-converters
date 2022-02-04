@@ -497,10 +497,10 @@ const definition = {
     options: [
         exposes.options.measurement_poll_interval(),
         exposes.enum(`linky_mode`, ea.SET, ['auto', linkyModeDef.legacy, linkyModeDef.standard])
-            .withDescription(`Counter with TIC in mode standard or historique. Requires re-configuration (default: auto)`),
+            .withDescription(`Counter with TIC in mode standard or historique. May require restart (default: auto)`),
         exposes.enum(`energy_phase`, ea.SET, ['auto', linkyPhaseDef.single, linkyPhaseDef.three])
-            .withDescription(`Power with single or three phase. Requires re-configuration (default: auto)`),
-        exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (only linky_mode: ${linkyModeDef.standard}, default: auto)`),
+            .withDescription(`Power with single or three phase. May require restart (default: auto)`),
+        exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (works ONLY when linky_mode: ${linkyModeDef.standard}, default: auto)`),
         exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
             .withDescription(`The current tarif. This option will exclude unnecesary attributes. Default: auto`),
         exposes.options.precision(`kWh`),
