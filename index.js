@@ -89,7 +89,8 @@ function addDefinition(definition) {
     const optionKeys = definition.options.map((o) => o.name);
     for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
         if (converter.options) {
-            for (const option of converter.options) {
+            const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
+            for (const option of options) {
                 if (!optionKeys.includes(option.name)) {
                     definition.options.push(option);
                     optionKeys.push(option.name);

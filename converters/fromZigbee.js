@@ -5168,8 +5168,16 @@ const converters = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'temperature')) {
+                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
+            }
+            if (definition.exposes.find((e) => e.name === 'illuminance')) {
+                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+            }
+            return result;
+        },
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('247')) {
