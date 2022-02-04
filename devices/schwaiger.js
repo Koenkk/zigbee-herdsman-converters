@@ -48,7 +48,7 @@ module.exports = [
     {
         zigbeeModel: ['ZBT-DIMLight-GU100800'],
         model: 'HAL400',
-        vendor: 'Schwaiger (LDS)',
+        vendor: 'Schwaiger',
         description: 'LED Schwaiger HAL400 GU10 dimmable, warm white',
         extend: extend.light_onoff_brightness(),
     },
