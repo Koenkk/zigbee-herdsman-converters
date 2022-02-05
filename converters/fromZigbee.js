@@ -2395,6 +2395,26 @@ const converters = {
             }
         },
     },
+    moes_switch: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'moes_switch');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.moesSwitchPowerOnBehavior:
+                return {power_on_behavior: tuya.moesSwitch.powerOnBehavior[value]};
+            case tuya.dataPoints.moesSwitchIndicateLight:
+                return {indicate_light: tuya.moesSwitch.indicateLight[value]};
+            default:
+                meta.logger.warn(`fromZigbee:moes_switch: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+                break;
+            }
+        },
+    },
     eurotronic_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
