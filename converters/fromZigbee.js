@@ -5342,8 +5342,9 @@ const converters = {
                             payload.presence_event = {0: 'enter', 1: 'leave', 2: 'left_enter', 3: 'right_leave', 4: 'right_enter',
                                 5: 'left_leave', 6: 'approach', 7: 'away', 255: null}[value];
                         }
-                    } else if (index ===103) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected'; // RTCZCGQ11LM
-                    else if (index === 105) {
+                    } else if (index === 103) {
+                        if (['RTCZCGQ11LM'].includes(model.model)) payload.monitoring_mode = value === 1 ? 'left_right' : 'undirected';
+                    } else if (index === 105) {
                         if (['RTCGQ13LM'].includes(model.model)) {
                             payload.motion_sensitivity = {1: 'low', 2: 'medium', 3: 'high'}[value];
                         } else if (['RTCZCGQ11LM'].includes(model.model)) {
