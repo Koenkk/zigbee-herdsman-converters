@@ -15,6 +15,17 @@ module.exports = [
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
+        zigbeeModel: ['ZBMINI-L'],
+        model: 'ZBMINI-L',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch (no neutral)',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['01MINIZB'],
         model: 'ZBMINI',
         vendor: 'SONOFF',
