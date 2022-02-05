@@ -5117,6 +5117,33 @@ const converters = {
             }
         },
     },
+    legrand_settingAlwaysEnableLed: {
+      cluster: 'manuSpecificLegrandDevices',
+      type: ['attributeReport', 'readResponse'],
+      convert: (model, msg, publish, options, meta) => {
+          if (msg.data.hasOwnProperty('1')) {
+              return {['permanent_led']: msg.data['1'] === 1 ? 'ON' : 'OFF'};
+          }
+      },
+  },
+legrand_settingEnableLedIfOn: {
+      cluster: 'manuSpecificLegrandDevices',
+      type: ['attributeReport', 'readResponse'],
+      convert: (model, msg, publish, options, meta) => {
+          if (msg.data.hasOwnProperty('2')) {
+              return {['led_when_on']: msg.data['2'] === 1 ? 'ON' : 'OFF'};
+          }
+      },
+  },
+legrand_settingEnableDimmer: {
+      cluster: 'manuSpecificLegrandDevices',
+      type: ['attributeReport', 'readResponse'],
+      convert: (model, msg, publish, options, meta) => {
+          if (msg.data.hasOwnProperty('0')) {
+              return {['dimmer_enabled']: msg.data['0'] === 0x0101 ? 'ON' : 'OFF'};
+          }
+      },
+  },
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],

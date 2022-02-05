@@ -321,61 +321,51 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['NLIS - Double light switch'],
-        model: 'LEG600082',
-        vendor: 'Legrand',
-        description: 'Wired double switch with neutral',
-        extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off],
-        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            exposes.binary('permanent_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
-            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {left: 1, right: 2};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'genOnOff',
-                'manuSpecificLegrandDevices']);
-            await reporting.onOff(endpoint);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genBinaryInput', 'genOnOff']);
-            await reporting.onOff(endpoint2);
-        },
-        onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
-        },
+      zigbeeModel: ['NLIS - Double light switch'],
+      model: 'LEG600082',
+      vendor: 'Legrand',
+      description: 'Wired double switch with neutral LEG600082',
+
+      extend: extend.switch(),
+      fromZigbee: [fz.identify, fz.on_off, fz.legrand_settingAlwaysEnableLed, fz.legrand_settingEnableLedIfOn],
+      toZigbee: [tz.legrand_identify, tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn],
+      exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+             exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the blue LED when the light is off'),
+             exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the blue LED when the light is on')],
+      meta: {multiEndpoint: true},
+      endpoint: (device) => {return {left: 1, right: 2};},
+      configure: async (device, coordinatorEndpoint, logger) => {
+      	 const endpoint = device.getEndpoint(1);
+         await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify','genBinaryInput', 'genOnOff', 'manuSpecificLegrandDevices']);
+         await reporting.onOff(endpoint);
+         const endpoint2 = device.getEndpoint(2);
+         await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify','genBinaryInput', 'genOnOff']);
+         await reporting.onOff(endpoint2);
+       },
     },
     {
-        zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
-        model: 'LEG600090',
-        vendor: 'Legrand',
-        description: 'Wired dimmable switch with neutral LEG600081',
+      zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
+      model: 'LEG600090',
+      vendor: 'Legrand',
+      description: 'Wired Dimmer switch with neutral LEG600081',
 
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_settingEnableDimmer, tz.legrand_identify, tz.ballast_config],
-        exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the minimum brightness value'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum brightness value'),
-            exposes.binary('dimmer_enabled', ea.STATE_SET, 'ON', 'OFF').withDescription('Allow the device to change brightness'),
-            exposes.binary('permanent_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
-            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput',
-                'manuSpecificLegrandDevices', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            await legrand.pairing_security_event(type, data, device);
-        },
+      extend: extend.light_onoff_brightness({noConfigure: true}),
+      fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_settingAlwaysEnableLed, fz.legrand_settingEnableLedIfOn,fz.legrand_settingEnableDimmer],
+      toZigbee: [tz.light_onoff_brightness, tz.legrand_identify, tz.ballast_config, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,tz.legrand_settingEnableDimmer],
+      exposes: [e.light_brightness(),
+              exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                  .withDescription('Specifies the minimum brightness value'),
+              exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                  .withDescription('Specifies the maximum brightness value'),
+              exposes.binary('dimmer_enabled', ea.ALL, 'ON', 'OFF').withDescription('Allow the device to change brightness'),
+              exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the blue LED when the light is off'),
+              exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+      configure: async (device, coordinatorEndpoint, logger) => {
+          await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+          const endpoint = device.getEndpoint(1);
+          await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl','genBinaryInput','manuSpecificLegrandDevices', 'lightingBallastCfg']);
+          await reporting.onOff(endpoint);
+          await reporting.brightness(endpoint);
+      	},
     },
 ];
