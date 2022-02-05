@@ -616,6 +616,25 @@ const converters = {
             return result;
         },
     },
+    meter_identification: {
+        cluster: 'haMeterIdentification',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const elements = [
+                /* 0x000A*/ 'softwareRevision',
+                /* 0x000D*/ 'availablePower',
+                /* 0x000E*/ 'powerThreshold',
+            ];
+            for (const at of elements) {
+                const atSnake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
+                if (msg.data[at]) {
+                    result[atSnake] = msg.data[at];
+                }
+            }
+            return result;
+        },
+    },
     metering: {
         /**
          * When using this converter also add the following to the configure method of the device:
