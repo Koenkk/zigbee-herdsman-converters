@@ -2420,6 +2420,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'moes_switch');
             const dp = dpValue.dp;
+
+            // tuya_switch datapoints
+            if (dp >= 1 && dp <= 4) {
+                return null;
+            }
+
             const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
