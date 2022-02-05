@@ -1904,10 +1904,10 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue dimmer switch',
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
-            fz.hue_dimmer_switch, fz.battery],
+            fz.hue_dimmer_switch, fz.battery, fz.command_recall],
         exposes: [e.battery(), e.action(['on_press', 'on_hold', 'on_press_release', 'on_hold_release',
             'off_press', 'off_hold', 'off_press_release', 'off_hold_release', 'up_press', 'up_hold', 'up_press_release', 'up_hold_release',
-            'down_press', 'down_hold', 'down_press_release', 'down_hold_release'])],
+            'down_press', 'down_hold', 'down_press_release', 'down_hold_release', 'recall_0', 'recall_1'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
