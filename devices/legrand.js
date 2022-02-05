@@ -320,4 +320,28 @@ module.exports = [
             await reporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: [' NLIS - Double light switch\u0000\u0000\u0000\u0000'],
+        model: '067772',
+        vendor: 'Legrand',
+        description: 'Double wired switch with neutral',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn],
+        exposes: [exposes.switch().withState('state_left', true),
+            exposes.switch().withState('state_right', true),
+            exposes.binary('permanent_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
+            exposes.binary('led_when_on', ea.STATE_SET, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpointLeft = device.getEndpoint(1);
+            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpointLeft);
+            const endpointRight = device.getEndpoint(2);
+            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpointRight);
+        },
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+    },
 ];
