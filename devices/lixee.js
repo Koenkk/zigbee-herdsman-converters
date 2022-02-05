@@ -7,6 +7,7 @@ const {repInterval} = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const fz = require('../converters/fromZigbee');
 const ea = exposes.access;
+const e = exposes.presets;
 const utils = require('../lib/utils');
 const ota = require('../lib/ota');
 const {Buffer} = require('buffer');
@@ -491,8 +492,10 @@ const definition = {
         if (device == null && options == null) {
             return exposedData.map((e) => e.exposes);
         }
-        return getCurrentConfig(device, options)
-            .map((e) => e.exposes);
+
+        const exposes = getCurrentConfig(device, options).map((e) => e.exposes);
+        exposes.push(e.linkquality());
+        return exposes;
     },
     options: [
         exposes.options.measurement_poll_interval(),
