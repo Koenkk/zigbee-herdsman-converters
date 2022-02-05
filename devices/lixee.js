@@ -489,11 +489,13 @@ const definition = {
     toZigbee: [],
     exposes: (device, options) => {
         // docs generation
+        let exposes;
         if (device == null && options == null) {
-            return exposedData.map((e) => e.exposes);
+            exposes = exposedData.map((e) => e.exposes);
+        } else {
+            exposes = getCurrentConfig(device, options).map((e) => e.exposes);
         }
 
-        const exposes = getCurrentConfig(device, options).map((e) => e.exposes);
         exposes.push(e.linkquality());
         return exposes;
     },
