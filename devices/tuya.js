@@ -1193,8 +1193,9 @@ module.exports = [
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'}],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
+            fz.ts011f_plug_3_indicator_mode, fz.ts011f_plug_3_child_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_3_indicator_mode, tz.ts011f_plug_3_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // Enables reporting of physical state changes
@@ -1207,7 +1208,11 @@ module.exports = [
         options: [exposes.options.measurement_poll_interval()],
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+                .withDescription('Recover state after power outage'),
+            exposes
+                .enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
+                .withDescription('Plug LED indicator mode'),
+            e.child_lock()],
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
