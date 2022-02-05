@@ -882,6 +882,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
         ],
         model: 'TS0601_cover',
         vendor: 'TuYa',
