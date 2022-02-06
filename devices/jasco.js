@@ -47,4 +47,5 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint1);
             await reporting.readMeteringMultiplierDivisor(endpoint1);
         }
+    },
 ];
