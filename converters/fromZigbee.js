@@ -5079,18 +5079,8 @@ const converters = {
                     payload.device_mode = 'unknown';
                 }
             }
-            if (msg.data.hasOwnProperty('1')) {
-                const option1 = msg.data['1'];
-
-                if (option1 === 0x00) payload.permanent_led = 'OFF';
-                else if (option1 === 0x01) payload.permanent_led = 'ON';
-            }
-            if (msg.data.hasOwnProperty('2')) {
-                const option2 = msg.data['2'];
-
-                if (option2 === 0x00) payload.led_when_on = 'OFF';
-                else if (option2 === 0x01) payload.led_when_on = 'ON';
-            }
+            if (msg.data.hasOwnProperty('1')) payload.permanent_led = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data.hasOwnProperty('2')) payload.led_when_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
         },
     },
