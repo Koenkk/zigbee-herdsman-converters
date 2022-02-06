@@ -5361,8 +5361,11 @@ const converters = {
                     if (index == 1) {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
-                    } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
-                    else if (index === 5) {
+                    } else if (index === 3) {
+                        if (!['WXCJKG11LM ', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
+                            payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
+                        }
+                    } else if (index === 5) {
                         if (['JT-BZ-01AQ/A', 'RTCZCGQ11LM'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
                         if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {
