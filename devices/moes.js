@@ -119,7 +119,7 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position', 'freeze'])
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
                 .withDescription('Controls the behavior when the device is powered on')],
@@ -140,7 +140,7 @@ module.exports = [
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position', 'freeze'])
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
                 .withDescription('Controls the behavior when the device is powered on')],
@@ -168,7 +168,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position', 'freeze'])
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
                 .withDescription('Controls the behavior when the device is powered on')],
