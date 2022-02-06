@@ -5994,7 +5994,7 @@ const converters = {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
-    ts011f_plug_3_indicator_mode: {
+    ts011f_plug_indicator_mode: {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value === 'string') {
@@ -6007,14 +6007,14 @@ const converters = {
             if (typeof value === 'number' && value >= 0 && value <= 3) {
                 await entity.write('genOnOff', {tuyaBacklightMode: value});
             } else {
-                meta.logger.warn(`toZigbee.ts011f_plug_3_indicator_mode: Unsupported value ${value}`);
+                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
             }
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
-    ts011f_plug_3_child_mode: {
+    ts011f_plug_child_mode: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});

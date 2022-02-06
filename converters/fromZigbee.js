@@ -2637,7 +2637,7 @@ const converters = {
             }
         },
     },
-    ts011f_plug_3_indicator_mode: {
+    ts011f_plug_indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -2651,7 +2651,7 @@ const converters = {
             }
         },
     },
-    ts011f_plug_3_child_mode: {
+    ts011f_plug_child_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
