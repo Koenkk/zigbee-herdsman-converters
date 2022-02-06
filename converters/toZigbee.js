@@ -3218,7 +3218,7 @@ const converters = {
                 );
                 break;
             case 'indicate_light':
-                await tuya.sendDataPointValue(
+                await tuya.sendDataPointEnum(
                     entity,
                     tuya.dataPoints.moesSwitchIndicateLight,
                     utils.getKey(tuya.moesSwitch.indicateLight, value),
