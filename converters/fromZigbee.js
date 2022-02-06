@@ -5059,27 +5059,28 @@ const converters = {
             }
         },
     },
-    legrand_device_mode: {
+    legrand_cluster_fc01: {
         cluster: 'manuSpecificLegrandDevices',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            const option0 = msg.data['0'];
-            // Beware that mode depends on device type
-            // contactor
-            if (option0 === 0x0003) payload.device_mode = 'switch';
-            else if (option0 === 0x0004) payload.device_mode = 'auto';
-            // dimmer
-            else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
-            else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
-            // pilot wire
-            else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
-            else if (option0 === 0x0001) payload.device_mode = 'pilot_off';
-            // unknown case
-            else {
-                meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
-                payload.device_mode = 'unknown';
+
+            if (msg.data.hasOwnProperty('0')) {
+                const option0 = msg.data['0'];
+
+                if (option0 === 0x0001) payload.device_mode = 'pilot_off';
+                else if (option0 === 0x0002) payload.device_mode = 'pilot_on';
+                else if (option0 === 0x0003) payload.device_mode = 'switch';
+                else if (option0 === 0x0004) payload.device_mode = 'auto';
+                else if (option0 === 0x0100) payload.device_mode = 'dimmer_off';
+                else if (option0 === 0x0101) payload.device_mode = 'dimmer_on';
+                else {
+                    meta.logger.warn(`device_mode ${option0} not recognized, please fix me`);
+                    payload.device_mode = 'unknown';
+                }
             }
+            if (msg.data.hasOwnProperty('1')) payload.permanent_led = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data.hasOwnProperty('2')) payload.led_when_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
         },
     },
