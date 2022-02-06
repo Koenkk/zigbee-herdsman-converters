@@ -1,3 +1,6 @@
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const ea = exposes.access;
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
