@@ -38,7 +38,7 @@ module.exports = [
         zigbeeModel: ['43095'],
         model: '43095',
         vendor: 'Jasco Products',
-        description: 'Zigbee Smart Plug-In Switch with Energy Metering',
+        description: 'Zigbee smart plug-in switch with energy metering',
         fromZigbee: [fz.command_on_state, fz.command_off_state, fz.metering],
         extend: extend.switch(),
         exposes: [e.switch(), e.power(), e.energy()],
