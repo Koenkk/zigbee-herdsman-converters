@@ -2643,6 +2643,31 @@ const converters = {
             }
         },
     },
+    ts011f_plug_indicator_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 'tuyaBacklightMode'; // 0x8001 or 32769
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
+                if (lookup.hasOwnProperty(value)) {
+                    return {indicator_mode: lookup[value]};
+                }
+            }
+        },
+    },
+    ts011f_plug_child_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = (0x8000).toString(); // 32768
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            }
+        },
+    },
     WSZ01_on_off_action: {
         cluster: 65029,
         type: 'raw',
