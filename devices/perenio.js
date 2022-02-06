@@ -40,7 +40,6 @@ module.exports = [
         description: 'Motion sensor',
         fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

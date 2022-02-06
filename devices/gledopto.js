@@ -62,6 +62,12 @@ const gledoptoExtend = {
     }),
 };
 
+const configureReadModelID = async (device) => {
+    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
+    const endpoint = device.endpoints[0];
+    await endpoint.read('genBasic', ['modelId']);
+};
+
 module.exports = [
     {
         fingerprint: [
@@ -116,7 +122,11 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller WW/CW (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            await configureReadModelID(device);
+        },
     },
     {
         fingerprint: [
@@ -179,7 +189,11 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGBW (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
+            await configureReadModelID(device);
+        },
     },
     {
         fingerprint: [
@@ -232,13 +246,29 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-C-003P'],
+        model: 'GL-C-003P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee LED Controller RGB (pro)',
+        extend: gledoptoExtend.light_onoff_brightness_color({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_color().configure(device, coordinatorEndpoint, logger);
+            await configureReadModelID(device);
+        },
+    },
+    {
         zigbeeModel: ['GL-C-008P'],
         model: 'GL-C-008P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], noConfigure: true}),
         meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
+            await configureReadModelID(device);
+        },
     },
     {
         zigbeeModel: ['GL-C-009'],
@@ -259,7 +289,11 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
-        extend: gledoptoExtend.light_onoff_brightness(),
+        extend: gledoptoExtend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await configureReadModelID(device);
+        },
     },
     {
         zigbeeModel: ['GL-C-009S'],

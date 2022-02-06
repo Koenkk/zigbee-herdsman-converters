@@ -55,6 +55,13 @@ const fzLocal = {
             }
         },
     },
+    occupancy_timeout: {
+        cluster: 'msOccupancySensing',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy_timeout: msg.data.pirOToUDelay};
+        },
+    },
     noise_timeout: {
         cluster: 'sprutNoise',
         type: ['readResponse', 'attributeReport'],
@@ -89,6 +96,19 @@ const tzLocal = {
             }
         },
     },
+    occupancy_timeout: {
+        key: ['occupancy_timeout'],
+        convertSet: async (entity, key, value, meta) => {
+            value *= 1;
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write('msOccupancySensing', {pirOToUDelay: value}, getOptions(meta.mapped, entity));
+            return {state: {occupancy_timeout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+    },
     noise_timeout: {
         key: ['noise_timeout'],
         convertSet: async (entity, key, value, meta) => {
@@ -111,8 +131,8 @@ module.exports = [
         vendor: 'Sprut.device',
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy, fz.co2, fzLocal.voc,
-            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fz.occupancy_timeout, fzLocal.noise_timeout],
-        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tz.occupancy_timeout, tzLocal.noise_timeout],
+            fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout],
+        toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout],
         exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(),
             ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(ea.STATE_GET),
             ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('default'),
