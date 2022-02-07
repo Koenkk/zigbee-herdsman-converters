@@ -137,11 +137,11 @@ module.exports = [
                     .withValueMin(0)
                     .withValueMax(255)
                     .withDescription('Motor speed')),
-        exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02MotorWorkingMode)),
-        exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-        exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Mode)),
-        exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
-        exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
+            exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02MotorWorkingMode)),
+            exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
+            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Mode)),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
         // ---------------------------------------------------------------------------------
         // DP exists, but not used at the moment
         // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
