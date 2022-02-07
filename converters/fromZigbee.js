@@ -8375,7 +8375,7 @@ const converters = {
                     `Mode ${value} is not recognized.`);
                     break;
                 }
-            break;
+                break;
             case tuya.dataPoints.AM02Border:
                 switch (value) {
                 case 0: // up
@@ -8384,7 +8384,7 @@ const converters = {
                     return {border: 'down'};
                 case 2: // down_delete
                     return {border: 'down_delete'};
-                    default:
+                default:
                     meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
                     `Mode ${value} is not recognized.`);
                     break;
