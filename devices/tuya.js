@@ -381,7 +381,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: (device, options) => {
-            if (device.manufacturerName === '_TZE200_pisltm67') {
+            if (device && device.manufacturerName === '_TZE200_pisltm67') {
                 return [e.illuminance_lux()];
             } else {
                 return [e.battery(), e.illuminance_lux(), e.battery_low()];
