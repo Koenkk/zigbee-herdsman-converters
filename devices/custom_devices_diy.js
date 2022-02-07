@@ -400,7 +400,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_eTH102'],
         model: 'EFEKTA_eTH102',
         vendor: 'Custom devices (DiY)',
-        description: '[Mini Digital Thermometer & Hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
+        description: '[Mini digital thermometer & hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
