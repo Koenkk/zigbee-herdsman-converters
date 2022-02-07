@@ -6958,18 +6958,18 @@ const converters = {
                 }
             }
             switch (key) {
-                case 'mode':
+            case 'mode':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMLookups.AM02Mode, value));
                 break;
-                case 'motor_direction':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Direction, utils.getKey(tuya.ZMLookups.AM02Direction, value));
-                    break;
-                case 'border':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMLookups.AM02Border, value));
-                    break;
-                case 'motor_working_mode':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMLookups.AM02MotorWorkingMode,value));
-                    break;
+            case 'motor_direction':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Direction, utils.getKey(tuya.ZMLookups.AM02Direction, value));
+                break;
+            case 'border':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMLookups.AM02Border, value));
+                break;
+            case 'motor_working_mode':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMLookups.AM02MotorWorkingMode, value));
+                break;
             }
         },
     },
