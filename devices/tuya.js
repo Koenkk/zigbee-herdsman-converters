@@ -369,7 +369,8 @@ module.exports = [
             {vendor: 'BSEED', model: 'Zigbee Socket'}],
     },
     {
-        fingerprint: [{modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'},{modelID: 'TS0601', manufacturerName: '_TZE200_pisltm67'}],
+        fingerprint: [{modelID: 'isltm67\u0000', manufacturerName: '_TYST11_pisltm67'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_pisltm67'}],
         model: 'S-LUX-ZB',
         vendor: 'TuYa',
         description: 'Light sensor',
