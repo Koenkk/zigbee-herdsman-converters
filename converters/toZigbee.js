@@ -6924,30 +6924,56 @@ const converters = {
             }
         },
     },
-    ZMAM02: {
-        key: ['control', 'percent_control', 'mode', 'control_back_mode', 'border', 'motor_working_mode'],
+    ZMAM02_cover: {
+        key: ['state', 'position', 'mode', 'motor_direction', 'border', 'motor_working_mode'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
+            if (key === 'position') {
+                if (value >= 0 && value <= 100) {
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
+                    value = invert ? 100 - value : value;
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
+                } else {
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                }
+            } else if (key === 'state') {
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`ZMAM02: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+                value = value.toLowerCase();
+                switch (value) {
+                case 'close':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.close);
+                    break;
+                case 'open':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.open);
+                    break;
+                case 'stop':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.stop);
+                    break;
+                default:
+                    throw new Error('ZMAM02: Invalid command received');
+                }
+            }
             switch (key) {
-            case 'control':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, utils.getKey(tuya.ZMAM02.AM02Control, value));
-                break;
-            case 'percent_control':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.AM02PercentState, value);
-                break;
             case 'mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMAM02.AM02Mode, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMLookups.AM02Mode, value));
                 break;
-            case 'control_back_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02ControlBackMode, utils.getKey(tuya.ZMAM02.AM02Direction, value));
+            case 'motor_direction':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Direction, utils.getKey(tuya.ZMLookups.AM02Direction, value));
                 break;
             case 'border':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMAM02.AM02Border, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMLookups.AM02Border, value));
                 break;
             case 'motor_working_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMAM02.AM02MotorMode, value));
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.AM02MotorWorkingMode,
+                    utils.getKey(tuya.ZMLookups.AM02MotorWorkingMode,
+                        value));
                 break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.ZMAM02: Unhandled Key ${key}`);
             }
         },
     },
