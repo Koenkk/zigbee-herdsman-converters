@@ -118,9 +118,13 @@ module.exports = [
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
-        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+        exposes: [e.switch().setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -135,9 +139,13 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -158,9 +166,14 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (3 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {

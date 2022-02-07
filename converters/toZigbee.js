@@ -2211,7 +2211,7 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2226,7 +2226,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -2415,12 +2415,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genAnalogOutput', [0x0055]);
-        },
-    },
-    xiaomi_curtain_acn002_status: {
-        key: ['motor_state'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genMultistateOutput', [0x0055]);
         },
     },
     ledvance_commands: {
@@ -3210,6 +3204,30 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
+    },
+    moes_switch: {
+        key: ['power_on_behavior', 'indicate_light'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'power_on_behavior':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.moesSwitchPowerOnBehavior,
+                    utils.getKey(tuya.moesSwitch.powerOnBehavior, value),
+                );
+                break;
+            case 'indicate_light':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.moesSwitchIndicateLight,
+                    utils.getKey(tuya.moesSwitch.indicateLight, value),
+                );
+                break;
+            default:
+                meta.logger.warn(`toZigbee.moes_switch: Unhandled Key ${key}`);
+                break;
+            }
         },
     },
     moes_thermostat_sensor: {
@@ -4505,6 +4523,10 @@ const converters = {
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {1: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
+            return {state: {'permanent_led': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLegrandDevices', [0x0001], manufacturerOptions.legrand);
         },
     },
     legrand_settingEnableLedIfOn: {
@@ -4516,15 +4538,10 @@ const converters = {
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {2: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
+            return {state: {'led_when_on': value}};
         },
-    },
-    legrand_settingEnableDimmer: {
-        key: ['dimmer_enabled'],
-        convertSet: async (entity, key, value, meta) => {
-            // enable the dimmer, requires a recent firmware on the device
-            const enableDimmer = value === 'ON' || (value === 'OFF' ? false : !!value);
-            const payload = {0: {value: enableDimmer ? 0x0101 : 0x0100, type: 9}};
-            await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLegrandDevices', [0x0002], manufacturerOptions.legrand);
         },
     },
     legrand_deviceMode: {
@@ -5977,6 +5994,32 @@ const converters = {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
+    ts011f_plug_indicator_mode: {
+        key: ['indicator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+                const lookup = {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+            }
+
+            if (typeof value === 'number' && value >= 0 && value <= 3) {
+                await entity.write('genOnOff', {tuyaBacklightMode: value});
+            } else {
+                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    },
+    ts011f_plug_child_mode: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
+        },
+    },
     hy_thermostat: {
         key: [
             'child_lock', 'current_heating_setpoint', 'local_temperature_calibration',
@@ -6881,30 +6924,56 @@ const converters = {
             }
         },
     },
-    ZMAM02: {
-        key: ['control', 'percent_control', 'mode', 'control_back_mode', 'border', 'motor_working_mode'],
+    ZMAM02_cover: {
+        key: ['state', 'position', 'mode', 'motor_direction', 'border', 'motor_working_mode'],
+        options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
+            if (key === 'position') {
+                if (value >= 0 && value <= 100) {
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
+                    value = invert ? 100 - value : value;
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
+                } else {
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                }
+            } else if (key === 'state') {
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`ZMAM02: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+                value = value.toLowerCase();
+                switch (value) {
+                case 'close':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.close);
+                    break;
+                case 'open':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.open);
+                    break;
+                case 'stop':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, stateEnums.stop);
+                    break;
+                default:
+                    throw new Error('ZMAM02: Invalid command received');
+                }
+            }
             switch (key) {
-            case 'control':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Control, utils.getKey(tuya.ZMAM02.AM02Control, value));
-                break;
-            case 'percent_control':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.AM02PercentState, value);
-                break;
             case 'mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMAM02.AM02Mode, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Mode, utils.getKey(tuya.ZMLookups.AM02Mode, value));
                 break;
-            case 'control_back_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02ControlBackMode, utils.getKey(tuya.ZMAM02.AM02Direction, value));
+            case 'motor_direction':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Direction, utils.getKey(tuya.ZMLookups.AM02Direction, value));
                 break;
             case 'border':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMAM02.AM02Border, value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02Border, utils.getKey(tuya.ZMLookups.AM02Border, value));
                 break;
             case 'motor_working_mode':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.AM02MotorWorkingMode, utils.getKey(tuya.ZMAM02.AM02MotorMode, value));
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.AM02MotorWorkingMode,
+                    utils.getKey(tuya.ZMLookups.AM02MotorWorkingMode,
+                        value));
                 break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.ZMAM02: Unhandled Key ${key}`);
             }
         },
     },

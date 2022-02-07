@@ -375,7 +375,8 @@ describe('index.js', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
                 const toCheck = [];
-                for (const expose of device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
                     } else if (expose.features && expose.type !== 'composite') {
@@ -457,7 +458,8 @@ describe('index.js', () => {
     it('Number exposes with set access should have a range', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
-                for (const expose of device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
                     if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
                         if (expose.value_min == null || expose.value_max == null) {
                             throw new Error(`Value min or max unknown for ${expose.property}`);
@@ -474,5 +476,12 @@ describe('index.js', () => {
                 expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
             }
         });
+    });
+
+    it('Verify options filter', () => {
+        const ZNJLBL01LM = index.definitions.find((d) => d.model == 'ZNJLBL01LM');
+        expect(ZNJLBL01LM.options.length).toBe(1);
+        const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
+        expect(ZNCZ04LM.options.length).toBe(2);
     });
 });
