@@ -3218,7 +3218,7 @@ const converters = {
                 );
                 break;
             case 'indicate_light':
-                await tuya.sendDataPointValue(
+                await tuya.sendDataPointEnum(
                     entity,
                     tuya.dataPoints.moesSwitchIndicateLight,
                     utils.getKey(tuya.moesSwitch.indicateLight, value),
@@ -5992,6 +5992,32 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    },
+    ts011f_plug_indicator_mode: {
+        key: ['indicator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+                const lookup = {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+            }
+
+            if (typeof value === 'number' && value >= 0 && value <= 3) {
+                await entity.write('genOnOff', {tuyaBacklightMode: value});
+            } else {
+                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['tuyaBacklightMode']);
+        },
+    },
+    ts011f_plug_child_mode: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
         },
     },
     hy_thermostat: {
