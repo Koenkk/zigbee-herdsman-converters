@@ -494,7 +494,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee 10W Floodlight RGB+CCT 12V Low Voltage (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
-    },    
+    },
     {
         zigbeeModel: ['GL-FL-005TZ'],
         model: 'GL-FL-005TZ',
