@@ -382,9 +382,9 @@ module.exports = [
         },
         exposes: (device, options) => {
             if (device && device.manufacturerName === '_TZE200_pisltm67') {
-                return [e.illuminance_lux()];
+                return [e.illuminance_lux(), e.linkquality()];
             } else {
-                return [e.battery(), e.illuminance_lux(), e.battery_low()];
+                return [e.battery(), e.illuminance_lux(), e.battery_low(), e.linkquality()];
             }
         },
     },
