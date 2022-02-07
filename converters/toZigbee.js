@@ -6972,7 +6972,7 @@ const converters = {
                     entity,
                     tuya.dataPoints.AM02MotorWorkingMode,
                     utils.getKey(tuya.ZMLookups.AM02MotorWorkingMode,
-                                 value));
+                        value));
                 break;
             }
         },
