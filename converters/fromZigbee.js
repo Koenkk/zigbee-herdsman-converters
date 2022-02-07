@@ -8384,12 +8384,12 @@ const converters = {
                     return {border: 'down'};
                 case 2: // down_delete
                     return {border: 'down_delete'};
-                default:
+                    default:
                     meta.logger.warn('zigbee-herdsman-converters:ZM_AM_02: ' +
                     `Mode ${value} is not recognized.`);
                     break;
                 }
-            break;
+                break;
             case tuya.dataPoints.AM02Direction:
                 switch (value) {
                 case 0:
@@ -8401,7 +8401,7 @@ const converters = {
                     `Mode ${value} is not recognized.`);
                     break;
                 }
-            break;
+                break;
             case tuya.dataPoints.AM02Mode:
                 switch (value) {
                 case 0: // morning
@@ -8413,7 +8413,7 @@ const converters = {
                         `Mode ${value} is not recognized.`);
                     break;
                 }
-                    break;
+                break;
             default: // Unknown code
                 meta.logger.warn(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
