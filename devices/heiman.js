@@ -398,7 +398,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}],
+        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'} , {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
@@ -671,20 +671,5 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
-    },
-    {
-        fingerprint: [{modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
-        model: 'SOS-EF-3.0',
-        vendor: 'HEIMAN',
-        description: 'Smart emergency button',
-        fromZigbee: [fz.command_status_change_notification_action, fz.legacy.st_button_state, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery(), e.action(['single'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-        },
     },
 ];
