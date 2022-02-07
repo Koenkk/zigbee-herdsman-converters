@@ -396,4 +396,23 @@ module.exports = [
         },
         exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
     },
+    {
+        zigbeeModel: ['EFEKTA_eTH102'],
+        model: 'EFEKTA_eTH102',
+        vendor: 'Custom devices (DiY)',
+        description: '[Mini Digital Thermometer & Hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
 ];
