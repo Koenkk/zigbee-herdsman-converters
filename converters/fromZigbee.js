@@ -2420,6 +2420,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'moes_switch');
             const dp = dpValue.dp;
+
+            // tuya_switch datapoints
+            if (dp >= 1 && dp <= 4) {
+                return null;
+            }
+
             const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
@@ -2634,6 +2640,31 @@ const converters = {
                 const value = msg.data['tuyaBacklightMode'];
                 const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
                 return {backlight_mode: backlightLookup[value]};
+            }
+        },
+    },
+    ts011f_plug_indicator_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 'tuyaBacklightMode'; // 0x8001 or 32769
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
+                if (lookup.hasOwnProperty(value)) {
+                    return {indicator_mode: lookup[value]};
+                }
+            }
+        },
+    },
+    ts011f_plug_child_mode: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = (0x8000).toString(); // 32768
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
         },
     },
@@ -5330,8 +5361,11 @@ const converters = {
                     if (index == 1) {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
-                    } else if (index === 3) payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
-                    else if (index === 5) {
+                    } else if (index === 3) {
+                        if (!['WXCJKG11LM ', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
+                            payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
+                        }
+                    } else if (index === 5) {
                         if (['JT-BZ-01AQ/A', 'RTCZCGQ11LM'].includes(model.model)) payload.power_outage_count = value;
                     } else if (index === 100) {
                         if (['QBKG20LM', 'QBKG31LM', 'QBKG39LM', 'QBKG41LM', 'QBCZ15LM'].includes(model.model)) {

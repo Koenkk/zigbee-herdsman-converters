@@ -62,10 +62,14 @@ const gledoptoExtend = {
     }),
 };
 
-const configureReadModelID = async (device) => {
+const configureReadModelID = async (device, coordinatorEndpoint, logger) => {
     // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
     const endpoint = device.endpoints[0];
-    await endpoint.read('genBasic', ['modelId']);
+    const oldModel = device.modelID;
+    const newModel = (await endpoint.read('genBasic', ['modelId'])).modelId;
+    if (oldModel != newModel) {
+        logger.info(`Detected Gledopto device mode change, from '${oldModel}' to '${newModel}'`);
+    }
 };
 
 module.exports = [
@@ -125,7 +129,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            await configureReadModelID(device);
+            await configureReadModelID(device, coordinatorEndpoint, logger);
         },
     },
     {
@@ -192,7 +196,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
-            await configureReadModelID(device);
+            await configureReadModelID(device, coordinatorEndpoint, logger);
         },
     },
     {
@@ -254,7 +258,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_color({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_color().configure(device, coordinatorEndpoint, logger);
-            await configureReadModelID(device);
+            await configureReadModelID(device, coordinatorEndpoint, logger);
         },
     },
     {
@@ -267,7 +271,7 @@ module.exports = [
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
-            await configureReadModelID(device);
+            await configureReadModelID(device, coordinatorEndpoint, logger);
         },
     },
     {
@@ -292,7 +296,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            await configureReadModelID(device);
+            await configureReadModelID(device, coordinatorEndpoint, logger);
         },
     },
     {
