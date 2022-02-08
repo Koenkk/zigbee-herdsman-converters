@@ -4952,6 +4952,195 @@ const converters = {
             return {state: {week: value}};
         },
     },
+    x5h_thermostat: {
+        key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
+            'local_temperature_calibration', 'protection_temp_limit', 'temp_diff', 'output_reverse', 'upper_temp', 'preset', 'child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'system_mode':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hState, value === 'heat');
+                break;
+            case 'preset':
+                if (typeof value === 'string') {
+                    value = value.toLowerCase();
+                    const lookup = {manual: 0, program: 1, temporary_pattern: 2};
+                    utils.validateValue(value, Object.keys(lookup));
+                    value = lookup[value];
+                }
+
+                if (typeof value === 'number' && value >= 0 && value <= 2) {
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
+                } else {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+                break;
+            case 'upper_temp':
+                if (typeof value !== 'number') {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+
+                if (value >= 35 && value <= 95) {
+                    await tuya.sendDataPointValue(
+                        entity,
+                        tuya.dataPoints.x5hSetTempCeiling,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error('Supported values are in range [35, 95]');
+                }
+                break;
+            case 'output_reverse':
+                await tuya.sendDataPointBool(
+                    entity,
+                    tuya.dataPoints.x5hOutputReverse,
+                    value === 'ON',
+                );
+                break;
+            case 'temp_diff':
+                if (typeof value !== 'number') {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+
+                if (value >= 1 && value <= 9.5) {
+                    value = Math.round(value * 10);
+
+                    await tuya.sendDataPointValue(
+                        entity,
+                        tuya.dataPoints.x5hTempDiff,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error('Supported values are in range [1, 9.5]');
+                }
+                break;
+            case 'protection_temp_limit':
+                if (typeof value !== 'number') {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+
+                if (value >= 5 && value <= 60) {
+                    await tuya.sendDataPointValue(
+                        entity,
+                        tuya.dataPoints.x5hProtectionTempLimit,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error('Supported values are in range [5, 60]');
+                }
+                break;
+            case 'local_temperature_calibration':
+                if (typeof value !== 'number') {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+
+                if (value >= -9.9 && value <= 9.9) {
+                    value = Math.round(value * 10);
+
+                    if (value < 0) {
+                        value = 4096 + value;
+                    }
+
+                    await tuya.sendDataPointValue(
+                        entity,
+                        tuya.dataPoints.x5hTempCorrection,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error('Supported values are in range [-9.9, 9.9]');
+                }
+                break;
+            case 'factory_reset':
+                await tuya.sendDataPointBool(
+                    entity,
+                    tuya.dataPoints.x5hFactoryReset,
+                    value === 'ON',
+                );
+                break;
+            case 'week':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.x5hWorkingDaySetting,
+                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number),
+                );
+                break;
+            case 'frost_protection':
+                await tuya.sendDataPointBool(
+                    entity,
+                    tuya.dataPoints.x5hFrostProtection,
+                    value === 'ON',
+                );
+                break;
+            case 'sound':
+                await tuya.sendDataPointBool(
+                    entity,
+                    tuya.dataPoints.x5hSound,
+                    value === 'ON',
+                );
+                break;
+            case 'brightness_state':
+                if (typeof value === 'string') {
+                    value = value.toLowerCase();
+                    const lookup = {off: 0, low: 1, medium: 2, high: 3};
+                    utils.validateValue(value, Object.keys(lookup));
+                    value = lookup[value];
+                }
+
+                if (typeof value === 'number' && value >= 0 && value <= 3) {
+                    await tuya.sendDataPointEnum(
+                        entity,
+                        tuya.dataPoints.x5hBackplaneBrightness,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+                break;
+            case 'sensor':
+                if (typeof value === 'string') {
+                    value = value.toLowerCase();
+                    const lookup = {in: 0, ou: 1, al: 2};
+                    utils.validateValue(value, Object.keys(lookup));
+                    value = lookup[value];
+                }
+
+                if (typeof value === 'number' && value >= 0 && value <= 2) {
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
+                } else {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+                break;
+            case 'current_heating_setpoint':
+                if (typeof value === 'number' && value >= 5 && value <= 60) {
+                    value = Math.round(value * 10);
+                    await tuya.sendDataPointValue(
+                        entity,
+                        tuya.dataPoints.x5hSetTemp,
+                        value,
+                    );
+                } else {
+                    // replace with meta.logger
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hChildLock, value === 'LOCK');
+                break;
+            default:
+                break;
+            }
+        },
+    },
     tuya_cover_control: {
         key: ['state', 'position'],
         options: [exposes.options.invert_cover()],

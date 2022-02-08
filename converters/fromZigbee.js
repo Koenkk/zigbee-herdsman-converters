@@ -4478,6 +4478,118 @@ const converters = {
             }
         },
     },
+    x5h_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'x5h_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let temperature;
+
+            switch (dp) {
+            case tuya.dataPoints.x5hState:
+                return {system_mode: value ? 'heat' : 'off'};
+            case tuya.dataPoints.x5hWorkingStatus:
+                return {running_state: value ? 'heat' : 'idle'};
+            case tuya.dataPoints.x5hSound:
+                return {sound: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.x5hFrostProtection:
+                return {frost_protection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.x5hWorkingDaySetting:
+                return {week: tuya.thermostatWeekFormat[value]};
+            case tuya.dataPoints.x5hFactoryReset:
+                // Maybe  reset to "off" value by timeout
+                // because thermostat doesn't report new value by itself
+                return {factory_reset: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.x5hFaultAlarm:
+                // don't know what is it
+                // not displayed in tuya app, but present as item in device logs on the tuya iot
+                // value only changes on the factory reset to "0"
+                return {fault_alarm: value};
+            case tuya.dataPoints.x5hTempDiff:
+                return {temp_diff: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.x5hProtectionTempLimit:
+                return {protection_temp_limit: value};
+            case tuya.dataPoints.x5hOutputReverse:
+                return {output_reverse: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.x5hBackplaneBrightness:
+                switch (value) {
+                case 0:
+                    return {brightness_state: 'off'};
+                case 1:
+                    return {brightness_state: 'low'};
+                case 2:
+                    return {brightness_state: 'medium'};
+                case 3:
+                    return {brightness_state: 'high'};
+                default:
+                    // Sometimes, for example on thermostat restart, it sends message like:
+                    // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
+                    // It doesn't represent any brightness value.
+                    break;
+                }
+                break;
+            case tuya.dataPoints.x5hWeeklyProcedure:
+                // not working with dp of moesSchedule
+                // maybe thermostatWeeklyProcedure
+                // need to test
+                return;
+            case tuya.dataPoints.x5hChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.x5hSetTemp:
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+            case tuya.dataPoints.x5hSetTempCeiling:
+                // Not ok
+                // It overwrites heating setpoint
+                // need more tests
+                return {upper_temp: value / 10};
+            case tuya.dataPoints.x5hCurrentTemp:
+                temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
+                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
+            case tuya.dataPoints.x5hTempCorrection:
+                temperature = value;
+
+                if (temperature > 4000) {
+                    temperature = temperature - 4096;
+                }
+
+                return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
+            case tuya.dataPoints.x5hMode:
+                switch (value) {
+                case 0:
+                    return {preset: 'manual'};
+                case 1:
+                    return {preset: 'program'};
+                case 2:
+                    // it exists in tuya app but no ideas how it works
+                    // impossible to set this preset via thermostat itself
+                    // need more tests
+                    return {preset: 'temporary_pattern'};
+                default:
+                    // not fully tested, maybe there are more presets or any unrecognized values
+                    // need more tests
+                    break;
+                }
+                break;
+            case tuya.dataPoints.x5hSensorSelection:
+                // maybe rename to "internal", "external", "both"
+                switch (value) {
+                case 0:
+                    return {sensor: 'IN'};
+                case 1:
+                    return {sensor: 'OU'};
+                case 2:
+                    return {sensor: 'AL'};
+                default:
+                    break;
+                }
+                break;
+            default:
+                meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     tuya_dimmer: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
