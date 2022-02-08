@@ -1,4 +1,7 @@
 const extend = require('../lib/extend');
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -28,5 +31,13 @@ module.exports = [
         vendor: 'Prolight',
         description: 'GU10 white and colour spot',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+    },
+    {
+        zigbeeModel: ['PROLIGHT REMOTE CONTROL'],
+        model: 'REMOTE CONTROL',
+        vendor: 'Prolight',
+        description: 'ProLight remote control',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down'])],
     },
 ];
