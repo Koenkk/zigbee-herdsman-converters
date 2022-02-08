@@ -34,7 +34,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['PROLIGHT REMOTE CONTROL'],
-        model: 'REMOTE CONTROL',
+        model: 'PROLIGHT_REMOTE_CONTROL',
         vendor: 'Prolight',
         description: 'Remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
