@@ -10,7 +10,7 @@ module.exports = [
         vendor: 'Titan Products',
         description: 'Room CO2, humidity & temperature sensor',
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
-        exposes: [e.battery_voltage(), e.humidity(), e.temperature(), e.co2()],
+        exposes: [e.battery_voltage(), e.battery_low(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
