@@ -1,6 +1,6 @@
 const extend = require('../lib/extend');
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const fz = require('../converters/fromZigbee');
+const exposes = require('../lib/exposes');
 const e = exposes.presets;
 
 module.exports = [
@@ -36,7 +36,7 @@ module.exports = [
         zigbeeModel: ['PROLIGHT REMOTE CONTROL'],
         model: 'REMOTE CONTROL',
         vendor: 'Prolight',
-        description: 'ProLight remote control',
+        description: 'Remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down'])],
     },
