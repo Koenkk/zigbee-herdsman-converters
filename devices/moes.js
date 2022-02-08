@@ -119,9 +119,9 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.tuya_switch, fz.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
@@ -140,9 +140,9 @@ module.exports = [
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
@@ -168,9 +168,9 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            exposes.enum('indicate_light', ea.STATE_SET, ['off', 'switch', 'position'])
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
                 .withDescription('Indicator light status'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
