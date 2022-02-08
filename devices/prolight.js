@@ -37,6 +37,7 @@ module.exports = [
         model: 'PROLIGHT_REMOTE_CONTROL',
         vendor: 'Prolight',
         description: 'Remote control',
+        toZigbee: [],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down'])],
     },
