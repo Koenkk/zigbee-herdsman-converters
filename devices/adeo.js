@@ -7,6 +7,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ZBEK-12'],
+        model: 'IA-CDZFB2AA007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LDSENK01F'],
         model: 'LDSENK01F',
         vendor: 'ADEO',
