@@ -423,9 +423,12 @@ const converters = {
         // This is for occupancy sensor that send motion start AND stop messages
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.no_occupancy_since()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
-                return {occupancy: (msg.data.occupancy % 2) > 0};
+                const payload = {occupancy: (msg.data.occupancy % 2) > 0};
+                utils.noOccupancySince(msg.endpoint, payload, options, publish);
+                return payload;
             }
         },
     },
@@ -449,32 +452,19 @@ const converters = {
                 options.occupancy_timeout : 90;
 
             // Stop existing timers because motion is detected and set a new one.
-            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
-            globalStore.putValue(msg.endpoint, 'timers', []);
+            clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
 
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
                 }, timeout * 1000);
 
-                globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
             }
 
-            // No occupancy since
-            if (options && options.no_occupancy_since) {
-                options.no_occupancy_since.forEach((since) => {
-                    const timer = setTimeout(() => {
-                        publish({no_occupancy_since: since});
-                    }, since * 1000);
-                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
-                });
-            }
-
-            if (options && options.no_occupancy_since) {
-                return {occupancy: true, no_occupancy_since: 0};
-            } else {
-                return {occupancy: true};
-            }
+            const payload = {occupancy: true};
+            utils.noOccupancySince(msg.endpoint, payload, options, publish);
+            return payload;
         },
     },
     occupancy_timeout: {
