@@ -491,7 +491,12 @@ const definition = {
         // docs generation
         let exposes;
         if (device == null && options == null) {
-            exposes = exposedData.map((e) => e.exposes);
+            exposes = exposedData.map((e) => e.exposes)
+                .filter((value, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.property === value.property // Remove duplicates
+                    )),
+                );
         } else {
             exposes = getCurrentConfig(device, options).map((e) => e.exposes);
         }
