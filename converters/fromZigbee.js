@@ -5362,7 +5362,7 @@ const converters = {
                         payload.voltage = value;
                         payload.battery = batteryVoltageToPercentage(value, '3V_2100');
                     } else if (index === 3) {
-                        if (!['WXCJKG11LM ', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
+                        if (!['WXCJKG11LM', 'WXCJKG12LM', 'WXCJKG13LM'].includes(model.model)) {
                             payload.temperature = calibrateAndPrecisionRoundOptions(value, options, 'temperature'); // 0x03
                         }
                     } else if (index === 5) {
