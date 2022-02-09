@@ -1469,8 +1469,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4023330P6'],
-        model: '4023330P6',
+        zigbeeModel: ['929003054801'],
+        model: '929003054801',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Amaze with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
