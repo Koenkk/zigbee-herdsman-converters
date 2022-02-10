@@ -661,7 +661,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LWW003'],
+        zigbeeModel: ['LWW003', 'LWF003'],
         model: '9290018216',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
