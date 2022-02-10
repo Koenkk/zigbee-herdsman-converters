@@ -379,6 +379,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 21, 'bottom': 22};
         },
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07117'}],
         meta: {multiEndpoint: true},
         exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
             'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
