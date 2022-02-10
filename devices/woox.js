@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const reporting = require('../lib/reporting');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
