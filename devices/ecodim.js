@@ -40,7 +40,7 @@ module.exports = [
             ]},
         ],
         zigbeeModel: ['Dimmer-Switch-ZB3.0'],
-        model: 'Eco-Dim.07',
+        model: 'Eco-Dim.07/Eco-Dim.10',
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
