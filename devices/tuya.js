@@ -1306,7 +1306,7 @@ module.exports = [
         description: 'PIR sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        whiteLabel: [{vendor: 'Samotech', model: 'SM301Z'}],
+        whiteLabel: [{vendor: 'Samotech', model: 'SM301Z'}, {vendor: 'Nedis', model: 'ZBSM10WT'}],
         exposes: [e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
