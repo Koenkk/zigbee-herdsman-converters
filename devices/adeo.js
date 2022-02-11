@@ -26,7 +26,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['LXEK-5'],
+        zigbeeModel: ['LXEK-5', 'ZBEK-26'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
         description: 'RGB CTT LEXMAN ENKI remote control',
