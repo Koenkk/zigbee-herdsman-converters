@@ -34,9 +34,6 @@ const fzLocal = {
                     action: 'button_'+color,
                 };
             }
-            return {
-                action: null,
-            };
         },
     },
     refreshColored: {
@@ -48,9 +45,6 @@ const fzLocal = {
                     action: 'button_refresh_colored',
                 };
             }
-            return {
-                action: null,
-            };
         },
     },
     refresh: {
@@ -62,9 +56,6 @@ const fzLocal = {
                     action: 'button_refresh',
                 };
             }
-            return {
-                action: null,
-            };
         },
     },
 };
