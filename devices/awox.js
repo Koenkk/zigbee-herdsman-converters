@@ -89,6 +89,7 @@ module.exports = [
         description: 'Remote controller',
         fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
             fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
+        toZigbee: [],
         exposes: [e.action(['on', 'off', 'button_red', 'button_refresh', 'button_refresh_colored', 'button_blue', 'button_yellow',
             'button_green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
