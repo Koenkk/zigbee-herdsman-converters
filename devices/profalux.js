@@ -7,37 +7,26 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [
-            {manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [
-                0, 3, 21,
-            ], outputClusters: [
-                3, 4, 5, 6, 8, 256, 64544, 64545,
-            ]}]},
-        ],
-        model: 'Remote',
+        fingerprint: [{manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21],
+            outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}]}],
+        model: 'NB102',
         vendor: 'Profalux',
-        description: 'Store profalux',
+        description: 'Cover remote',
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
     },
     {
-        fingerprint: [
-            {manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512, inputClusters: [
-                0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545,
-            ], outputClusters: [
-                3, 64544,
-            ]}]},
-        ],
-        model: 'Store',
+        fingerprint: [{manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512,
+            inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]}]}],
+        model: 'NSAV061',
         vendor: 'Profalux',
-        description: 'Store profalux',
+        description: 'Cover',
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.brightness(endpoint);
         },
