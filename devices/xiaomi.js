@@ -54,9 +54,9 @@ module.exports = [
         model: 'MCCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara P1 door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz. xiaomi_contact, fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
