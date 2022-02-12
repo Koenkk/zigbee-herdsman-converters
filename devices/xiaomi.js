@@ -58,7 +58,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
-                configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
