@@ -31,7 +31,7 @@ const fzLocal = {
             const color = awoxRemoteHelper.convertToColorName(msg.data);
             if (color != null) {
                 return {
-                    action: 'button_'+color,
+                    action: color,
                 };
             }
         },
@@ -42,7 +42,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.movemode === 1 && msg.data.rate === 12) {
                 return {
-                    action: 'button_refresh_colored',
+                    action: 'refresh_colored',
                 };
             }
         },
@@ -53,7 +53,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (awoxRemoteHelper.isRefresh(msg.data)) {
                 return {
-                    action: 'button_refresh',
+                    action: 'refresh',
                 };
             }
         },
@@ -81,8 +81,8 @@ module.exports = [
         fromZigbee: [fz.command_on, fzLocal.colors, fzLocal.refresh, fzLocal.refreshColored, fz.command_off,
             fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_step_color_temperature],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'button_red', 'button_refresh', 'button_refresh_colored', 'button_blue', 'button_yellow',
-            'button_green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
+        exposes: [e.action(['on', 'off', 'red', 'refresh', 'refresh_colored', 'blue', 'yellow',
+            'green', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             'recall_1', 'color_temperature_step_up', 'color_temperature_step_down'])],
     },
     {
