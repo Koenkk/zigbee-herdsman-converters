@@ -99,6 +99,15 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd(), e.pm25()],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
+        model: 'TS0601_smart_CO_air_box',
+        vendor: 'TuYa',
+        description: 'Smart air box (carbon monoxide)',
+        fromZigbee: [fz.tuya_CO],
+        toZigbee: [],
+        exposes: [e.carbon_monoxide(), e.co()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',

@@ -4141,6 +4141,25 @@ const converters = {
             }
         },
     },
+    tuya_CO: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.precision('co'), exposes.options.calibration('co')],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_CO');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            switch (dp) {
+            case tuya.dataPoints.tuyaSabCO:
+                return {co: calibrateAndPrecisionRoundOptions(value / 100, options, 'co')};
+            case tuya.dataPoints.tuyaSabCOalarm:
+                return {carbon_monoxide: value ? 'OFF' : 'ON'};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
