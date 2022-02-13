@@ -6417,6 +6417,25 @@ const converters = {
             }
         },
     },
+    profalux_cover_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+                case 'OPEN':
+                    await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                    break;
+                case 'CLOSE':
+                    await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
+                    break;
+                case 'STOP':
+                    await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
+                    break;
+                default:
+                    throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE' or 'STOP')`);
+            };
+        },
+    },
+    
 };
 
 module.exports = converters;
