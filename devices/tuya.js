@@ -331,6 +331,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
