@@ -1895,7 +1895,7 @@ module.exports = [
             exposes.text('alarm', ea.STATE),
             exposes.binary('trip', ea.STATE_SET, 'trip', 'clear'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
-            exposes.enum('power_on_behaviour', ea.STATE_SET, ['off', 'on', 'previous']),
+            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
             exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
             exposes.numeric('voltage', ea.STATE).withUnit('V'),
             exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),

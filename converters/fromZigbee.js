@@ -8150,7 +8150,7 @@ const converters = {
                     1: 'on',
                     2: 'previous',
                 };
-                result.power_on_behaviour = lookup[value];
+                result.power_on_behavior = lookup[value];
             }
             if (dp === tuya.dataPoints.hochFaultCode) {
                 const lookup = {

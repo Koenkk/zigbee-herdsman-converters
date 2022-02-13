@@ -7006,7 +7006,7 @@ const converters = {
         key: ['state',
             'child_lock',
             'countdown_timer',
-            'power_on_behaviour',
+            'power_on_behavior',
             'trip',
             'clear_device_data',
             /* TODO: Add the below keys when toZigbee converter work has been completed
@@ -7025,10 +7025,10 @@ const converters = {
             } else if (key === 'countdown_timer') {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.hochCountdownTimer, value);
                 return {state: {countdown_timer: value}};
-            } else if (key === 'power_on_behaviour') {
+            } else if (key === 'power_on_behavior') {
                 const lookup = {'off': 0, 'on': 1, 'previous': 2};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.hochRelayStatus, lookup[value], 'sendData');
-                return {state: {power_on_behaviour: value}};
+                return {state: {power_on_behavior: value}};
             } else if (key === 'trip') {
                 if (value === 'clear') {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.hochLocking, true, 'sendData');
