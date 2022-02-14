@@ -16,6 +16,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['43078'],
+        model: '43078',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['43080'],
         model: '43080',
         vendor: 'Enbrighten',
