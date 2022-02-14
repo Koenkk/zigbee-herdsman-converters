@@ -1,6 +1,5 @@
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
-const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
