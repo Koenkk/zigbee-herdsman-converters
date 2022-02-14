@@ -124,4 +124,11 @@ module.exports = [
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: lockExtend(),
     },
+    {
+        zigbeeModel: ['06ffff2027'],
+        model: 'YMF40A RL',
+        vendor: 'Yale',
+        description: 'Real living lock / Intelligent biometric digital lock',
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
+    },
 ];

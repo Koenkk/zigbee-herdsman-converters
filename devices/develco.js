@@ -39,7 +39,8 @@ module.exports = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
+        options: [exposes.options.precision(`ac_frequency`)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
@@ -52,6 +53,7 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
             await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            await reporting.acFrequency(endpoint);
         },
         endpoint: (device) => {
             return {default: 2};
@@ -311,13 +313,16 @@ module.exports = [
         exposes: [
             e.power(),
             e.energy(),
+            e.battery_low(),
             exposes.numeric('pulse_configuration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535'),
             exposes.enum('interface_mode', ea.ALL,
                 ['electricity', 'gas', 'water', 'kamstrup-kmp', 'linky', 'IEC62056-21', 'DSMR-2.3', 'DSMR-4.0'])
                 .withDescription('Operating mode/probe'),
             exposes.numeric('current_summation', ea.SET)
-                .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh'),
+                .withDescription('Current summation value sent to the display. e.g. 570 = 0,570 kWh').withValueMin(0).withValueMax(10000),
+            exposes.binary('check_meter', ea.STATE, true, false)
+                .withDescription('Is true if communication problem with meter is experienced'),
         ],
     },
     {

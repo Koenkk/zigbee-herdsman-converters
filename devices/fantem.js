@@ -29,10 +29,14 @@ module.exports = [
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [tz.ZB003X],
         exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
-            e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes'),
-            exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration'),
-            exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration'),
-            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration'),
+            e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
+                .withValueMin(0).withValueMax(1440),
+            exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration')
+                .withValueMin(-20).withValueMax(20),
+            exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration')
+                .withValueMin(-50).withValueMax(50),
+            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration')
+                .withValueMin(-10000).withValueMax(10000),
             exposes.binary('pir_enable', ea.STATE_SET, true, false).withDescription('Enable PIR sensor'),
             exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
             exposes.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enabled reporting'),

@@ -266,7 +266,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -375,7 +375,8 @@ describe('index.js', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
                 const toCheck = [];
-                for (const expose of device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
                     } else if (expose.features && expose.type !== 'composite') {
@@ -406,7 +407,8 @@ describe('index.js', () => {
     it('Check if all exposes have a color temp range', () => {
         const allowed = fs.readFileSync(path.join(__dirname, 'colortemp_range_missing_allowed.txt'), 'utf8').split('\n');
         for (const definition of index.definitions) {
-            for (const expose of definition.exposes.filter(e => e.type === 'light')) {
+            const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes();
+            for (const expose of exposes.filter(e => e.type === 'light')) {
                 const colorTemp = expose.features.find(f => f.name === 'color_temp');
                 if (colorTemp && !colorTemp._colorTempRangeProvided && !allowed.includes(definition.model)) {
                     throw new Error(`'${definition.model}' is missing color temp range, see https://github.com/Koenkk/zigbee2mqtt.io/blob/develop/docs/how_tos/how_to_support_new_devices.md#31-retrieving-color-temperature-range-only-required-for-lights-which-support-color-temperature`);
@@ -451,5 +453,35 @@ describe('index.js', () => {
     it('Calculate configure key legacy', () => {
         const definition = index.findByZigbeeModel('MCT-340 SMA');
         expect(index.getConfigureKey(definition)).toBe(1);
+    });
+
+    it('Number exposes with set access should have a range', () => {
+        index.definitions.forEach((device) => {
+            if (device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
+                    if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
+                        if (expose.value_min == null || expose.value_max == null) {
+                            throw new Error(`Value min or max unknown for ${expose.property}`);
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    it('Function exposes should have linkquality sensor', () => {
+        index.definitions.forEach((definition) => {
+            if (typeof definition.exposes == 'function') {
+                expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
+            }
+        });
+    });
+
+    it('Verify options filter', () => {
+        const ZNJLBL01LM = index.definitions.find((d) => d.model == 'ZNJLBL01LM');
+        expect(ZNJLBL01LM.options.length).toBe(1);
+        const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
+        expect(ZNCZ04LM.options.length).toBe(2);
     });
 });

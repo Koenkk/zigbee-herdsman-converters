@@ -7,7 +7,48 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const tzLocal = {
+    lift_duration: {
+        key: ['lift_duration'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
+            return {state: {lift_duration: value}};
+        },
+    },
+};
+
 module.exports = [
+    {
+        zigbeeModel: ['PUCK/SHUTTER/1'],
+        model: 'CCT5015-0001',
+        vendor: 'Schneider Electric',
+        description: 'Roller shutter module',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
+        exposes: [e.cover_position(), exposes.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+            .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(5);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['NHPB/SHUTTER/1'],
+        model: 'S520567',
+        vendor: 'Schneider Electric',
+        description: 'Roller shutter',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        exposes: [e.cover_position()],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(5);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
     {
         zigbeeModel: ['iTRV'],
         model: 'WV704R0A0902',
@@ -146,6 +187,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CH2AX/SWITCH/1'],
+        model: '41E2PBSWMZ/356PB2MBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series module switch 2A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SMARTPLUG/1'],
         model: 'CCT711119',
         vendor: 'Schneider Electric',
@@ -253,7 +306,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.action(['on_s*', 'off_s*'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.endpoints.forEach(async (ep) => {
-                if (ep.outputClusters.includes(6)) {
+                if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
                     if (ep.ID <= 2) {
                         await reporting.onOff(ep);
@@ -326,6 +379,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 21, 'bottom': 22};
         },
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07117'}],
         meta: {multiEndpoint: true},
         exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
             'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
@@ -444,7 +498,7 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -531,6 +585,93 @@ module.exports = [
             const endpoint = device.getEndpoint(21);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SOCKET/OUTLET/2'],
+        model: 'EKO09738',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee smart socket with power meter',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SOCKET/OUTLET/1'],
+        model: 'EKO09716',
+        vendor: 'Schneider Electric',
+        description: 'Zigbee smart socket with power meter',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+            .withDescription('Controls the behaviour when the device is powered on'), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['LK/OUTLET/1'],
+        model: '545D6115',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA wiser wireless socket outlet',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.energy(), e.current(), e.voltage(),
+            exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
+                .withDescription('Controls the behaviour when the device is powered on')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(6);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['NHMOTION/SWITCH/1'],
+        model: '545D6306',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA Wiser wireless PIR with relay',
+        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
+        exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it')],
+        toZigbee: [tz.on_off, tz.occupancy_timeout],
+        endpoint: (device) => {
+            return {'default': 37, 'l1': 1, 'l2': 37};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
+            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
+            await reporting.onOff(endpoint1);
+            // read switch state
+            await endpoint1.read('genOnOff', ['onOff']);
+
+            const endpoint37 = device.getEndpoint(37);
+            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
+            await reporting.occupancy(endpoint37);
+            await reporting.illuminance(endpoint37);
+            // read occupancy_timeout
+            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
 ];

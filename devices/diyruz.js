@@ -150,11 +150,13 @@ module.exports = [
             exposes.numeric('radiation_dose_per_hour', ea.STATE).withUnit('μR/h').withDescription('Current radiation level'),
             exposes.binary('led_feedback', ea.ALL, 'ON', 'OFF').withDescription('Enable LED feedback'),
             exposes.binary('buzzer_feedback', ea.ALL, 'ON', 'OFF').withDescription('Enable buzzer feedback'),
-            exposes.numeric('alert_threshold', ea.ALL).withUnit('μR/h').withDescription('Critical radiation level'),
+            exposes.numeric('alert_threshold', ea.ALL).withUnit('μR/h').withDescription('Critical radiation level')
+                .withValueMin(0).withValueMax(10000),
             exposes.enum('sensors_type', ea.ALL, ['СБМ-20/СТС-5/BOI-33', 'СБМ-19/СТС-6', 'Others'])
                 .withDescription('Type of installed tubes'),
-            exposes.numeric('sensors_count', ea.ALL).withDescription('Count of installed tubes'),
-            exposes.numeric('sensitivity', ea.ALL).withDescription('This is applicable if tubes type is set to other')],
+            exposes.numeric('sensors_count', ea.ALL).withDescription('Count of installed tubes').withValueMin(0).withValueMax(50),
+            exposes.numeric('sensitivity', ea.ALL).withDescription('This is applicable if tubes type is set to other')
+                .withValueMin(0).withValueMax(100)],
         toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -250,11 +252,16 @@ module.exports = [
         exposes: [e.co2(), e.temperature(), e.humidity(), e.pressure(),
             exposes.binary('led_feedback', ea.ALL, 'ON', 'OFF').withDescription('Enable LEDs feedback'),
             exposes.binary('enable_abc', ea.ALL, 'ON', 'OFF').withDescription('Enable ABC (Automatic Baseline Correction)'),
-            exposes.numeric('threshold1', ea.ALL).withUnit('ppm').withDescription('Warning (LED2) CO2 level'),
-            exposes.numeric('threshold2', ea.ALL).withUnit('ppm').withDescription('Critical (LED3) CO2 level'),
-            exposes.numeric('temperature_offset', ea.ALL).withUnit('°C').withDescription('Adjust temperature'),
-            exposes.numeric('humidity_offset', ea.ALL).withUnit('%').withDescription('Adjust humidity'),
-            exposes.numeric('pressure_offset', ea.ALL).withUnit('hPa').withDescription('Adjust pressure')],
+            exposes.numeric('threshold1', ea.ALL).withUnit('ppm').withDescription('Warning (LED2) CO2 level')
+                .withValueMin(0).withValueMax(50000),
+            exposes.numeric('threshold2', ea.ALL).withUnit('ppm').withDescription('Critical (LED3) CO2 level')
+                .withValueMin(0).withValueMax(50000),
+            exposes.numeric('temperature_offset', ea.ALL).withUnit('°C').withDescription('Adjust temperature')
+                .withValueMin(-20).withValueMax(20),
+            exposes.numeric('humidity_offset', ea.ALL).withUnit('%').withDescription('Adjust humidity')
+                .withValueMin(-50).withValueMax(50),
+            exposes.numeric('pressure_offset', ea.ALL).withUnit('hPa').withDescription('Adjust pressure')
+                .withValueMin(-1000).withValueMax(1000)],
     },
     {
         zigbeeModel: ['DIY_Zintercom'],
@@ -282,15 +289,15 @@ module.exports = [
             exposes.binary('sound', ea.ALL, 'ON', 'OFF').withProperty('sound')
                 .withDescription('Enable or disable sound'),
             exposes.numeric('time_ring', ea.ALL).withUnit('sec')
-                .withDescription('Time to ring before answer'),
+                .withDescription('Time to ring before answer').withValueMin(0).withValueMax(600),
             exposes.numeric('time_talk', ea.ALL).withUnit('sec')
-                .withDescription('Time to hold before open'),
+                .withDescription('Time to hold before open').withValueMin(0).withValueMax(600),
             exposes.numeric('time_open', ea.ALL).withUnit('sec')
-                .withDescription('Time to open before end'),
+                .withDescription('Time to open before end').withValueMin(0).withValueMax(600),
             exposes.numeric('time_bell', ea.ALL).withUnit('sec')
-                .withDescription('Time after last bell to finish ring'),
+                .withDescription('Time after last bell to finish ring').withValueMin(0).withValueMax(600),
             exposes.numeric('time_report', ea.ALL).withUnit('min')
-                .withDescription('Reporting interval'),
+                .withDescription('Reporting interval').withValueMin(0).withValueMax(1440),
             e.battery(),
         ],
     },

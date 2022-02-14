@@ -38,10 +38,11 @@ const tuyaLocal = {
 const fzLocal = {
     zs_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dp = msg.data.dp;
-            const value = tuya.getDataValue(msg.data.datatype, msg.data.data);
+            const dpValue = tuya.firstDpValue(msg, meta, 'zs_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
             const ret = {};
             const daysMap = {1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 7: 'sunday'};
             const day = daysMap[value[0]];
@@ -135,7 +136,7 @@ const fzLocal = {
                 ret.away_preset_days = (value[6]<<8)+value[7];
                 return ret;
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`);
+                meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -393,7 +394,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
-        model: 'HG06335',
+        model: 'HG06335/HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
@@ -417,6 +418,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -478,6 +480,17 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_r0xgkft5'}],
+        model: '14156506L',
+        vendor: 'Lidl',
+        description: 'Livarno Lux smart LED mood light',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -579,6 +592,16 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_8uaoilu9'}],
+        model: '14153905L',
+        vendor: 'Lidl',
+        description: 'Livarno Home LED floor lamp',
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 333]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_9cpuaca6'}],
         model: '14148906L',
         vendor: 'Lidl',
@@ -609,7 +632,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.lidl_watering_timer],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {},
-        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1)
+        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1).withValueMax(10000)
             .withUnit('min').withDescription('Auto off after specific time.')],
     },
     {
@@ -629,6 +652,18 @@ module.exports = [
         meta: {turnsOffAtBrightness1: false},
     },
     {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
+        model: 'HG06620',
+        vendor: 'Lidl',
+        description: 'Silvercrest garden spike with 2 sockets',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
             {modelID: 'TS0501A', manufacturerName: '_TZ3000_nbnmw9nc'}, // UK
@@ -643,7 +678,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
         model: 'HG06619',
         vendor: 'Lidl',
-        description: 'Silvercrest oudoor plug',
+        description: 'Silvercrest outdoor plug',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -655,8 +690,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
         model: '368308_2010',
         vendor: 'Lidl',
-        description: 'Silvercrest rdiator valve with thermostat',
-        fromZigbee: [fz.ignore_tuya_set_time, fzLocal.zs_thermostat, fz.tuya_data_point_dump],
+        description: 'Silvercrest radiator valve with thermostat',
+        fromZigbee: [fz.ignore_tuya_set_time, fzLocal.zs_thermostat],
         toZigbee: [tzLocal.zs_thermostat_current_heating_setpoint, tzLocal.zs_thermostat_child_lock,
             tzLocal.zs_thermostat_comfort_temp, tzLocal.zs_thermostat_eco_temp, tzLocal.zs_thermostat_preset_mode,
             tzLocal.zs_thermostat_system_mode, tzLocal.zs_thermostat_local_temperature_calibration,
@@ -673,11 +708,13 @@ module.exports = [
             exposes.numeric('current_heating_setpoint_auto', ea.STATE_SET).withValueMin(0.5).withValueMax(29.5)
                 .withValueStep(0.5).withUnit('°C').withDescription('Temperature setpoint automatic'),
             exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-12.5, 5.5, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'holiday', 'boost']),
-            exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature'),
-            exposes.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute'),
+            exposes.numeric('detectwindow_temperature', ea.STATE_SET).withUnit('°C').withDescription('Open window detection temperature')
+                .withValueMin(-10).withValueMax(35),
+            exposes.numeric('detectwindow_timeminute', ea.STATE_SET).withUnit('min').withDescription('Open window time in minute')
+                .withValueMin(0).withValueMax(1000),
             exposes.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
             exposes.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
             exposes.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),

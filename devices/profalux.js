@@ -6,40 +6,29 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const tzLocal = {
-    profalux_cover_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (value) {
-            case 'OPEN':
-                await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
-                break;
-            case 'CLOSE':
-                await entity.command('genOnOff', 'off', {}, utils.getOptions(meta.mapped, entity));
-                break;
-            case 'STOP':
-                await entity.command('genLevelCtrl', 'stop', {}, utils.getOptions(meta.mapped, entity));
-                break;
-            default:
-                throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE' or 'STOP')`);
-            }
-        },
-    },
-};
-
 module.exports = [
     {
-        fingerprint: [{type: 'Router', manufacturerID: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512}]}],
-        model: '4368-512',
+        fingerprint: [{manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21],
+            outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}]}],
+        model: 'NB102',
         vendor: 'Profalux',
-        description: 'Visio cover with position control',
-        fromZigbee: [fz.identify, fz.cover_state_via_onoff, fz.cover_position_via_brightness],
-        toZigbee: [tzLocal.profalux_cover_state, tz.cover_via_brightness],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+        description: 'Cover remote',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
+        fingerprint: [{manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512,
+            inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]}]}],
+        model: 'NSAV061',
+        vendor: 'Profalux',
+        description: 'Cover',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_via_brightness],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.brightness(endpoint);
         },
     },

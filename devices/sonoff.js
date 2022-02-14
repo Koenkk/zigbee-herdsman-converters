@@ -15,6 +15,17 @@ module.exports = [
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
+        zigbeeModel: ['ZBMINI-L'],
+        model: 'ZBMINI-L',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch (no neutral)',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['01MINIZB'],
         model: 'ZBMINI',
         vendor: 'SONOFF',
@@ -70,11 +81,11 @@ module.exports = [
         exposes: [e.battery(), e.action(['single', 'double', 'long'])],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -104,7 +115,7 @@ module.exports = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 50});
+                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
                 await reporting.batteryVoltage(endpoint);
                 await reporting.batteryPercentageRemaining(endpoint);
@@ -126,12 +137,12 @@ module.exports = [
         description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
             await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
