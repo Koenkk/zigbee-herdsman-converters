@@ -8429,6 +8429,20 @@ const converters = {
             }
         },
     },
+    tm081: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tm0801');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            if (dp === 1) return {contact: value === true ? false : true};
+            if (dp === 2) return {battery: value};
+            else {
+                meta.logger.warn(`zigbee-herdsman-converters:TM081: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
