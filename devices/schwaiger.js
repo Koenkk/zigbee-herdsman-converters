@@ -38,4 +38,18 @@ module.exports = [
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 2700K',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        fingerprint: [{modelID: 'ZBT-CCTLight-GU100904', manufacturerName: 'LDS'}],
+        model: 'HAL500',
+        vendor: 'Schwaiger',
+        description: 'LED bulb GU10 350 lumen, dimmable, color, white 2700-6500K',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBT-DIMLight-GU100800'],
+        model: 'HAL400',
+        vendor: 'Schwaiger',
+        description: 'LED Schwaiger HAL400 GU10 dimmable, warm white',
+        extend: extend.light_onoff_brightness(),
+    },
 ];

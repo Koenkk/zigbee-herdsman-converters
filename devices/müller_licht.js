@@ -29,7 +29,7 @@ module.exports = [
         description: 'Smart power strip',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
+            const endpoint = device.getEndpoint(11) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
@@ -88,7 +88,16 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
-        zigbeeModel: ['ZBT-Remote-ALL-RGBW'],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'}],
+        model: '404062',
+        vendor: 'Müller Licht',
+        description: 'Kea RGB+CCT',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],
+        zigbeeModel: ['ZBT-Remote-ALL-RGBW', 'TS1001'],
         model: 'MLI-404011',
         description: 'Tint remote control',
         vendor: 'Müller Licht',

@@ -90,7 +90,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['500.45'],
-        model: '798.15',
+        model: '500.45',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Pendulum Light Aptare',
         extend: extend.light_onoff_brightness(),

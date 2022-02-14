@@ -10,6 +10,27 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+        model: 'ZP-LZ-FR2U',
+        vendor: 'Moes',
+        description: 'Zigbee 3.0 dual USB wireless socket plug',
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bkfe0bab'}],
         model: 'MS-104Z',
@@ -76,7 +97,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
@@ -86,7 +108,7 @@ module.exports = [
             tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
         onEvent: tuya.onEventSetLocalTime,
@@ -96,9 +118,13 @@ module.exports = [
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
-        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+        exposes: [e.switch().setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -113,9 +139,13 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -136,9 +166,14 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (3 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -181,7 +216,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}, {modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'}],
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
@@ -199,18 +234,17 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.moesS_thermostat],
         toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
             tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
-            tz.moesS_thermostat_boost_heating_countdown, tz.moesS_thermostat_system_mode,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
-            e.position(), e.window_detection(),
+            e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
@@ -224,9 +258,10 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes'),
+            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
+                .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)')],
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
@@ -281,37 +316,9 @@ module.exports = [
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
-        supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
-        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}],
-        model: 'TV01-ZB',
-        vendor: 'Moes',
-        description: 'Thermostat radiator valve',
-        fromZigbee: [fz.moes_thermostat_tv, fz.ignore_tuya_set_time],
-        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'}],
-        toZigbee: [tz.moes_thermostat_tv],
-        exposes: [
-            e.battery(), e.child_lock(), e.window_detection(),
-            exposes.binary('frost_detection', ea.STATE_SET, true, false).withDescription('Enables/disables frost detection on the device'),
-            exposes.binary('heating_stop', ea.STATE_SET, true, false).withDescription('Stop heating'),
-            exposes.numeric('holiday_temperature', ea.STATE_SET).withDescription('Holiday mode temperature'),
-            exposes.numeric('comfort_temperature', ea.STATE_SET).withDescription('Comfort mode temperature'),
-            exposes.numeric('eco_temperature', ea.STATE_SET).withDescription('Eco mode temperature'),
-            exposes.numeric('open_window_temperature', ea.STATE_SET).withDescription('Open window mode temperature'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withDescription('Boost heating countdown'),
-            exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
-            // exposes.binary('boost_mode', ea.STATE_SET).withDescription('Enables/disables boost mode'),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 29.5, 1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-20, 20, 1, ea.STATE_SET)
-                .withSystemMode(Object.values(tuya.tvThermostatMode), ea.STATE_SET)
-                .withPreset(Object.values(tuya.tvThermostatPreset)),
-        ],
-        onEvent: tuya.onEventSetLocalTime,
+        exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
     },
 ];

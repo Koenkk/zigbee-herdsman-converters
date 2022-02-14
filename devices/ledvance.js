@@ -1,7 +1,15 @@
 const ota = require('../lib/ota');
 const extend = require('../lib/extend');
+const reporting = require('../lib/reporting');
 
 module.exports = [
+    {
+        zigbeeModel: ['A60S TW'],
+        model: 'AC33898',
+        vendor: 'LEDVANCE',
+        description: ' Smart+ LED classic E27 Zigbee 10W/810lm',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
     {
         zigbeeModel: ['Outdoor Plug', 'Plug Value'],
         model: 'AC26940/AC31266',
@@ -9,6 +17,11 @@ module.exports = [
         description: 'Smart Zigbee outdoor plug',
         extend: extend.switch(),
         ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['Panel TW Z3'],
@@ -78,7 +91,7 @@ module.exports = [
         zigbeeModel: ['LEDVANCE DIM'],
         model: '4058075208421',
         vendor: 'LEDVANCE',
-        description: 'SMART+ candle E14 tunable white',
+        description: 'SMART+ candle E14 dimmable white',
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
@@ -96,6 +109,14 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'SMART+ gardenpole multicolour',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['Tibea TW Z3'],
+        model: '4058075168572',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E27 turntable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
 ];
