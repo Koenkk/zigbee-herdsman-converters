@@ -4453,7 +4453,7 @@ const converters = {
             case tuya.dataPoints.ecoTemp:
                 return {eco_temperature: value};
             case tuya.dataPoints.valvePos:
-                return {position: value};
+                return {position: value, running_state: value ? 'heat' : 'idle'};
             case tuya.dataPoints.awayTemp:
                 return {away_preset_temperature: value};
             case tuya.dataPoints.awayDays:
