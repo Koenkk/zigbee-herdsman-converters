@@ -4538,22 +4538,15 @@ const converters = {
                 return {output_reverse: value ? 'ON' : 'OFF'};
             }
             case tuya.dataPoints.x5hBackplaneBrightness: {
-                switch (value) {
-                case 0:
-                    return {brightness_state: 'off'};
-                case 1:
-                    return {brightness_state: 'low'};
-                case 2:
-                    return {brightness_state: 'medium'};
-                case 3:
-                    return {brightness_state: 'high'};
-                default:
-                    // Sometimes, for example on thermostat restart, it sends message like:
-                    // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
-                    // It doesn't represent any brightness value.
-                    break;
+                const lookup = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};
+
+                if (value >= 0 && value <= 3) {
+                    globalStore.putValue(msg.endpoint, 'brightnessState', value);
+                    return {brightness_state: lookup[value]};
                 }
-                break;
+
+                const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState');
+                return {brightness_state: lookup[lastValue]};
             }
             case tuya.dataPoints.x5hWeeklyProcedure: {
                 // not working with dp of moesSchedule
