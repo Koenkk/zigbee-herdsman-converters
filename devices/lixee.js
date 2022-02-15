@@ -443,19 +443,21 @@ function getCurrentConfig(device, options, logger=console) {
         .filter((e) => e.linkyMode == linkyMode && (e.linkyPhase == linkyPhase || e.linkyPhase == linkyPhaseDef.all) && (linkyProduction || !e.onlyProducer));
 
     // Filter even more, based on our current tarif
-    let currentTarf;
+    let currentTarf = '';
 
-    try {
-        // Try to remove atributes which doesn't match current tarif
-        currentTarf = endpoint.clusters.liXeePrivate.attributes.currentTarif.replace(/\0/g, '');
-    } catch (error) {
-        currentTarf = '';
-        if (options && options.hasOwnProperty('tarif') && options['tarif'] != 'auto') {
-            currentTarf = Object.entries(tarifsDef).find(( [k, v] ) => (v.fname == options['tarif']))[1].currentTarf;
+    if (options && options.hasOwnProperty('tarif') && options['tarif'] != 'auto') {
+        currentTarf = Object.entries(tarifsDef).find(( [k, v] ) => (v.fname == options['tarif']))[1].currentTarf;
+    } else {
+        try {
+            const lixAtts = endpoint.clusters[clustersDef._0xFF66].attributes;
+            lixAtts.raiseIfEmpty;
+            currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
+        } catch (error) {
+            logger.warn(`Not able to detect the current tarif. Not filtering any expose...`);
         }
     }
 
-    // logger.debug(`zlinky config: ` + linkyMode + `, `+ linkyPhase + `, `+ linkyProduction.toString() +`, `+ currentTarf);
+    logger.debug(`zlinky config: ` + linkyMode + `, `+ linkyPhase + `, `+ linkyProduction.toString() +`, `+ currentTarf);
 
     switch (currentTarf) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -525,13 +527,15 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
+        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+
         const configReportings = [];
         const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
 
         const unsuscribe = endpoint.configuredReportings
             .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.att));
         // Unsuscribe reports that doesn't correspond with the current config
-        (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange)))))
+        (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange), {manufacturerCode: null}))))
             .filter((e) => e.status == 'rejected')
             .forEach((e) => {
                 throw e.reason;
@@ -550,17 +554,14 @@ const definition = {
             }
             configReportings.push(endpoint
                 .configureReporting(
-                    e.cluster, reporting.payload(params.att, params.min, params.max, params.change)),
+                    e.cluster, reporting.payload(params.att, params.min, params.max, params.change),
+                    {manufacturerCode: null}),
             );
         }
         (await Promise.allSettled(configReportings))
             .filter((e) => e.status == 'rejected')
             .forEach((e) => {
-                if (e.reason.code == 134) { // unsupported_attribute
-                    logger.warn(e.reason.message);
-                } else {
-                    throw e.reason;
-                }
+                throw e.reason;
             });
     },
     ota: ota.lixee,
@@ -577,14 +578,7 @@ const definition = {
                     .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att));
                 for (const e of currentExposes) {
                     await endpoint
-                        .read(e.cluster, [e.att])
-                        .catch((err) => {
-                            if (err.code == 134) { // unsupported_attribute
-                                console.warn(err.message);
-                            } else {
-                                throw err;
-                            }
-                        });
+                        .read(e.cluster, [e.att], {manufacturerCode: null});
                 }
             }, seconds * 1000);
             globalStore.putValue(device, 'interval', interval);
