@@ -4497,17 +4497,22 @@ const converters = {
             let temperature;
 
             switch (dp) {
-            case tuya.dataPoints.x5hState:
+            case tuya.dataPoints.x5hState: {
                 return {system_mode: value ? 'heat' : 'off'};
-            case tuya.dataPoints.x5hWorkingStatus:
+            }
+            case tuya.dataPoints.x5hWorkingStatus: {
                 return {running_state: value ? 'heat' : 'idle'};
-            case tuya.dataPoints.x5hSound:
+            }
+            case tuya.dataPoints.x5hSound: {
                 return {sound: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.x5hFrostProtection:
+            }
+            case tuya.dataPoints.x5hFrostProtection: {
                 return {frost_protection: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.x5hWorkingDaySetting:
+            }
+            case tuya.dataPoints.x5hWorkingDaySetting: {
                 return {week: tuya.thermostatWeekFormat[value]};
-            case tuya.dataPoints.x5hFactoryReset:
+            }
+            case tuya.dataPoints.x5hFactoryReset: {
                 if (value) {
                     clearTimeout(globalStore.getValue(msg.endpoint, 'factoryResetTimer'));
                     const timer = setTimeout(() => publish({factory_reset: 'OFF'}), 60 * 1000);
@@ -4516,18 +4521,23 @@ const converters = {
                 }
 
                 return {factory_reset: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.x5hFaultAlarm:
+            }
+            case tuya.dataPoints.x5hFaultAlarm: {
                 // don't know what is it
                 // not displayed in tuya app, but present as item in device logs on the tuya iot
                 // value only changes on the factory reset to "0"
                 return {fault_alarm: value};
-            case tuya.dataPoints.x5hTempDiff:
+            }
+            case tuya.dataPoints.x5hTempDiff: {
                 return {temp_diff: parseFloat((value / 10).toFixed(1))};
-            case tuya.dataPoints.x5hProtectionTempLimit:
+            }
+            case tuya.dataPoints.x5hProtectionTempLimit: {
                 return {protection_temp_limit: value};
-            case tuya.dataPoints.x5hOutputReverse:
+            }
+            case tuya.dataPoints.x5hOutputReverse: {
                 return {output_reverse: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.x5hBackplaneBrightness:
+            }
+            case tuya.dataPoints.x5hBackplaneBrightness: {
                 switch (value) {
                 case 0:
                     return {brightness_state: 'off'};
@@ -4544,24 +4554,30 @@ const converters = {
                     break;
                 }
                 break;
-            case tuya.dataPoints.x5hWeeklyProcedure:
+            }
+            case tuya.dataPoints.x5hWeeklyProcedure: {
                 // not working with dp of moesSchedule
                 // maybe thermostatWeeklyProcedure
                 // need to test
                 return;
-            case tuya.dataPoints.x5hChildLock:
+            }
+            case tuya.dataPoints.x5hChildLock: {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            case tuya.dataPoints.x5hSetTemp:
+            }
+            case tuya.dataPoints.x5hSetTemp: {
                 return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
-            case tuya.dataPoints.x5hSetTempCeiling:
+            }
+            case tuya.dataPoints.x5hSetTempCeiling: {
                 // Not ok
                 // It overwrites heating setpoint
                 // need more tests
                 return {upper_temp: value / 10};
-            case tuya.dataPoints.x5hCurrentTemp:
+            }
+            case tuya.dataPoints.x5hCurrentTemp: {
                 temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
                 return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
-            case tuya.dataPoints.x5hTempCorrection:
+            }
+            case tuya.dataPoints.x5hTempCorrection: {
                 temperature = value;
 
                 if (temperature > 4000) {
@@ -4569,7 +4585,8 @@ const converters = {
                 }
 
                 return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
-            case tuya.dataPoints.x5hMode:
+            }
+            case tuya.dataPoints.x5hMode: {
                 switch (value) {
                 case 0:
                     return {preset: 'manual'};
@@ -4586,7 +4603,8 @@ const converters = {
                     break;
                 }
                 break;
-            case tuya.dataPoints.x5hSensorSelection:
+            }
+            case tuya.dataPoints.x5hSensorSelection: {
                 // maybe rename to "internal", "external", "both"
                 switch (value) {
                 case 0:
@@ -4599,8 +4617,10 @@ const converters = {
                     break;
                 }
                 break;
-            default:
+            }
+            default: {
                 meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
             }
         },
     },
