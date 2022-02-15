@@ -556,7 +556,11 @@ const definition = {
         (await Promise.allSettled(configReportings))
             .filter((e) => e.status == 'rejected')
             .forEach((e) => {
-                throw e.reason;
+                if (e.reason.code == 134) { // unsupported_attribute
+                    logger.warn(e.reason.message);
+                } else {
+                    throw e.reason;
+                }
             });
     },
     ota: ota.lixee,
@@ -574,7 +578,13 @@ const definition = {
                 for (const e of currentExposes) {
                     await endpoint
                         .read(e.cluster, [e.att])
-                        .catch((err) => { }); // TODO: Ignore reads error?
+                        .catch((err) => {
+                            if (err.code == 134) { // unsupported_attribute
+                                console.warn(err.message);
+                            } else {
+                                throw err;
+                            }
+                        });
                 }
             }, seconds * 1000);
             globalStore.putValue(device, 'interval', interval);
