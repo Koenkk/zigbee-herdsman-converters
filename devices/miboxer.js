@@ -1,5 +1,8 @@
-const extend = require('../lib/extend');
+const exposes = require('../lib/exposes');
+const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
+const extend = require('../lib/extend');
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -7,8 +10,17 @@ module.exports = [
         model: 'FUT039Z',
         vendor: 'Miboxer',
         description: 'RGB+CCT LED controller',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
+        ]),
         meta: {applyRedFix: true, enhancedHue: false},
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
+            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
+                .withDescription('Do not disturb mode'),
+            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
+                .withDescription('Power on behavior state'),
+        ]),
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'},
