@@ -2018,7 +2018,6 @@ module.exports = [
     },
     {
       fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
-      zigbeeModel: ['TS0601'],
       model: 'TM001-ZA/TM081',
       vendor: 'TuYa',
       description: 'Door and window sensor',
