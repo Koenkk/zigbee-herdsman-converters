@@ -2017,12 +2017,12 @@ module.exports = [
         exposes: [e.illuminance_lux(), e.brightness_state()],
     },
     {
-      fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
-      model: 'TM001-ZA/TM081',
-      vendor: 'TuYa',
-      description: 'Door and window sensor',
-      fromZigbee: [fz.tm081],
-      toZigbee: [],
-      exposes: [e.contact(), e.battery()]
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
+        model: 'TM001-ZA/TM081',
+        vendor: 'TuYa',
+        description: 'Door and window sensor',
+        fromZigbee: [fz.tm081],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery()],
     },
 ];
