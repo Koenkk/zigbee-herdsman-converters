@@ -57,7 +57,7 @@ module.exports = [
             e.temperature(),
             e.humidity(),
             e.battery(),
-            exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+            exposes.enum('temperature_unit_convert', ea.STATE_SET, ['°C', '°F']).withDescription('Current display unit'),
             exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
             exposes.numeric('max_temperature', ea.STATE_SET)
