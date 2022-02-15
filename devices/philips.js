@@ -46,6 +46,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003047401'],
+        model: '929003047401',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Centura)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929003056901'],
         model: '929003056901',
         vendor: 'Philips',
@@ -652,7 +661,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LWW003'],
+        zigbeeModel: ['LWW003', 'LWF003'],
         model: '9290018216',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
@@ -1466,6 +1475,15 @@ module.exports = [
         description: 'Hue white ambiance suspension Amaze',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929003054801'],
+        model: '929003054801',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Amaze with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2447,7 +2465,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309230P6', '5309231P6'],
+        zigbeeModel: ['5309230P6', '5309231P6', '929003045701_01', '929003045701_02'],
         model: '5309230P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner double spotlight',
@@ -2686,6 +2704,14 @@ module.exports = [
         description: 'Hue white single filament bulb A19 E26 with Bluetooth (1100 Lumen)',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['915005997301'],
+        model: '915005997301',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse medium',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {

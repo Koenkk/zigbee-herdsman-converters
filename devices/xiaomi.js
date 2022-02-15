@@ -54,9 +54,15 @@ module.exports = [
         model: 'MCCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara P1 door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
+        fromZigbee: [fz. xiaomi_contact, fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
@@ -1472,7 +1478,8 @@ module.exports = [
         // Ignore energy metering reports, rely on aqara_opple: https://github.com/Koenkk/zigbee2mqtt/issues/10709
         fromZigbee: [fz.on_off, fz.device_temperature, fz.aqara_opple, fz.ignore_metering, fz.ignore_electrical_measurement,
             fz.xiaomi_power],
-        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type()],
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type(),
+            e.voltage(), e.temperature(), e.current()],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

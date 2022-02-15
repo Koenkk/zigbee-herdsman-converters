@@ -4,6 +4,21 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const utils = require('zigbee-herdsman-converters/lib/utils');
+const ea = exposes.access;
+
+const tzLocal = {
+    aOneBacklight: {
+        key: ['backlight_led'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = value.toLowerCase();
+            utils.validateValue(state, ['toggle', 'off', 'on']);
+            const endpoint = meta.device.getEndpoint(3);
+            await endpoint.command('genOnOff', state, {});
+            return {state: {backlight_led: state.toUpperCase()}};
+        },
+    },
+};
 
 const batteryRotaryDimmer = (...endpointsIds) => ({
     fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
@@ -129,6 +144,9 @@ module.exports = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
+        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes,
+            exposes.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
+        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tzLocal.aOneBacklight],
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
