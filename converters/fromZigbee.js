@@ -4494,7 +4494,6 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'x5h_thermostat');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            let temperature;
 
             switch (dp) {
             case tuya.dataPoints.x5hState: {
@@ -4567,11 +4566,11 @@ const converters = {
                 return {upper_temp: value / 10};
             }
             case tuya.dataPoints.x5hCurrentTemp: {
-                temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
+                const temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
                 return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hTempCorrection: {
-                temperature = value;
+                let temperature = value;
 
                 if (temperature > 4000) {
                     temperature = temperature - 4096;
@@ -4599,17 +4598,8 @@ const converters = {
             }
             case tuya.dataPoints.x5hSensorSelection: {
                 // maybe rename to "internal", "external", "both"
-                switch (value) {
-                case 0:
-                    return {sensor: 'IN'};
-                case 1:
-                    return {sensor: 'OU'};
-                case 2:
-                    return {sensor: 'AL'};
-                default:
-                    break;
-                }
-                break;
+                const lookup = {0: 'IN', 1: 'OU', 2: 'AL'};
+                return {sensor: lookup[value]};
             }
             default: {
                 meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
