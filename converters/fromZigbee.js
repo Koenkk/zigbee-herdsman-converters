@@ -4508,8 +4508,13 @@ const converters = {
             case tuya.dataPoints.x5hWorkingDaySetting:
                 return {week: tuya.thermostatWeekFormat[value]};
             case tuya.dataPoints.x5hFactoryReset:
-                // Maybe  reset to "off" value by timeout
-                // because thermostat doesn't report new value by itself
+                if (value) {
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'factoryResetTimer'));
+                    const timer = setTimeout(() => publish({factory_reset: 'OFF'}), 60 * 1000);
+                    globalStore.putValue(msg.endpoint, 'factoryResetTimer', timer);
+                    meta.logger.info('The thermostat is resetting now. It will be available in 1 minute.');
+                }
+
                 return {factory_reset: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.x5hFaultAlarm:
                 // don't know what is it
