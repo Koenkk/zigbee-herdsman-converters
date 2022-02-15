@@ -483,7 +483,7 @@ function getCurrentConfig(device, options, logger=console) {
     return myExpose;
 }
 const definition = {
-    zigbeeModel: ['ZLinky_TIC'],
+    zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
     description: 'Lixee ZLinky',
