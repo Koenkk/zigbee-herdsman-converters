@@ -93,7 +93,7 @@ module.exports = [
         model: '371232040',
         vendor: 'Paulmann',
         description: 'LED panels',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 350]}),
     },
     {
         zigbeeModel: ['500.45'],
