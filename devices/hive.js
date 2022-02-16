@@ -508,6 +508,6 @@ module.exports = [
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
-        }
+        },
     },
 ];
