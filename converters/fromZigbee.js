@@ -5237,7 +5237,7 @@ const converters = {
         },
     },
     legrand_cable_outlet_mode: {
-        cluster: '64576',
+        cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
