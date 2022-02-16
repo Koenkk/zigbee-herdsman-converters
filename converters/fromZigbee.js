@@ -4579,22 +4579,11 @@ const converters = {
                 return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hMode: {
-                switch (value) {
-                case 0:
-                    return {preset: 'manual'};
-                case 1:
-                    return {preset: 'program'};
-                case 2:
-                    // it exists in tuya app but no ideas how it works
-                    // impossible to set this preset via thermostat itself
-                    // need more tests
-                    return {preset: 'temporary_pattern'};
-                default:
-                    // not fully tested, maybe there are more presets or any unrecognized values
-                    // need more tests
-                    break;
-                }
-                break;
+                // temporary_pattern exists in tuya app but no ideas how it works
+                // impossible to set this preset via thermostat itself
+                // need more tests
+                const lookup = {0: 'manual', 1: 'program', 2: 'temporary_pattern'};
+                return {preset: lookup[value]};
             }
             case tuya.dataPoints.x5hSensorSelection: {
                 // maybe rename to "internal", "external", "both"
