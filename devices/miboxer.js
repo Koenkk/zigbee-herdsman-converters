@@ -1,9 +1,9 @@
 const exposes = require('../lib/exposes');
 const tz = require('../converters/toZigbee');
-const tuya = require('../lib/tuya');
-const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
