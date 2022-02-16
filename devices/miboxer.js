@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
 const extend = require('../lib/extend');
+const e = exposes.presets;
 const ea = exposes.access;
 
 module.exports = [
@@ -15,12 +16,12 @@ module.exports = [
         ]),
         meta: {applyRedFix: true, enhancedHue: false},
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
+        exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup'),
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
             exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
                 .withDescription('Power on behavior state'),
-        ]),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_dxroobu3'},
