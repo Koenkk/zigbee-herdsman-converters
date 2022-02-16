@@ -4544,6 +4544,9 @@ const converters = {
                     return {brightness_state: lookup[value]};
                 }
 
+                // Sometimes, for example on thermostat restart, it sends message like:
+                // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
+                // It doesn't represent any brightness value and brightness remains the previous value
                 const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState');
                 return {brightness_state: lookup[lastValue]};
             }
