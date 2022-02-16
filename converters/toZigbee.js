@@ -4975,13 +4975,11 @@ const converters = {
                 if (typeof value === 'number' && value >= 0 && value <= 2) {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
                 } else {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
                 break;
             case 'upper_temp':
                 if (typeof value !== 'number') {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
 
@@ -4992,7 +4990,6 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error('Supported values are in range [35, 95]');
                 }
                 break;
@@ -5005,7 +5002,6 @@ const converters = {
                 break;
             case 'temp_diff':
                 if (typeof value !== 'number') {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
 
@@ -5018,13 +5014,11 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error('Supported values are in range [1, 9.5]');
                 }
                 break;
             case 'protection_temp_limit':
                 if (typeof value !== 'number') {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
 
@@ -5035,13 +5029,11 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error('Supported values are in range [5, 60]');
                 }
                 break;
             case 'local_temperature_calibration':
                 if (typeof value !== 'number') {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
 
@@ -5058,7 +5050,6 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error('Supported values are in range [-9.9, 9.9]');
                 }
                 break;
@@ -5105,7 +5096,6 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
                 break;
@@ -5120,7 +5110,6 @@ const converters = {
                 if (typeof value === 'number' && value >= 0 && value <= 2) {
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
                 } else {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
                 break;
@@ -5133,7 +5122,6 @@ const converters = {
                         value,
                     );
                 } else {
-                    // replace with meta.logger
                     throw new Error(`Unsupported value: ${value}`);
                 }
                 break;
