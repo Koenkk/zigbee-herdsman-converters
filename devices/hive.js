@@ -1,10 +1,10 @@
 const exposes = require('../lib/exposes');
-const fz = { ...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee };
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const globalStore = require('../lib/store');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const { extendDevice } = require('../lib/utils');
+const {extendDevice} = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -15,7 +15,7 @@ module.exports = [
         vendor: 'Hive',
         description: 'Motion sensor',
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report,
-        fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
+            fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(6);
@@ -77,7 +77,7 @@ module.exports = [
         model: 'HV-CE14CXZB6',
         vendor: 'Hive',
         description: 'Active light, warm to cool white (E14)',
-        extend: extend.light_onoff_brightness_colortemp({ colorTempRange: [153, 370] }),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['SLP2', 'SLP2b', 'SLP2c'],
@@ -121,16 +121,16 @@ module.exports = [
         model: 'KEYPAD001',
         vendor: 'Hive',
         description: 'Alarm security keypad',
-        meta: { battery: { voltageToPercentage: '3V_2100' } },
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.command_arm_with_transaction, fz.command_panic, fz.battery, fz.ias_occupancy_alarm_1, fz.identify,
-        fz.ias_contact_alarm_1, fz.ias_ace_occupancy_with_timeout],
+            fz.ias_contact_alarm_1, fz.ias_ace_occupancy_with_timeout],
         toZigbee: [tz.arm_mode],
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.occupancy(), e.tamper(), e.contact(),
-        exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
-        exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
-        exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
-        e.action([
-            'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
+            exposes.numeric('action_code', ea.STATE).withDescription('Pin code introduced.'),
+            exposes.numeric('action_transaction', ea.STATE).withDescription('Last action transaction number.'),
+            exposes.text('action_zone', ea.STATE).withDescription('Alarm zone. Default value 23'),
+            e.action([
+                'panic', 'disarm', 'arm_day_zones', 'arm_all_zones', 'exit_delay', 'entry_delay'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['genPowerCfg', 'ssIasZone', 'ssIasAce', 'genIdentify'];
@@ -162,8 +162,8 @@ module.exports = [
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
@@ -173,7 +173,7 @@ module.exports = [
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
-        meta: { disableDefaultResponse: true },
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
@@ -193,8 +193,8 @@ module.exports = [
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
@@ -204,7 +204,7 @@ module.exports = [
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
-        meta: { disableDefaultResponse: true },
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
@@ -224,8 +224,8 @@ module.exports = [
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
@@ -235,7 +235,7 @@ module.exports = [
             exposes.numeric('temperature_setpoint_hold_duration', ea.ALL).withValueMin(0).withValueMax(65535)
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display')],
-        meta: { disableDefaultResponse: true },
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             const binds = ['genBasic', 'genIdentify', 'genAlarms', 'genTime', 'hvacThermostat'];
@@ -255,12 +255,12 @@ module.exports = [
         description: 'Dual channel heating and hot water thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         endpoint: (device) => {
-            return { 'heat': 5, 'water': 6 };
+            return {'heat': 5, 'water': 6};
         },
-        meta: { disableDefaultResponse: true, multiEndpoint: true },
+        meta: {disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
@@ -306,12 +306,12 @@ module.exports = [
         description: 'Dual channel heating and hot water thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         endpoint: (device) => {
-            return { 'heat': 5, 'water': 6 };
+            return {'heat': 5, 'water': 6};
         },
-        meta: { disableDefaultResponse: true, multiEndpoint: true },
+        meta: {disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
@@ -357,12 +357,12 @@ module.exports = [
         description: 'Dual channel heating and hot water thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
-        tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         endpoint: (device) => {
-            return { 'heat': 5, 'water': 6 };
+            return {'heat': 5, 'water': 6};
         },
-        meta: { disableDefaultResponse: true, multiEndpoint: true },
+        meta: {disableDefaultResponse: true, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const heatEndpoint = device.getEndpoint(5);
             const waterEndpoint = device.getEndpoint(6);
@@ -420,7 +420,7 @@ module.exports = [
         model: 'SLT2',
         vendor: 'Hive',
         description: 'Heating thermostat remote control',
-        meta: { battery: { voltageToPercentage: '3V_2100' } },
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
