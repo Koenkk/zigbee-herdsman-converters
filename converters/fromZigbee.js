@@ -1837,7 +1837,7 @@ const converters = {
             case tuya.dataPoints.nousBattery:
                 return {battery: value};
             case tuya.dataPoints.nousTempUnitConvert:
-                return {temperature_unit_convert: {0x00: '°C', 0x01: '°F'}[value]};
+                return {temperature_unit_convert: {0x00: 'celsius', 0x01: 'fahrenheit'}[value]};
             case tuya.dataPoints.nousMaxTemp:
                 return {max_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.nousMinTemp:
