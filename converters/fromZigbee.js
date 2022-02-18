@@ -7541,6 +7541,17 @@ const converters = {
             return result;
         },
     },
+    wiser_lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            if (msg.data.hasOwnProperty('wiserControlMode')) {
+                result.dimmer_mode = constants.wiserDimmerControlMode[msg.data['wiserControlMode']];
+            }
+            return result;
+        },
+    },
     schneider_ui_action: {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
