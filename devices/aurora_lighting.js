@@ -4,7 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
-const utils = require('zigbee-herdsman-converters/lib/utils');
+const utils = require('../lib/utils');
 const ea = exposes.access;
 
 const tzLocal = {

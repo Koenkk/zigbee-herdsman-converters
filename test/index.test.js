@@ -484,4 +484,12 @@ describe('index.js', () => {
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
         expect(ZNCZ04LM.options.length).toBe(2);
     });
+
+    it('Verify imports', () => {
+        const files = fs.readdirSync('devices');
+        for (const file of files) {
+            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            expect(content).not.toContain(`require('zigbee-herdsman-converters`);
+        }
+    });
 });
