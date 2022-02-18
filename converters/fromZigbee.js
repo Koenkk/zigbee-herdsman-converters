@@ -3224,8 +3224,9 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('12288')) {
-                result.energy_consumed = precisionRound(msg.data['12288'], 2);
+                result.energy_consumed = precisionRound(msg.data['12288'], 2); // deprecated
                 result.energyconsumed = result.energy_consumed; // deprecated
+                result.energy = result.energy_consumed;
             }
 
             if (msg.data.hasOwnProperty('12291')) {
@@ -8153,6 +8154,7 @@ const converters = {
             }
             if (dp === tuya.dataPoints.hochTotalActivePower) {
                 result.energy_consumed = value / 100;
+                result.energy = result.energy_consumed;
             }
             if (dp === tuya.dataPoints.hochLocking) {
                 result.trip = value ? 'trip' : 'clear';
