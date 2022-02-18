@@ -472,7 +472,7 @@ function getCurrentConfig(device, options, logger=console) {
     case linkyMode == linkyModeDef.legacy && tarifsDef.histo_EJP.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.histo_EJP.excluded.includes(a.exposes.name));
         break;
-    case linkyMode == linkyModeDef.legacy && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
+    case linkyMode == linkyModeDef.legacy && currentTarf && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
         myExpose = myExpose.filter((a) => !tarifsDef.histo_BBR.excluded.includes(a.exposes.name));
         break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
