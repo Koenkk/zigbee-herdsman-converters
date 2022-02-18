@@ -6331,6 +6331,17 @@ const converters = {
             await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
         },
     },
+    wiser_motion_sensitivity: {
+        key: ['sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            // Sensitivity levels are not documented so we cannot map to an enum
+            await entity.write('ssIasZone', {'currentZoneSensitivityLevel': value});
+            return {state: {sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasZone', ['currentZoneSensitivityLevel']);
+        },
+    },
     schneider_temperature_measured_value: {
         key: ['temperature_measured_value'],
         convertSet: async (entity, key, value, meta) => {

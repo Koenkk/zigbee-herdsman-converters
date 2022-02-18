@@ -678,4 +678,18 @@ module.exports = [
             await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    {
+        zigbeeModel: ['CCT595011_AS'],
+        model: 'CCT595011',
+        vendor: 'Schneider Electric',
+        description: 'Wiser motion sensor',
+        fromZigbee: [fz.battery, fz.wiser_motion_attr, fz.wiser_motion_alarm, fz.illuminance],
+        toZigbee: [tz.wiser_motion_sensitivity],
+        exposes: [e.battery(), e.occupancy(), e.illuminance_lux(), e.illuminance(),
+            exposes.numeric('sensitivity_levels', ea.STATE),
+            exposes.numeric('sensitivity', ea.ALL).withValueMin(0).withValueMax(3)],
+        // sensitivity level range is assumed to be 0-3 based on testing
+        // illuminance values are reported and converted correctly but configuring reporting
+        // for any attributes seems to be so extremely hit & miss that it is not currently done
+    },
 ];

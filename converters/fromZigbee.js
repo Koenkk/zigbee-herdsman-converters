@@ -7600,6 +7600,37 @@ const converters = {
             return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
         },
     },
+    wiser_motion_attr: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
+                const value = data.currentZoneSensitivityLevel;
+                // Sensitivity levels are not documented so we cannot map to an enum
+                result.sensitivity = value;
+            }
+            if (data && data.hasOwnProperty('numZoneSensitivityLevelsSupported')) {
+                const value = data.numZoneSensitivityLevelsSupported;
+                result.sensitivity_levels = value;
+            }
+            return result;
+        },
+    },
+    wiser_motion_alarm: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            // bit 1 indicates occupancy,
+            // bits 4 & 5 are always set but their meaning is unclear
+            // other bits also unknown (tamper? battery_low?)
+            return {
+                occupancy: (zoneStatus & 1<<1) > 0,
+            };
+        },
+    },
     wiser_smart_thermostat_client: {
         cluster: 'hvacThermostat',
         type: 'read',
