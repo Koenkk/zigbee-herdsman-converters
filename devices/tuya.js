@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_2xlvlnez'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -124,10 +124,9 @@ module.exports = [
         model: 'WHD02',
         vendor: 'TuYa',
         description: 'Wall switch module',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior(), e.switch_type_2()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
@@ -258,6 +257,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_ykwcwxmz'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
         model: 'TS0202',
         vendor: 'TuYa',
@@ -265,7 +265,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'}, {vendor: 'TuYa', model: 'TY-ZPR06'}],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
@@ -1816,7 +1816,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.action(['trigger']), exposes.binary('garage_door_contact', ea.STATE, true, false)],
+            exposes.binary('garage_door_contact', ea.STATE, true, false)],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
@@ -1972,13 +1972,11 @@ module.exports = [
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
             exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
-            exposes.numeric('voltage', ea.STATE).withUnit('V'),
             exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
             exposes.numeric('current', ea.STATE).withUnit('A'),
             exposes.numeric('current_average', ea.STATE).withUnit('A'),
-            exposes.numeric('power', ea.STATE).withUnit('W'),
+            e.power(), e.voltage(), e.energy(), e.temperature(),
             exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
-            exposes.numeric('temperature', ea.STATE).withUnit('°C'),
             /* TODO: Add toZigbee converters for the below composites
             exposes.composite('voltage_setting', 'voltage_setting')
                 .withFeature(exposes.numeric('under_voltage_threshold', ea.STATE_SET)

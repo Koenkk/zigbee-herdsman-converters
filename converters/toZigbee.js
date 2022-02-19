@@ -2449,7 +2449,9 @@ const converters = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, true);
+            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
+            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, state);
+            return {state: {trigger: state}};
         },
     },
     SPZ01_power_outage_memory: {
@@ -5466,7 +5468,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'temperature_unit_convert':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['°C', '°F'].indexOf(value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['celsius', 'fahrenheit'].indexOf(value));
                 break;
             case 'min_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinTemp, Math.round(value * 10));
@@ -6492,6 +6494,18 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: 0x105e});
+        },
+    },
+    wiser_dimmer_mode: {
+        key: ['dimmer_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
+            await entity.write('lightingBallastCfg', {'wiserControlMode': controlMode},
+                {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
         },
     },
     schneider_temperature_measured_value: {

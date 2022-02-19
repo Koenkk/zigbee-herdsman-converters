@@ -78,7 +78,7 @@ module.exports = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK07'}],
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -144,7 +144,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['S26R2ZB'],
