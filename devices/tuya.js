@@ -1753,7 +1753,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.action(['trigger']), exposes.binary('garage_door_contact', ea.STATE, true, false)],
+            exposes.binary('garage_door_contact', ea.STATE, true, false)],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],

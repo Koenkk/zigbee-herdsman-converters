@@ -2449,7 +2449,9 @@ const converters = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, true);
+            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
+            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, state);
+            return {state: {trigger: state}};
         },
     },
     SPZ01_power_outage_memory: {
