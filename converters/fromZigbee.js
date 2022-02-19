@@ -5525,7 +5525,7 @@ const converters = {
 
             // Maybe other QKBG also support release/hold?
             const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
-                {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
+                {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
 
             // Dont' use postfixWithEndpointName here, endpoints don't match
             if (mapping) {
