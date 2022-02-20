@@ -2492,7 +2492,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5633030P6'],
+        zigbeeModel: ['5633030P6', '929003046501'],
         model: '5633030P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Pillar spotlamp',
