@@ -436,7 +436,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [
-            e.switch(), e.action(['release', 'hold']),
+            e.switch(), e.action(['release', 'hold', 'double']),
             exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
@@ -484,7 +484,7 @@ module.exports = [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.temperature(),
-            e.action(['release_left', 'release_right', 'release_both']),
+            e.action(['release_left', 'release_right', 'release_both', 'double_left', 'double_right']),
             exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
