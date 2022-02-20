@@ -45,6 +45,40 @@ const tzLocal = {
 
 module.exports = [
     {
+        zigbeeModel: ['TS0204'],
+        model: 'TS0204',
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ['TS0205'],
+        model: 'TS0205',
+        vendor: 'TuYa',
+        description: 'Smoke sensor',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ['TS0111'],
+        model: 'TS0111',
+        vendor: 'TuYa',
+        description: 'Socket',
+        extend: extend.switch(),
+    },
+    {
+        zigbeeModel: ['TS0218'],
+        model: 'TS0218',
+        vendor: 'TuYa',
+        description: 'Button',
+        fromZigbee: [fz.legacy.TS0218_click, fz.battery],
+        exposes: [e.battery(), e.action(['click'])],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['TS0203'],
         model: 'TS0203',
         vendor: 'TuYa',
@@ -242,6 +276,16 @@ module.exports = [
         description: 'Zigbee light',
         vendor: 'TuYa',
         extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'}],
+        model: 'TS0202_1',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        // Requires alarm_1_with_timeout https://github.com/Koenkk/zigbee2mqtt/issues/2818#issuecomment-776119586
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
@@ -1196,6 +1240,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_v1pdxuqq'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_8a833yls'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
