@@ -2438,6 +2438,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCX001'],
+        model: '929002422702',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip 55',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCX002'],
         model: '929002422801',
         vendor: 'Philips',
