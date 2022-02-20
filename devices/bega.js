@@ -13,10 +13,10 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-       zigbeeModel: ['BEGA 13557 bulb E27 RGBW 805lm'], 
-       model: '13557', 
-       vendor: 'BEGA Gantenbrink-Leuchten KG',
-       description: 'LED-Leuchtmittel mit einstellbarer LED Farbtemperatur (Tunable White · RGBW) in funkgesteuerter Ausführung Zigbee 3.0 für den Einsatz in Leuchten mit konventionellem Lampensockel E 27.',
-       extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
+        zigbeeModel: ['BEGA 13557 bulb E27 RGBW 805lm'],
+        model: '13557',
+        vendor: 'BEGA Gantenbrink-Leuchten KG',
+        description: 'LED lamp with adjustable LED color temperature (Tunable White - RGBW) for use in luminaires with conventional lamp base E 27',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
     },
 ];
