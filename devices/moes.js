@@ -10,7 +10,8 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_2xlvlnez'}],
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',

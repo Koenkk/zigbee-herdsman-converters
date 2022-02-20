@@ -496,4 +496,18 @@ module.exports = [
         },
         exposes: [],
     },
+    {
+        zigbeeModel: ['SLT6'],
+        model: 'SLT6',
+        vendor: 'Hive',
+        description: 'Heating thermostat remote control',
+        fromZigbee: [fz.battery],
+        toZigbee: [],
+        exposes: [e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];

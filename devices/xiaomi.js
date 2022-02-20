@@ -436,11 +436,11 @@ module.exports = [
         fromZigbee: [fz.xiaomi_on_off_ignore_endpoint_4_5_6, fz.xiaomi_on_off_action, fz.legacy.QBKG04LM_QBKG11LM_click,
             fz.xiaomi_operation_mode_basic],
         exposes: [
-            e.switch(), e.action(['single', 'release', 'hold']),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            e.switch(), e.action(['release', 'hold']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic],
+        toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}],
         endpoint: (device) => {
             return {'system': 1, 'default': 2};
         },
@@ -484,15 +484,15 @@ module.exports = [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             e.temperature(),
-            e.action(['single_left', 'single_right', 'single_both']),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            e.action(['release_left', 'release_right', 'release_both']),
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for left button')
                 .withEndpoint('left'),
-            exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'control_right_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
                 .withDescription('Operation mode for right button')
                 .withEndpoint('right'),
         ],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_basic, tz.xiaomi_power],
+        toZigbee: [tz.on_off, {...tz.xiaomi_switch_operation_mode_basic, convertGet: null}, tz.xiaomi_power],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'system': 1, 'left': 2, 'right': 3};

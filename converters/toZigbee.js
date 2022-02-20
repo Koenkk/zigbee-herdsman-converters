@@ -2449,7 +2449,9 @@ const converters = {
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, true);
+            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
+            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, state);
+            return {state: {trigger: state}};
         },
     },
     SPZ01_power_outage_memory: {
@@ -4577,10 +4579,20 @@ const converters = {
     legrand_cableOutletMode: {
         key: ['cable_outlet_mode'],
         convertSet: async (entity, key, value, meta) => {
-            meta.logger.warn('Feature under development !');
+            const mode = {
+                'comfort': 0x00,
+                'comfort-1': 0x01,
+                'comfort-2': 0x02,
+                'eco': 0x03,
+                'frost_protection': 0x04,
+                'off': 0x05,
+            };
+            const payload = {data: Buffer.from([mode[value]])};
+            await entity.command('manuSpecificLegrandDevices2', 'command0', payload);
+            return {state: {'cable_outlet_mode': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read(64576, [0x0000], manufacturerOptions.legrand);
+            await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
         },
     },
     legrand_powerAlarm: {
@@ -5279,7 +5291,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'temperature_unit_convert':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['°C', '°F'].indexOf(value));
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['celsius', 'fahrenheit'].indexOf(value));
                 break;
             case 'min_temperature':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinTemp, Math.round(value * 10));
@@ -6305,6 +6317,18 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingBallastCfg', [0xe000], {manufacturerCode: 0x105e});
+        },
+    },
+    wiser_dimmer_mode: {
+        key: ['dimmer_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
+            await entity.write('lightingBallastCfg', {'wiserControlMode': controlMode},
+                {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingBallastCfg', ['wiserControlMode'], {manufacturerCode: herdsman.Zcl.ManufacturerCode.SCHNEIDER});
         },
     },
     schneider_temperature_measured_value: {

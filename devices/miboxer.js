@@ -1,5 +1,4 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -12,8 +11,11 @@ module.exports = [
         model: 'FUT039Z',
         vendor: 'Miboxer',
         description: 'RGB+CCT LED controller',
-        toZigbee: [tz.on_off, tz.tuya_led_control, tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
+            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
+        ]),
+        meta: {applyRedFix: true, enhancedHue: false},
+        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup'),
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
@@ -31,7 +33,8 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'}],
+        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_jtifm80b'}],
         model: 'FUT035Z',
         description: 'Dual white LED controller',
         vendor: 'Miboxer',

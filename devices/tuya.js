@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_2xlvlnez'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -119,14 +119,14 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'}],
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'}],
         model: 'WHD02',
         vendor: 'TuYa',
         description: 'Wall switch module',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior(), e.switch_type_2()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
@@ -257,6 +257,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_ykwcwxmz'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
         model: 'TS0202',
         vendor: 'TuYa',
@@ -264,7 +265,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'}, {vendor: 'TuYa', model: 'TY-ZPR06'}],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
@@ -420,6 +421,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vhy3iakz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -971,7 +973,8 @@ module.exports = [
                     'to the desired temperature. If you want TRV to properly regulate the temperature you need to use mode `auto` ' +
                     'instead setting the desired temperature.')
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
+                .withAwayMode().withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco'])
+                .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
             exposes.composite('programming_mode').withDescription('Schedule MODE ⏱ - In this mode, ' +
@@ -1750,7 +1753,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
-            e.action(['trigger']), exposes.binary('garage_door_contact', ea.STATE, true, false)],
+            exposes.binary('garage_door_contact', ea.STATE, true, false)],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
@@ -1906,13 +1909,11 @@ module.exports = [
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
             exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
-            exposes.numeric('voltage', ea.STATE).withUnit('V'),
             exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
             exposes.numeric('current', ea.STATE).withUnit('A'),
             exposes.numeric('current_average', ea.STATE).withUnit('A'),
-            exposes.numeric('power', ea.STATE).withUnit('W'),
+            e.power(), e.voltage(), e.energy(), e.temperature(),
             exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
-            exposes.numeric('temperature', ea.STATE).withUnit('°C'),
             /* TODO: Add toZigbee converters for the below composites
             exposes.composite('voltage_setting', 'voltage_setting')
                 .withFeature(exposes.numeric('under_voltage_threshold', ea.STATE_SET)
@@ -2014,5 +2015,14 @@ module.exports = [
         fromZigbee: [fz.tuya_illuminance_sensor],
         toZigbee: [],
         exposes: [e.illuminance_lux(), e.brightness_state()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
+        model: 'TM001-ZA/TM081',
+        vendor: 'TuYa',
+        description: 'Door and window sensor',
+        fromZigbee: [fz.tm081],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery()],
     },
 ];

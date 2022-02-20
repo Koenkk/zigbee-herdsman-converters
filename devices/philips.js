@@ -2465,7 +2465,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309230P6', '5309231P6'],
+        zigbeeModel: ['5309230P6', '5309231P6', '929003045701_01', '929003045701_02'],
         model: '5309230P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner double spotlight',
