@@ -5527,15 +5527,16 @@ const converters = {
             const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
 
-            // Dont' use postfixWithEndpointName here, endpoints don't match
-            if (mapping) {
-                if (mapping[msg.endpoint.ID]) {
-                    const button = mapping[msg.endpoint.ID];
-                    return {action: `${actionLookup[msg.data['onOff']]}_${button}`};
-                }
-            } else {
-                return {action: actionLookup[msg.data['onOff']]};
+            const action = actionLookup[msg.data['onOff']];
+            const button = mapping && mapping[msg.endpoint.ID] ? `_${button}` : '';
+
+            if (action === 'release') {
+                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
+                publish({action: `${anotherAction}${button}`});
             }
+            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
+
+            return {action: `${action}${button}`};
         },
     },
     xiaomi_multistate_action: {
