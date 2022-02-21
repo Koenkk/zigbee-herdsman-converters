@@ -1,4 +1,4 @@
-const extend = require('zigbee-herdsman-converters/lib/extend');
+const extend = require('../lib/extend');
 
 module.exports = [
     {
