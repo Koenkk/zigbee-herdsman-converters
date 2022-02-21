@@ -5535,7 +5535,7 @@ const converters = {
                 publish({action: `${anotherAction}${button}`});
             }
             globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
-            
+
             return {action: `${action}${button}`};
         },
     },
