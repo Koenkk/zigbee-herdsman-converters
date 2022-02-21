@@ -5528,14 +5528,14 @@ const converters = {
                 {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
 
             const action = actionLookup[msg.data['onOff']];
-            const button = mapping && mapping[msg.endpoint.ID] ? `_${button}` : '';
+            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
 
             if (action === 'release') {
                 const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
                 publish({action: `${anotherAction}${button}`});
             }
             globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
-
+            
             return {action: `${action}${button}`};
         },
     },
