@@ -378,6 +378,7 @@ const converters = {
                 {startwarninginfo: info, warningduration: 300, strobedutycycle: 0, strobelevel: 0},
                 utils.getOptions(meta.mapped, entity),
             );
+            return {state: {'alarm': value}};
         },
     },
     squawk: {
