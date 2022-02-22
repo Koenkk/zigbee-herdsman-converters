@@ -2595,6 +2595,26 @@ const converters = {
             return result;
         },
     },
+    ts0219_siren: {
+        cluster: "ssIasZone",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                alarm: zoneStatus === 17 ? true : false,
+            };
+        },
+    },
+    ts0219_power_source: {
+        cluster: "genBasic",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            const powerSource = msg.data.powerSource;
+            return {
+                ac_connected: powerSource === 2 ? true : false,
+            };
+        },
+    },
     tuya_cover_options: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
