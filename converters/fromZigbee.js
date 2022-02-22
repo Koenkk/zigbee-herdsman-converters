@@ -2596,8 +2596,8 @@ const converters = {
         },
     },
     ts0219_siren: {
-        cluster: "ssIasZone",
-        type: "attributeReport",
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
@@ -2606,8 +2606,8 @@ const converters = {
         },
     },
     ts0219_power_source: {
-        cluster: "genBasic",
-        type: "attributeReport",
+        cluster: 'genBasic',
+        type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
             const powerSource = msg.data.powerSource;
             return {

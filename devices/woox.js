@@ -62,7 +62,9 @@ module.exports = [
         description: 'Smart siren',
         fromZigbee: [fz.battery, fz.ts0216_siren, fz.ts0219_siren, fz.ts0219_power_source],
         toZigbee: [tz.warning, tz.ts0216_volume],
-        exposes: [e.battery(), e.battery_voltage(), e.warning(), exposes.binary('alarm', ea.STATE, true, false), exposes.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'), exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren') ],
+        exposes: [e.battery(), e.battery_voltage(), e.warning(), exposes.binary('alarm', ea.STATE, true, false),
+            exposes.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'),
+            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
