@@ -42,7 +42,7 @@ module.exports = [
         description: 'ERIA E14 Candle Color',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         endpoint: (device) => {
-            return {'default': 1}
+            return {'default': 1};
         },
     },
     {
