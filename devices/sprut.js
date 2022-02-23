@@ -275,8 +275,8 @@ module.exports = [
             e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
             e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
             e.numeric('temperature_offset', ea.ALL).withValueMin(-10).withValueMax(10).withUnit('°C').withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature'),
-            e.numeric('occupancy_sensitivity', ea.ALL).withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)'),
-            e.numeric('noise_detect_level', ea.ALL).withUnit('dBA').withDescription('The minimum noise level at which the detector will work (default: 50)'),
+            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)'),
+            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withDescription('The minimum noise level at which the detector will work (default: 50)'),
             e.enum('co2_autocalibration', ea.ALL, switchActionValues).withDescription('Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate every 7 days.'),
             e.enum('co2_manual_calibration', ea.ALL, switchActionValues).withDescription('Ventilate the room for 20 minutes, turn on manual calibration, and turn it off after one second. After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed'),
             e.enum('th_heater', ea.ALL, switchActionValues).withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, if the sensor shows 0 or 100 %.')
