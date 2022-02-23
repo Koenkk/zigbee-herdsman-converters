@@ -10,12 +10,12 @@ const eo = exposes.options;
 const ea = exposes.access;
 const {calibrateAndPrecisionRoundOptions, getOptions} = require('../lib/utils');
 
-const sprutCode = 0x6666
+const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
 const switchActionValues = ['OFF', 'ON'];
-const co2_lookup = {
-    co2_autocalibration: "sprutCO2AutoCalibration",
-    co2_manual_calibration: "sprutCO2Calibration"
+const co2Lookup = {
+    co2_autocalibration: 'sprutCO2AutoCalibration',
+    co2_manual_calibration: 'sprutCO2Calibration',
 };
 
 const fzLocal = {
@@ -130,7 +130,6 @@ const tzLocal = {
     sprut_ir_remote: {
         key: ['play_store', 'learn_start', 'learn_stop', 'clear_store', 'play_ram', 'learn_ram_start', 'learn_ram_stop'],
         convertSet: async (entity, key, value, meta) => {
-
             const options = {
                 frameType: 0, manufacturerCode: sprutCode, disableDefaultResponse: true,
                 disableResponse: true, reservedBits: 0, direction: 0, writeUndiv: false,
@@ -195,7 +194,7 @@ const tzLocal = {
         key: ['occupancy_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
-            options = getOptions(meta.mapped, entity, manufacturerOptions);
+            const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msOccupancySensing', {'sprutOccupancySensitivity': value}, options);
             return {state: {[key]: value}};
         },
@@ -207,7 +206,7 @@ const tzLocal = {
         key: ['noise_detect_level'],
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
-            options = getOptions(meta.mapped, entity, manufacturerOptions);
+            const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('sprutNoise', {'noiseDetectLevel': value}, options);
             return {state: {[key]: value}};
         },
@@ -220,7 +219,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             value *= 1;
             const newValue = parseFloat(value) * 100.0;
-            options = getOptions(meta.mapped, entity, manufacturerOptions);
+            const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
             return {state: {[key]: value}};
         },
@@ -233,14 +232,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             let newValue = value;
             newValue = switchActionValues.indexOf(value);
-            options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write('msCO2', {[co2_lookup[key]]: newValue}, options);
+            const options = getOptions(meta.mapped, entity, manufacturerOptions);
+            await entity.write('msCO2', {[co2Lookup[key]]: newValue}, options);
 
             result = {state: {[key]: value}}
             return result;
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('msCO2', [co2_lookup[key]], manufacturerOptions);
+            await entity.read('msCO2', [co2Lookup[key]], manufacturerOptions);
         },
     },
     th_heater: {
@@ -248,11 +247,10 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             let newValue = value;
             newValue = switchActionValues.indexOf(value);
-            options = getOptions(meta.mapped, entity, manufacturerOptions);
+            const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msRelativeHumidity', {'sprutHeater': newValue}, options);
 
-            result = {state: {[key]: value}}
-            return result;
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msRelativeHumidity', ['sprutHeater'], manufacturerOptions);
@@ -269,18 +267,18 @@ module.exports = [
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_config, fzLocal.th_heater, fzLocal.temperature_offset, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout, tzLocal.co2_config, tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level],
-        exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(),
-            ep.occupancy(), ep.occupancy_level(), ep.co2(), ep.voc(), ep.noise(), ep.noise_detected(ea.STATE_GET),
-            ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'), ep.switch().withEndpoint('l3'),
-            e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
-            e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
-            e.numeric('temperature_offset', ea.ALL).withValueMin(-10).withValueMax(10).withUnit('°C').withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature'),
-            e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)'),
-            e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withDescription('The minimum noise level at which the detector will work (default: 50)'),
-            e.enum('co2_autocalibration', ea.ALL, switchActionValues).withDescription('Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate every 7 days.'),
-            e.enum('co2_manual_calibration', ea.ALL, switchActionValues).withDescription('Ventilate the room for 20 minutes, turn on manual calibration, and turn it off after one second. After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed'),
-            e.enum('th_heater', ea.ALL, switchActionValues).withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, if the sensor shows 0 or 100 %.')
-                 ],
+        exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(), ep.occupancy(), ep.occupancy_level(), ep.co2(), 
+        ep.voc(), ep.noise(), ep.noise_detected(ea.STATE_GET), ep.switch().withEndpoint('l1'), ep.switch().withEndpoint('l2'), 
+        ep.switch().withEndpoint('l3'), 
+        e.numeric('noise_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
+        e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s').withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
+        e.numeric('temperature_offset', ea.ALL).withValueMin(-10).withValueMax(10).withUnit('°C').withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature'),
+        e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000).withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, otherwise increase it (default: 50)'),
+        e.numeric('noise_detect_level', ea.ALL).withValueMin(0).withValueMax(150).withUnit('dBA').withDescription('The minimum noise level at which the detector will work (default: 50)'),
+        e.enum('co2_autocalibration', ea.ALL, switchActionValues).withDescription('Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate every 7 days.'),
+        e.enum('co2_manual_calibration', ea.ALL, switchActionValues).withDescription('Ventilate the room for 20 minutes, turn on manual calibration, and turn it off after one second. After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed'),
+        e.enum('th_heater', ea.ALL, switchActionValues).withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, if the sensor shows 0 or 100 %.')
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const binds = ['genBasic', 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity',
