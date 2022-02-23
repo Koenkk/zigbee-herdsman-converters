@@ -92,15 +92,6 @@ const fzLocal = {
             return {noise_detect_level: msg.data['noiseDetectLevel']};
         },
     },
-    temperature_offset: {
-        cluster: 'msTemperatureMeasurement',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const value = parseFloat(msg.data['sprutTemperatureOffset']) * 0.01;
-
-            return {temperature_offset: value};
-        },
-    },
     co2_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
         cluster: 'msCO2',
@@ -222,10 +213,7 @@ const tzLocal = {
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
             return {state: {[key]: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('msTemperatureMeasurement', ['sprutTemperatureOffset'], manufacturerOptions);
-        },
+        }
     },
     co2_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
@@ -266,7 +254,7 @@ module.exports = [
         description: 'Wall-mounted Zigbee sensor',
         fromZigbee: [fzLocal.temperature, fz.illuminance, fz.humidity, fz.occupancy, fzLocal.occupancy_level, fz.co2, fzLocal.voc,
             fzLocal.noise, fzLocal.noise_detected, fz.on_off, fzLocal.occupancy_timeout, fzLocal.noise_timeout, fzLocal.co2_config,
-            fzLocal.th_heater, fzLocal.temperature_offset, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
+            fzLocal.th_heater, fzLocal.occupancy_sensitivity, fzLocal.noise_detect_level],
         toZigbee: [tz.on_off, tzLocal.sprut_ir_remote, tzLocal.occupancy_timeout, tzLocal.noise_timeout, tzLocal.co2_config,
             tzLocal.th_heater, tzLocal.temperature_offset, tzLocal.occupancy_sensitivity, tzLocal.noise_detect_level],
         exposes: [ep.temperature(), ep.illuminance(), ep.illuminance_lux(), ep.humidity(), ep.occupancy(), ep.occupancy_level(), ep.co2(),
@@ -276,7 +264,7 @@ module.exports = [
                 .withDescription('Time in seconds after which noise is cleared after detecting it (default: 60)'),
             e.numeric('occupancy_timeout', ea.ALL).withValueMin(0).withValueMax(2000).withUnit('s')
                 .withDescription('Time in seconds after which occupancy is cleared after detecting it (default: 60)'),
-            e.numeric('temperature_offset', ea.ALL).withValueMin(-10).withValueMax(10).withUnit('°C')
+            e.numeric('temperature_offset', ea.SET).withValueMin(-10).withValueMax(10).withUnit('°C')
                 .withDescription('Self-heating compensation. The compensation value is subtracted from the measured temperature'),
             e.numeric('occupancy_sensitivity', ea.ALL).withValueMin(0).withValueMax(2000)
                 .withDescription('If the sensor is triggered by the slightest movement, reduce the sensitivity, '+
