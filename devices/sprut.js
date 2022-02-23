@@ -213,7 +213,7 @@ const tzLocal = {
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write('msTemperatureMeasurement', {'sprutTemperatureOffset': newValue}, options);
             return {state: {[key]: value}};
-        }
+        },
     },
     co2_config: {
         key: ['co2_autocalibration', 'co2_manual_calibration'],
