@@ -100,13 +100,15 @@ module.exports = [
         model: 'CCT5010-0001',
         vendor: 'Schneider Electric',
         description: 'Micro module dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [e.light_brightness().withLevelConfig(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast')],
+                .withDescription('Specifies the maximum light output of the ballast'),
+            exposes.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
         whiteLabel: [{vendor: 'Elko', model: 'EKO07090'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -134,13 +136,15 @@ module.exports = [
         model: 'WDE002334',
         vendor: 'Schneider Electric',
         description: 'Rotary dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [e.light_brightness().withLevelConfig(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast')],
+                .withDescription('Specifies the maximum light output of the ballast'),
+            exposes.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -184,6 +188,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CH2AX/SWITCH/1'],
+        model: '41E2PBSWMZ/356PB2MBTZ',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series module switch 2A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
     {
@@ -367,6 +383,7 @@ module.exports = [
         endpoint: (device) => {
             return {'top': 21, 'bottom': 22};
         },
+        whiteLabel: [{vendor: 'Elko', model: 'EKO07117'}],
         meta: {multiEndpoint: true},
         exposes: [e.action(['on_top', 'off_top', 'on_bottom', 'off_bottom', 'brightness_move_up_top', 'brightness_stop_top',
             'brightness_move_down_top', 'brightness_stop_top', 'brightness_move_up_bottom', 'brightness_stop_bottom',
@@ -628,6 +645,37 @@ module.exports = [
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acCurrentMultiplier']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+        },
+    },
+    {
+        zigbeeModel: ['NHMOTION/SWITCH/1'],
+        model: '545D6306',
+        vendor: 'Schneider Electric',
+        description: 'LK FUGA Wiser wireless PIR with relay',
+        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fz.occupancy_timeout],
+        exposes: [e.switch().withEndpoint('l1'), e.occupancy(), e.illuminance_lux(), e.illuminance(),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)
+                .withDescription('Time in seconds after which occupancy is cleared after detecting it')],
+        toZigbee: [tz.on_off, tz.occupancy_timeout],
+        endpoint: (device) => {
+            return {'default': 37, 'l1': 1, 'l2': 37};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const binds1 = ['genBasic', 'genIdentify', 'genOnOff'];
+            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
+            await reporting.onOff(endpoint1);
+            // read switch state
+            await endpoint1.read('genOnOff', ['onOff']);
+
+            const endpoint37 = device.getEndpoint(37);
+            const binds37 = ['msIlluminanceMeasurement', 'msOccupancySensing'];
+            await reporting.bind(endpoint37, coordinatorEndpoint, binds37);
+            await reporting.occupancy(endpoint37);
+            await reporting.illuminance(endpoint37);
+            // read occupancy_timeout
+            await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
 ];

@@ -508,7 +508,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_wr6g6olr'}],
         model: 'HG07834B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',

@@ -6,7 +6,8 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wt9agwf3'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wt9agwf3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5uodvhgc'}],
         model: 'FK_V02',
         vendor: 'FrankEver',
         description: 'Zigbee smart water valve',
