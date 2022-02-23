@@ -1906,8 +1906,8 @@ module.exports = [
         description: 'Hue dimmer switch',
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
             fz.legacy.hue_dimmer_switch, fz.battery],
-        exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
-            'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release']),
+        exposes: [e.battery(), e.action(['on_press', 'on_hold', 'on_hold_release', 'up_press', 'up_hold', 'up_hold_release',
+            'down_press', 'down_hold', 'down_hold_release', 'off_press', 'off_hold', 'off_hold_release']),
         exposes.numeric('action_duration', ea.STATE).withUnit('second')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
