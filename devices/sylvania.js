@@ -7,13 +7,6 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['BR30 TW'],
-        model: '73740',
-        vendor: 'Sylvania',
-        description: 'Adjustable white BR30 LED light bulb',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-    },
-    {
         zigbeeModel: ['Contact Sensor-A'],
         model: '74388',
         vendor: 'Sylvania',
@@ -64,11 +57,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['LIGHTIFY BR Tunable White'],
+        zigbeeModel: ['LIGHTIFY BR Tunable White', 'BR30 TW'],
         model: '73740',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable white BR30',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
