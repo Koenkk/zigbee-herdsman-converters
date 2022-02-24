@@ -7,6 +7,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ADUROLIGHT_CSC'],
+        model: '15090054',
+        vendor: 'AduroSmart',
+        description: 'Remote scene controller',
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_recall],
+        toZigbee: [],
+        exposes: [e.battery(), e.action('toggle', 'recall_253', 'recall_254', 'recall_255')],
+    },
+    {
         zigbeeModel: ['AD-SmartPlug3001'],
         model: '81848',
         vendor: 'AduroSmart',
