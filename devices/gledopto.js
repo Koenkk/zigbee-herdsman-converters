@@ -673,7 +673,7 @@ module.exports = [
         extend: gledoptoExtend.switch(),
     },
     {
-        zigbeeModel: ['GL-B-004P'], 
+        zigbeeModel: ['GL-B-004P'],
         model: 'GL-B-004P',
         vendor: 'Gledopto',
         description: 'Gledopto Filament LED Light Bulb E27 G95 7W Pro',
