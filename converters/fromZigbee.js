@@ -1837,7 +1837,7 @@ const converters = {
             case tuya.dataPoints.nousBattery:
                 return {battery: value};
             case tuya.dataPoints.nousTempUnitConvert:
-                return {temperature_unit_convert: {0x00: '°C', 0x01: '°F'}[value]};
+                return {temperature_unit_convert: {0x00: 'celsius', 0x01: 'fahrenheit'}[value]};
             case tuya.dataPoints.nousMaxTemp:
                 return {max_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.nousMinTemp:
@@ -3224,8 +3224,9 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('12288')) {
-                result.energy_consumed = precisionRound(msg.data['12288'], 2);
+                result.energy_consumed = precisionRound(msg.data['12288'], 2); // deprecated
                 result.energyconsumed = result.energy_consumed; // deprecated
+                result.energy = result.energy_consumed;
             }
 
             if (msg.data.hasOwnProperty('12291')) {
@@ -4141,6 +4142,25 @@ const converters = {
             }
         },
     },
+    tuya_CO: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.precision('co'), exposes.options.calibration('co')],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_CO');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            switch (dp) {
+            case tuya.dataPoints.tuyaSabCO:
+                return {co: calibrateAndPrecisionRoundOptions(value / 100, options, 'co')};
+            case tuya.dataPoints.tuyaSabCOalarm:
+                return {carbon_monoxide: value ? 'OFF' : 'ON'};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -4434,7 +4454,7 @@ const converters = {
             case tuya.dataPoints.ecoTemp:
                 return {eco_temperature: value};
             case tuya.dataPoints.valvePos:
-                return {position: value};
+                return {position: value, running_state: value ? 'heat' : 'idle'};
             case tuya.dataPoints.awayTemp:
                 return {away_preset_temperature: value};
             case tuya.dataPoints.awayDays:
@@ -5106,7 +5126,7 @@ const converters = {
         },
     },
     legrand_cable_outlet_mode: {
-        cluster: '64576',
+        cluster: 'manuSpecificLegrandDevices2',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
@@ -5505,17 +5525,18 @@ const converters = {
 
             // Maybe other QKBG also support release/hold?
             const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
-                {0: 'hold', 1: 'release'} : {0: 'single', 1: 'single'};
+                {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
 
-            // Dont' use postfixWithEndpointName here, endpoints don't match
-            if (mapping) {
-                if (mapping[msg.endpoint.ID]) {
-                    const button = mapping[msg.endpoint.ID];
-                    return {action: `${actionLookup[msg.data['onOff']]}_${button}`};
-                }
-            } else {
-                return {action: actionLookup[msg.data['onOff']]};
+            const action = actionLookup[msg.data['onOff']];
+            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
+
+            if (action === 'release') {
+                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
+                publish({action: `${anotherAction}${button}`});
             }
+            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
+
+            return {action: `${action}${button}`};
         },
     },
     xiaomi_multistate_action: {
@@ -7521,6 +7542,17 @@ const converters = {
             return result;
         },
     },
+    wiser_lighting_ballast_configuration: {
+        cluster: 'lightingBallastCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = converters.lighting_ballast_configuration.convert(model, msg, publish, options, meta);
+            if (msg.data.hasOwnProperty('wiserControlMode')) {
+                result.dimmer_mode = constants.wiserDimmerControlMode[msg.data['wiserControlMode']];
+            }
+            return result;
+        },
+    },
     schneider_ui_action: {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
@@ -8134,6 +8166,7 @@ const converters = {
             }
             if (dp === tuya.dataPoints.hochTotalActivePower) {
                 result.energy_consumed = value / 100;
+                result.energy = result.energy_consumed;
             }
             if (dp === tuya.dataPoints.hochLocking) {
                 result.trip = value ? 'trip' : 'clear';
@@ -8150,7 +8183,7 @@ const converters = {
                     1: 'on',
                     2: 'previous',
                 };
-                result.power_on_behaviour = lookup[value];
+                result.power_on_behavior = lookup[value];
             }
             if (dp === tuya.dataPoints.hochFaultCode) {
                 const lookup = {
@@ -8407,6 +8440,20 @@ const converters = {
             default: // Unknown code
                 meta.logger.warn(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
+    tm081: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tm0801');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            if (dp === 1) return {contact: value === true ? false : true};
+            if (dp === 2) return {battery: value};
+            else {
+                meta.logger.warn(`zigbee-herdsman-converters:TM081: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },

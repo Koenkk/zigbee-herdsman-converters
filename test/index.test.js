@@ -1,5 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -483,5 +484,22 @@ describe('index.js', () => {
         expect(ZNJLBL01LM.options.length).toBe(1);
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
         expect(ZNCZ04LM.options.length).toBe(2);
+    });
+
+    it('Verify imports', () => {
+        const files = fs.readdirSync('devices');
+        for (const file of files) {
+            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            expect(content).not.toContain(`require('zigbee-herdsman-converters`);
+        }
+    });
+
+    it('Test to percentage', () => {
+        expect(utils.toPercentage(3000, 2850, 3200, true)).toBe(79);
+        expect(utils.toPercentage(3200, 2850, 3200, true)).toBe(100);
+        expect(utils.toPercentage(4000, 2850, 3200, true)).toBe(100);
+        expect(utils.toPercentage(2000, 2850, 3200, true)).toBe(0);
+        expect(utils.toPercentage(2850, 2850, 3200, true)).toBe(0);
+        expect(utils.toPercentage(2851, 2850, 3200, true)).toBe(2);
     });
 });

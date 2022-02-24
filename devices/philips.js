@@ -661,7 +661,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LWW003'],
+        zigbeeModel: ['LWW003', 'LWF003'],
         model: '9290018216',
         vendor: 'Philips',
         description: 'Hue white A60 bulb E27 bluetooth',
@@ -706,7 +706,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LTA001'],
+        zigbeeModel: ['LTA001', '4080130P6'],
         model: '9290022169',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
@@ -1906,8 +1906,8 @@ module.exports = [
         description: 'Hue dimmer switch',
         fromZigbee: [fz.ignore_command_on, fz.ignore_command_off, fz.ignore_command_step, fz.ignore_command_stop,
             fz.legacy.hue_dimmer_switch, fz.battery],
-        exposes: [e.battery(), e.action(['on-press', 'on-hold', 'on-hold-release', 'up-press', 'up-hold', 'up-hold-release',
-            'down-press', 'down-hold', 'down-hold-release', 'off-press', 'off-hold', 'off-hold-release']),
+        exposes: [e.battery(), e.action(['on_press', 'on_hold', 'on_hold_release', 'up_press', 'up_hold', 'up_hold_release',
+            'down_press', 'down_hold', 'down_hold_release', 'off_press', 'off_hold', 'off_hold_release']),
         exposes.numeric('action_duration', ea.STATE).withUnit('second')],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2438,12 +2438,30 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LCX001'],
+        model: '929002422702',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip 55',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LCX002'],
         model: '929002422801',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 65',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['929003099301'],
+        model: '929003099301',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Aurelle round panel light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2465,7 +2483,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309230P6', '5309231P6'],
+        zigbeeModel: ['5309230P6', '5309231P6', '929003045701_01', '929003045701_02'],
         model: '5309230P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner double spotlight',
@@ -2492,7 +2510,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5633030P6'],
+        zigbeeModel: ['5633030P6', '929003046501'],
         model: '5633030P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Pillar spotlamp',
@@ -2704,6 +2722,14 @@ module.exports = [
         description: 'Hue white single filament bulb A19 E26 with Bluetooth (1100 Lumen)',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['915005997301', '915005997201'],
+        model: '915005997301',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse medium',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {

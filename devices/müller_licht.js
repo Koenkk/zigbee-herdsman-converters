@@ -45,7 +45,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZBT-ExtendedColor'],
-        model: '404000/404005/404012',
+        model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}),
