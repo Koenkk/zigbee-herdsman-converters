@@ -672,4 +672,11 @@ module.exports = [
         description: 'Zigbee 3.0 smart home switch',
         extend: gledoptoExtend.switch(),
     },
+    {
+        zigbeeModel: ['GL-B-004P'], 
+        model: 'GL-B-004P',
+        vendor: 'Gledopto',
+        description: 'Gledopto Filament LED Light Bulb E27 G95 7W Pro',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
 ];
