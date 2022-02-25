@@ -411,7 +411,12 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Socket module',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}],
+        whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}, {vendor: 'LoraTap', model: 'SP400ZB'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
