@@ -11,10 +11,11 @@ module.exports = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
+        whiteLabel: [{vendor: 'Danfoss', model: '014G2463'}],
         fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
