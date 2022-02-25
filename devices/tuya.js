@@ -43,6 +43,18 @@ const tzLocal = {
     },
 };
 
+const fzLocal = {
+    TS0201_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11470
+            if (msg.data.batteryVoltage < 30) return;
+            return fz.battery(model, msg, publish, options, meta);
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['TS0204'],
@@ -654,7 +666,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-IS4'}],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
