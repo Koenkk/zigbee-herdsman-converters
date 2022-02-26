@@ -8457,6 +8457,25 @@ const converters = {
             }
         },
     },
+    tuya_remote: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            const buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                // battery DP
+                if (dpValue.dp == 10) {
+                    result.battery = value;
+                } else {
+                    result.action = `${buttonMapping[dpValue.dp]}_${clickMapping[value]}`;
+                }
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
