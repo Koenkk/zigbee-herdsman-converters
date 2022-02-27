@@ -2089,4 +2089,15 @@ module.exports = [
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },
+    {
+        fingerprint: [{modelID: `TS0601`, manufacturerName: `_TZE200_2m38mh6k`}],
+        model: 'SS9600ZB',
+        vendor: 'TuYa',
+        description: '6 gang remote',
+        exposes: [e.battery(),
+            e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold',
+                '4_single', '4_double', '4_hold', '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
+        fromZigbee: [fz.tuya_remote],
+        toZigbee: [],
+    },
 ];
