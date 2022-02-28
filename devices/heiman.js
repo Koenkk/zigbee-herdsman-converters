@@ -398,7 +398,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}],
+        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',

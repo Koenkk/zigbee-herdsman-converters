@@ -103,7 +103,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ON/OFF', 'ZIGBEE-SWITCH'],
+        zigbeeModel: ['ON/OFF -M', 'ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
