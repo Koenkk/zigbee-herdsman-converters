@@ -1007,6 +1007,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
