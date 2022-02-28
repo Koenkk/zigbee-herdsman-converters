@@ -57,7 +57,6 @@ module.exports = [
         model: '57005000',
         vendor: 'Insta',
         description: 'Switching Actuator Mini with input for wall switch',
-
         fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch()],
@@ -88,7 +87,6 @@ module.exports = [
         model: '57004000',
         vendor: 'Insta',
         description: 'Pushbutton Interface 2-gang 230V',
-
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.command_recall, fz.command_move, fz.command_stop,
             fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop],
         toZigbee: [],
