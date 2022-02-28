@@ -2601,7 +2601,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zoneStatus;
             return {
-                alarm: zoneStatus === 17 ? true : false,
+                alarm: (zoneStatus & 1) > 0,
             };
         },
     },
