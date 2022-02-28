@@ -35,6 +35,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['tint smart power strip'],
+        model: '45391',
+        vendor: 'Müller Licht',
+        description: 'Smart power strip',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(11);
+        },
+    },
+    {
         // Identify through fingerprint as modelID is the same as Airam 4713407
         fingerprint: [{modelID: 'ZBT-DimmableLight', manufacturerName: 'MLI'}],
         model: '404001',
