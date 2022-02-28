@@ -492,6 +492,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['1743830V7'],
+        model: '1743830V7',
+        vendor: 'Philips',
+        description: 'Hue Econic outdoor wall lamp',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['1743830P7'],
         model: '1743830P7',
         vendor: 'Philips',
