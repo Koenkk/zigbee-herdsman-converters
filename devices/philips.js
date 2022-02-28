@@ -2627,6 +2627,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['915005997801'],
+        model: '915005997801',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Xamento M',
+        meta: {turnsOffAtBrightness1: true},
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929002966401'],
         model: '929002966401',
         vendor: 'Philips',
