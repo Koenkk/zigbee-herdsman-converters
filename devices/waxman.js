@@ -30,7 +30,7 @@ module.exports = [
         // 8850310 2"
         model: '8850100',
         vendor: 'Waxman',
-        description: 'leakSMART Automatic Water Shut-off Valve 2.0',
+        description: 'leakSMART automatic water shut-off valve 2.0',
         fromZigbee: [fz.battery, fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.battery(), e.switch()],
