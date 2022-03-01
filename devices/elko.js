@@ -22,6 +22,20 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['ElkoDimmerRemoteZHA'],
+        model: 'EKO05806',
+        vendor: 'ELKO',
+        description: 'Elko ESH 316 Endevender RF',
+        fromZigbee: [fz.command_toggle,fz.command_step],
+        toZigbee: [],
+        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff','genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['Super TR'],
         model: '4523430',
         vendor: 'ELKO',
