@@ -484,6 +484,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7deq70b8'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
