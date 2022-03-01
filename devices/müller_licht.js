@@ -39,9 +39,7 @@ module.exports = [
         model: '45391',
         vendor: 'Müller Licht',
         description: 'Smart power strip',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
