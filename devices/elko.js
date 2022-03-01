@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ea = exposes.access;
+const e = exposes.presets;
 
 module.exports = [
     {
