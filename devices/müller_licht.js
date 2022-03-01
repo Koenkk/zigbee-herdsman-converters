@@ -43,7 +43,7 @@ module.exports = [
         toZigbee: [tz.on_off],
         exposes: [e.switch()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
