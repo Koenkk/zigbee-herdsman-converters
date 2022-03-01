@@ -42,9 +42,6 @@ module.exports = [
         fromZigbee: [fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-        },
     },
     {
         // Identify through fingerprint as modelID is the same as Airam 4713407
