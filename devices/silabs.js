@@ -9,7 +9,7 @@ module.exports = [
     {
         zigbeeModel: ['UT-02'],
         model: 'EFR32MG21',
-        vendor: 'Custom devices (DiY)',
+        vendor: 'Sillicon Labs',
         description: 'EFR32MG21 Silabs USB Router',
         fromZigbee: [],
         toZigbee: [],
@@ -22,7 +22,7 @@ module.exports = [
     {
         zigbeeModel: ['UT-01'],
         model: 'EFR32MG21',
-        vendor: 'Custom devices (DiY)',
+        vendor: 'Sillicon Labs',
         description: 'EFR32MG21 Zigbee Bridge Router',
         fromZigbee: [],
         toZigbee: [],
