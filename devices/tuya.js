@@ -50,7 +50,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
             if (msg.data.batteryVoltage < 30) return;
-            return fz.battery(model, msg, publish, options, meta);
+            return fz.battery.convert(model, msg, publish, options, meta);
         },
     },
 };
