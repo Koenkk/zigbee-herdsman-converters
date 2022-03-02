@@ -48,6 +48,6 @@ module.exports = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
     },
 ];
