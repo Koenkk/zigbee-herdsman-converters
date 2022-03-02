@@ -57,11 +57,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['LIGHTIFY BR Tunable White'],
+        zigbeeModel: ['LIGHTIFY BR Tunable White', 'BR30 TW'],
         model: '73740',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable white BR30',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {

@@ -26,7 +26,7 @@ module.exports = [
         vendor: 'Trust',
         description: 'Remote control',
         fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.legacy.ZYCT202_stop, fz.legacy.ZYCT202_up_down],
-        exposes: [e.action(['on', 'off', 'stop', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
+        exposes: [e.action(['on', 'off', 'stop', 'brightness_stop', 'brightness_move_up', 'brightness_move_down']), e.action_group()],
         toZigbee: [],
         // Device does not support battery: https://github.com/Koenkk/zigbee2mqtt/issues/5928
     },

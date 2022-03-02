@@ -5527,15 +5527,16 @@ const converters = {
             const actionLookup = !isLegacyEnabled(options) && ['QBKG03LM', 'QBKG22LM', 'QBKG04LM', 'QBKG21LM'].includes(model.model) ?
                 {0: 'hold', 1: 'release', 2: 'double'} : {0: 'single', 1: 'single'};
 
-            // Dont' use postfixWithEndpointName here, endpoints don't match
-            if (mapping) {
-                if (mapping[msg.endpoint.ID]) {
-                    const button = mapping[msg.endpoint.ID];
-                    return {action: `${actionLookup[msg.data['onOff']]}_${button}`};
-                }
-            } else {
-                return {action: actionLookup[msg.data['onOff']]};
+            const action = actionLookup[msg.data['onOff']];
+            const button = mapping && mapping[msg.endpoint.ID] ? `_${mapping[msg.endpoint.ID]}` : '';
+
+            if (action === 'release') {
+                const anotherAction = globalStore.getValue(msg.endpoint, 'hold', false) ? 'hold_release' : 'single';
+                publish({action: `${anotherAction}${button}`});
             }
+            globalStore.putValue(msg.endpoint, 'hold', action === 'hold');
+
+            return {action: `${action}${button}`};
         },
     },
     xiaomi_multistate_action: {
@@ -8454,6 +8455,25 @@ const converters = {
             else {
                 meta.logger.warn(`zigbee-herdsman-converters:TM081: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
+        },
+    },
+    tuya_remote: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
+            const buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                // battery DP
+                if (dpValue.dp == 10) {
+                    result.battery = value;
+                } else {
+                    result.action = `${buttonMapping[dpValue.dp]}_${clickMapping[value]}`;
+                }
+            }
+            return result;
         },
     },
     // #endregion

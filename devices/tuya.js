@@ -43,6 +43,18 @@ const tzLocal = {
     },
 };
 
+const fzLocal = {
+    TS0201_battery: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11470
+            if (msg.data.batteryVoltage < 30) return;
+            return fz.battery(model, msg, publish, options, meta);
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['TS0204'],
@@ -300,6 +312,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_bsvqrxru'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_otvn3lne'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_ykwcwxmz'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
@@ -411,7 +424,12 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Socket module',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}],
+        whiteLabel: [{vendor: 'LoraTap', model: 'RR400ZB'}, {vendor: 'LoraTap', model: 'SP400ZB'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wxtp7c5y'},
@@ -466,6 +484,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7deq70b8'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -608,6 +627,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pz9zmxjj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -648,7 +668,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-IS4'}],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
@@ -988,6 +1008,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
@@ -2069,5 +2090,16 @@ module.exports = [
         fromZigbee: [fz.tm081],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        fingerprint: [{modelID: `TS0601`, manufacturerName: `_TZE200_2m38mh6k`}],
+        model: 'SS9600ZB',
+        vendor: 'TuYa',
+        description: '6 gang remote',
+        exposes: [e.battery(),
+            e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold',
+                '4_single', '4_double', '4_hold', '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
+        fromZigbee: [fz.tuya_remote],
+        toZigbee: [],
     },
 ];
