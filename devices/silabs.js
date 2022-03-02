@@ -1,9 +1,11 @@
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const fz = {...require('zigbee-herdsman-converters/converters/fromZigbee'), legacy: require('zigbee-herdsman-converters/lib/legacy').fromZigbee};
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const extend = require('zigbee-herdsman-converters/lib/extend');
+const exposes = require('../lib/exposes');
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
+const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
+
 
 module.exports = [
     {
