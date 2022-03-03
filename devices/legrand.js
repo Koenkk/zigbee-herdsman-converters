@@ -332,13 +332,13 @@ module.exports = [
             exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpointLeft = device.getEndpoint(1);
+            const endpointLeft = device.getEndpoint(2);
             await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff']);
-            const endpointRight = device.getEndpoint(2);
+            const endpointRight = device.getEndpoint(1);
             await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff']);
         },
         endpoint: (device) => {
-            return {left: 1, right: 2};
+            return {left: 2, right: 1};
         },
     },
 ];
