@@ -294,10 +294,7 @@ const tarifsDef = {
             'NJOURF+1',
             'PJOURF+1',
             'PPOINTE1',
-
         ]},
-
-
 };
 
 const linkyModeDef = {
