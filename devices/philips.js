@@ -353,7 +353,7 @@ module.exports = [
         model: '929003055901',
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
