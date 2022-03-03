@@ -504,7 +504,7 @@ function getCurrentConfig(device, options, logger=console) {
         break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
-        break;            
+        break;
     default:
         break;
     }
