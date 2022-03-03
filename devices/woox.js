@@ -56,7 +56,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low()],
     },
     {
-        zigbeeModel: ['TS0219'],
+        fingerprint: [{modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'}],
         model: 'R7051',
         vendor: 'Woox',
         description: 'Smart siren',
