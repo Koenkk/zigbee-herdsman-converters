@@ -271,6 +271,33 @@ const tarifsDef = {
             'PJOURF+1',
             'PPOINTE1',
         ]},
+    stand_HPHC: {fname: 'Standard - Heure Pleine Heure Creuse',
+        currentTarf: 'H PLEINE/CREUSE', excluded: [
+            'EASF03',
+            'EASF04',
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD02',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+
+        ]},
+
+
 };
 
 const linkyModeDef = {
@@ -478,6 +505,9 @@ function getCurrentConfig(device, options, logger=console) {
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_MERCR.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
+        break;            
     default:
         break;
     }
