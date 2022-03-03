@@ -1018,6 +1018,16 @@ const converters = {
             };
         },
     },
+    ias_alarm_only_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                alarm: (zoneStatus & 1) > 0,
+            };
+        },
+    },
     ias_occupancy_only_alarm_2: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -2593,6 +2603,16 @@ const converters = {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
             return result;
+        },
+    },
+    ts0219_power_source: {
+        cluster: 'genBasic',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const powerSource = msg.data.powerSource;
+            return {
+                ac_connected: powerSource === 2 ? true : false,
+            };
         },
     },
     tuya_cover_options: {
