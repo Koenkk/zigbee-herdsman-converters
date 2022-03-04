@@ -5,8 +5,8 @@ const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const e = exposes.presets;
 
 module.exports = {
-    zigbeeModel: ['WM25WM25\u002FL-Z'],
-    model: 'WM25\u002FL-Z',
+    zigbeeModel: ['WM25/L-Z'],
+    model: 'WM25L-Z',
     vendor: 'Smartwings',
     description: 'Roller Shade',
     fromZigbee: [fz.cover_position_tilt, fz.battery],
