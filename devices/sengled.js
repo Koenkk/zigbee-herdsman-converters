@@ -14,7 +14,8 @@ module.exports = [
         description: 'Flood light with motion sensor light outdoor',
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.ias_occupancy_alarm_1]),
         toZigbee: extend.light_onoff_brightness().toZigbee,
-        exposes: [e.occupancy(), e.light_brightness()],
+        exposes: extend.light_onoff_brightness().exposes.concat([e.occupancy()]),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E21-N13A'],
@@ -29,7 +30,22 @@ module.exports = [
         model: 'E21-N1EA',
         vendor: 'Sengled',
         description: 'Smart LED multicolor A19 bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}),
+        fromZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).fromZigbee.concat([fz.metering]),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).toZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).exposes.concat([e.power(), e.energy()]),
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]})
+                .configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
     },
     {
         zigbeeModel: ['E12-N1E'],
@@ -62,6 +78,7 @@ module.exports = [
         description: 'Element classic (A19)',
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.metering]),
         toZigbee: extend.light_onoff_brightness().toZigbee,
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             device.powerSource = 'Mains (single phase)';
@@ -73,7 +90,7 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        exposes: [e.power(), e.energy(), e.light_brightness()],
+        exposes: extend.light_onoff_brightness().exposes.concat([e.power(), e.energy()]),
     },
     {
         zigbeeModel: ['E11-G23', 'E11-G33'],
@@ -149,8 +166,22 @@ module.exports = [
         model: 'E1F-N5E',
         vendor: 'Sengled',
         description: 'Element color plus E12',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        fromZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).fromZigbee.concat([fz.metering]),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).toZigbee,
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).exposes.concat([e.power(), e.energy()]),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]})
+                .configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
     },
     {
         zigbeeModel: ['E12-N14'],
@@ -206,15 +237,17 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         exposes: [e.switch(), e.power(), e.energy()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1E-G7F'],
         model: 'E1E-G7F',
         vendor: 'Sengled',
-        description: 'Smart switch ',
+        description: 'Smart switch',
         fromZigbee: [fz.E1E_G7F_action],
         exposes: [e.action(['on', 'up', 'down', 'off', 'on_double', 'on_long', 'off_double', 'off_long'])],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E11-N1G'],
@@ -222,6 +255,7 @@ module.exports = [
         vendor: 'Sengled',
         description: 'Vintage LED edison bulb (ST19)',
         extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1F-N9G'],
@@ -229,5 +263,6 @@ module.exports = [
         vendor: 'Sengled',
         description: 'Smart LED filament candle (E12)',
         extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
     },
 ];
