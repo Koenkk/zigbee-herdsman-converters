@@ -61,9 +61,9 @@ module.exports = [
         model: 'TS0204',
         vendor: 'TuYa',
         description: 'Gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.gas(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.gas(), e.tamper()],
     },
     {
         zigbeeModel: ['TS0205'],
