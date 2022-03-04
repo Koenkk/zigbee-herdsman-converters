@@ -6,7 +6,7 @@ const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definition = {
+module.exports = {
     zigbeeModel: ['WM25/L-Z'], 
     model: 'WM25/L-Z', 
     vendor: 'Smartwings', 
@@ -22,5 +22,3 @@ const definition = {
     },
     exposes: [e.cover_position(), e.battery()],
 };
-
-module.exports = definition;
