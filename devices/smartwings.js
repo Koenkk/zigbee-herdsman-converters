@@ -9,7 +9,7 @@ module.exports = [
         zigbeeModel: ['WM25/L-Z'],
         model: 'WM25L-Z',
         vendor: 'Smartwings',
-        description: 'Roller Shade',
+        description: 'Roller shade',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: true}},
