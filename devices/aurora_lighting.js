@@ -13,7 +13,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const state = value.toLowerCase();
             utils.validateValue(state, ['toggle', 'off', 'on']);
-            const endpoint = meta.device.getEndpoint(3);
+            const endpoint = meta.mapped.model === 'AU-A1ZBDSS' ? meta.device.getEndpoint(3) : meta.device.getEndpoint(2);
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
