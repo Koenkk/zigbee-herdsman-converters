@@ -13,7 +13,7 @@ module.exports = [
         description: 'Remote scene controller',
         fromZigbee: [fz.battery, fz.command_toggle, fz.command_recall],
         toZigbee: [],
-        exposes: [e.battery(), e.action('toggle', 'recall_253', 'recall_254', 'recall_255')],
+        exposes: [e.battery(), e.action(['toggle', 'recall_253', 'recall_254', 'recall_255'])],
     },
     {
         zigbeeModel: ['AD-SmartPlug3001'],

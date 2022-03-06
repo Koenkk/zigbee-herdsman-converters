@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -49,8 +49,8 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
-            if (msg.data.batteryVoltage < 30) return;
-            return fz.battery(model, msg, publish, options, meta);
+            if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
+            return fz.battery.convert(model, msg, publish, options, meta);
         },
     },
 };
@@ -61,9 +61,9 @@ module.exports = [
         model: 'TS0204',
         vendor: 'TuYa',
         description: 'Gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
-        exposes: [e.gas(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.gas(), e.tamper()],
     },
     {
         zigbeeModel: ['TS0205'],
@@ -108,7 +108,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
@@ -166,6 +167,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'}],
         model: 'WHD02',
         vendor: 'TuYa',
@@ -227,6 +229,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_wslkvrau'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_0rn9qhnu'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_jmiuubkz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_k1pe6ibm'},
@@ -399,6 +402,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_1agwnems'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -484,6 +488,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_oisqyl4o'},
             {modelID: 'TS0601', manufacturerName: '_TZ3000_uim07oem'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_js3mgbjb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7deq70b8'},
         ],
         model: 'TS0601_switch',
         vendor: 'TuYa',
@@ -1007,6 +1012,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',

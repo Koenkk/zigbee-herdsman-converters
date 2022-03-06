@@ -678,4 +678,20 @@ module.exports = [
             await endpoint37.read('msOccupancySensing', ['pirOToUDelay']);
         },
     },
+    {
+        zigbeeModel: ['CCT595011_AS'],
+        model: 'CCT595011_AS',
+        vendor: 'Schneider Electric',
+        description: 'Wiser motion sensor',
+        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2, fz.illuminance],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msIlluminanceMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
+        },
+        exposes: [e.battery(), e.illuminance(), e.illuminance_lux(), e.occupancy()],
+    },
 ];

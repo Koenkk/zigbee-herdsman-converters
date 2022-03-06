@@ -423,11 +423,11 @@ const converters = {
         // This is for occupancy sensor that send motion start AND stop messages
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.no_occupancy_since()],
+        options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
                 const payload = {occupancy: (msg.data.occupancy % 2) > 0};
-                utils.noOccupancySince(msg.endpoint, payload, options, publish);
+                utils.noOccupancySince(msg.endpoint, payload, options, publish, payload.occupancy ? 'stop' : 'start');
                 return payload;
             }
         },
@@ -438,7 +438,7 @@ const converters = {
         // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.occupancy_timeout(), exposes.options.no_occupancy_since()],
+        options: [exposes.options.occupancy_timeout(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
@@ -463,7 +463,7 @@ const converters = {
             }
 
             const payload = {occupancy: true};
-            utils.noOccupancySince(msg.endpoint, payload, options, publish);
+            utils.noOccupancySince(msg.endpoint, payload, options, publish, 'start');
             return payload;
         },
     },
@@ -1015,6 +1015,16 @@ const converters = {
                 occupancy: (zoneStatus & 1<<1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
                 battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+    ias_alarm_only_alarm_1: {
+        cluster: 'ssIasZone',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                alarm: (zoneStatus & 1) > 0,
             };
         },
     },
@@ -2593,6 +2603,16 @@ const converters = {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
             return result;
+        },
+    },
+    ts0219_power_source: {
+        cluster: 'genBasic',
+        type: 'attributeReport',
+        convert: (model, msg, publish, options, meta) => {
+            const powerSource = msg.data.powerSource;
+            return {
+                ac_connected: powerSource === 2 ? true : false,
+            };
         },
     },
     tuya_cover_options: {
