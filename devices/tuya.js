@@ -1891,6 +1891,7 @@ module.exports = [
                 .withDescription('sensitivity of the radar'),
             exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene))
                 .withDescription('presets for sensitivity for presence and movement'),
+            exposes.enum('detection_data', ea.STATE),
         ],
     },
     {
