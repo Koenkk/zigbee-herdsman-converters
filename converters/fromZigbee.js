@@ -5259,40 +5259,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const data = msg.data['65281'];
-                const payload = {};
-
-                if (data.hasOwnProperty('100')) {
-                    if (['QBKG03LM', 'QBKG12LM', 'LLKZMK11LM'].includes(model.model)) {
-                        const mapping = model.model === 'LLKZMK11LM' ? ['l1', 'l2'] : ['left', 'right'];
-                        payload[`state_${mapping[0]}`] = data['100'] === 1 ? 'ON' : 'OFF';
-                        payload[`state_${mapping[1]}`] = data['101'] === 1 ? 'ON' : 'OFF';
-                    } else {
-                        payload.state = data['100'] === 1 ? 'ON' : 'OFF';
-                    }
-                }
-
-                if (data.hasOwnProperty('152')) {
-                    payload.power = precisionRound(data['152'], 2);
-                }
-
-                if (data.hasOwnProperty('149')) {
-                    // Consumption is deprecated
-                    payload.consumption = precisionRound(data['149'], 2);
-                    payload.energy = precisionRound(data['149'], 2);
-                }
-
-                if (data.hasOwnProperty('3')) {
-                    payload.temperature = calibrateAndPrecisionRoundOptions(data['3'], options, 'temperature');
-                }
-
-                if (data.hasOwnProperty('150')) {
-                    payload.voltage = precisionRound(data['150'] * 0.1, 1);
-                }
-
-                return payload;
-            }
+            const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
+            return payload;
         },
     },
     xiaomi_basic_raw: {
