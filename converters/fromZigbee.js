@@ -2976,8 +2976,8 @@ const converters = {
                     meta.device.modelID = 'TI0001-socket';
                     meta.device.save();
                 }
-// No need to detect this switches, will be done by universal procedure
-/*                if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
+                // No need to detect this switches, will be done by universal procedure
+                /* if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
                     // new switch, hack
                     meta.device.modelID = 'TI0001-switch';
                     meta.device.save();

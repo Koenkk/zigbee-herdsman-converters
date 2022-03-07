@@ -1614,7 +1614,7 @@ const converters = {
             const payloadOffBottomLeft = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 4}};
             const payloadOnBottomRight = {0x0001: {value: Buffer.from([8, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
             const payloadOffBottomRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
-        if (postfix === 'left') {
+            if (postfix === 'left') {
                 await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
                     {
