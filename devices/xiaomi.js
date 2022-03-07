@@ -1298,7 +1298,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time')],
