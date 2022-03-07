@@ -428,7 +428,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
                 const payload = {occupancy: (msg.data.occupancy % 2) > 0};
-                utils.noOccupancySince(msg.endpoint, payload, options, publish, payload.occupancy ? 'stop' : 'start');
+                utils.noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
                 return payload;
             }
         },
@@ -464,7 +464,7 @@ const converters = {
             }
 
             const payload = {occupancy: true};
-            utils.noOccupancySince(msg.endpoint, payload, options, publish, 'start');
+            utils.noOccupancySince(msg.endpoint, options, publish, 'start');
             return payload;
         },
     },
