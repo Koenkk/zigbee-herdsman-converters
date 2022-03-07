@@ -82,7 +82,6 @@ module.exports = [
                 ],
             },
         ],
-        zigbeeModel: ['TLSR82xx'],
         model: '33952',
         vendor: 'AwoX',
         description: 'Remote controller',
