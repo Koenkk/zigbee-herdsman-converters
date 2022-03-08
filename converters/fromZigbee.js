@@ -7929,8 +7929,7 @@ const converters = {
             case tuya.dataPoints.trsIlluminanceLux:
                 result = {illuminance_lux: value};
                 break;
-            case tuya.dataPoints.trsDetectionData:
-                result = {detection_data: value};
+            case tuya.dataPoints.trsDetectionData: // Ignore this, function of this DP is unknown at the moment!
                 break;
             default:
                 meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
