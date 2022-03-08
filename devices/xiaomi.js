@@ -893,7 +893,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara high precision motion sensor',
         fromZigbee: [fz.RTCGQ13LM_occupancy, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval, tz.RTCGQ13LM_motion_sensitivity],
+        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'), e.battery()],
@@ -910,9 +910,10 @@ module.exports = [
         zigbeeModel: ['lumi.motion.ac01'],
         model: 'RTCZCGQ11LM',
         vendor: 'Xiaomi',
-        description: 'Aqara Presence Detector FP1 (regions not supported for now)',
+        description: 'Aqara presence detector FP1 (regions not supported for now)',
         fromZigbee: [fz.aqara_opple],
-        toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance],
+        toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
+            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
         exposes: [e.presence().withAccess(ea.STATE_GET),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
@@ -921,9 +922,14 @@ module.exports = [
                 'without considering right and left sides'),
             exposes.enum('approach_distance', ea.ALL, ['far', 'medium', 'near']).withDescription('The distance at which the ' +
                 'sensor detects approaching'),
-            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)')],
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
+                'means different static human body recognition rate and response speed of occupied'),
+            exposes.enum('reset_nopresence_status', ea.SET, ['Reset']).withDescription('Reset the status of no presence'),
+            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)'),
+            e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0142], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0144], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0146], {manufacturerCode: 0x115f});
