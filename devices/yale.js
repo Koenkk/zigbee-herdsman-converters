@@ -43,6 +43,13 @@ module.exports = [
         extend: lockExtend(),
     },
     {
+        zigbeeModel: ['0600000001'],
+        model: 'YMF30',
+        vendor: 'Yale',
+        description: 'Digital lock',
+        extend: lockExtend(),
+    },
+    {
         zigbeeModel: ['iZBModule01', '0700000001'],
         model: 'YMF40/YDM4109+',
         vendor: 'Yale',

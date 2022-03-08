@@ -1599,13 +1599,23 @@ const converters = {
             }
 
             const state = value.toLowerCase();
+            let oldstate = 1;
+            if (state === 'on') {
+                oldstate = 108;
+            }
+            let channel = 1.0;
             const postfix = meta.endpoint_name || 'left';
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payloadOn = {0x0001: {value: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOff = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOnRight = {0x0001: {value: Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
             const payloadOffRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            const payloadOnBottomLeft = {0x0001: {value: Buffer.from([4, 0, 0, 0, 0, 0, 0, 0]), type: 4}};
+            const payloadOffBottomLeft = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 4}};
+            const payloadOnBottomRight = {0x0001: {value: Buffer.from([8, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
+            const payloadOffBottomRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
             if (postfix === 'left') {
+                await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
@@ -1613,12 +1623,28 @@ const converters = {
                     });
                 return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'right') {
+                channel = 2.0;
+                await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
                 return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'bottom_right') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomRight : payloadOffBottomRight,
+                    {
+                        manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
+                    });
+                return {state: {state_bottom_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'bottom_left') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomLeft : payloadOffBottomLeft,
+                    {
+                        manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
+                    });
+                return {state: {state_bottom_left: value.toUpperCase()}, readAfterWriteTime: 250};
             }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },

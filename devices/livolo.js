@@ -20,13 +20,18 @@ module.exports = [
     {
         zigbeeModel: ['TI0001          '],
         model: 'TI0001',
-        description: 'Zigbee switch (1 and 2 gang)',
+        description: 'Zigbee switch (1, 2, 3, 4 gang)',
         vendor: 'Livolo',
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw],
-        toZigbee: [tz.livolo_switch_on_off],
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.switch().withEndpoint('bottom_left'),
+            e.switch().withEndpoint('bottom_right'),
+        ],
+        fromZigbee: [fz.livolo_switch_state, fz.livolo_switch_state_raw, fz.livolo_new_switch_state_4gang],
+        toZigbee: [tz.livolo_socket_switch_on_off],
         endpoint: (device) => {
-            return {'left': 6, 'right': 6};
+            return {'left': 6, 'right': 6, 'bottom_left': 6, 'bottom_right': 6};
         },
         configure: poll,
         onEvent: async (type, data, device) => {
@@ -39,6 +44,18 @@ module.exports = [
                 if (!globalStore.hasValue(device, 'interval')) {
                     const interval = setInterval(async () => await poll(device), 300*1000);
                     globalStore.putValue(device, 'interval', interval);
+                }
+            }
+            if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
+                const dp = data.data[10];
+                if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
+                    const endpoint = device.getEndpoint(6);
+                    if (dp === 0x01) {
+                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const payload = {0x2002: {value: [0, 0, 0, 0, 0, 0, 0], type: 0x0e}};
+                        await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
+                    }
                 }
             }
         },
