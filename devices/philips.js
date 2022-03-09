@@ -2787,7 +2787,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['LWS002'],
-        model: 'LWS002',
+        model: '046677562229',
         vendor: 'Philips',
         description: 'Hue White PAR20 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
