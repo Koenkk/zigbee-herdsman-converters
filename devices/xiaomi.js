@@ -1307,7 +1307,10 @@ module.exports = [
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.binary('interlock', ea.STATE_SET, true, false)
-                .withDescription('Enabling prevents both relais being on at the same time')],
+                .withDescription('Enabling prevents both relais being on at the same time'),
+            exposes.numeric('power_outage_count', ea.STATE)
+                .withDescription('Number of power outages'),
+        ],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1482,7 +1485,9 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.device_temperature, fz.aqara_opple, fz.ignore_metering, fz.ignore_electrical_measurement,
             fz.xiaomi_power],
         exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type(),
-            e.voltage(), e.temperature(), e.current()],
+            e.voltage(), e.temperature(), e.current(),
+            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)'),
+        ],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
