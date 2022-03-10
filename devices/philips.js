@@ -2785,4 +2785,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['LWS002'],
+        model: '046677562229',
+        vendor: 'Philips',
+        description: 'Hue White PAR20 with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
 ];
