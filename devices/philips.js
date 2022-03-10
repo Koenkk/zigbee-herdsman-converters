@@ -1182,10 +1182,10 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LTD004'], 
+        zigbeeModel: ['LTD004'],
         model: '801480',
         vendor: 'Philips',
-        description: 'Hue white ambiance 4" retrofit recessed downlight', 
+        description: 'Hue white ambiance 4" retrofit recessed downlight',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
