@@ -2240,6 +2240,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['929003055201'],
+        model: '929003055201',
+        vendor: 'Philips',
+        description: 'Hue Being',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['1743630P7', '1743630V7'],
         model: '17436/30/P7',
         vendor: 'Philips',
