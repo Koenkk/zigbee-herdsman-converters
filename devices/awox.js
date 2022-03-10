@@ -74,10 +74,21 @@ module.exports = [
                 type: 'EndDevice',
                 manufacturerName: 'AwoX',
                 modelID: 'TLSR82xx',
+                powerSource: 'Battery',
                 endpoints: [
                     {
                         ID: 1,
-                        groupID: 32776,
+                        profileID: 260,
+                        deviceID: 2048,
+                        inputClusters: [0, 3, 4, 4096],
+                        outputClusters: [0, 3, 4, 5, 6, 8, 768, 4096],
+                    },
+                    {
+                        ID: 3,
+                        profileID: 4751,
+                        deviceID: 2048,
+                        inputClusters: [65360, 65361],
+                        outputClusters: [65360, 65361],
                     },
                 ],
             },
