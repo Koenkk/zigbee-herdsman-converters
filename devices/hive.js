@@ -275,6 +275,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -326,6 +327,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -377,6 +379,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
