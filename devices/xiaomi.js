@@ -914,7 +914,7 @@ module.exports = [
         fromZigbee: [fz.aqara_opple],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
             tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
-        exposes: [e.presence().withAccess(ea.STATE_GET),
+        exposes: [e.presence().withAccess(ea.STATE_GET), e.power_outage_count(), e.temperature(),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
                 '"right_enter", "left_leave", "approach", "away"'),
@@ -925,8 +925,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['Reset']).withDescription('Reset the status of no presence'),
-            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)'),
-            e.temperature()],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
@@ -1173,7 +1172,7 @@ module.exports = [
         fromZigbee: [fz.aqara_opple],
         toZigbee: [tz.JTBZ01AQA_gas, tz.JTBZ01AQA_gas_density, tz.JTBZ01AQA_gas_sensitivity, tz.JTBZ01AQA_selftest,
             tz.JTBZ01AQA_mute_buzzer, tz.JTBZ01AQA_mute, tz.JTBZ01AQA_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
-        exposes: [e.gas().withAccess(ea.STATE_GET),
+        exposes: [e.gas().withAccess(ea.STATE_GET), e.power_outage_count().withAccess(ea.STATE_GET),
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
@@ -1187,7 +1186,7 @@ module.exports = [
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
             exposes.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
                 '(measurement of the gas concentration value and triggering of an alarm are only performed in the "work" state)'),
-            exposes.numeric('power_outage_count', ea.STATE_GET).withDescription('Number of power outages (since last pairing)')],
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
@@ -1304,12 +1303,10 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE), e.current(),
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage(), e.current(),
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power_outage_count(false),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time'),
-            exposes.numeric('power_outage_count', ea.STATE)
-                .withDescription('Number of power outages'),
         ],
         ota: ota.zigbeeOTA,
     },
@@ -1484,9 +1481,8 @@ module.exports = [
         // Ignore energy metering reports, rely on aqara_opple: https://github.com/Koenkk/zigbee2mqtt/issues/10709
         fromZigbee: [fz.on_off, fz.device_temperature, fz.aqara_opple, fz.ignore_metering, fz.ignore_electrical_measurement,
             fz.xiaomi_power],
-        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.switch_type(),
-            e.voltage(), e.temperature(), e.current(),
-            exposes.numeric('power_outage_count', ea.STATE).withDescription('Number of power outages (since last pairing)'),
+        exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.power_outage_count(),
+            e.switch_type(), e.voltage(), e.temperature(), e.current(),
         ],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         configure: async (device, coordinatorEndpoint, logger) => {
