@@ -13,7 +13,7 @@ jobs:
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - uses: actions/setup-node@v2-beta
       with:
-        node-version: 14
+        node-version: 16
     - run: npm install
     - run: npm ls --depth 0 --prod --parseable | tail -n +2 | xargs -I '{}' basename "{}" | xargs -I '{}' npm install '{}'@latest
     - run: rm -rf node_modules npm-shrinkwrap.json && npm install && npm shrinkwrap --dev
