@@ -1238,7 +1238,9 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        exposes: [e.cover_position().setAccess('state', ea.ALL),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1248,7 +1250,9 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        exposes: [e.cover_position().setAccess('state', ea.ALL),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1265,7 +1269,9 @@ module.exports = [
                 await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
             }
         },
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery()],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -1285,7 +1291,7 @@ module.exports = [
             exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
                 .withDescription('The current state of the motor.'),
             exposes.binary('running', ea.STATE, true, false)
-                .withDescription('Whether the motor is moving or not.')],
+                .withDescription('Whether the motor is moving or not')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
