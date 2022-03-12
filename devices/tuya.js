@@ -143,7 +143,7 @@ module.exports = [
         description: 'Smart air house keeper',
         fromZigbee: [fz.tuya_air_housekeeper],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd(), e.pm25()],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd().withUnit('ppm'), e.pm25()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
