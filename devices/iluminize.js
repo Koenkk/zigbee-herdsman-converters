@@ -194,5 +194,5 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
             'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
-    }
+    },
 ];
