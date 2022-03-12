@@ -141,7 +141,7 @@ module.exports = [
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'TuYa',
         description: 'Smart air house keeper',
-        fromZigbee: [fz.tuya_air_quality],
+        fromZigbee: [fz.tuya_air_housekeeper],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd(), e.pm25()],
     },

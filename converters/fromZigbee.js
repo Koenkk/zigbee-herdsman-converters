@@ -4191,6 +4191,39 @@ const converters = {
             }
         },
     },
+    tuya_air_housekeeper: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
+            exposes.options.precision('co2'), exposes.options.calibration('co2'),
+            exposes.options.precision('voc'), exposes.options.calibration('voc'),
+            exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
+            exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            switch (dp) {
+            case tuya.dataPoints.tuyaSabTemp:
+                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
+            case tuya.dataPoints.tuyaSabHumidity:
+                return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
+            case tuya.dataPoints.tuyaSahkCO2:
+                return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+            case tuya.dataPoints.tuyaSabVOC:
+                return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
+            case tuya.dataPoints.tuyaSahkFormaldehyd:
+                // Not sure which unit this is, supposedly mg/m³, but the value seems way too high.
+                return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+            case tuya.dataPoints.tuyaSahkMP25:
+                return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     tuya_CO: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
