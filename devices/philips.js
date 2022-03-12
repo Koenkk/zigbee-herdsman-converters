@@ -2816,7 +2816,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambinance G40 E26 filament globe with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
     },
 ];
