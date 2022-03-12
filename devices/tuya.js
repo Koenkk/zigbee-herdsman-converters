@@ -998,7 +998,9 @@ module.exports = [
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [
-            e.cover_position().withRunning().setAccess('position', ea.STATE_SET),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not'),
             exposes.composite('options', 'options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(0)
