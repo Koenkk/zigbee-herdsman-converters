@@ -4171,7 +4171,7 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            switch (dp)
+            switch (dp) {
             case tuya.dataPoints.tuyaSabTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tuyaSabHumidity:
