@@ -21,6 +21,7 @@ const libColor = require('../lib/color');
 const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const xiaomi = require('../lib/xiaomi');
+const { tuya_data_point_test } = require('./toZigbee');
 
 const converters = {
     // #region Generic/recommended converters
@@ -4448,6 +4449,8 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
+            case tuya_data_point_test.window_open:
+                return{window_open: value}
             case tuya.dataPoints.windowDetection:
                 return {
                     window_detection: value[0] ? 'ON' : 'OFF',
