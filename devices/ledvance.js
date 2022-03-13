@@ -60,7 +60,7 @@ module.exports = [
         model: 'AC33906',
         vendor: 'LEDVANCE',
         description: 'SMART+ spot GU10 multicolor RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
