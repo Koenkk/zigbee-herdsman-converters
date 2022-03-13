@@ -4176,20 +4176,20 @@ const converters = {
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tuyaSabHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
-            // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
+                // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
             case tuya.dataPoints.tuyaSabFormaldehyd:
-                if (meta.device.manufacturerName === '_TZE200_dwcarsat'){
-                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')}
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
                 } else {
-                    return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')}
-                };
-            // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
+                    return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                }
+                // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case tuya.dataPoints.tuyaSabCO2:
-                if (meta.device.manufacturerName === '_TZE200_dwcarsat'){
-                    return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')}
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                    return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
                 } else {
-                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')}
-                };
+                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                }
             case tuya.dataPoints.tuyaSabVOC:
                 return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
             case tuya.dataPoints.tuyaSahkCH2O:
