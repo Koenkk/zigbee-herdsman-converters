@@ -4177,14 +4177,14 @@ const converters = {
             case tuya.dataPoints.tuyaSabHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
             // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
-            case 22:
+            case tuya.dataPoints.tuyaSabFormaldehyd:
                 if (meta.device.manufacturerName === '_TZE200_dwcarsat'){
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')}
                 } else {
                     return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')}
                 };
             // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
-            case 2:
+            case tuya.dataPoints.tuyaSabCO2:
                 if (meta.device.manufacturerName === '_TZE200_dwcarsat'){
                     return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')}
                 } else {
