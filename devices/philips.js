@@ -2776,7 +2776,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['915005997501'],
+        zigbeeModel: ['915005997501', '915005997401'],
         model: '915005997501',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse large',
