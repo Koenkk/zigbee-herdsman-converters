@@ -4448,7 +4448,7 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
             switch (dp) {
             case tuya.dataPoints.windowOpen:
-                return{window_open: value};
+                return {window_open: value};
             case tuya.dataPoints.windowDetection:
                 return {
                     window_detection: value[0] ? 'ON' : 'OFF',
