@@ -1771,6 +1771,15 @@ module.exports = [
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)],
     },
     {
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'}],
+        model: 'TS0222_light_temperature_humidity_sensor',
+        vendor: 'TuYa',
+        description: 'Moes Smart Brightness Thermometer',
+        fromZigbee: [fz.battery, fz.illuminance, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.illuminance(), e.temperature(), e.humidity()],
+    },
+    {
         fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
             {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'}],
         model: 'TS0222',
