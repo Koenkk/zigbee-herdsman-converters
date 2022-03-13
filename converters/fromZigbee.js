@@ -5264,10 +5264,22 @@ const converters = {
             return {power: precisionRound(msg.data['presentValue'], 2)};
         },
     },
-    xiaomi_switch_basic: {
+    xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'temperature')) {
+                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
+            }
+            if (definition.exposes.find((e) => e.name === 'illuminance')) {
+                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+            }
+            if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
+                result.push(exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual'));
+            }
+            return result;
+        },
         convert: (model, msg, publish, options, meta) => {
             const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
             return payload;
@@ -5308,31 +5320,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
             return payload;
-        },
-    },
-    xiaomi_battery: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let voltage = null;
-            if (msg.data['65281']) {
-                voltage = msg.data['65281']['1'];
-            } else if (msg.data['65282']) {
-                voltage = msg.data['65282']['1'].elmVal;
-            }
-
-            if (voltage) {
-                const payload = {
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
-                }
-
-                return payload;
-            }
         },
     },
     xiaomi_on_off_action: {
@@ -5399,32 +5386,6 @@ const converters = {
                 }
             } else {
                 return {action};
-            }
-        },
-    },
-    RTCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('11')) {
-                    const illuminance = msg.data['65281']['11'];
-                    // DEPRECATED: remove illuminance_lux here.
-                    result.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-                    result.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
-                }
-
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
             }
         },
     },
@@ -5560,27 +5521,6 @@ const converters = {
             return {contact: msg.data['onOff'] === 0};
         },
     },
-    xiaomi_contact_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281')) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('100')) {
-                    result.contact = msg.data['65281']['100'] === 0;
-                }
-
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
-            }
-        },
-    },
     W2_module_carbon_monoxide: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5589,39 +5529,6 @@ const converters = {
             return {
                 carbon_monoxide: (zoneStatus & 1<<8) > 8,
             };
-        },
-    },
-    WSDCGQ01LM_WSDCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure'),
-            exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const result = {};
-                const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
-                const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
-
-                // https://github.com/Koenkk/zigbee2mqtt/issues/798
-                // Sometimes the sensor publishes non-realistic vales, filter these
-                if (temperature > -65 && temperature < 65) {
-                    result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                }
-
-                // in the 0 - 100 range, don't produce messages beyond these values.
-                if (humidity >= 0 && humidity <= 100) {
-                    result.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
-                }
-
-                // Check if contains pressure (WSDCGQ11LM only)
-                if (msg.data['65281'].hasOwnProperty('102')) {
-                    const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
-                    result.pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
-                }
-
-                return result;
-            }
         },
     },
     xiaomi_temperature: {
@@ -5635,22 +5542,6 @@ const converters = {
             // Sometimes the sensor publishes non-realistic vales.
             if (temperature > -65 && temperature < 65) {
                 return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-            }
-        },
-    },
-    SJCGQ11LM_temperature: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281')) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
             }
         },
     },
@@ -6663,19 +6554,6 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             result.test = (zoneStatus & 1<<1) > 0;
             return result;
-        },
-    },
-    JTYJGD01LMBW_smoke_density: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            if (data && data['65281']) {
-                const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
-                    return {smoke_density: basicAttrs['100']};
-                }
-            }
         },
     },
     JTQJBF01LMBW_sensitivity: {
