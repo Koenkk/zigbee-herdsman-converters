@@ -621,7 +621,11 @@ const definition = {
                             // Split array by chunks
                             for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                 await endpoint
-                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null});
+                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                    .catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                                    });
                             }
                         }
                     }
