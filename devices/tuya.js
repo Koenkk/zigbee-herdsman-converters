@@ -1040,7 +1040,9 @@ module.exports = [
             tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset,
             tz.tuya_thermostat_schedule_programming_mode],
         exposes: [
-            e.child_lock(), e.window_detection(), e.battery_low(), e.valve_detection(), e.position(),
+            e.child_lock(), e.window_detection(),
+            exposes.binary('window_open', ea.STATE).withDescription('Window open?'),
+            e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSystemMode(['heat', 'auto', 'off'], ea.STATE_SET,
                     'Mode of this device, in the `heat` mode the TS0601 will remain continuously heating, i.e. it does not regulate ' +

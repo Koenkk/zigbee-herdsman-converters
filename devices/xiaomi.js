@@ -1305,12 +1305,13 @@ module.exports = [
         description: 'Aqara wireless relay controller',
         fromZigbee: [fz.xiaomi_switch_basic, fz.xiaomi_power, fz.ignore_multistate_report, fz.on_off, fz.xiaomi_basic_raw],
         meta: {multiEndpoint: true},
-        toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power],
+        toZigbee: [tz.on_off, tz.LLKZMK11LM_interlock, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage(), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power_outage_count(false),
+            e.power_outage_memory(),
             exposes.binary('interlock', ea.STATE_SET, true, false)
                 .withDescription('Enabling prevents both relais being on at the same time'),
         ],
