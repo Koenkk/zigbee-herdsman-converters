@@ -125,7 +125,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
+        ],
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',

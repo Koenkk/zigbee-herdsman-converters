@@ -289,6 +289,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.cover_position(), e.battery()],
     },

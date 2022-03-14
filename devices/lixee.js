@@ -509,6 +509,14 @@ function getCurrentConfig(device, options, logger=console) {
         break;
     }
 
+    // Filter exposed attributes with user whitelist
+    if (options && options.hasOwnProperty('tic_command_whitelist')) {
+        const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
+        if (tic_commands_str !== 'ALL') {
+            const tic_commands = tic_commands_str.split(',').map((a) => a.trim());
+            myExpose = myExpose.filter((a) => tic_commands.includes(a.exposes.name));
+        }
+    }
 
     return myExpose;
 }
@@ -547,6 +555,7 @@ const definition = {
             .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
         exposes.options.precision(`kWh`),
         exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+        exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
     ],
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);

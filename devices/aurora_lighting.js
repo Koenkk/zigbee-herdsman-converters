@@ -184,8 +184,9 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.power().withEndpoint('right'),
-            exposes.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
-        toZigbee: [tz.on_off, tzLocal.aOneBacklight],
+            exposes.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
+                .withDescription('Brightness of this backlight LED')],
+        toZigbee: [tz.light_onoff_brightness],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};

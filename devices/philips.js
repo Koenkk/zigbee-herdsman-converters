@@ -1182,6 +1182,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTD004'],
+        model: '801480',
+        vendor: 'Philips',
+        description: 'Hue white ambiance 4" retrofit recessed downlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTD009'],
         model: '5996311U5',
         vendor: 'Philips',
@@ -2240,6 +2249,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['929003055201'],
+        model: '929003055201',
+        vendor: 'Philips',
+        description: 'Hue Being',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['1743630P7', '1743630V7'],
         model: '17436/30/P7',
         vendor: 'Philips',
@@ -2492,7 +2508,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309331P6', '5309330P6', '929003046301_03'],
+        zigbeeModel: ['5309331P6', '5309330P6', '929003046301_03', '929003046301_02'],
         model: '5309331P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner triple spotlight',
@@ -2546,7 +2562,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6'],
+        zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6', '929003046101'],
         model: '5309030P9',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner single spotlight',
@@ -2760,7 +2776,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['915005997501'],
+        zigbeeModel: ['915005997501', '915005997401'],
         model: '915005997501',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse large',
@@ -2783,6 +2799,24 @@ module.exports = [
         description: 'Hue white ambiance bathroom recessed downlight Adore with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LWS002'],
+        model: '046677562229',
+        vendor: 'Philips',
+        description: 'Hue White PAR20 with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTO005', '929002980901'],
+        model: '929002980901',
+        vendor: 'Philips',
+        description: 'Hue white ambiance G40 E26 filament globe with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
     },
 ];
