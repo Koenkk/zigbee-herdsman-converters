@@ -4446,8 +4446,9 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_thermostat');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
+            case tuya.dataPoints.windowOpen:
+                return {window_open: value};
             case tuya.dataPoints.windowDetection:
                 return {
                     window_detection: value[0] ? 'ON' : 'OFF',
