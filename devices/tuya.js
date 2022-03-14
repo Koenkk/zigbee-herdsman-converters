@@ -883,8 +883,8 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
-        {
-        fingerprint: [{modelID: 'TS0002',manufacturerName: '_TZ3000_fisb3ajo'}],
+    {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
         model: 'TS0002_switch_module_wo_sw_type',
         vendor: 'TuYa',
         description: '2 gang switch module',
