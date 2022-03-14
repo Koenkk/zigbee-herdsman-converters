@@ -56,6 +56,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['PAR16S RGBW'],
+        model: 'AC33906',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ spot GU10 multicolor RGBW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['B40 TW Z3'],
         model: '4058075208414',
         vendor: 'LEDVANCE',
