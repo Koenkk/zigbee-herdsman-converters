@@ -567,7 +567,11 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+            .catch((e) => {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                logger.warn(`Failed to read zigbee attributes: ${e}`);
+            });
 
         const configReportings = [];
         const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
@@ -608,7 +612,11 @@ const definition = {
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'start') {
-            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+                .catch((e) => {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                });
         } else if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
