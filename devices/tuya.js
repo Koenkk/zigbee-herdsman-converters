@@ -144,7 +144,7 @@ module.exports = [
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd().withUnit('ppm'),
-            e.pm25().withValueMin(0).withValueMax(0).withValueStep(1)],
+            e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
