@@ -67,7 +67,7 @@ module.exports = [
         zigbeeModel: ['P40S TW'],
         model: 'AC33903',
         vendor: 'LEDVANCE',
-        description: 'SMART+ Classic P 40 E14 Tunable White',
+        description: 'SMART+ classic P 40 E14 tunable white',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
