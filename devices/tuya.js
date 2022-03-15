@@ -886,6 +886,27 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
+        model: 'TS0002_switch_module_2',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            exposes.presets.power_on_behavior(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vsasbzkf'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_odzoiovu'}],
         model: 'TS0003_switch_module',
