@@ -5450,12 +5450,17 @@ const converters = {
     RTCGQ12LM_occupancy_illuminance: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
+            exposes.numeric('motion_wait_timeout').withValueMin(0).withUnit('ms')
+                .withDescription('If a new motion event occurs within the time specified in this option (value is in ms) ' +
+                'after the end of "detection_interval", the "occupancy" state is not cleared')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
-                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+                let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+                const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 0;
+                if (delay > 0) timeout += delay/1000;
 
                 // Stop existing timers because motion is detected and set a new one.
                 globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
@@ -5480,6 +5485,9 @@ const converters = {
         // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.numeric('motion_wait_timeout').withValueMin(0).withUnit('ms')
+            .withDescription('If a new motion event occurs within the time specified in this option (value is in ms) ' +
+            'after the end of "detection_interval", the "occupancy" state is not cleared')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
@@ -5489,7 +5497,9 @@ const converters = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+            let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+            const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 0;
+            if (delay > 0) timeout += delay/1000;
 
             // Stop existing timers because motion is detected and set a new one.
             globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
