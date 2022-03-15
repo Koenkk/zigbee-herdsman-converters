@@ -674,7 +674,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.metering.convert(model, msg, publish, options, meta);
-            result.power /= 1000;
+            if (result.hasOwnProperty('power')) {
+                result.power /= 1000;
+            }
             return result;
         },
     },
