@@ -885,10 +885,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
-        model: 'TS0002_switch_module_wo_sw_type',
+        model: 'TS0002_switch_module_2',
         vendor: 'TuYa',
         description: '2 gang switch module',
-        whiteLabel: [{vendor: 'OXT', model: 'SWTZ22'}],
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         exposes: [
