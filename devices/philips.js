@@ -2436,6 +2436,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003047101'],
+        model: '929003047101',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Milliskin (round)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5047131P9', '5047131P6'],
         model: '5047131P9',
         vendor: 'Philips',
