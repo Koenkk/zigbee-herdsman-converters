@@ -12,10 +12,13 @@ module.exports = [
             {modelID: 'uhszj9s\u0000', manufacturerName: '_TYST11_zuhszj9s'},
             {modelID: '88teujp\u0000', manufacturerName: '_TYST11_c88teujp'},
             {modelID: 'w7cahqs\u0000', manufacturerName: '_TYST11_yw7cahqs'},
+            {modelID: 'w7cahqs', manufacturerName: '_TYST11_yw7cahqs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_c88teujp'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_yw7cahqs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_azqp6ssj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuhszj9s'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9gvruqf5'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zr9c0day'},
         ],
         model: 'SEA801-Zigbee/SEA802-Zigbee',
         vendor: 'Saswell',
@@ -38,9 +41,13 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
-            .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET).withLocalTemperatureCalibration(ea.STATE_SET)
-            .withAwayMode()],
+        exposes: [e.battery_low(), e.window_detection(), e.child_lock(),
+            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
+            exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
+                // Range is -6 - 6 and step 1: https://github.com/Koenkk/zigbee2mqtt/issues/11777
+                .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET)
+                .withAwayMode()],
     },
 ];

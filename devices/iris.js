@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const extend = require('../lib/extend');
 
 module.exports = [
     {
@@ -18,6 +19,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
@@ -74,7 +77,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3450-L'],
+        zigbeeModel: ['3450-L', '3450-L2'],
         model: '3450-L',
         vendor: 'Iris',
         description: 'Smart fob',
@@ -143,5 +146,19 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.switch(), e.battery()],
+    },
+    {
+        zigbeeModel: ['1113-S'],
+        model: 'iL03_1',
+        vendor: 'Iris',
+        description: 'Smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
 ];

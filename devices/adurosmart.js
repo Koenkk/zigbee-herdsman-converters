@@ -1,10 +1,38 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['ADUROLIGHT_CSC'],
+        model: '15090054',
+        vendor: 'AduroSmart',
+        description: 'Remote scene controller',
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_recall],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['toggle', 'recall_253', 'recall_254', 'recall_255'])],
+    },
+    {
+        zigbeeModel: ['AD-SmartPlug3001'],
+        model: '81848',
+        vendor: 'AduroSmart',
+        description: 'ERIA smart plug (with power measurements)',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
     {
         zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor', 'AD-RGBW3001'],
         model: '81809/81813',
@@ -15,6 +43,13 @@ module.exports = [
         endpoint: (device) => {
             return {'default': 2};
         },
+    },
+    {
+        zigbeeModel: ['AD-E14RGBW3001'],
+        model: '81895',
+        vendor: 'AduroSmart',
+        description: 'ERIA E14 Candle Color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['Adurolight_NCC'],

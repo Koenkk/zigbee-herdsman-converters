@@ -46,7 +46,6 @@ const converterRequiredFields = {
     description: 'String',
     fromZigbee: 'Array',
     toZigbee: 'Array',
-    exposes: 'Array',
 };
 
 function validateDefinition(definition) {
@@ -56,13 +55,14 @@ function validateDefinition(definition) {
         const msg = `Converter field ${field} expected type doenst match to ${definition[field]}`;
         assert.strictEqual(definition[field].constructor.name, expectedType, msg);
     }
+    assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === 'function', 'Exposes incorrect');
 }
 
 function addDefinition(definition) {
     const {extend, ...definitionWithoutExtend} = definition;
     if (extend) {
         if (extend.hasOwnProperty('configure') && definition.hasOwnProperty('configure')) {
-            console.log(`'${definition.model}' has configure in extend and device, this is not allowed`);
+            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
         definition = {
@@ -75,16 +75,29 @@ function addDefinition(definition) {
         };
     }
 
-    if (definition.toZigbee.length > 0) {
-        definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
-    }
+    definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write,
+        tz.command);
 
-    if (definition.exposes) {
+    if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
     }
 
     validateDefinition(definition);
     definitions.splice(0, 0, definition);
+
+    if (!definition.options) definition.options = [];
+    const optionKeys = definition.options.map((o) => o.name);
+    for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
+        if (converter.options) {
+            const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
+            for (const option of options) {
+                if (!optionKeys.includes(option.name)) {
+                    definition.options.push(option);
+                    optionKeys.push(option.name);
+                }
+            }
+        }
+    }
 
     if (definition.hasOwnProperty('fingerprint')) {
         for (const fingerprint of definition.fingerprint) {
@@ -163,6 +176,7 @@ function fingerprintMatch(fingerprint, device) {
         (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
         (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
         (!fingerprint.zclVersion || device.zclVersion === fingerprint.zclVersion) &&
+        (!fingerprint.ieeeAddr || device.ieeeAddr.match(fingerprint.ieeeAddr)) &&
         (!fingerprint.endpoints ||
             arrayEquals(device.endpoints.map((e) => e.ID), fingerprint.endpoints.map((e) => e.ID)));
 

@@ -31,6 +31,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['LIGHTIFY RT RGBW'],
+        model: '73741_LIGHTIFY',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY RT5/6 LED',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['Classic A60 RGBW'],
         model: 'AA69697',
         vendor: 'OSRAM',
@@ -51,7 +59,7 @@ module.exports = [
         model: 'AC10787',
         vendor: 'OSRAM',
         description: 'SMART+ classic E27 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -118,7 +126,7 @@ module.exports = [
         model: 'AA70155',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED A19 tunable white / Classic A60 TW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -126,7 +134,7 @@ module.exports = [
         model: 'AA68199',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -134,7 +142,7 @@ module.exports = [
         model: '4058075148338',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED PAR16 50 GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -142,7 +150,7 @@ module.exports = [
         model: 'AB32840',
         vendor: 'OSRAM',
         description: 'LIGHTIFY LED Classic B40 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [150, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -170,11 +178,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Surface Light TW'],
+        zigbeeModel: ['Surface Light TW', 'ZLO-CeilingTW-OS'],
         model: 'AB401130055',
         vendor: 'OSRAM',
         description: 'LIGHTIFY Surface Light LED Tunable White',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -183,7 +191,7 @@ module.exports = [
         description: 'Smart+ plug',
         vendor: 'OSRAM',
         extend: extend.switch(),
-        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}],
+        whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}, {vendor: 'LEDVANCE', model: 'AC03360'}],
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
@@ -220,7 +228,7 @@ module.exports = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
         ota: ota.ledvance,
     },
     {
@@ -253,8 +261,8 @@ module.exports = [
         model: 'AC0363900NJ',
         vendor: 'OSRAM',
         description: 'Smart+ mini gardenpole RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526], disableColorTempStartup: true}),
-        exposes: [e.light_brightness_colortemp_colorhs([153, 526]).removeFeature('color_temp_startup'), e.effect()],
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], disableColorTempStartup: true}),
+        exposes: [e.light_brightness_colortemp_colorhs([153, 370]).removeFeature('color_temp_startup'), e.effect()],
         ota: ota.ledvance,
     },
     {
@@ -270,7 +278,7 @@ module.exports = [
         model: 'AB35996',
         vendor: 'OSRAM',
         description: 'Smart+ Spot GU10 Multicolor',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666]}),
         ota: ota.ledvance,
     },
     {
@@ -295,7 +303,7 @@ module.exports = [
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ignore_basic_report],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -303,19 +311,19 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.temperature(), e.occupancy()],
     },
     {
         zigbeeModel: ['MR16 TW OSRAM'],
         model: 'AC03648',
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
         zigbeeModel: ['Lightify Switch Mini', 'Lightify Switch Mini blue'],
-        model: 'AC0251100NJ/AC0251700NJ',
+        model: 'AC0251100NJ/AC0251600NJ/AC0251700NJ',
         vendor: 'OSRAM',
         description: 'Smart+ switch mini',
         fromZigbee: [fz.legacy.osram_lightify_switch_cmdOn, fz.legacy.osram_lightify_switch_cmdMoveWithOnOff,
@@ -382,11 +390,72 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Zigbee 3.0 DALI CONV LI'],
-        model: '4062172044776',
+        zigbeeModel: ['Zigbee 3.0 DALI CONV LI', 'Zigbee 3.0 DALI CONV LI\u0000'],
+        model: '4062172044776_1',
         vendor: 'OSRAM',
-        description: 'OSRAM Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
         extend: extend.ledvance.light_onoff_brightness(),
-        ota: ota.ledvance,
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_2',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness(),
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 242}]}],
+        model: '4062172044776_3',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+    },
+    {
+        fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]},
+            {modelID: 'Zigbee 3.0 DALI CONV LI\u0000', endpoints: [{ID: 10}, {ID: 11}, {ID: 25}, {ID: 242}]}],
+        model: '4062172044776_4',
+        vendor: 'OSRAM',
+        description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 10, 'l2': 11};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.onOff(device.getEndpoint(10));
+            await reporting.brightness(device.getEndpoint(10));
+            await reporting.onOff(device.getEndpoint(11));
+            await reporting.brightness(device.getEndpoint(11));
+        },
+        onEvent: async (type, data, device) => {
+            if (type === 'deviceInterview') {
+                device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
+                device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
+            }
+        },
     },
 ];

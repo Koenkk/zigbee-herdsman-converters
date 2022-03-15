@@ -57,11 +57,11 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['LIGHTIFY BR Tunable White'],
+        zigbeeModel: ['LIGHTIFY BR Tunable White', 'BR30 TW'],
         model: '73740',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable white BR30',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -187,6 +187,14 @@ module.exports = [
         vendor: 'Sylvania',
         description: 'Dimmable soft white BR30 LED flood light bulb',
         extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['A19 G2 RGBW'],
+        model: '75564',
+        vendor: 'Sylvania',
+        description: 'Smart+ adjustable white and full color bulb A19',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [142, 555]}),
         ota: ota.ledvance,
     },
 ];

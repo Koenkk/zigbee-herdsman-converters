@@ -8,7 +8,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'}],
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_vd43bbfq'}, {modelID: 'TS130F', manufacturerName: '_TZ3000_fccpjz5z'}],
         model: 'QS-Zigbee-C01',
         vendor: 'Lonsonho',
         description: 'Curtain/blind motor controller',
@@ -16,8 +16,8 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
         meta: {coverInverted: true},
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_egq7y6pr'}],
@@ -28,9 +28,29 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
         meta: {coverInverted: true},
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
-            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'),
+            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
-            exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_j1xl73iw'}],
+        model: 'TS130F_dual',
+        vendor: 'Lonsonho',
+        description: 'Dual curtain/blind module',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        exposes: [
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
+            e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
+                .withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
+            e.cover_position().withEndpoint('right'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
+                .withEndpoint('right'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('right'),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8vxj8khv'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7tdtqgwv'}],
@@ -142,12 +162,12 @@ module.exports = [
     {
         zigbeeModel: ['ZB-RGBCW'],
         fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'},
-            {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}],
+            {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLi\u0001\u0000\u0010'}],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
         extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 370], disableEffect: true}),
+            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
@@ -175,6 +195,42 @@ module.exports = [
         toZigbee: [tz.TYZB01_on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_zirycpws'}],
+        model: 'QS-Zigbee-C03',
+        vendor: 'Lonsonho',
+        description: 'Curtain/blind motor controller',
+        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        meta: {coverInverted: true},
+        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
+    },
+    {
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
+        model: 'TS110E_1gang',
+        vendor: 'Lonsonho',
+        description: 'Zigbee smart dimmer module 1 gang with neutral',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}],
+        model: 'TS110E_2gang',
+        vendor: 'Lonsonho',
+        description: 'Zigbee smart dimmer module 2 gang with neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        meta: {multiEndpoint: true},
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
         },
     },
 ];

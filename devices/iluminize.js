@@ -2,6 +2,8 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const tz = require('../converters/toZigbee');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 
 module.exports = [
@@ -109,6 +111,16 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['5128.10'],
+        model: '5128.10',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 switch shutter SW with level control',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_state, tz.cover_via_brightness],
+        exposes: [e.cover_position()],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['ZG2801K2-G1-RGB-CCT-LEAD'],
         model: '511.557',
         vendor: 'Iluminize',
@@ -123,6 +135,13 @@ module.exports = [
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['HK-ZD-RGB-A', '5110.40'],
+        model: '5110.40',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
     },
     {
         zigbeeModel: ['HK-ZD-RGBCCT-A', '511.000'],
@@ -147,5 +166,33 @@ module.exports = [
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
+    },
+    {
+        zigbeeModel: ['ZGRC-TEUR-002'],
+        model: '511.541',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer RGBW 1 zone',
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move_to_color, fz.command_move_to_color_temp,
+            fz.command_move_hue, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
+            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
+    {
+        zigbeeModel: ['5112.80'],
+        model: '5112.80',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 LED-controller 1x 8A',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['ZGRC-TEUR-001'],
+        model: '511.544',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer RGBW 4 zone',
+        fromZigbee: [fz.command_move_to_color, fz.command_move_hue, fz.command_on, fz.command_off, fz.command_move],
+        toZigbee: [],
+        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
+            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
     },
 ];

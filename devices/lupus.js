@@ -54,7 +54,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC'],
+        zigbeeModel: ['PRS3CH2_00.00.05.10TC', 'PRS3CH2_00.00.05.11TC', 'PRS3CH2_00.00.05.12TC'],
         model: '12127',
         vendor: 'Lupus',
         description: '2 chanel relay',

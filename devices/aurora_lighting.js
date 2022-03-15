@@ -4,6 +4,68 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const utils = require('../lib/utils');
+const ea = exposes.access;
+
+const tzLocal = {
+    aOneBacklight: {
+        key: ['backlight_led'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = value.toLowerCase();
+            utils.validateValue(state, ['toggle', 'off', 'on']);
+            const endpoint = meta.device.getEndpoint(3);
+            await endpoint.command('genOnOff', state, {});
+            return {state: {backlight_led: state.toUpperCase()}};
+        },
+    },
+};
+
+const disableBatteryRotaryDimmerReporting = async (endpoint) => {
+    // The default is for the device to also report the on/off and
+    // brightness at the same time as sending on/off and step commands.
+    // Disable the reporting by setting the max interval to 0xFFFF.
+    await reporting.brightness(endpoint, {max: 0xFFFF});
+    await reporting.onOff(endpoint, {max: 0xFFFF});
+};
+
+const batteryRotaryDimmer = (...endpointsIds) => ({
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
+    toZigbee: [],
+    exposes: [e.battery(), e.action([
+        'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoints = endpointsIds.map((endpoint) => device.getEndpoint(endpoint));
+
+        // Battery level is only reported on first endpoint
+        await reporting.batteryVoltage(endpoints[0]);
+
+        for await (const endpoint of endpoints) {
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+
+            await disableBatteryRotaryDimmerReporting(endpoint);
+        }
+    },
+    onEvent: async (type, data, device) => {
+        // The rotary dimmer devices appear to lose the configured reportings when they
+        // re-announce themselves which they do roughly every 6 hours.
+        if (type === 'deviceAnnounce') {
+            for (const endpoint of device.endpoints) {
+                // First disable the default reportings (for the dimmer endpoints only)
+                if ([1, 2].includes(endpoint.ID)) {
+                    await disableBatteryRotaryDimmerReporting(endpoint);
+                }
+                // Then re-apply the configured reportings
+                for (const c of endpoint.configuredReportings) {
+                    await endpoint.configureReporting(c.cluster.name, [{
+                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                    }]);
+                }
+            }
+        }
+    },
+});
 
 module.exports = [
     {
@@ -43,7 +105,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK'],
+        zigbeeModel: ['RGBBulb01UK', 'RGBBulb02UK', 'RGBBulb51AU'],
         model: 'AU-A1GSZ9RGBW_HV-GSCXZB269K',
         vendor: 'Aurora Lighting',
         description: 'AOne 9.5W smart RGBW GLS E27/B22',
@@ -104,6 +166,9 @@ module.exports = [
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
+        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes,
+            exposes.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
+        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tzLocal.aOneBacklight],
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -118,8 +183,10 @@ module.exports = [
         description: 'Double smart socket UK',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.power().withEndpoint('right')],
-        toZigbee: [tz.on_off],
+            e.power().withEndpoint('left'), e.power().withEndpoint('right'),
+            exposes.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
+                .withDescription('Brightness of this backlight LED')],
+        toZigbee: [tz.light_onoff_brightness],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
@@ -167,38 +234,20 @@ module.exports = [
         model: 'AU-A1ZBR1GW',
         vendor: 'Aurora Lighting',
         description: 'AOne one gang wireless battery rotary dimmer',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint,
-                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1);
-        },
+        // One gang battery rotary dimmer with endpoint ID 1
+        ...batteryRotaryDimmer(1),
     },
     {
         zigbeeModel: ['2GBatteryDimmer50AU'],
         model: 'AU-A1ZBR2GW',
         vendor: 'Aurora Lighting',
         description: 'AOne two gang wireless battery rotary dimmer',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.action([
-            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up', 'color_temperature_step_down'])],
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2100'}},
         endpoint: (device) => {
             return {'right': 1, 'left': 2};
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint,
-                ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
-        },
+        // Two gang battery rotary dimmer with endpoint IDs 1 and 2
+        ...batteryRotaryDimmer(1, 2),
     },
 ];

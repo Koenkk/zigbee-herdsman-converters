@@ -1,7 +1,15 @@
 const ota = require('../lib/ota');
 const extend = require('../lib/extend');
+const reporting = require('../lib/reporting');
 
 module.exports = [
+    {
+        zigbeeModel: ['A60S TW'],
+        model: 'AC33898',
+        vendor: 'LEDVANCE',
+        description: ' Smart+ LED classic E27 Zigbee 10W/810lm',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
     {
         zigbeeModel: ['Outdoor Plug', 'Plug Value'],
         model: 'AC26940/AC31266',
@@ -9,6 +17,11 @@ module.exports = [
         description: 'Smart Zigbee outdoor plug',
         extend: extend.switch(),
         ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['Panel TW Z3'],
@@ -31,7 +44,7 @@ module.exports = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.ledvance,
     },
     {
@@ -43,11 +56,35 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['PAR16S RGBW'],
+        model: 'AC33906',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ spot GU10 multicolor RGBW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['PAR16S TW'],
+        model: 'AC33905',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ spot GU10 tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['B40 TW Z3'],
         model: '4058075208414',
         vendor: 'LEDVANCE',
         description: 'SMART+ candle E14 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['P40S TW'],
+        model: 'AC33903',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ classic P 40 E14 tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -59,18 +96,26 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Outdoor FLEX RGBW Z3'],
+        model: '4058075208360',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ outdoor flex multicolor',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['P40 TW Value'],
         model: '4058075485174',
         vendor: 'LEDVANCE',
         description: 'SMART+ Lighting - Classic E14 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp(),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
         zigbeeModel: ['LEDVANCE DIM'],
         model: '4058075208421',
         vendor: 'LEDVANCE',
-        description: 'SMART+ candle E14 tunable white',
+        description: 'SMART+ candle E14 dimmable white',
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
@@ -88,6 +133,14 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'SMART+ gardenpole multicolour',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['Tibea TW Z3'],
+        model: '4058075168572',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E27 turntable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
 ];

@@ -38,6 +38,22 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SZ-ESW02'],
+        model: 'SZ-ESW02',
+        vendor: 'Sercomm',
+        description: 'Telstra smart plug 2',
+        fromZigbee: [fz.on_off, fz.metering],
+        exposes: [e.switch(), e.power()],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000000, multiplier: 1});
+        },
+    },
+    {
         zigbeeModel: ['XHS2-SE'],
         model: 'XHS2-SE',
         vendor: 'Sercomm',
@@ -70,7 +86,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['SZ-DWS08N'],
+        zigbeeModel: ['SZ-DWS08N', 'SZ-DWS08', 'SZ-DWS08N-CZ3'],
         model: 'SZ-DWS08',
         vendor: 'Sercomm',
         description: 'Magnetic door & window contact sensor',

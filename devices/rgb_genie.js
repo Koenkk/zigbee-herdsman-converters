@@ -1,9 +1,17 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['RGBgenie ZB-1026'],
+        model: 'ZB-1026',
+        vendor: 'RGB Genie',
+        description: 'Zigbee LED dimmer controller',
+        extend: extend.light_onoff_brightness(),
+    },
     {
         zigbeeModel: ['RGBgenie ZB-5001'],
         model: 'ZB-5001',
@@ -63,7 +71,8 @@ module.exports = [
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall,
             fz.command_move_hue, fz.command_move_to_color, fz.command_move_to_color_temp],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-            'brightness_move_down', 'brightness_stop', 'recall_1', 'recall_2', 'recall_3'])],
+            'brightness_move_down', 'brightness_stop', 'recall_1', 'recall_2', 'recall_3', 'hue_move', 'color_temperature_move',
+            'color_move', 'hue_stop'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {

@@ -157,7 +157,13 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['FNB56-ZSW02LX2.0', 'LXN-2S27LX1.0'],
+        fingerprint: [
+            {type: 'Router', manufacturerName: '3A Smart Home DE', modelID: 'LXN-2S27LX1.0', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 0, inputClusters: [0, 4, 3, 6, 5, 4096, 8], outputClusters: [25]},
+                {ID: 12, profileID: 49246, deviceID: 0, inputClusters: [0, 4, 3, 6, 5, 8], outputClusters: [25]},
+            ]},
+        ],
+        zigbeeModel: ['FNB56-ZSW02LX2.0'],
         model: 'HGZB-42',
         vendor: 'Nue / 3A',
         description: 'Smart light switch - 2 gang v2.0',
@@ -281,5 +287,22 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        fingerprint: [
+            {type: 'Router', manufacturerName: '3A Smart Home DE', modelID: 'LXN-2S27LX1.0', endpoints: [
+                {ID: 1, profileID: 49246, deviceID: 0, inputClusters: [0, 4, 3, 6, 5, 4096, 8], outputClusters: [0]},
+                {ID: 2, profileID: 49246, deviceID: 0, inputClusters: [0, 4, 3, 6, 5, 4096, 8], outputClusters: [0]},
+            ]},
+        ],
+        model: 'NUE-AUWZO2',
+        vendor: 'Nue / 3A',
+        description: 'Smart Zigbee double power point',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
     },
 ];

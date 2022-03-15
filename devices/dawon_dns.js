@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -52,6 +53,11 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
             await reporting.deviceTemperature(endpoint);
+            // some firmware is not defined powersource
+            if (device.powerSource === 'Unknown') {
+                device.powerSource = 'Mains (single phase)';
+                device.save();
+            }
         },
         exposes: [e.device_temperature(), e.switch(), e.power(), e.energy()],
     },
@@ -181,6 +187,11 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+            // some firmware is not defined powersource
+            if (device.powerSource === 'Unknown') {
+                device.powerSource = 'Mains (single phase)';
+                device.save();
+            }
         },
     },
     {
@@ -199,6 +210,11 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
             await reporting.onOff(device.getEndpoint(2));
+            // some firmware is not defined powersource
+            if (device.powerSource === 'Unknown') {
+                device.powerSource = 'Mains (single phase)';
+                device.save();
+            }
         },
     },
     {
@@ -219,6 +235,11 @@ module.exports = [
             await reporting.onOff(device.getEndpoint(1));
             await reporting.onOff(device.getEndpoint(2));
             await reporting.onOff(device.getEndpoint(3));
+            // some firmware is not defined powersource
+            if (device.powerSource === 'Unknown') {
+                device.powerSource = 'Mains (single phase)';
+                device.save();
+            }
         },
     },
     {
@@ -251,5 +272,38 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.switch()],
+    },
+    {
+        zigbeeModel: ['KB-HD100-ZB'],
+        model: 'KB-HD100-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT Card holder',
+        fromZigbee: [fz.dawon_card_holder],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone']);
+            const payload = [{
+                attribute: 'zoneState', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await endpoint.configureReporting('ssIasZone', payload);
+        },
+        exposes: [exposes.binary('card', ea.STATE, true, false)
+            .withDescription('Indicates if the card is inserted (= true) or not (= false)'), e.battery_low()],
+    },
+    {
+        zigbeeModel: ['KB-B540R-ZB'],
+        model: 'KB-B540R-ZB',
+        vendor: 'Dawon DNS',
+        description: 'IOT smart plug 16A',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
     },
 ];

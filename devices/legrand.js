@@ -5,6 +5,8 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -14,18 +16,30 @@ const readInitialBatteryState = async (type, data, device) => {
     }
 };
 
+const fzLocal = {
+    command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: utils.postfixWithEndpointName('off', msg, model)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'FC80CC',
-        description: 'Legrand (or Bticino) DIN contactor module (note: Legrand 412171 may be similar to Bticino FC80CC)',
+        description: 'Legrand (or Bticino) DIN contactor module',
         vendor: 'Legrand',
         extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
+            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -42,10 +56,10 @@ module.exports = [
         description: 'Legrand (or Bticino) DIN smart relay for light control (note: Legrand 412170 may be similar to Bticino FC80RC)',
         vendor: 'Legrand',
         extend: extend.switch(),
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_device_mode, fz.ignore_basic_report, fz.ignore_genOta],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum( 'device_mode', ea.ALL, ['switch', 'auto'])
+            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -63,6 +77,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop, fz.battery,
             fz.legrand_binary_input_moving],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.action(['identify', 'open', 'close', 'stop', 'moving', 'stopped'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -105,7 +120,8 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+            fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -121,7 +137,7 @@ module.exports = [
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -155,17 +171,24 @@ module.exports = [
         zigbeeModel: [' Dimmer switch w/o neutral\u0000\u0000\u0000\u0000\u0000'],
         model: '067771',
         vendor: 'Legrand',
-        // led blink RED when battery is low
         description: 'Wired switch without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
-        fromZigbee: [fz.brightness, fz.identify, fz.on_off],
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01],
         toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
-            tz.legrand_settingEnableDimmer, tz.legrand_identify],
-        exposes: [e.light_brightness()],
+            tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value'),
+            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
+            exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl', 'genBinaryInput']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl',
+                'genBinaryInput', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
         },
@@ -174,6 +197,7 @@ module.exports = [
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067775/741811',
         vendor: 'Legrand',
+        ota: ota.zigbeeOTA,
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
@@ -192,6 +216,7 @@ module.exports = [
         vendor: 'Legrand',
         description: 'Wired micromodule switch',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -254,6 +279,66 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000005.....$/}],
+        model: 'ZLGP15',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless 4 scenes control',
+        fromZigbee: [fz.legrand_zlgp15],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000005.....$/}],
+        model: 'ZLGP17/ZLGP18',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless (double) lighting control',
+        fromZigbee: [fz.legrand_zlgp17_zlgp18],
+        toZigbee: [],
+        exposes: [e.action(['press_once', 'press_twice'])],
+    },
+    {
+        zigbeeModel: [' Cable outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000' +
+            '\u0000\u0000'],
+        model: '064882',
+        vendor: 'Legrand',
+        description: 'Cable outlet with pilot wire and consumption measurement',
+        fromZigbee: [fz.legrand_cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power],
+        exposes: [exposes.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
+            exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
+            exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
+            e.power().withAccess(ea.STATE_GET)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'manuSpecificLegrandDevices2']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: [' NLIS - Double light switch\u0000\u0000\u0000\u0000'],
+        model: '067772',
+        vendor: 'Legrand',
+        description: 'Double wired switch with neutral',
+        fromZigbee: [fz.on_off, fz.legrand_cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn],
+        exposes: [e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
+            exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpointLeft = device.getEndpoint(2);
+            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff']);
+            const endpointRight = device.getEndpoint(1);
+            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff']);
+        },
+        endpoint: (device) => {
+            return {left: 2, right: 1};
         },
     },
 ];
