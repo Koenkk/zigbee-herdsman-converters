@@ -238,7 +238,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
