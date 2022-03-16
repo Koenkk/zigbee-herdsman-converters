@@ -21,7 +21,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['House Water Valve - MDL-TBD'],
+        zigbeeModel: ['House Water Valve - MDL-TBD', 'leakSMART Water Valve v2.10'],
         // Should work with all manufacturer model numbers for the 2.0 series:
         // 8850000 3/4"
         // 8850100 1"
