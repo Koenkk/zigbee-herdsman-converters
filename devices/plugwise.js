@@ -36,9 +36,9 @@ module.exports = [
         },
         exposes: [e.battery(),
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'auto'], ea.STATE_SET)
-                .withPiHeatingDemand(ea.STATE),
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'auto'], ea.ALL)
+                .withPiHeatingDemand(ea.STATE_GET),
         ],
     },
 ];
