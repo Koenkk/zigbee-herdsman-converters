@@ -1286,8 +1286,10 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.cover_position_tilt, fz.ignore_basic_report,
             fz.aqara_opple],
-        toZigbee: [tz.xiaomi_curtain_position_state],
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_battery, tz.xiaomi_curtain_acn002_charging_status],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
+            exposes.binary('charging_status', ea.STATE_GET, true, false)
+                .withDescription('The current charging status.'),
             exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
                 .withDescription('The current state of the motor.'),
             exposes.binary('running', ea.STATE, true, false)
@@ -1295,6 +1297,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
         ota: ota.zigbeeOTA,
     },
