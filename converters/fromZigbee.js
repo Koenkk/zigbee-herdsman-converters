@@ -5459,7 +5459,7 @@ const converters = {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
                 let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
-                const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 0;
+                const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 2000;
                 if (delay > 0) timeout += delay/1000;
 
                 // Stop existing timers because motion is detected and set a new one.
@@ -5498,7 +5498,7 @@ const converters = {
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
             let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
-            const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 0;
+            const delay = options && options.hasOwnProperty('motion_wait_timeout') ? options.motion_wait_timeout : 2000;
             if (delay > 0) timeout += delay/1000;
 
             // Stop existing timers because motion is detected and set a new one.
