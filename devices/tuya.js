@@ -238,7 +238,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -654,6 +655,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -1056,6 +1058,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
