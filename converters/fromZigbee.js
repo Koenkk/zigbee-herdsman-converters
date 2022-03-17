@@ -5452,8 +5452,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
             exposes.numeric('motion_wait_timeout').withValueMin(0).withUnit('ms')
-                .withDescription('If a new motion event occurs within the time specified in this option (value is in ms) ' +
-                'after the end of "detection_interval", the "occupancy" state is not cleared')],
+                .withDescription('If a new motion event occurs within the time specified in this option (value is in ms and default ' +
+                'is 2000) after the end of "detection_interval", the "occupancy" state is not cleared')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
@@ -5486,8 +5486,8 @@ const converters = {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.numeric('motion_wait_timeout').withValueMin(0).withUnit('ms')
-            .withDescription('If a new motion event occurs within the time specified in this option (value is in ms) ' +
-            'after the end of "detection_interval", the "occupancy" state is not cleared')],
+            .withDescription('If a new motion event occurs within the time specified in this option (value is in ms and default ' +
+            'is 2000) after the end of "detection_interval", the "occupancy" state is not cleared')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
