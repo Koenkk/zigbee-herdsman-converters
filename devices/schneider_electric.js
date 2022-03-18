@@ -714,4 +714,16 @@ module.exports = [
             await reporting.onOff(endpoint2);
         },
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000e.......$/}],
+        model: 'Wiser Energy Powertag Flex 3P+0',
+        vendor: 'Schneider Electric',
+        description: 'Power Sensor',
+        fromZigbee: [fz.schneider_powertag],
+        toZigbee: [],
+        exposes: [
+            e.power(),
+            e.energy(),
+        ],
+    },
 ];
