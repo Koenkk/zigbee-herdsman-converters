@@ -229,6 +229,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_kohbva1f'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_wslkvrau'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_0rn9qhnu'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_ejctepku'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jmiuubkz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
@@ -238,7 +239,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -289,6 +291,7 @@ module.exports = [
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_i680rtja'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_grnwgegn'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_nehayyhx'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_wuheofsg'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_e5t9bfdv'}],
         model: 'TS0501B',
@@ -637,6 +640,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -887,6 +891,27 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
+        model: 'TS0002_switch_module_2',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            exposes.presets.power_on_behavior(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vsasbzkf'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_odzoiovu'}],
         model: 'TS0003_switch_module',
@@ -1018,6 +1043,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
