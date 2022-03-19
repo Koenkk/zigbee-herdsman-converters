@@ -509,6 +509,14 @@ function getCurrentConfig(device, options, logger=console) {
         break;
     }
 
+    // Filter exposed attributes with user whitelist
+    if (options && options.hasOwnProperty('tic_command_whitelist')) {
+        const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
+        if (tic_commands_str !== 'ALL') {
+            const tic_commands = tic_commands_str.split(',').map((a) => a.trim());
+            myExpose = myExpose.filter((a) => tic_commands.includes(a.exposes.name));
+        }
+    }
 
     return myExpose;
 }
@@ -547,6 +555,7 @@ const definition = {
             .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
         exposes.options.precision(`kWh`),
         exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+        exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
     ],
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);
@@ -558,7 +567,11 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+            .catch((e) => {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                logger.warn(`Failed to read zigbee attributes: ${e}`);
+            });
 
         const configReportings = [];
         const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
@@ -599,7 +612,11 @@ const definition = {
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'start') {
-            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+                .catch((e) => {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                });
         } else if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
@@ -621,7 +638,11 @@ const definition = {
                             // Split array by chunks
                             for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                 await endpoint
-                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null});
+                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                    .catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                                    });
                             }
                         }
                     }

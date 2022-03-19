@@ -760,6 +760,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LTA012'],
+        model: '929002335105',
+        vendor: 'Philips',
+        description: 'Hue white ambiance E26 1600lm with Bluetooth',
+        ota: ota.zigbeeOTA,
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LTA008'],
         model: '9290022267A',
         vendor: 'Philips',
@@ -1179,6 +1188,15 @@ module.exports = [
         description: 'Hue white ambiance Muscari pendant light',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTD004'],
+        model: '801480',
+        vendor: 'Philips',
+        description: 'Hue white ambiance 4" retrofit recessed downlight',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2427,6 +2445,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003047101'],
+        model: '929003047101',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Milliskin (round)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['5047131P9', '5047131P6'],
         model: '5047131P9',
         vendor: 'Philips',
@@ -2499,7 +2526,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309331P6', '5309330P6', '929003046301_03'],
+        zigbeeModel: ['5309331P6', '5309330P6', '929003046301_03', '929003046301_02'],
         model: '5309331P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner triple spotlight',
@@ -2553,7 +2580,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6'],
+        zigbeeModel: ['5309030P9', '5309031P9', '5309030P6', '5309031P6', '929003046101'],
         model: '5309030P9',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner single spotlight',
@@ -2767,7 +2794,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['915005997501'],
+        zigbeeModel: ['915005997501', '915005997401'],
         model: '915005997501',
         vendor: 'Philips',
         description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse large',
@@ -2799,6 +2826,15 @@ module.exports = [
         description: 'Hue White PAR20 with Bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['LTO005', '929002980901'],
+        model: '929002980901',
+        vendor: 'Philips',
+        description: 'Hue white ambiance G40 E26 filament globe with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
     },
 ];

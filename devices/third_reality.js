@@ -20,9 +20,10 @@ module.exports = [
         model: '3RSS008Z',
         vendor: 'Third Reality',
         description: 'RealitySwitch Plus',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.switch(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['3RSS007Z'],

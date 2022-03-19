@@ -677,7 +677,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = converters.metering.convert(model, msg, publish, options, meta);
-            result.power /= 1000;
+            if (result.hasOwnProperty('power')) {
+                result.power /= 1000;
+            }
             return result;
         },
     },
@@ -4179,15 +4181,24 @@ const converters = {
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tuyaSabHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
+                // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
+            case tuya.dataPoints.tuyaSabFormaldehyd:
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                } else {
+                    return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                }
+                // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case tuya.dataPoints.tuyaSabCO2:
-                return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                    return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
+                } else {
+                    return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
+                }
             case tuya.dataPoints.tuyaSabVOC:
                 return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
-            case tuya.dataPoints.tuyaSabFormaldehyd:
-                // Not sure which unit this is, supposedly mg/m³, but the value seems way too high.
+            case tuya.dataPoints.tuyaSahkCH2O:
                 return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
-            case tuya.dataPoints.tuyaSahkMP25:
-                return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
@@ -4440,8 +4451,9 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_thermostat');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
+            case tuya.dataPoints.windowOpen:
+                return {window_open: value};
             case tuya.dataPoints.windowDetection:
                 return {
                     window_detection: value[0] ? 'ON' : 'OFF',
@@ -5257,10 +5269,22 @@ const converters = {
             return {power: precisionRound(msg.data['presentValue'], 2)};
         },
     },
-    xiaomi_switch_basic: {
+    xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'temperature')) {
+                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
+            }
+            if (definition.exposes.find((e) => e.name === 'illuminance')) {
+                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+            }
+            if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
+                result.push(exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual'));
+            }
+            return result;
+        },
         convert: (model, msg, publish, options, meta) => {
             const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
             return payload;
@@ -5301,31 +5325,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
             return payload;
-        },
-    },
-    xiaomi_battery: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            let voltage = null;
-            if (msg.data['65281']) {
-                voltage = msg.data['65281']['1'];
-            } else if (msg.data['65282']) {
-                voltage = msg.data['65282']['1'].elmVal;
-            }
-
-            if (voltage) {
-                const payload = {
-                    voltage: voltage, // @deprecated
-                    // voltage: voltage / 1000.0,
-                };
-
-                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
-                }
-
-                return payload;
-            }
         },
     },
     xiaomi_on_off_action: {
@@ -5395,32 +5394,6 @@ const converters = {
             }
         },
     },
-    RTCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('11')) {
-                    const illuminance = msg.data['65281']['11'];
-                    // DEPRECATED: remove illuminance_lux here.
-                    result.illuminance = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance');
-                    result.illuminance_lux = calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance_lux');
-                }
-
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
-            }
-        },
-    },
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -5439,29 +5412,37 @@ const converters = {
         },
     },
     RTCGQ12LM_occupancy_illuminance: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true(),
+            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
-                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+                let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
+                    meta.state.detection_interval : 60;
+                timeout = options && options.hasOwnProperty('occupancy_timeout') && options.occupancy_timeout >= timeout ?
+                    options.occupancy_timeout : timeout + 2;
 
                 // Stop existing timers because motion is detected and set a new one.
-                globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
-                globalStore.putValue(msg.endpoint, 'timers', []);
+                clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
 
                 if (timeout !== 0) {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                     }, timeout * 1000);
 
-                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                    globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
                 }
 
                 const illuminance = msg.data['illuminance'] - 65536;
-                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+                const payload = {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+                utils.noOccupancySince(msg.endpoint, options, publish, 'start');
+                return payload;
             }
         },
     },
@@ -5471,6 +5452,7 @@ const converters = {
         // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
@@ -5480,21 +5462,25 @@ const converters = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+            let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
+                meta.state.detection_interval : 60;
+            timeout = options && options.hasOwnProperty('occupancy_timeout') && options.occupancy_timeout >= timeout ?
+                options.occupancy_timeout : timeout + 2;
 
             // Stop existing timers because motion is detected and set a new one.
-            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
-            globalStore.putValue(msg.endpoint, 'timers', []);
+            clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
 
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
                 }, timeout * 1000);
 
-                globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
             }
 
-            return {occupancy: true};
+            const payload = {occupancy: true};
+            utils.noOccupancySince(msg.endpoint, options, publish, 'start');
+            return payload;
         },
     },
     xiaomi_WXKG01LM_action: {
@@ -5553,27 +5539,6 @@ const converters = {
             return {contact: msg.data['onOff'] === 0};
         },
     },
-    xiaomi_contact_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281')) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('100')) {
-                    result.contact = msg.data['65281']['100'] === 0;
-                }
-
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
-            }
-        },
-    },
     W2_module_carbon_monoxide: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -5582,39 +5547,6 @@ const converters = {
             return {
                 carbon_monoxide: (zoneStatus & 1<<8) > 8,
             };
-        },
-    },
-    WSDCGQ01LM_WSDCGQ11LM_interval: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure'),
-            exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['65281']) {
-                const result = {};
-                const temperature = parseFloat(msg.data['65281']['100']) / 100.0;
-                const humidity = parseFloat(msg.data['65281']['101']) / 100.0;
-
-                // https://github.com/Koenkk/zigbee2mqtt/issues/798
-                // Sometimes the sensor publishes non-realistic vales, filter these
-                if (temperature > -65 && temperature < 65) {
-                    result.temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                }
-
-                // in the 0 - 100 range, don't produce messages beyond these values.
-                if (humidity >= 0 && humidity <= 100) {
-                    result.humidity = calibrateAndPrecisionRoundOptions(humidity, options, 'humidity');
-                }
-
-                // Check if contains pressure (WSDCGQ11LM only)
-                if (msg.data['65281'].hasOwnProperty('102')) {
-                    const pressure = parseFloat(msg.data['65281']['102']) / 100.0;
-                    result.pressure = calibrateAndPrecisionRoundOptions(pressure, options, 'pressure');
-                }
-
-                return result;
-            }
         },
     },
     xiaomi_temperature: {
@@ -5628,22 +5560,6 @@ const converters = {
             // Sometimes the sensor publishes non-realistic vales.
             if (temperature > -65 && temperature < 65) {
                 return {temperature: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
-            }
-        },
-    },
-    SJCGQ11LM_temperature: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('65281')) {
-                const result = {};
-                if (msg.data['65281'].hasOwnProperty('3')) {
-                    let temperature = msg.data['65281']['3'];
-                    temperature = calibrateAndPrecisionRoundOptions(temperature, options, 'temperature');
-                    result.temperature = temperature;
-                }
-
-                return result;
             }
         },
     },
@@ -6656,19 +6572,6 @@ const converters = {
             const zoneStatus = msg.data.zonestatus;
             result.test = (zoneStatus & 1<<1) > 0;
             return result;
-        },
-    },
-    JTYJGD01LMBW_smoke_density: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            if (data && data['65281']) {
-                const basicAttrs = data['65281'];
-                if (basicAttrs.hasOwnProperty('100')) {
-                    return {smoke_density: basicAttrs['100']};
-                }
-            }
         },
     },
     JTQJBF01LMBW_sensitivity: {

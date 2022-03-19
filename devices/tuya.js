@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -143,7 +143,8 @@ module.exports = [
         description: 'Smart air house keeper',
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd(), e.pm25()],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd().withUnit('ppm'),
+            e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
@@ -228,6 +229,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_kohbva1f'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_wslkvrau'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_0rn9qhnu'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_ejctepku'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bicjqpg4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jmiuubkz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
@@ -235,7 +237,10 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_k1pe6ibm'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -286,6 +291,7 @@ module.exports = [
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_9q49basr'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_i680rtja'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_grnwgegn'},
+            {modelID: 'TS0501B', manufacturerName: '_TZ3210_nehayyhx'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_wuheofsg'},
             {modelID: 'TS0501B', manufacturerName: '_TZ3210_e5t9bfdv'}],
         model: 'TS0501B',
@@ -625,14 +631,16 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
-            {modelID: 'TS0502B', manufacturerName: '_TZ3000_muqovqv0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_muqovqv0'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_qjdimezy'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pz9zmxjj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -883,6 +891,27 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
+        model: 'TS0002_switch_module_2',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            exposes.presets.power_on_behavior(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vsasbzkf'},
             {modelID: 'TS0003', manufacturerName: '_TZ3000_odzoiovu'}],
         model: 'TS0003_switch_module',
@@ -999,6 +1028,8 @@ module.exports = [
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not'),
             exposes.composite('options', 'options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(0)
@@ -1012,6 +1043,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
         ],
@@ -1036,7 +1068,9 @@ module.exports = [
             tz.tuya_thermostat_window_detect, tz.tuya_thermostat_schedule, tz.tuya_thermostat_week, tz.tuya_thermostat_away_preset,
             tz.tuya_thermostat_schedule_programming_mode],
         exposes: [
-            e.child_lock(), e.window_detection(), e.battery_low(), e.valve_detection(), e.position(),
+            e.child_lock(), e.window_detection(),
+            exposes.binary('window_open', ea.STATE).withDescription('Window open?'),
+            e.battery_low(), e.valve_detection(), e.position(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSystemMode(['heat', 'auto', 'off'], ea.STATE_SET,
                     'Mode of this device, in the `heat` mode the TS0601 will remain continuously heating, i.e. it does not regulate ' +

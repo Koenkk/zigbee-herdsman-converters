@@ -96,6 +96,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 266'],
+        model: 'RB 266',
+        vendor: 'Innr',
+        description: 'E27 bulb',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
