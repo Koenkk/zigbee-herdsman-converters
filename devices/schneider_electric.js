@@ -696,11 +696,10 @@ module.exports = [
     },
     {
         zigbeeModel: ['CH/Socket/2'],
-        model: 'Iconic 395',
+        model: '3025CSGZ',
         vendor: 'Schneider Electric',
-        description: 'CH/Socket/2',
-        fromZigbee: [fz.ignore_genOta, fz.on_off],
-        toZigbee: [tz.on_off],
+        description: 'Dual connected smart socket',
+        extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
