@@ -24,7 +24,8 @@ module.exports = [
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
-            tz.danfoss_window_open_feature],
+            tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
+            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -78,7 +79,18 @@ module.exports = [
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator')],
+                .withDescription('Load estimate on this radiator'),
+            exposes.binary('preheat_status', ea.STATE_GET, true, false)
+                .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
+            exposes.enum('adaptation_run_status', ea.STATE_GET, ['None', 'In progress', 'Found', 'Lost'])
+                .withDescription('bit0=Adaptation run in progress, bit1=Valve Characteristic found, bit2=Valve Characteristic lost'),
+            exposes.binary('adaptation_run_settings', ea.ALL, true, false)
+                .withDescription('Automatic adaptation run enabled (the one during the night)'),
+            exposes.enum('adaptation_run_control', ea.ALL, ['None', 'Initate Adaption', 'Cancel Adaption'])
+                .withDescription('Adaptation control 1=Initiate Adaptation run 2=cancel Adaptation run'),
+            exposes.numeric('regulation_setpoint_offset', ea.ALL)
+                .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
+                .withValueMin(-25).withValueMax(25)],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
