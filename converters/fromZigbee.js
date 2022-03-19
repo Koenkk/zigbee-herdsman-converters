@@ -44,6 +44,9 @@ const converters = {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
+            if (msg.data.hasOwnProperty('outdoorTemp')) {
+                result[postfixWithEndpointName('outdoor_temperature', msg, model)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+            }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model)] = (msg.data.occupancy % 2) > 0;
             }
