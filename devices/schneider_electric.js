@@ -694,4 +694,25 @@ module.exports = [
         },
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux(), e.occupancy()],
     },
+    {
+        zigbeeModel: ['CH/Socket/2'],
+        model: 'Iconic 395',
+        vendor: 'Schneider Electric',
+        description: 'Connected 10a socket',
+        fromZigbee: [fz.ignore_genOta, fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [ e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+    },
 ];
