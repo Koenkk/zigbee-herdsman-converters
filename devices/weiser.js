@@ -33,7 +33,7 @@ module.exports = [
                 await device.endpoints[0].command('closuresDoorLock', 'getPinCode', {userid: data.data.userid}, {});
             }
         },
-        exposes: [e.lock(), e.battery(), e.pincode()],
+        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
     },
     {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10T'],
@@ -48,6 +48,6 @@ module.exports = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.lock(), e.battery()],
+        exposes: [e.lock(), e.battery(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
     },
 ];
