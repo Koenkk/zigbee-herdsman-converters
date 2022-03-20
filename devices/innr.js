@@ -289,6 +289,14 @@ module.exports = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 249 T'],
+        model: 'RB 249 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmabl with, color temp',
+        extend: extend.light_onoff_brightness_colortemp(),
+        meta: {turnsOffAtBrightness1: true, colorTempRange: [200, 454]},
+    },
+    {
         zigbeeModel: ['RB 148 T'],
         model: 'RB 148 T',
         vendor: 'Innr',
