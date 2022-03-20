@@ -262,7 +262,7 @@ module.exports = [
         zigbeeModel: ['4512737'],
         model: '4512737',
         vendor: 'Namron',
-        description: 'Touch Termostat',
+        description: 'Touch termostat',
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,
             tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_outdoor_temperature,
