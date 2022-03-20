@@ -96,6 +96,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['BY 266'],
+        model: 'BY 266',
+        vendor: 'Innr',
+        description: 'B22 (Bayonet) bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 266'],
         model: 'RB 266',
         vendor: 'Innr',
