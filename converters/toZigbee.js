@@ -1242,6 +1242,12 @@ const converters = {
             await entity.read('hvacThermostat', ['localTemp']);
         },
     },
+    thermostat_outdoor_temperature: {
+        key: ['outdoor_temperature'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['outdoorTemp']);
+        },
+    },
     thermostat_local_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
