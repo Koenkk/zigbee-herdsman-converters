@@ -1047,7 +1047,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_basic, fz.electrical_measurement, fz.metering,
             fz.aqara_opple, fz.xiaomi_power, fz.device_temperature],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -1096,7 +1096,7 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy(),
+        exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },
