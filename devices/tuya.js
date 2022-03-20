@@ -234,6 +234,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jmiuubkz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_it1u8ahz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_k1pe6ibm'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
@@ -1355,11 +1356,7 @@ module.exports = [
         description: 'Smoke sensor',
         fromZigbee: [fz.tuya_smoke],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.smoke(), e.battery_low()],
+        exposes: [e.smoke(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
