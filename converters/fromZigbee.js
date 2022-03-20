@@ -4986,6 +4986,12 @@ const converters = {
                 case tuya.dataPoints.state:
                     result.smoke = value === 0;
                     break;
+                case 14:
+                    // battery state, ignore
+                    break;
+                case 15:
+                    result.battery = value;
+                    break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`);
                 }
