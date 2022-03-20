@@ -117,20 +117,24 @@ module.exports = [
                 reportableChange: 1,
             }], options);
 
-            await endpoint.read('hvacThermostat', [
-                'danfossWindowOpenFeatureEnable',
-                'danfossWindowOpenExternal',
-                'danfossDayOfWeek',
-                'danfossTriggerTime',
-                'danfossAlgorithmScaleFactor',
-                'danfossHeatAvailable',
-                'danfossMountedModeControl',
-                'danfossMountedModeActive',
-                'danfossExternalMeasuredRoomSensor',
-                'danfossRadiatorCovered',
-                'danfossLoadBalancingEnable',
-                'danfossLoadRoomMean',
-            ], options);
+            try {
+                await endpoint.read('hvacThermostat', [
+                    'danfossWindowOpenFeatureEnable',
+                    'danfossWindowOpenExternal',
+                    'danfossDayOfWeek',
+                    'danfossTriggerTime',
+                    'danfossAlgorithmScaleFactor',
+                    'danfossHeatAvailable',
+                    'danfossMountedModeControl',
+                    'danfossMountedModeActive',
+                    'danfossExternalMeasuredRoomSensor',
+                    'danfossRadiatorCovered',
+                    'danfossLoadBalancingEnable',
+                    'danfossLoadRoomMean',
+                ], options);
+            } catch (e) {
+                /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
+            }
 
             // read systemMode to have an initial value
             await endpoint.read('hvacThermostat', ['systemMode']);
