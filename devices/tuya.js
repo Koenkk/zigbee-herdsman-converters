@@ -1648,7 +1648,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['HY0017'],
+        zigbeeModel: ['HY0017', '005f0c3'],
         model: 'U86KCJ-ZP',
         vendor: 'TuYa',
         description: 'Smart 6 key scene wall switch',
