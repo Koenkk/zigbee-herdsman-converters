@@ -96,6 +96,22 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['BY 266'],
+        model: 'BY 266',
+        vendor: 'Innr',
+        description: 'B22 (Bayonet) bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 266'],
+        model: 'RB 266',
+        vendor: 'Innr',
+        description: 'E27 bulb',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -279,6 +295,14 @@ module.exports = [
         description: 'E14 candle with white spectrum',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 249 T'],
+        model: 'RB 249 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmable with, color temp',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 148 T'],

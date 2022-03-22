@@ -1242,6 +1242,12 @@ const converters = {
             await entity.read('hvacThermostat', ['localTemp']);
         },
     },
+    thermostat_outdoor_temperature: {
+        key: ['outdoor_temperature'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['outdoorTemp']);
+        },
+    },
     thermostat_local_temperature_calibration: {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
@@ -1599,13 +1605,23 @@ const converters = {
             }
 
             const state = value.toLowerCase();
+            let oldstate = 1;
+            if (state === 'on') {
+                oldstate = 108;
+            }
+            let channel = 1.0;
             const postfix = meta.endpoint_name || 'left';
             await entity.command('genOnOff', 'toggle', {}, {transactionSequenceNumber: 0});
             const payloadOn = {0x0001: {value: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOff = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 1}};
             const payloadOnRight = {0x0001: {value: Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
             const payloadOffRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 2}};
+            const payloadOnBottomLeft = {0x0001: {value: Buffer.from([4, 0, 0, 0, 0, 0, 0, 0]), type: 4}};
+            const payloadOffBottomLeft = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 4}};
+            const payloadOnBottomRight = {0x0001: {value: Buffer.from([8, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
+            const payloadOffBottomRight = {0x0001: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
             if (postfix === 'left') {
+                await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOn : payloadOff,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
@@ -1613,12 +1629,28 @@ const converters = {
                     });
                 return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'right') {
+                channel = 2.0;
+                await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOnRight : payloadOffRight,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
                 return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'bottom_right') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomRight : payloadOffBottomRight,
+                    {
+                        manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
+                    });
+                return {state: {state_bottom_right: value.toUpperCase()}, readAfterWriteTime: 250};
+            } else if (postfix === 'bottom_left') {
+                await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomLeft : payloadOffBottomLeft,
+                    {
+                        manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                        reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
+                    });
+                return {state: {state_bottom_left: value.toUpperCase()}, readAfterWriteTime: 250};
             }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
@@ -2005,7 +2037,7 @@ const converters = {
             await entity.read('genBasic', [0x0033], manufacturerOptions.hue);
         },
     },
-    RTCGQ13LM_motion_sensitivity: {
+    aqara_motion_sensitivity: {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'low': 1, 'medium': 2, 'high': 3};
@@ -2048,6 +2080,12 @@ const converters = {
             await entity.read('aqaraOpple', [0x0146], manufacturerOptions.xiaomi);
         },
     },
+    RTCZCGQ11LM_reset_nopresence_status: {
+        key: ['reset_nopresence_status'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0157: {value: 1, type: 0x20}}, manufacturerOptions.xiaomi);
+        },
+    },
     ZigUP_lock: {
         key: ['led'],
         convertSet: async (entity, key, value, meta) => {
@@ -2080,11 +2118,11 @@ const converters = {
     xiaomi_switch_power_outage_memory: {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
+            if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
-            } else if (['ZNCZ02LM', 'QBCZ11LM'].includes(meta.mapped.model)) {
+            } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
                     [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x08, 0x01]] :
                     [[0xaa, 0x80, 0x05, 0xd1, 0x47, 0x09, 0x01, 0x10, 0x00], [0xaa, 0x80, 0x03, 0xd3, 0x07, 0x0a, 0x01]];
@@ -2103,7 +2141,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
+            if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
@@ -2419,6 +2457,18 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genAnalogOutput', [0x0055]);
+        },
+    },
+    xiaomi_curtain_acn002_charging_status: {
+        key: ['charging_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0409], manufacturerOptions.xiaomi);
+        },
+    },
+    xiaomi_curtain_acn002_battery: {
+        key: ['battery'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x040a], manufacturerOptions.xiaomi);
         },
     },
     ledvance_commands: {
@@ -2802,6 +2852,53 @@ const converters = {
         key: ['load_estimate'],
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['danfossLoadEstimate'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_preheat_status: {
+        key: ['preheat_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossPreheatStatus'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_adaptation_status: {
+        key: ['adaptation_run_status'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossAdaptionRunStatus'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_adaptation_settings: {
+        key: ['adaptation_run_settings'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {'danfossAdaptionRunSettings': value}, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 200, state: {'adaptation_run_settings': value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossAdaptionRunSettings'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_adaptation_control: {
+        key: ['adaptation_run_control'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'danfossAdaptionRunControl': utils.getKey(constants.danfossAdaptionRunControl, value, value, Number)};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 250, state: {'adaptation_run_control': value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossAdaptionRunControl'], manufacturerOptions.danfoss);
+        },
+    },
+    danfoss_regulation_setpoint_offset: {
+        key: ['regulation_setpoint_offset'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {'danfossRegulationSetpointOffset': value};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
+            return {readAfterWriteTime: 250, state: {'regulation_setpoint_offset': value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['danfossRegulationSetpointOffset'], manufacturerOptions.danfoss);
         },
     },
     danfoss_output_status: {
@@ -3430,7 +3527,7 @@ const converters = {
             // upscale to 1000
             let newValue;
             let dp = tuya.dataPoints.dimmerLevel;
-            if (meta.device.manufacturerName === '_TZE200_9i9dt8is' || meta.device.manufacturerName === '_TZE200_dfxkcots') {
+            if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
                 dp = tuya.dataPoints.eardaDimmerLevel;
             }
             if (key === 'brightness_min') {

@@ -275,6 +275,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -291,7 +292,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
@@ -326,6 +327,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -342,7 +344,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
@@ -377,6 +379,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -393,7 +396,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),

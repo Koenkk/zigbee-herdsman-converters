@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ea = exposes.access;
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -18,6 +19,20 @@ module.exports = [
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['ElkoDimmerRemoteZHA'],
+        model: 'EKO05806',
+        vendor: 'ELKO',
+        description: 'Elko ESH 316 Endevender RF',
+        fromZigbee: [fz.command_toggle, fz.command_step],
+        toZigbee: [],
+        exposes: [e.action(['toggle', 'brightness_step_up', 'brightness_step_down'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
     },

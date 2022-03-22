@@ -185,4 +185,14 @@ module.exports = [
         description: 'Zigbee 3.0 LED-controller 1x 8A',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['ZGRC-TEUR-001'],
+        model: '511.544',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 wall dimmer RGBW 4 zone',
+        fromZigbee: [fz.command_move_to_color, fz.command_move_hue, fz.command_on, fz.command_off, fz.command_move],
+        toZigbee: [],
+        exposes: [e.action(['recall_*', 'on', 'off', 'color_move', 'color_temperature_move',
+            'hue_move', 'brightness_step_down', 'brightness_step_up', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
 ];
