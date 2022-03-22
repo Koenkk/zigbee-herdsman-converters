@@ -3392,6 +3392,23 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
+            if (msg.data.hasOwnProperty('danfossPreheatStatus')) {
+                result[postfixWithEndpointName('preheat_status', msg, model)] = (msg.data['danfossPreheatStatus'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunStatus')) {
+                result[postfixWithEndpointName('adaptation_run_status', msg, model)] =
+                    constants.danfossAdaptionRunStatus[msg.data['danfossAdaptionRunStatus']];
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunSettings')) {
+                result[postfixWithEndpointName('adaptation_run_settings', msg, model)] = (msg.data['danfossAdaptionRunSettings'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunControl')) {
+                result[postfixWithEndpointName('adaptation_run_control', msg, model)] =
+                    constants.danfossAdaptionRunControl[msg.data['danfossAdaptionRunControl']];
+            }
+            if (msg.data.hasOwnProperty('danfossRegulationSetpointOffset')) {
+                result[postfixWithEndpointName('regulation_setpoint_offset', msg, model)] = msg.data['danfossRegulationSetpointOffset'];
+            }
             // Danfoss Icon Converters
             if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
                 result[postfixWithEndpointName('room_status_code', msg, model)] =
