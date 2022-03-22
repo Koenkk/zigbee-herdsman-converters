@@ -1236,11 +1236,13 @@ module.exports = [
         model: 'ZNCLDJ11LM',
         description: 'Aqara curtain motor',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.cover_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
-                .withDescription('Whether the motor is moving or not')],
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+                .withDescription('Motor state')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1248,7 +1250,7 @@ module.exports = [
         model: 'SRSC-M01',
         description: 'Aqara roller shade motor',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.cover_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
@@ -1259,8 +1261,8 @@ module.exports = [
         zigbeeModel: ['lumi.curtain.hagl04'],
         model: 'ZNCLDJ12LM',
         vendor: 'Xiaomi',
-        description: 'Aqara B1 curtain motor ',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
+        description: 'Aqara B1 curtain motor',
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value

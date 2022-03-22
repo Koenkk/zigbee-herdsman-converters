@@ -5662,38 +5662,15 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            let running = false;
-
             if (model.model === 'ZNCLDJ12LM' && msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
                 // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
 
-            if (msg.data['61440']) {
-                const value = msg.data['61440'];
-                // 63025664 comes from https://github.com/Koenkk/zigbee2mqtt/issues/5155#issuecomment-753344248
-                running = value !== 0 && value !== 63025664;
-            }
-
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
-            return {position: position, running: running};
-        },
-    },
-    xiaomi_curtain_options: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data['1025'];
-            if (data) {
-                return {
-                    options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: data[2]=='\u0001',
-                        hand_open: data[5]=='\u0000',
-                    },
-                };
-            }
+            return {position};
         },
     },
     xiaomi_curtain_acn002_position: {
