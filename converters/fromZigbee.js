@@ -5673,31 +5673,6 @@ const converters = {
             return {position};
         },
     },
-    xiaomi_curtain_direction: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data['1028'] || 0;
-            const lookup = {0: 'STOP', 1: 'FORWARD', 2: 'REVERSE'};
-            const direction = lookup[data] || lookup[0];
-            return {running: direction !== 'STOP', motor_direction: direction};
-        },
-    },
-    xiaomi_curtain_options: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data['1025'];
-            if (data) {
-                return {
-                    options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: data[2]=='\u0001',
-                        hand_open: data[5]=='\u0000',
-                    },
-                };
-            }
-        },
-    },
     xiaomi_curtain_acn002_position: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
