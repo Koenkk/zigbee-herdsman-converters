@@ -20,6 +20,14 @@ const tzLocal = {
     },
 };
 
+const disableBatteryRotaryDimmerReporting = async (endpoint) => {
+    // The default is for the device to also report the on/off and
+    // brightness at the same time as sending on/off and step commands.
+    // Disable the reporting by setting the max interval to 0xFFFF.
+    await reporting.brightness(endpoint, {max: 0xFFFF});
+    await reporting.onOff(endpoint, {max: 0xFFFF});
+};
+
 const batteryRotaryDimmer = (...endpointsIds) => ({
     fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
     toZigbee: [],
@@ -32,15 +40,29 @@ const batteryRotaryDimmer = (...endpointsIds) => ({
         await reporting.batteryVoltage(endpoints[0]);
 
         for await (const endpoint of endpoints) {
-            logger.debug(`processing endpoint ${endpoint.ID}`);
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['genIdentify', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
 
-            // The default is for the device to also report the on/off and
-            // brightness at the same time as sending on/off and step commands.
-            // Disable the reporting by setting the max interval to 0xFFFF.
-            await reporting.brightness(endpoint, {max: 0xFFFF});
-            await reporting.onOff(endpoint, {max: 0xFFFF});
+            await disableBatteryRotaryDimmerReporting(endpoint);
+        }
+    },
+    onEvent: async (type, data, device) => {
+        // The rotary dimmer devices appear to lose the configured reportings when they
+        // re-announce themselves which they do roughly every 6 hours.
+        if (type === 'deviceAnnounce') {
+            for (const endpoint of device.endpoints) {
+                // First disable the default reportings (for the dimmer endpoints only)
+                if ([1, 2].includes(endpoint.ID)) {
+                    await disableBatteryRotaryDimmerReporting(endpoint);
+                }
+                // Then re-apply the configured reportings
+                for (const c of endpoint.configuredReportings) {
+                    await endpoint.configureReporting(c.cluster.name, [{
+                        attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                        maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                    }]);
+                }
+            }
         }
     },
 });
@@ -161,8 +183,10 @@ module.exports = [
         description: 'Double smart socket UK',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'), e.power().withEndpoint('right')],
-        toZigbee: [tz.on_off],
+            e.power().withEndpoint('left'), e.power().withEndpoint('right'),
+            exposes.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
+                .withDescription('Brightness of this backlight LED')],
+        toZigbee: [tz.light_onoff_brightness],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};

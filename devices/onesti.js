@@ -23,6 +23,7 @@ module.exports = [
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [e.lock(), e.battery(), e.sound_volume(),
+            e.lock_action_source_name(), e.lock_action_source_user(),
             e.action(Array.from(Object.values(constants.easyCodeTouchActions))),
             exposes.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
             e.pincode(),

@@ -446,6 +446,8 @@ module.exports = [
         extend: extend.switch(),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -508,7 +510,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_wr6g6olr'}],
         model: 'HG07834B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
