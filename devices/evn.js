@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const extend = require('../lib/extend');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const e = exposes.presets;
 
@@ -19,5 +20,12 @@ module.exports = [
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
         },
+    },
+    {
+        zigbeeModel: ['ZB24100VS'],
+        model: 'ZB24100VS',
+        vendor: 'EVN',
+        description: 'Zigbee multicolor controller with power supply',
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [160, 450]}),
     },
 ];
