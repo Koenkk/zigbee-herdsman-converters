@@ -1514,6 +1514,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4023331P6'],
+        model: '4023331P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Amaze',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929003054801'],
         model: '929003054801',
         vendor: 'Philips',
