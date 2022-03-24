@@ -4823,6 +4823,7 @@ const converters = {
                 0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
                 0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4', 0x10: 'press_energy_bar',
                 0x11: 'release_energy_bar', 0x0: 'press_or_release_all',
+                0x50: 'lock', 0x51: 'unlock', 0x52: 'half_open', 0x53: 'tilt',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
