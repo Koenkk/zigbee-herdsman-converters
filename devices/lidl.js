@@ -386,7 +386,7 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
         toZigbee: [],
         exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down',
-                  e.battery_low(), e.tamper(), e.battery()])],
+            e.battery_low(), e.tamper(), e.battery()])],
     },
     {
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
