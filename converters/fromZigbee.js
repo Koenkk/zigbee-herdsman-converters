@@ -44,6 +44,9 @@ const converters = {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
+            if (msg.data.hasOwnProperty('outdoorTemp')) {
+                result[postfixWithEndpointName('outdoor_temperature', msg, model)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+            }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model)] = (msg.data.occupancy % 2) > 0;
             }
@@ -3389,6 +3392,23 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
+            if (msg.data.hasOwnProperty('danfossPreheatStatus')) {
+                result[postfixWithEndpointName('preheat_status', msg, model)] = (msg.data['danfossPreheatStatus'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunStatus')) {
+                result[postfixWithEndpointName('adaptation_run_status', msg, model)] =
+                    constants.danfossAdaptionRunStatus[msg.data['danfossAdaptionRunStatus']];
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunSettings')) {
+                result[postfixWithEndpointName('adaptation_run_settings', msg, model)] = (msg.data['danfossAdaptionRunSettings'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunControl')) {
+                result[postfixWithEndpointName('adaptation_run_control', msg, model)] =
+                    constants.danfossAdaptionRunControl[msg.data['danfossAdaptionRunControl']];
+            }
+            if (msg.data.hasOwnProperty('danfossRegulationSetpointOffset')) {
+                result[postfixWithEndpointName('regulation_setpoint_offset', msg, model)] = msg.data['danfossRegulationSetpointOffset'];
+            }
             // Danfoss Icon Converters
             if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
                 result[postfixWithEndpointName('room_status_code', msg, model)] =
@@ -4988,6 +5008,12 @@ const converters = {
                 case tuya.dataPoints.state:
                     result.smoke = value === 0;
                     break;
+                case 14:
+                    // battery state, ignore
+                    break;
+                case 15:
+                    result.battery = value;
+                    break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`);
                 }
@@ -5414,29 +5440,37 @@ const converters = {
         },
     },
     RTCGQ12LM_occupancy_illuminance: {
+        // This is for occupancy sensor that only send a message when motion detected,
+        // but do not send a motion stop.
+        // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true(),
+            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
-                const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+                let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
+                    meta.state.detection_interval : 60;
+                timeout = options && options.hasOwnProperty('occupancy_timeout') && options.occupancy_timeout >= timeout ?
+                    options.occupancy_timeout : timeout + 2;
 
                 // Stop existing timers because motion is detected and set a new one.
-                globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
-                globalStore.putValue(msg.endpoint, 'timers', []);
+                clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
 
                 if (timeout !== 0) {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                     }, timeout * 1000);
 
-                    globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                    globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
                 }
 
                 const illuminance = msg.data['illuminance'] - 65536;
-                return {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+                const payload = {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
+                utils.noOccupancySince(msg.endpoint, options, publish, 'start');
+                return payload;
             }
         },
     },
@@ -5446,6 +5480,7 @@ const converters = {
         // Therefore we need to publish the no_motion detected by ourselves.
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.occupancy !== 1) {
                 // In case of 0 no occupancy is reported.
@@ -5455,21 +5490,25 @@ const converters = {
 
             // The occupancy sensor only sends a message when motion detected.
             // Therefore we need to publish the no_motion detected by ourselves.
-            const timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ? meta.state.detection_interval : 60;
+            let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
+                meta.state.detection_interval : 60;
+            timeout = options && options.hasOwnProperty('occupancy_timeout') && options.occupancy_timeout >= timeout ?
+                options.occupancy_timeout : timeout + 2;
 
             // Stop existing timers because motion is detected and set a new one.
-            globalStore.getValue(msg.endpoint, 'timers', []).forEach((t) => clearTimeout(t));
-            globalStore.putValue(msg.endpoint, 'timers', []);
+            clearTimeout(globalStore.getValue(msg.endpoint, 'occupancy_timer', null));
 
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
                 }, timeout * 1000);
 
-                globalStore.getValue(msg.endpoint, 'timers').push(timer);
+                globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
             }
 
-            return {occupancy: true};
+            const payload = {occupancy: true};
+            utils.noOccupancySince(msg.endpoint, options, publish, 'start');
+            return payload;
         },
     },
     xiaomi_WXKG01LM_action: {
@@ -5645,38 +5684,15 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            let running = false;
-
             if (model.model === 'ZNCLDJ12LM' && msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
                 // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
 
-            if (msg.data['61440']) {
-                const value = msg.data['61440'];
-                // 63025664 comes from https://github.com/Koenkk/zigbee2mqtt/issues/5155#issuecomment-753344248
-                running = value !== 0 && value !== 63025664;
-            }
-
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
-            return {position: position, running: running};
-        },
-    },
-    xiaomi_curtain_options: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data['1025'];
-            if (data) {
-                return {
-                    options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: data[2]=='\u0001',
-                        hand_open: data[5]=='\u0000',
-                    },
-                };
-            }
+            return {position};
         },
     },
     xiaomi_curtain_acn002_position: {

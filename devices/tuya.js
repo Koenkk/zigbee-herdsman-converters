@@ -12,7 +12,7 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -51,6 +51,29 @@ const fzLocal = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/11470
             if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
             return fz.battery.convert(model, msg, publish, options, meta);
+        },
+    },
+    TS0222: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case 2:
+                    result.illuminance = value;
+                    result.illuminance_lux = value;
+                    break;
+                case 4:
+                    result.battery = value;
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:TS0222 Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
         },
     },
 };
@@ -97,13 +120,14 @@ module.exports = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0203'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
             } catch (error) {/* Fails for some*/}
         },
     },
@@ -234,11 +258,13 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jmiuubkz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_cmaky9gq'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_it1u8ahz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_k1pe6ibm'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
         model: 'TS0505B',
         vendor: 'TuYa',
@@ -647,8 +673,9 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_s1x7gcq0'},
-            {modelID: 'TS0502B', manufacturerName: '_TZ3000_muqovqv0'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_hi1ym4bl'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_muqovqv0'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_qjdimezy'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_psgq7ysz'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pz9zmxjj'},
@@ -1043,8 +1070,6 @@ module.exports = [
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.binary('running', ea.STATE, true, false)
-                .withDescription('Whether the motor is moving or not'),
             exposes.composite('options', 'options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(0)
@@ -1289,7 +1314,7 @@ module.exports = [
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
-            {vendor: 'BlitzWolf', model: 'BW-SHP15'}],
+            {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
             fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
@@ -1370,11 +1395,7 @@ module.exports = [
         description: 'Smoke sensor',
         fromZigbee: [fz.tuya_smoke],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.smoke(), e.battery_low()],
+        exposes: [e.smoke(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
@@ -1667,7 +1688,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['HY0017'],
+        zigbeeModel: ['HY0017', '005f0c3'],
         model: 'U86KCJ-ZP',
         vendor: 'TuYa',
         description: 'Smart 6 key scene wall switch',
@@ -1823,9 +1844,13 @@ module.exports = [
         model: 'TS0222',
         vendor: 'TuYa',
         description: 'Light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance],
+        fromZigbee: [fz.battery, fz.illuminance, fzLocal.TS0222],
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0210', manufacturerName: '_TYZB01_3zv6oleo'},
