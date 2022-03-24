@@ -2446,10 +2446,7 @@ const converters = {
 
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
-
-                if (key === 'position') {
-                    value = meta.options.invert_cover ? 100 - value : value;
-                }
+                value = meta.options.invert_cover ? 100 - value : value;
 
                 const payload = {0x0055: {value, type: 0x39}};
                 await entity.write('genAnalogOutput', payload);
