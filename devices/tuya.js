@@ -325,6 +325,15 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_dr6sduka'}],
+        model: 'TS0202_2',
+        vendor: 'Tesla Smart',
+        description: 'Tesla Smart Sensor Motion',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ias_occupancy_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'}],
         model: 'TS0202_1',
         vendor: 'TuYa',
