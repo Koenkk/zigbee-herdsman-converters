@@ -2482,6 +2482,27 @@ const converters = {
             return result;
         },
     },
+    plugwise_radiator_valve: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta);
+
+            if (typeof msg.data[0x4003] == 'number') {
+                result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
+            }
+            if (typeof msg.data[0x4008] == 'number') {
+                // TODO: parse this message
+            }
+            if (typeof msg.data[0x4002] == 'number') {
+                result.error_status = msg.data[0x4002];
+            }
+            if (typeof msg.data[0x4001] == 'number') {
+                result.valve_position = msg.data[0x4001];
+            }
+            return result;
+        },
+    },
     neo_nas_pd07: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],

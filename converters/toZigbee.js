@@ -18,6 +18,7 @@ const manufacturerOptions = {
     develco: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DEVELCO},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
     ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
+    plugwise: { manufacturerCode: herdsman.Zcl.ManufacturerCode.PLUGWISE_BV },
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -3821,6 +3822,16 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
+        },
+    },
+    plugwise_valve_position: {
+        key: ['plugwise_valve_position', 'valve_position'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = { 0x4001: { value, type: 0x20 } };
+            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
         },
     },
     sinope_thermostat_occupancy: {
