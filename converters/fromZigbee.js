@@ -5691,6 +5691,24 @@ const converters = {
             return {position};
         },
     },
+    xiaomi_curtain_position_tilt: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+                const value = msg.data['currentPositionLiftPercentage'];
+                result[postfixWithEndpointName('position', msg, model)] = invert ? 100 - value : value;
+            }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+                const value = msg.data['currentPositionTiltPercentage'];
+                result[postfixWithEndpointName('tilt', msg, model)] = invert ? 100 - value : value;
+            }
+            return result;
+        },
+    },
     xiaomi_curtain_acn002_position: {
         cluster: 'genAnalogOutput',
         type: ['attributeReport', 'readResponse'],
