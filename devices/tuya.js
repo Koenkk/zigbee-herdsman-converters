@@ -747,6 +747,31 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
+        model: 'TS011F_2_gang_2_usb_wall',
+        vendor: 'TuYa',
+        description: '2 gang 2 usb wall outlet',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_backlight_mode]),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous']),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH']),
+        ],
+        endpoint: () => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).read('genBasic',
+                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            for (const endpointID of [1, 2, 3, 4]) {
+                const endpoint = device.getEndpoint(endpointID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                await reporting.onOff(endpoint);
+            }
+        },
+    },
+    {
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
