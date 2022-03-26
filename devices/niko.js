@@ -11,17 +11,30 @@ module.exports = [
         model: '170-33505',
         vendor: 'Niko',
         description: 'Connected socket outlet',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off, tz.electrical_measurement_power],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+
+            // NOTE: we read them individually, acFrequency* is not supported
+            //       so we cannot use readEletricalMeasurementMultiplierDivisors
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.activePower(endpoint, {min: 5, max: 3600, change: 1000});
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor', 'acPowerMultiplier', 'acPowerDivisor']);
             await reporting.rmsCurrent(endpoint, {min: 5, max: 3600, change: 100});
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await reporting.rmsVoltage(endpoint, {min: 5, max: 3600, change: 100});
+
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
         },
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.current(), e.voltage()],
+        exposes: [
+            e.switch(),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
     },
     {
         zigbeeModel: ['Smart plug Zigbee PE'],
@@ -29,7 +42,7 @@ module.exports = [
         vendor: 'Niko',
         description: 'Smart plug with earthing pin',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power, tz.currentsummdelivered],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -41,7 +54,7 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
         },
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
             exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
                 .withDescription('Controls the behaviour when the device is powered on'),
         ],

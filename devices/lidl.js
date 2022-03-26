@@ -379,6 +379,15 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
+        model: 'HG08164',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart button',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HG06668',
         vendor: 'Lidl',
