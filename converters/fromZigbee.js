@@ -4580,6 +4580,9 @@ const converters = {
             } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (dpValue.dp === 2) {
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
             } else if (meta.device.manufacturerName === '_TZE200_3p5ydos3') {
@@ -4599,7 +4602,10 @@ const converters = {
                 if (dpValue.datatype !== tuya.dataTypes.value) {
                     tuya.logUnexpectedDataType('tuya_dimmer', msg, dpValue, meta);
                 } else {
-                    return {brightness: mapNumberRange(value, value<10 ? 0 : 10, 1000, 0, 254), level: value};
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
                 }
             }
         },

@@ -433,42 +433,25 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_dfxkcots'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_1agwnems'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
-        description: 'Zigbee smart dimmer',
+        description: 'Zigbee smart dimmer with minimum and maximum brightness setting',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
-        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess('min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
             {vendor: 'Mercator Ikuü', model: 'SSWD01'},
-        ],
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
-        ],
-        model: 'TS0601_dimmer',
-        vendor: 'TuYa',
-        description: 'Zigbee smart dimmer with minimum and maximum brightness setting',
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level, tz.tuya_data_point_test],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            logger.info('zigbee-herdsman-converters:devices:tuya: Configuring _TZE200_3p5ydos3');
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess('min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
-        whiteLabel: [
         ],
     },
     {

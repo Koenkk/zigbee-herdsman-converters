@@ -3538,18 +3538,18 @@ const converters = {
                     throw new Error('Dimmer brightness_min is out of range 0..100');
                 }
             } else if (key === 'min_brightness') {
-                if (value >= 0 && value <= 255) {
-                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
+                if (value >= 1 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
                     dp = tuya.dataPoints.dimmerMinLevel;
                 } else {
-                    throw new Error('Dimmer min_brightness is out of range 0..255');
+                    throw new Error('Dimmer min_brightness is out of range 1..255');
                 }
             } else if (key === 'max_brightness') {
-                if (value >= 0 && value <= 255) {
-                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
+                if (value >= 1 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
                     dp = tuya.dataPoints.dimmerMaxLevel;
                 } else {
-                    throw new Error('Dimmer min_brightness is out of range 0..255');
+                    throw new Error('Dimmer min_brightness is out of range 1..255');
                 }
             } else if (key === 'level') {
                 if (value >= 0 && value <= 1000) {
