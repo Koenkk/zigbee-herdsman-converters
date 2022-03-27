@@ -14,6 +14,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['ZBEK-13'],
+        model: 'IG-CDZFB2AG010RA-MNZ',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['ZBEK-3'],
         model: 'IP-CDZOTAAP005JA-MAN',
         vendor: 'ADEO',
