@@ -820,4 +820,11 @@ module.exports = [
         description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['NYMANE PENDANT'],
+        model: '90504044',
+        vendor: 'IKEA',
+        description: 'NYMÅNE Pendant lamp',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
 ];
