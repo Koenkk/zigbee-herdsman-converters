@@ -75,4 +75,20 @@ module.exports = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
     },
+    {
+        zigbeeModel: ['Single connectable switch,10A'],
+        model: '552-72101',
+        vendor: 'Niko',
+        description: 'Single connectable switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        exposes: [
+            e.switch(),
+        ],
+    },
 ];
