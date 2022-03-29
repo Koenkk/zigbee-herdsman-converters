@@ -80,7 +80,6 @@ module.exports = [
             await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
             device.powerSource = 'DC source';
             device.save();
-
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
