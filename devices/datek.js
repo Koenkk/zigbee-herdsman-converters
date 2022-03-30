@@ -34,7 +34,7 @@ module.exports = [
         zigbeeModel: ['Meter Reader'],
         model: 'HSE2905E',
         vendor: 'Datek',
-        description: 'Datek Eva AMS HAN power-meter sensor Re-Worked',
+        description: 'Datek Eva AMS HAN power-meter sensor',
         fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature],
         toZigbee: [],
         ota: ota.zigbeeOTA,
