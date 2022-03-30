@@ -443,7 +443,7 @@ module.exports = [
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
-        description: 'Zigbee smart dimmer with minimum and maximum brightness setting',
+        description: 'Zigbee smart dimmer',
         fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         configure: async (device, coordinatorEndpoint, logger) => {
