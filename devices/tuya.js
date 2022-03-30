@@ -712,6 +712,10 @@ module.exports = [
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'}],
