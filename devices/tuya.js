@@ -451,8 +451,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness().setAccess(
-                  'state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess(
-                  'min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
+            'state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET).setAccess(
+            'min_brightness', ea.STATE_SET).setAccess('max_brightness', ea.STATE_SET)],
         whiteLabel: [
             {vendor: 'Larkkey', model: 'ZSTY-SM-1DMZG-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
