@@ -4580,10 +4580,33 @@ const converters = {
             } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (dpValue.dp === 2) {
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else { // TODO: Unknown dp, assumed value type
-                return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+            } else if (meta.device.manufacturerName === '_TZE200_3p5ydos3') {
+                if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
+                    return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
+                } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {
+                    return {min_brightness: mapNumberRange(value, 0, 1000, 1, 255)};
+                } else if (dpValue.dp === tuya.dataPoints.dimmerMaxLevel) {
+                    return {max_brightness: mapNumberRange(value, 0, 1000, 1, 255)};
+                } else {
+                    tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                }
+            } else {
+                if (dpValue.dp !== tuya.dataPoints.dimmerLevel) {
+                    tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                }
+                if (dpValue.datatype !== tuya.dataTypes.value) {
+                    tuya.logUnexpectedDataType('tuya_dimmer', msg, dpValue, meta);
+                } else {
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                }
             }
         },
     },
@@ -4593,14 +4616,6 @@ const converters = {
         convert: (model, msg, publis, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
-            const getType = (datatype) => {
-                const entry = Object.entries(tuya.dataTypes).find(([typeName, typeId]) => typeId === datatype);
-                return (entry ? entry[0] : 'unknown');
-            };
-            const getAllDpIds = (dp) => {
-                const entries = Object.entries(tuya.dataPoints).filter(([dpName, dpId]) => dpId === dp);
-                return entries.map(([dpName, dpId]) => dpName);
-            };
             const getHex = (value) => {
                 let hex = value.toString(16);
                 if (hex.length < 2) {
@@ -4611,11 +4626,7 @@ const converters = {
             const now = Date.now().toString();
             let dataStr = '';
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
-                const value = tuya.getDataValue(dpValue);
-                meta.logger.info(`zigbee-herdsman-converters:tuya_data_point_dump: Received DP #${
-                    dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': type='${msg.type}', datatype='${
-                    getType(dpValue.datatype)}', value='${value}', known DP# usage: ${JSON.stringify(getAllDpIds(dpValue.dp))}`);
-
+                tuya.logDataPoint('tuya_data_point_dump', msg, dpValue, meta);
                 dataStr +=
                     now + ' ' +
                     meta.device.ieeeAddr + ' ' +
