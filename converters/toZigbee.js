@@ -3560,7 +3560,7 @@ const converters = {
             } else { // brightness
                 if (value >= 0 && value <= 254) {
                     newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-            } else {
+                } else {
                     throw new Error('Dimmer brightness is out of range 0..254');
                 }
             }

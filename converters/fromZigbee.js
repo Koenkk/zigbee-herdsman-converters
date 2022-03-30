@@ -4581,7 +4581,7 @@ const converters = {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (dpValue.dp === 2) {
                     if (value < 10) {
-                        tuya.logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, 'brightness', 10, 1000);
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
@@ -4593,8 +4593,8 @@ const converters = {
                 } else if (dpValue.dp === tuya.dataPoints.dimmerMaxLevel) {
                     return {max_brightness: mapNumberRange(value, 0, 1000, 1, 255)};
                 } else {
-                    tuya.logUnexpectedDataPoint("tuya_dimmer", msg, dpValue, meta);
-            }
+                    tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                }
             } else {
                 if (dpValue.dp !== tuya.dataPoints.dimmerLevel) {
                     tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
@@ -4603,7 +4603,7 @@ const converters = {
                     tuya.logUnexpectedDataType('tuya_dimmer', msg, dpValue, meta);
                 } else {
                     if (value < 10) {
-                        tuya.logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, 'brightness', 10, 1000);
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
                 }
@@ -4626,7 +4626,7 @@ const converters = {
             const now = Date.now().toString();
             let dataStr = '';
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
-                tuya.logDataPoint("tuya_data_point_dump",msg,dpValue,meta);
+                tuya.logDataPoint('tuya_data_point_dump', msg, dpValue, meta);
                 dataStr +=
                     now + ' ' +
                     meta.device.ieeeAddr + ' ' +
