@@ -20,6 +20,22 @@ const niko = {
                 return state;
             },
         },
+        switch_action: {
+            cluster: 'manuSpecificNikoSwitch',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+
+                if (msg.data.hasOwnProperty('action')) {
+                    // NOTE: a single press = two seperate values reported, 16 followed by 64
+                    //       a hold/release cyle = three seperate values, 16, 32, and 48
+                    const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
+                    const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
+                    state[actionProperty] = actionMap[msg.data.action];
+                }
+                return state;
+            },
+        },
     },
     tz: {
         switch_operation_mode: {
@@ -118,7 +134,7 @@ module.exports = [
         model: '552-721X1',
         vendor: 'Niko',
         description: 'Single connectable switch',
-        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode],
+        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode, niko.fz.switch_action],
         toZigbee: [tz.on_off, niko.tz.switch_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -128,6 +144,7 @@ module.exports = [
         },
         exposes: [
             e.switch(),
+            e.action(['single', 'hold', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
         ],
     },
@@ -136,7 +153,7 @@ module.exports = [
         model: '552-721X2',
         vendor: 'Niko',
         description: 'Double connectable switch',
-        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode],
+        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode, niko.fz.switch_action],
         toZigbee: [tz.on_off, niko.tz.switch_operation_mode],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -154,6 +171,8 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.action(['single', 'hold', 'release']).withEndpoint('l1'),
+            e.action(['single', 'hold', 'release']).withEndpoint('l2'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
         ],
