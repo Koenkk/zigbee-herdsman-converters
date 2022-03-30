@@ -75,4 +75,43 @@ module.exports = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
     },
+    {
+        zigbeeModel: ['Single connectable switch,10A'],
+        model: '552-721X1',
+        vendor: 'Niko',
+        description: 'Single connectable switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+        exposes: [
+            e.switch(),
+        ],
+    },
+    {
+        zigbeeModel: ['Double connectable switch,10A'],
+        model: '552-721X2',
+        vendor: 'Niko',
+        description: 'Double connectable switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            await reporting.bind(ep1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(ep1);
+            await reporting.onOff(ep2);
+        },
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+        ],
+    },
 ];

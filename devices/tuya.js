@@ -358,6 +358,11 @@ module.exports = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
@@ -663,6 +668,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_zw7wr5uo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pz9zmxjj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_fzwhym79'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3000_ogceypug'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
@@ -1322,7 +1328,7 @@ module.exports = [
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
-            {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}],
+            {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'}],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
             fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
