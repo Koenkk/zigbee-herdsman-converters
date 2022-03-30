@@ -77,7 +77,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-			const options = {manufacturerCode: 0x110A};
+            const options = {manufacturerCode: 0x110A};
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'manuSpecificSamsungAccelerometer']);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
