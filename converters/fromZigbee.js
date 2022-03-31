@@ -2486,7 +2486,7 @@ const converters = {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.thermostat.convert(model, msg, publish, options, meta);
+            const result = converters.thermostat.convert(model, msg, publish, options, meta);
 
             if (typeof msg.data[0x4003] == 'number') {
                 result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
