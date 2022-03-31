@@ -2,7 +2,6 @@ const exposes = require('../lib/exposes');
 const fz = { ...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee };
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
-const ota = require('../converters/lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -28,7 +27,6 @@ module.exports = [
         model: '106-03',
         vendor: 'Plugwise',
         description: 'Tom thermostatic radiator valve',
-        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fz.legacy.plugwise_radiator_valve],
         toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint, tz.thermostat_pi_heating_demand, tz.plugwise_valve_position],
         configure: async (device, coordinatorEndpoint, logger) => {
