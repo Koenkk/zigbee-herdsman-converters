@@ -5,7 +5,7 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const niko = {
+const fzLocal = {
     fz: {
         switch_operation_mode: {
             cluster: 'manuSpecificNikoSwitchSetup',
@@ -134,8 +134,8 @@ module.exports = [
         model: '552-721X1',
         vendor: 'Niko',
         description: 'Single connectable switch',
-        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode, niko.fz.switch_action],
-        toZigbee: [tz.on_off, niko.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
+        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -153,8 +153,8 @@ module.exports = [
         model: '552-721X2',
         vendor: 'Niko',
         description: 'Double connectable switch',
-        fromZigbee: [fz.on_off, niko.fz.switch_operation_mode, niko.fz.switch_action],
-        toZigbee: [tz.on_off, niko.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
+        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
