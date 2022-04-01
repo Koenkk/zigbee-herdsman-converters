@@ -2714,6 +2714,15 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
+	{
+        zigbeeModel: ['5060930P7_01', '5060930P7_02', '5060930P7_03', '5060930P7_04'],
+        model: '5060930P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Centris ceiling light (3 spots)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
+    },
     {
         zigbeeModel: ['5060931P7_01', '5060931P7_02', '5060931P7_03', '5060931P7_04'],
         model: '5060931P7',
