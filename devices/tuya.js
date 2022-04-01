@@ -1048,6 +1048,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_3i3exuay'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cf1sl3tj'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
@@ -1076,6 +1077,7 @@ module.exports = [
             {vendor: 'TuYa', model: 'ZD82TN', description: 'Curtain motor'},
             {vendor: 'Moes', model: 'AM43-0.45/40-ES-EB'},
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
+            {vendor: 'Zemismart', model: 'ZM85EL-2Z', description: 'Roman Rod I type curtains track'},
             {vendor: 'Zemismart', model: 'ZM25TQ', description: 'Tubular motor'},
             {vendor: 'Zemismart', model: 'AM43', description: 'Roller blind motor'},
             {vendor: 'Zemismart', model: 'M2805EGBZTN', description: 'Tubular motor'},
