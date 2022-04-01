@@ -3820,7 +3820,12 @@ const converters = {
                 return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
+                if (meta.device.manufacturerName === '_TZE200_ye5jkfsb') {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11980
+                    temperature = temperature / 10;
+                }
+
+                return {local_temperature: parseFloat(temperature.toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
