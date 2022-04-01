@@ -341,4 +341,22 @@ module.exports = [
             return {left: 2, right: 1};
         },
     },
+    {
+        zigbeeModel: [' Mobile outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: 'WNRR15/WNRR20',
+        vendor: 'Legrand',
+        ota: ota.zigbeeOTA,
+        description: 'Outlet with power consumption monitoring',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+        exposes: [e.switch(), e.action(['identify']), e.power()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
 ];
