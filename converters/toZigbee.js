@@ -2584,14 +2584,14 @@ const converters = {
             await entity.write('ssIasZone', {0xFFF1: {value: 0x03010000, type: 0x23}}, options);
         },
     },
-    JTBZ01AQA_gas: {
-        key: ['gas'],
+    aqara_alarm: {
+        key: ['gas', 'smoke'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x013a], manufacturerOptions.xiaomi);
         },
     },
-    JTBZ01AQA_gas_density: {
-        key: ['gas_density'],
+    aqara_density: {
+        key: ['gas_density', 'smoke_density'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x013b], manufacturerOptions.xiaomi);
         },
@@ -2608,26 +2608,39 @@ const converters = {
             await entity.read('aqaraOpple', [0x010c], manufacturerOptions.xiaomi);
         },
     },
-    JTBZ01AQA_selftest: {
+    aqara_selftest: {
         key: ['selftest'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('aqaraOpple', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.xiaomi);
         },
     },
-    JTBZ01AQA_mute_buzzer: {
+    aqara_mute_buzzer: {
         key: ['mute_buzzer'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('aqaraOpple', {0x013f: {value: 15360, type: 0x23}}, manufacturerOptions.xiaomi);
+            let attribute = 0x013f;
+            if (['JY-GZ-01AQ'].includes(meta.mapped.model)) attribute = 0x013e;
+            await entity.write('aqaraOpple', {[`${attribute}`]: {value: 15360, type: 0x23}}, manufacturerOptions.xiaomi);
             await entity.write('aqaraOpple', {0x0126: {value: 1, type: 0x20}}, manufacturerOptions.xiaomi);
         },
     },
-    JTBZ01AQA_mute: {
+    aqara_mute: {
         key: ['mute'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0126], manufacturerOptions.xiaomi);
         },
     },
-    JTBZ01AQA_linkage_alarm: {
+    JYGZ01AQ_heartbeat_indicator: {
+        key: ['heartbeat_indicator'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {true: 1, false: 0};
+            await entity.write('aqaraOpple', {0x013c: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {heartbeat_indicator: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x013c], manufacturerOptions.xiaomi);
+        },
+    },
+    aqara_linkage_alarm: {
         key: ['linkage_alarm'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {true: 1, false: 0};
