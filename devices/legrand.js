@@ -345,8 +345,7 @@ module.exports = [
         zigbeeModel: [' Mobile outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'WNRR15/WNRR20',
-        vendor: ' Legrand\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
-            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+        vendor: 'Legrand',
         ota: ota.zigbeeOTA,
         description: 'Outlet with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
