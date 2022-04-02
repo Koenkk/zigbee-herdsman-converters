@@ -10,7 +10,7 @@ module.exports = [
         zigbeeModel: ['ORVIBO Socket'],
         model: 'OR-ZB-S010-3C',
         vendor: 'ORVIBO',
-        description: 'Smart Socket',
+        description: 'Smart socket',
         extend: extend.switch(),
     },
     {

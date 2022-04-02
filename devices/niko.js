@@ -5,6 +5,60 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    fz: {
+        switch_operation_mode: {
+            cluster: 'manuSpecificNikoSwitchSetup',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+                if (msg.data.hasOwnProperty('operationMode')) {
+                    const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
+                    const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
+                    state[operationModeProperty] = operationModeMap[msg.data.operationMode];
+                }
+                return state;
+            },
+        },
+        switch_action: {
+            cluster: 'manuSpecificNikoSwitch',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+
+                if (msg.data.hasOwnProperty('action')) {
+                    // NOTE: a single press = two seperate values reported, 16 followed by 64
+                    //       a hold/release cyle = three seperate values, 16, 32, and 48
+                    const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
+                    const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
+                    state[actionProperty] = actionMap[msg.data.action];
+                }
+                return state;
+            },
+        },
+    },
+    tz: {
+        switch_operation_mode: {
+            key: ['operation_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                // WARN: while we can technically write 0x00 to the operationMode attribute
+                //       this seems to brick the device and it will need to be rejoined
+                const operationModeLookup = {control_relay: 0x02, decoupled: 0x01};
+                if (!operationModeLookup.hasOwnProperty(value)) {
+                    throw new Error(`operation_mode was called with an invalid value (${value})`);
+                } else {
+                    const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
+                    await entity.write('manuSpecificNikoSwitchSetup', {'operationMode': operationModeLookup[value]});
+                    return {state: {[operationModeProperty]: value.toLowerCase()}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            },
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['Connected socket outlet'],
@@ -74,5 +128,53 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ['Single connectable switch,10A'],
+        model: '552-721X1',
+        vendor: 'Niko',
+        description: 'Single connectable switch',
+        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
+        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+            await endpoint.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+        },
+        exposes: [
+            e.switch(),
+            e.action(['single', 'hold', 'release']),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+        ],
+    },
+    {
+        zigbeeModel: ['Double connectable switch,10A'],
+        model: '552-721X2',
+        vendor: 'Niko',
+        description: 'Double connectable switch',
+        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
+        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            await reporting.bind(ep1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(ep1);
+            await reporting.onOff(ep2);
+            await ep1.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            await ep2.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+        },
+        exposes: [
+            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.action(['single', 'hold', 'release']).withEndpoint('l1'),
+            e.action(['single', 'hold', 'release']).withEndpoint('l2'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
+        ],
     },
 ];

@@ -252,7 +252,7 @@ D1542
 NLG-CCT light
 NLG-TW light
 NLG-RGBW_light
-NLG-RGBW light
+NLG-RGBW__light
 NLG-RGB-TW light
 100.110.51
 100.075.74
