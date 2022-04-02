@@ -6,8 +6,8 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2-beta
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
       with:
         node-version: 16
     - name: Get NodeJS Version
@@ -16,10 +16,10 @@ jobs:
         echo "::set-output name=version::$(node --version)"
     - name: Restore node_modules cache
       id: cache-node-modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: node_modules
-        key: ${{ runner.os }}-${{ steps.nodeversion.outputs.version }}-${{ hashFiles('npm-shrinkwrap.json') }}
+        key: ${{ runner.os }}-${{ steps.nodeversion.outputs.version }}-${{ hashFiles('package-lock.json') }}
     - name: Install dependencies
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: npm ci
