@@ -4241,6 +4241,47 @@ const converters = {
             }
         },
     },
+    connecte_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandGetData'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = msg.data;
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.connecteSwitch:
+                return {state: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.connecteMode:
+                return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
+            case tuya.dataPoints.connecteSetTemp:
+                return {current_heating_setpoint: value};
+            case tuya.dataPoints.connecteLocalTemp:
+                return {local_temperature: value};
+            case tuya.dataPoints.connecteRoomTempCalibration:
+                return {local_temperature_calibration: value};
+            case tuya.dataPoints.connecteChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.connecteTempFloor:
+                return {external_temperature: value};
+            case tuya.dataPoints.connecteSensorType:
+                return {sensor: {0: 'internal', 1: 'external', 2: 'max_guard'}[value]};
+            case tuya.dataPoints.connecteTempActivate:
+                return {activate_temperature: value};
+            case tuya.dataPoints.connecteLoadStatus:
+                return {heating: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.connecteTempProgram:
+                break;
+            case tuya.dataPoints.connecteOpenWindow:
+                return {window_detection: value ? 'ACTIVE' : 'DISABLED'};
+            case tuya.dataPoints.connecteMaxProtectTemp:
+                return {max_temperature: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:connecte_thermostat: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     saswell_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
