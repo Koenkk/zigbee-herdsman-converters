@@ -2791,7 +2791,7 @@ module.exports = [
         model: '929002294102',
         vendor: 'Philips',
         description: 'Hue white Candle bulb E14 bluetooth',
-        meta: { turnsOffAtBrightness1: true },
+        meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
