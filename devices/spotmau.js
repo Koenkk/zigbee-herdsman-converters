@@ -10,6 +10,9 @@ module.exports = [
         vendor: 'Spotmau',
         description: 'Smart wall switch - 1 gang',
         extend: extend.switch(),
+        endpoint: (device) => {
+            return {default: 16};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(16), coordinatorEndpoint, ['genOnOff', 'genBasic']);
         },
