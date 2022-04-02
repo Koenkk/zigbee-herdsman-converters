@@ -5079,10 +5079,13 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
-
+            let manufacturerName = 'unknow'
+            if(meta.device && meta.device.manufacturerName){
+              manufacturerName = meta.device.manufacturerName
+            }
             if (key === 'position') {
                 if (value >= 0 && value <= 100) {
-                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ?
+                    const invert = tuya.isCoverInverted(manufacturerName) ?
                         !meta.options.invert_cover : meta.options.invert_cover;
 
                     value = invert ? 100 - value : value;
@@ -5091,8 +5094,8 @@ const converters = {
                     throw new Error('TuYa_cover_control: Curtain motor position is out of range');
                 }
             } else if (key === 'state') {
-                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
-                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                const stateEnums = tuya.getCoverStateEnums(manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${manufacturerName}:
                 ${JSON.stringify(stateEnums)}`);
 
                 value = value.toLowerCase();
@@ -7111,7 +7114,106 @@ const converters = {
         },
     },
     // #endregion
-
+    zm25tq_cover_control: {
+        key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
+        convertSet: async (entity, key, value, meta) => {
+          // Protocol description
+          // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+          let manufacturerName = 'unknow'
+          if(meta.device && meta.device.manufacturerName){
+            manufacturerName = meta.device.manufacturerName
+          }
+          if (key === 'position') {
+            if (value >= 0 && value <= 100) {
+              const invert = tuya.isCoverInverted(manufacturerName) ?
+                !meta.options.invert_cover : meta.options.invert_cover;
+    
+              value = invert ? 100 - value : value;
+              await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
+            } else {
+              throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+            }
+          } else if (key === 'state') {
+            const stateEnums = tuya.getCoverStateEnums(manufacturerName);
+            meta.logger.debug(`TuYa_cover_control: Using state enums for ${manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+    
+            value = value.toLowerCase();
+            switch (value) {
+              case 'close':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
+                break;
+              case 'open':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
+                break;
+              case 'stop':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
+                break;
+              default:
+                throw new Error('TuYa_cover_control: Invalid command received');
+            }
+          }
+        },
+      },
+    zm25tq_cover_options: {
+        key: ['top_limit', 'middle_limit', 'bottom_limit', 'motor_direction'],
+        convertSet: async (entity, key, value, meta) => {
+          value = value.toLowerCase()
+          const message = meta.message
+          const motor_direction_value = message.hasOwnProperty('motor_direction') ? message.motor_direction.toLowerCase() : null
+          if (motor_direction_value === 'forward') {
+            coverTopLimit = 103
+            coverMiddleLimit = 104
+            coverBottomLimit = 105
+          } else {
+            coverTopLimit = 105
+            coverMiddleLimit = 104
+            coverBottomLimit = 103
+          }
+          if (key === 'top_limit') {
+            //tuya.dataPoints.coverTopLimit = 103
+            if (value === 'save') {
+              meta.logger.info('Motor top limit save')
+              await tuya.sendDataPointBool(entity, coverTopLimit, 1)
+            } else if (value === 'clean') {
+              meta.logger.info('Motor top limit clean')
+              await tuya.sendDataPointBool(entity, coverTopLimit, 0)
+            }
+          }
+          if (key === 'middle_limit') {
+            //tuya.dataPoints.coverMiddleLimit = 104
+            if (value === 'save') {
+              meta.logger.info('Motor middle limit save')
+              await tuya.sendDataPointBool(entity, coverMiddleLimit, 1)
+            } else if (value === 'clean') {
+              meta.logger.info('Motor middle limit clean')
+              await tuya.sendDataPointBool(entity, coverMiddleLimit, 0)
+            }
+          }
+          if (key === 'bottom_limit') {
+            //tuya.dataPoints.coverBottomLimit = 105
+            if (value === 'save') {
+              meta.logger.info('Motor bottom limit save')
+              await tuya.sendDataPointBool(entity, coverBottomLimit, 1)
+            } else if (value === 'clean') {
+              //
+              meta.logger.info('Motor bottom limit clean')
+              await tuya.sendDataPointBool(entity, coverBottomLimit, 0)
+            }
+          }
+          if (key === 'motor_direction') {
+            //tuya.dataPoints.motorDirection = 5
+            if (value === 'forward') {
+              meta.logger.info('Motor direction is set forward')
+              await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 0)
+            } else if (value === 'back') {
+              meta.logger.info('Motor direction is set back')
+              await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 1)
+            }
+          }
+        },
+      },
     // #region Ignore converters
     ignore_transition: {
         key: ['transition'],

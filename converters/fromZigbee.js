@@ -8198,6 +8198,97 @@ const converters = {
             }
         },
     },
+    zm25tq_cover: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+          const dpValue = tuya.firstDpValue(msg, meta, 'tuya_cover')
+          const dp = dpValue.dp
+          const value = tuya.getDataValue(dpValue)
+          let motor_direction_value = 'forward'
+    
+          if (meta.state !== undefined && meta.state.motor_direction !== undefined) {
+            motor_direction_value = meta.state.motor_direction.toLowerCase()
+          }
+          if (motor_direction_value === 'forward') {
+            coverTopLimit = 103
+            coverMiddleLimit = 104
+            coverBottomLimit = 105
+          } else {
+            coverTopLimit = 105
+            coverMiddleLimit = 104
+            coverBottomLimit = 103
+          }
+          switch (dp) {
+            case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+              break;
+            case tuya.dataPoints.coverArrived: {
+              // Arrived at position
+              const running =
+                dp === tuya.dataPoints.coverArrived ? false : true
+              const invert = tuya.isCoverInverted(
+                meta.device.manufacturerName
+              )
+                ? !options.invert_cover
+                : options.invert_cover
+              const position = invert
+                ? 100 - (value & 0xff)
+                : value & 0xff
+    
+              if (position > 0 && position <= 100) {
+                return { running, position, state: 'OPEN' }
+              } else if (position == 0) {
+                // Report fully closed
+                return { running, position, state: 'CLOSE' }
+              } else {
+                return { running } // Not calibrated yet, no position is available
+              }
+            }
+            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+              break;
+            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+              break;
+            case tuya.dataPoints.motorDirection: // Returned by motorDirection set; ignore
+              if (!value) {
+                return { motor_direction: 'Forward' }
+              } else {
+                return { motor_direction: 'Back' }
+              }
+    
+            case 12:
+              break;
+            case coverTopLimit: // tuya.dataPoints.coverTopLimit
+              if (value) {
+                return { top_limit: 'Save' }
+              } else {
+                return { top_limit: 'Clean' }
+              }
+    
+            case coverMiddleLimit: // tuya.dataPoints.coverMiddleLimit
+              if (value) {
+                return { middle_limit: 'Save' }
+              } else {
+                return { middle_limit: 'Clean' }
+              }
+    
+            case coverBottomLimit: // tuya.dataPoints.coverBottomLimit
+              if (value) {
+                return { bottom_limit: 'Save' }
+              } else {
+                return { bottom_limit: 'Clean' }
+              }
+            case 106: // tuya.dataPoints.motorMode
+              break;
+            default:
+              // Unknown code
+              meta.logger
+                .warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName
+                  }:
+              ${JSON.stringify(dpValue)}`)
+          }
+        },
+    },
     tm081: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport'],
