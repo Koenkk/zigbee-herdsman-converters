@@ -77,15 +77,12 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 0x110A};
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'manuSpecificSamsungAccelerometer']);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
-            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
+            const options = {manufacturerCode: 0x104E};
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-
             const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
             const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
@@ -94,6 +91,9 @@ module.exports = [
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
             const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
             e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
