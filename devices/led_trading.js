@@ -1,9 +1,38 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 
+const fzLocal = {
+    led_trading_9133: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {0x13: 'press_1', 0x14: 'press_2', 0x15: 'press_3', 0x16: 'press_4',
+                0x1B: 'hold_1', 0x1C: 'hold_2', 0x1D: 'hold_3', 0x1E: 'hold_4'};
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`led_trading_9133: missing command '${commandID}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+};
+
 module.exports = [
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
+        model: '9133',
+        vendor: 'Led Trading',
+        description: 'Pushbutton transmitter module',
+        fromZigbee: [fzLocal.led_trading_9133],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'hold_1', 'press_2', 'hold_2', 'press_3', 'hold_3', 'press_4', 'hold_4'])],
+    },
     {
         zigbeeModel: ['HK-LN-DIM-A'],
         model: 'HK-LN-DIM-A',
