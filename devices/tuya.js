@@ -45,7 +45,7 @@ const tzLocal = {
 
 const fzLocal = {
     scenes_recall_scene_65029: {
-        cluster: 65029,
+        cluster: '65029',
         type: ['raw', 'attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
