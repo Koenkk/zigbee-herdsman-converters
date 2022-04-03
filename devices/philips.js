@@ -117,20 +117,20 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
-	{
+    {
         zigbeeModel: ['915005997601'],
         model: '915005997601',
         vendor: 'Philips',
-        description: 'Hue Devere M White Ambiance White & Dimmer',
+        description: 'Hue Devere M white ambiance white & dimmer',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
     },
-	{
+    {
         zigbeeModel: ['915005997701'],
         model: '915005997701',
         vendor: 'Philips',
-        description: 'Hue Devere L White Ambiance White & Dimmer',
+        description: 'Hue Devere L white ambiance white & dimmer',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
