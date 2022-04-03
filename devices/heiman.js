@@ -248,7 +248,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'}],
-        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
+        zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
         description: 'Smart siren',
@@ -261,6 +261,22 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.battery(), e.warning()],
+    },
+    {
+        zigbeeModel: ['SRHMP-I1'],
+        model: 'HS2WD-E',
+        vendor: 'HEIMAN',
+        description: 'Smart siren',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_siren],
+        toZigbee: [tz.warning],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [exposes.binary('alarm', ea.STATE_SET, true, false).withDescription('Manual start of siren'),
+                  e.battery(), e.warning()],
     },
     {
         zigbeeModel: ['SOHM-I1'],
