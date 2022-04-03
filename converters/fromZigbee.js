@@ -3129,6 +3129,21 @@ const converters = {
             };
         },
     },
+    plaid_battery: {
+        cluster: 'genPowerCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('mainsVoltage')) {
+                payload.voltage = msg.data['mainsVoltage'];
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                }
+            }
+            return payload;
+        },
+    },
     silvercrest_smart_led_string: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
