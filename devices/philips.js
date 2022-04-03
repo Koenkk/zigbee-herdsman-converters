@@ -2822,6 +2822,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['915005998201'],
+        model: '915005998201',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['915005997301', '915005997201'],
         model: '915005997301',
         vendor: 'Philips',
