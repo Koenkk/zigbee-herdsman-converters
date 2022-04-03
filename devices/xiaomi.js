@@ -1047,7 +1047,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_basic, fz.electrical_measurement, fz.metering,
             fz.aqara_opple, fz.xiaomi_power, fz.device_temperature],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -1096,7 +1096,7 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy(),
+        exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },
@@ -1170,9 +1170,9 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart natural gas detector',
         fromZigbee: [fz.aqara_opple],
-        toZigbee: [tz.JTBZ01AQA_gas, tz.JTBZ01AQA_gas_density, tz.JTBZ01AQA_gas_sensitivity, tz.JTBZ01AQA_selftest,
-            tz.JTBZ01AQA_mute_buzzer, tz.JTBZ01AQA_mute, tz.JTBZ01AQA_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
-        exposes: [e.gas().withAccess(ea.STATE_GET), e.power_outage_count().withAccess(ea.STATE_GET),
+        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.JTBZ01AQA_gas_sensitivity, tz.aqara_selftest, tz.aqara_mute_buzzer,
+            tz.aqara_mute, tz.aqara_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
+        exposes: [e.gas().withAccess(ea.STATE_GET),
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
@@ -1186,7 +1186,7 @@ module.exports = [
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
             exposes.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
                 '(measurement of the gas concentration value and triggering of an alarm are only performed in the "work" state)'),
-        ],
+            e.power_outage_count().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
@@ -1196,6 +1196,40 @@ module.exports = [
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0002], {manufacturerCode: 0x115f});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.sensor_smoke.acn03'],
+        model: 'JY-GZ-01AQ',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart smoke detector',
+        fromZigbee: [fz.aqara_opple, fz.battery],
+        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.aqara_selftest, tz.aqara_mute_buzzer, tz.aqara_mute,
+            tz.JYGZ01AQ_heartbeat_indicator, tz.aqara_linkage_alarm],
+        exposes: [e.smoke().withAccess(ea.STATE_GET),
+            exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
+            exposes.numeric('smoke_density_dbm', ea.STATE).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
+            exposes.enum('selftest', ea.SET, ['Test']).withDescription('Starts the self-test process (checking the indicator ' +
+                'light and buzzer work properly)'),
+            exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
+            exposes.enum('mute_buzzer', ea.SET, ['Mute']).withDescription('Mute the buzzer for 80 seconds (buzzer cannot be ' +
+                'pre-muted, because this function only works when the alarm is triggered)'),
+            exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
+            exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
+                'the normal monitoring state, the green indicator light flashes every 60 seconds'),
+            exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
+                'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
+            e.temperature(), e.battery()],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x013c], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
         },
         ota: ota.zigbeeOTA,
     },
@@ -1236,11 +1270,13 @@ module.exports = [
         model: 'ZNCLDJ11LM',
         description: 'Aqara curtain motor',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
-                .withDescription('Whether the motor is moving or not')],
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+                .withDescription('Motor state')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1248,7 +1284,7 @@ module.exports = [
         model: 'SRSC-M01',
         description: 'Aqara roller shade motor',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.cover_position_tilt, fz.xiaomi_curtain_options],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
@@ -1259,8 +1295,8 @@ module.exports = [
         zigbeeModel: ['lumi.curtain.hagl04'],
         model: 'ZNCLDJ12LM',
         vendor: 'Xiaomi',
-        description: 'Aqara B1 curtain motor ',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.ignore_basic_report, fz.xiaomi_curtain_options],
+        description: 'Aqara B1 curtain motor',
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.battery, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
@@ -1284,8 +1320,8 @@ module.exports = [
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.cover_position_tilt, fz.ignore_basic_report,
-            fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.xiaomi_curtain_position_tilt,
+            fz.ignore_basic_report, fz.aqara_opple],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_battery, tz.xiaomi_curtain_acn002_charging_status],
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
             exposes.binary('charging_status', ea.STATE_GET, true, false)

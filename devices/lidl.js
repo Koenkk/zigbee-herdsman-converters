@@ -379,6 +379,15 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
+        model: 'HG08164',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart button',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
         model: 'HG06668',
         vendor: 'Lidl',
@@ -492,6 +501,17 @@ module.exports = [
         model: '14156506L',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED mood light',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_z1vlyufu'}],
+        model: '14158704L',
+        vendor: 'Lidl',
+        description: 'Livarno Home LED floor lamp, RGBW',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {

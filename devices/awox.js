@@ -183,7 +183,7 @@ module.exports = [
         model: '33943/33944/33946',
         vendor: 'AwoX',
         description: 'LED RGB & brightness',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370], supportsHS: true}),
     },
     {
         fingerprint: [

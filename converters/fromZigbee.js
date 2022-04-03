@@ -44,6 +44,9 @@ const converters = {
                 result[postfixWithEndpointName('local_temperature_calibration', msg, model)] =
                     precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
             }
+            if (msg.data.hasOwnProperty('outdoorTemp')) {
+                result[postfixWithEndpointName('outdoor_temperature', msg, model)] = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+            }
             if (msg.data.hasOwnProperty('occupancy')) {
                 result[postfixWithEndpointName('occupancy', msg, model)] = (msg.data.occupancy % 2) > 0;
             }
@@ -3389,6 +3392,23 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossLoadEstimate')) {
                 result[postfixWithEndpointName('load_estimate', msg, model)] = msg.data['danfossLoadEstimate'];
             }
+            if (msg.data.hasOwnProperty('danfossPreheatStatus')) {
+                result[postfixWithEndpointName('preheat_status', msg, model)] = (msg.data['danfossPreheatStatus'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunStatus')) {
+                result[postfixWithEndpointName('adaptation_run_status', msg, model)] =
+                    constants.danfossAdaptionRunStatus[msg.data['danfossAdaptionRunStatus']];
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunSettings')) {
+                result[postfixWithEndpointName('adaptation_run_settings', msg, model)] = (msg.data['danfossAdaptionRunSettings'] === 1);
+            }
+            if (msg.data.hasOwnProperty('danfossAdaptionRunControl')) {
+                result[postfixWithEndpointName('adaptation_run_control', msg, model)] =
+                    constants.danfossAdaptionRunControl[msg.data['danfossAdaptionRunControl']];
+            }
+            if (msg.data.hasOwnProperty('danfossRegulationSetpointOffset')) {
+                result[postfixWithEndpointName('regulation_setpoint_offset', msg, model)] = msg.data['danfossRegulationSetpointOffset'];
+            }
             // Danfoss Icon Converters
             if (msg.data.hasOwnProperty('danfossRoomStatusCode')) {
                 result[postfixWithEndpointName('room_status_code', msg, model)] =
@@ -3800,7 +3820,12 @@ const converters = {
                 return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
+                if (meta.device.manufacturerName !== '_TZE200_ye5jkfsb') {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11980
+                    temperature = temperature / 10;
+                }
+
+                return {local_temperature: parseFloat(temperature.toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
                 temperature = value;
                 // for negative values produce complimentary hex (equivalent to negative values)
@@ -4173,6 +4198,7 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            const swapPM25CO2 = ['_TZE200_ryfmq5rl', '_TZE200_dwcarsat'];
             switch (dp) {
             case tuya.dataPoints.tuyaSabTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
@@ -4180,21 +4206,21 @@ const converters = {
                 return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
             case tuya.dataPoints.tuyaSabFormaldehyd:
-                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                if (swapPM25CO2.includes(meta.device.manufacturerName)) {
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
                 } else {
                     return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case tuya.dataPoints.tuyaSabCO2:
-                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
+                if (swapPM25CO2.includes(meta.device.manufacturerName)) {
                     return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
                 } else {
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
                 }
             case tuya.dataPoints.tuyaSabVOC:
                 return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
-            case tuya.dataPoints.tuyaSahkCH2O:
+            case tuya.dataPoints.tuyaSahkFormaldehyd:
                 return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
@@ -4560,10 +4586,33 @@ const converters = {
             } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (dpValue.dp === 2) {
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else { // TODO: Unknown dp, assumed value type
-                return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+            } else if (meta.device.manufacturerName === '_TZE200_3p5ydos3') {
+                if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
+                    return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
+                } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {
+                    return {min_brightness: mapNumberRange(value, 0, 1000, 1, 255)};
+                } else if (dpValue.dp === tuya.dataPoints.dimmerMaxLevel) {
+                    return {max_brightness: mapNumberRange(value, 0, 1000, 1, 255)};
+                } else {
+                    tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                }
+            } else {
+                if (dpValue.dp !== tuya.dataPoints.dimmerLevel) {
+                    tuya.logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                }
+                if (dpValue.datatype !== tuya.dataTypes.value) {
+                    tuya.logUnexpectedDataType('tuya_dimmer', msg, dpValue, meta);
+                } else {
+                    if (value < 10) {
+                        tuya.logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                    }
+                    return {brightness: mapNumberRange(value, 10, 1000, 0, 254), level: value};
+                }
             }
         },
     },
@@ -4573,14 +4622,6 @@ const converters = {
         convert: (model, msg, publis, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
-            const getType = (datatype) => {
-                const entry = Object.entries(tuya.dataTypes).find(([typeName, typeId]) => typeId === datatype);
-                return (entry ? entry[0] : 'unknown');
-            };
-            const getAllDpIds = (dp) => {
-                const entries = Object.entries(tuya.dataPoints).filter(([dpName, dpId]) => dpId === dp);
-                return entries.map(([dpName, dpId]) => dpName);
-            };
             const getHex = (value) => {
                 let hex = value.toString(16);
                 if (hex.length < 2) {
@@ -4591,11 +4632,7 @@ const converters = {
             const now = Date.now().toString();
             let dataStr = '';
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
-                const value = tuya.getDataValue(dpValue);
-                meta.logger.info(`zigbee-herdsman-converters:tuya_data_point_dump: Received DP #${
-                    dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': type='${msg.type}', datatype='${
-                    getType(dpValue.datatype)}', value='${value}', known DP# usage: ${JSON.stringify(getAllDpIds(dpValue.dp))}`);
-
+                tuya.logDataPoint('tuya_data_point_dump', msg, dpValue, meta);
                 dataStr +=
                     now + ' ' +
                     meta.device.ieeeAddr + ' ' +
@@ -4803,6 +4840,7 @@ const converters = {
                 0x1e: 'press_1_and_4', 0x1f: 'release_1_and_4', 0x1c: 'press_2_and_3', 0x1d: 'release_2_and_3', 0x1a: 'press_2_and_4',
                 0x1b: 'release_2_and_4', 0x16: 'press_3_and_4', 0x17: 'release_3_and_4', 0x10: 'press_energy_bar',
                 0x11: 'release_energy_bar', 0x0: 'press_or_release_all',
+                0x50: 'lock', 0x51: 'unlock', 0x52: 'half_open', 0x53: 'tilt',
             };
 
             if (!lookup.hasOwnProperty(commandID)) {
@@ -4982,6 +5020,12 @@ const converters = {
                 switch (dp) {
                 case tuya.dataPoints.state:
                     result.smoke = value === 0;
+                    break;
+                case 14:
+                    // battery state, ignore
+                    break;
+                case 15:
+                    result.battery = value;
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`);
@@ -5653,38 +5697,33 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            let running = false;
-
             if (model.model === 'ZNCLDJ12LM' && msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
                 // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
 
-            if (msg.data['61440']) {
-                const value = msg.data['61440'];
-                // 63025664 comes from https://github.com/Koenkk/zigbee2mqtt/issues/5155#issuecomment-753344248
-                running = value !== 0 && value !== 63025664;
-            }
-
             let position = precisionRound(msg.data['presentValue'], 2);
             position = options.invert_cover ? 100 - position : position;
-            return {position: position, running: running};
+            return {position};
         },
     },
-    xiaomi_curtain_options: {
-        cluster: 'genBasic',
+    xiaomi_curtain_position_tilt: {
+        cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data['1025'];
-            if (data) {
-                return {
-                    options: { // next values update only when curtain finished initial setup and knows current position
-                        reverse_direction: data[2]=='\u0001',
-                        hand_open: data[5]=='\u0000',
-                    },
-                };
+            const result = {};
+            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
+                const value = msg.data['currentPositionLiftPercentage'];
+                result[postfixWithEndpointName('position', msg, model)] = invert ? 100 - value : value;
             }
+            if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
+                const value = msg.data['currentPositionTiltPercentage'];
+                result[postfixWithEndpointName('tilt', msg, model)] = invert ? 100 - value : value;
+            }
+            return result;
         },
     },
     xiaomi_curtain_acn002_position: {

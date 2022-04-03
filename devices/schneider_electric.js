@@ -680,7 +680,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['CCT595011_AS'],
-        model: 'CCT595011_AS',
+        model: 'CCT595011',
         vendor: 'Schneider Electric',
         description: 'Wiser motion sensor',
         fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2, fz.illuminance],
