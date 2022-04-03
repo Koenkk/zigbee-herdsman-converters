@@ -21,12 +21,12 @@ module.exports = [
         },
         exposes: [
             exposes.binary('state', ea.STATE, true, false).withDescription('State of thermostat'),
-            exposes.climate()
-                .withPreset(['manual', 'auto', 'holiday'], ea.STATE)
+            exposes.climate(ea.STATE)
+                // .withPreset(['manual', 'auto', 'holiday'], ea.STATE) waiting till tozigbee is working
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE)
-                .withSensor(['internal', 'external', 'both'], ea.STATE)
+                // .withSensor(['internal', 'external', 'both'], ea.STATE) waiting till tozigbee is working
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.binary('child_lock', ea.STATE, true, false).withDescription('Child lock enabled'),
             exposes.numeric('external_temperature', ea.STATE)

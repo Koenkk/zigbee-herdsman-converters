@@ -4259,7 +4259,7 @@ const converters = {
             case tuya.dataPoints.connecteSwitch:
                 return {state: value ? 'ON': 'OFF'};
             case tuya.dataPoints.connecteMode:
-                return {preset: {0: 'manual', 1: 'auto', 2: 'holiday'}[value]};
+                // return {preset: {0: 'manual', 1: 'auto', 2: 'holiday'}[value]}; see exposes
             case tuya.dataPoints.connecteSetTemp:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.connecteLocalTemp:
@@ -4271,7 +4271,7 @@ const converters = {
             case tuya.dataPoints.connecteTempFloor:
                 return {external_temperature: value};
             case tuya.dataPoints.connecteSensorType:
-                return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+                // return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]}; see exposes
             case tuya.dataPoints.connecteTempActivate:
                 return {activate_temperature: value};
             case tuya.dataPoints.connecteLoadStatus:
