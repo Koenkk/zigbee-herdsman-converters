@@ -173,7 +173,7 @@ module.exports = [
             tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
-            .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
+            .withRunningState(['idle', 'heat', 'cool', 'fan_only', 'aux_heat', 'heat_no_fan']).withFanMode(['auto', 'on'])
             .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
             .withLocalTemperatureCalibration(-30, 30, 0.1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
