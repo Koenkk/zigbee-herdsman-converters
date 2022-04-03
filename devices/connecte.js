@@ -21,19 +21,18 @@ module.exports = [
         },
         exposes: [
             exposes.binary('state', ea.STATE, true, false).withDescription('State of thermostat'),
-            exposes.numeric('system_mode', ea.STATE),
             exposes.climate()
+                .withPreset(['manual', 'auto', 'holiday'], ea.STATE)
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE)
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE),
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE)
+                .withSensor(['internal', 'external', 'both'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.binary('child_lock', ea.STATE, true, false).withDescription('Child lock enabled'),
             exposes.numeric('external_temperature', ea.STATE)
                 .withUnit('°C')
                 .withDescription('Current temperature measured on the external sensor (floor)'),
-            exposes.numeric('sensor', ea.STATE)
-                .withDescription('Sensor type. Internal, floor, Max guard (regulator on air temperature and limiter with floor sensor'),
             exposes.numeric('activate_temperature', ea.STATE).withDescription('Turn'),
-            exposes.binary('heating', ea.STATE, true, false).withDescription('Heating or not'),
             exposes.binary('window_detection', ea.STATE, 'ACTIVE', 'DISABLED').withDescription('Open windows detection activated'),
             exposes.numeric('max_temperature', ea.STATE)
                 .withUnit('°C')
