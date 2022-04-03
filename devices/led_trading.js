@@ -1,7 +1,8 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
-const e = exposes.presets;
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+sconst e = exposes.presets;
 
 module.exports = [
     {
