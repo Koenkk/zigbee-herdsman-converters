@@ -1930,6 +1930,21 @@ module.exports = [
             exposes.binary('garage_door_contact', ea.STATE, true, false)],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wfxuhoea'}],
+        model: 'GDC311ZBQ1',
+        vendor: 'TuYa',
+        description: 'LoraTap garage door opener with wireless sensor',
+        fromZigbee: [fz.matsee_garage_door_opener, fz.ignore_basic_report],
+        toZigbee: [tz.matsee_garage_door_opener, tz.tuya_data_point_test],
+        whiteLabel: [{vendor: 'LoraTap', model: 'GDC311ZBQ1'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
+            exposes.binary('garage_door_contact', ea.STATE, false, true).withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
+    },
+    {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],
         model: 'LCZ030',
         vendor: 'TuYa',
