@@ -5976,13 +5976,6 @@ const converters = {
             return result;
         },
     },
-    scenes_recall_scene_65029: {
-        cluster: 65029,
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data[msg.data.length - 1]}`};
-        },
-    },
     scenes_recall_scene_65024: {
         cluster: 65024,
         type: ['raw'],

@@ -44,6 +44,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    scenes_recall_scene_65029: {
+        cluster: 65029,
+        type: ['raw', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
+            return {action: `scene_${id}`};
+        },
+    },
     TS0201_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -1713,7 +1721,7 @@ module.exports = [
         model: 'U86KCJ-ZP',
         vendor: 'TuYa',
         description: 'Smart 6 key scene wall switch',
-        fromZigbee: [fz.scenes_recall_scene_65029],
+        fromZigbee: [fzLocal.scenes_recall_scene_65029],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
