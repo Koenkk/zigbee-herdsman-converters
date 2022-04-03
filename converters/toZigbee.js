@@ -313,7 +313,7 @@ const converters = {
         },
     },
     warning: {
-        key: ['warning'],
+        key: ['warning','alarm'],
         convertSet: async (entity, key, value, meta) => {
             const mode = {'stop': 0, 'burglar': 1, 'fire': 2, 'emergency': 3, 'police_panic': 4, 'fire_panic': 5, 'emergency_panic': 6};
             const level = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3};
