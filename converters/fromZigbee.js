@@ -3135,7 +3135,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
             if (msg.data.hasOwnProperty('mainsVoltage')) {
-                // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['mainsVoltage'];
 
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
