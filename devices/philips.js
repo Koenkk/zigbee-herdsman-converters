@@ -2787,6 +2787,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['LWE006'],
+        model: '929002294102',
+        vendor: 'Philips',
+        description: 'Hue white candle bulb E14 bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LWE007'],
         model: '9290030211',
         vendor: 'Philips',
