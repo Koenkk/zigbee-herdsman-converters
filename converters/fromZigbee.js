@@ -4220,7 +4220,7 @@ const converters = {
                 }
             case tuya.dataPoints.tuyaSabVOC:
                 return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
-            case tuya.dataPoints.tuyaSahkCH2O:
+            case tuya.dataPoints.tuyaSahkFormaldehyd:
                 return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
