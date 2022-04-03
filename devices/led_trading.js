@@ -37,4 +37,13 @@ module.exports = [
             await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
+        model: '9133',
+        vendor: 'Led Trading',
+        description: 'Pushbutton transmitter module',
+        fromZigbee: [lfz.led_trading_9133],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'hold_1', 'press_2', 'hold_2', 'press_3', 'hold_3', 'press_4', 'hold_4'])],
+    },
 ];
