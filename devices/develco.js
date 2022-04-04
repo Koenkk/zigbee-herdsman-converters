@@ -54,8 +54,7 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
             await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
-            // dont use this, because it breaks all devices that dont support it. Look above for correct usage.
-            // await reporting.acFrequency(endpoint);
+            await reporting.acFrequency(endpoint);
         },
         endpoint: (device) => {
             return {default: 2};
