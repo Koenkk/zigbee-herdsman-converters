@@ -2512,7 +2512,8 @@ const converters = {
             } else if (dp === tuya.dataPoints.neoMaxHumidity) {
                 return {humidity_max: value};
             } else if (dp === 113) {
-                return {alarm: {0: 'over_temperature', 1: 'over_humidity', 2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value],};
+                return {alarm: {0: 'over_temperature', 1: 'over_humidity',
+                    2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
             } else {
                 meta.logger.warn(`fromZigbee.neo_nas_pd07: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
@@ -7212,13 +7213,13 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
             if (dp === 103) {
                 meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw', 4: 'auto_config'}[value],};
+                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw', 4: 'auto_config'}[value]};
             } else if (dp === 105) {
                 meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value],};
+                return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
             } else if (dp === 109) {
                 meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value],};
+                return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value]};
             } else {
                 meta.logger.warn(`fromZigbee.ZB006X_settings: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
