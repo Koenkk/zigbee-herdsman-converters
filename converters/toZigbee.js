@@ -6312,7 +6312,8 @@ const converters = {
             switch (key) {
             case 'ext_switch_type':
                 meta.logger.debug(`toZigbee.ZB006X_settings: Send key/value [${key}|${value}]`);
-                await tuya.sendDataPointEnum(entity, 103, {'unknown': 0, 'toggle_sw': 1, 'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value]);
+                await tuya.sendDataPointEnum(entity, 103, {'unknown': 0, 'toggle_sw': 1,
+                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value]);
                 break;
             case 'load_detection_mode':
                 meta.logger.debug(`toZigbee.ZB006X_settings: Send key/value [${key}|${value}]`);
