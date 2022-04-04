@@ -8,7 +8,7 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['ZBEK-4'],
-        model: 'IM-CDZDGAAA0005KA8MAN',
+        model: 'IM-CDZDGAAA0005KA_MAN',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN RGBTW GU10 Bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
