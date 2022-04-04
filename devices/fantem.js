@@ -13,11 +13,13 @@ module.exports = [
         vendor: 'Fantem',
         description: 'Smart dimmer module without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
-        fromZigbee: [fz.ZB006X_settings],
-        toZigbee: [tz.ZB006X_settings],
+        fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee, fz.ZB006X_settings],
+        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tz.ZB006X_settings],
         exposes: [e.light_brightness(),
-            exposes.enum('ext_switch_type', ea.STATE_SET, ['unknown', 'toggle_sw', 'momentary_sw', 'rotary_sw', 'auto_config']).withDescription('External switch type'),
-            exposes.enum('load_detection_mode', ea.STATE_SET, ['none', 'first_power_on', 'every_power_on']).withDescription('Load detection mode'),
+            exposes.enum('ext_switch_type', ea.STATE_SET, ['unknown', 'toggle_sw', 'momentary_sw', 'rotary_sw', 'auto_config'])
+                .withDescription('External switch type'),
+            exposes.enum('load_detection_mode', ea.STATE_SET, ['none', 'first_power_on', 'every_power_on'])
+                .withDescription('Load detection mode'),
             exposes.enum('control_mode', ea.STATE_SET, ['local', 'remote', 'both']).withDescription('Control mode'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
