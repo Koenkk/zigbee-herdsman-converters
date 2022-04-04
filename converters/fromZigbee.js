@@ -7194,6 +7194,27 @@ const converters = {
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+    ZB006X_settings: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'ZB006X_settings');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            if (dp === 103) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw', 4: 'auto_config'}[value],};
+            } else if (dp === 105) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value],};
+            } else if (dp === 109) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value],};
+            } else {
+                meta.logger.warn(`fromZigbee.ZB006X_settings: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     ZM35HQ_attr: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],

@@ -6285,6 +6285,27 @@ const converters = {
             }
         },
     },
+    ZB006X_settings: {
+        key: ['ext_switch_type', 'load_detection_mode', 'control_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'ext_switch_type':
+                meta.logger.debug(`toZigbee.ZB006X_settings: Send key/value [${key}|${value}]`);
+                await tuya.sendDataPointEnum(entity, 103, {'unknown': 0, 'toggle_sw': 1, 'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value]);
+                break;
+            case 'load_detection_mode':
+                meta.logger.debug(`toZigbee.ZB006X_settings: Send key/value [${key}|${value}]`);
+                await tuya.sendDataPointEnum(entity, 105, {'none': 0, 'first_power_on': 1, 'every_power_on': 2}[value]);
+                break;
+            case 'control_mode':
+                meta.logger.debug(`toZigbee.ZB006X_settings: Send key/value [${key}|${value}]`);
+                await tuya.sendDataPointEnum(entity, 109, {'local': 0, 'remote': 1, 'both': 2}[value]);
+                break;
+            default: // Unknown key
+                throw new Error(`toZigbee.ZB006X_settings: Unhandled key ${key}`);
+            }
+        },
+    },
     ZM35HQ_attr: {
         key: [
             'sensitivity', 'keep_time',
