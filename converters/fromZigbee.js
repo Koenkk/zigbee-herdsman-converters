@@ -7565,11 +7565,11 @@ const converters = {
             if (0x8000 in msg.data) {
                 const firmware = msg.data[0x8000].join('.');
                 result.current_firmware = firmware;
-                msg.device.zhDevice.softwareBuildID = firmware;
+                meta.device.softwareBuildID = firmware;
             }
 
             if (0x8020 in msg.data) {
-                msg.device.zhDevice.hardwareVersion = msg.data[0x8020].join('.');
+                meta.device.hardwareVersion = msg.data[0x8020].join('.');
             }
 
             return result;
