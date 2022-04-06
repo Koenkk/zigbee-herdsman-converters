@@ -32,5 +32,3 @@ module.exports = [
         exposes: [e.light_brightness(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
     },
 ];
-
-await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor', 'acCurrentDivisor', 'acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
