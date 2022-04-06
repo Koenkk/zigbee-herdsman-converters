@@ -20,8 +20,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
             await reporting.brightness(endpoint);
             // Unit missing acFrequencyDivisor and acFrequencyMultiplier, so we need to target specific units in haElectricalMeasurement
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor', 'acCurrentDivisor' ]);
-            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier' ]);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             // end
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2V
