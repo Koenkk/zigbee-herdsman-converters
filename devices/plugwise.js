@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = { ...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee };
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -28,7 +28,12 @@ module.exports = [
         vendor: 'Plugwise',
         description: 'Tom thermostatic radiator valve',
         fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fz.legacy.plugwise_radiator_valve],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint, tz.thermostat_pi_heating_demand, tz.plugwise_valve_position],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_pi_heating_demand,
+            tz.plugwise_valve_position,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
