@@ -729,7 +729,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'}],
+        fingerprint: [
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
+        ],
         model: 'WSD500A',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
