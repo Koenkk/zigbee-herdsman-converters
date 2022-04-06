@@ -287,7 +287,7 @@ module.exports = [
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low()],
     },
     {
         zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],

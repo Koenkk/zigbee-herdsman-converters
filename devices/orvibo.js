@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['ORVIBO Socket'],
+        zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
         model: 'OR-ZB-S010-3C',
         vendor: 'ORVIBO',
         description: 'Smart socket',

@@ -46,7 +46,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            // Set to true, to access the acFrequencyDivisor and acFrequencyMultiplier attribute. Not all devices support this.
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
             await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
             await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
