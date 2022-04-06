@@ -160,6 +160,14 @@ module.exports = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['BY 286 C'],
+        model: 'BY 286 C',
+        vendor: 'Innr',
+        description: 'B22 bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 165'],
         model: 'RB 165',
         vendor: 'Innr',
