@@ -4797,64 +4797,6 @@ const converters = {
             return {action: msg.data.presentValue === 1 ? 'off' : 'on'};
         },
     },
-    schneider_powertag: {
-        cluster: 'greenPower',
-        type: ['commandNotification', 'commandCommisioningNotification'],
-        convert: async (model, msg, publish, options, meta) => {
-            if (msg.type !== 'commandNotification') {
-                return;
-            }
-
-            const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-
-            const rxAfterTx = (msg.data.options & (1<<11));
-            const ret = {};
-
-            switch (commandID) {
-            case 0xA1:
-                Object.entries(msg.data.commandFrame.attributes).forEach(([attr, val]) => {
-                    switch (attr) {
-                    case 'totalActivePower':
-                        ret['power'] = val;
-                        break;
-                    case 'currentSummDelivered':
-                        ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / 1000.0;
-                        break;
-                    }
-                });
-
-                break;
-            case 0xA3:
-                // Should handle this cluster as well
-                break;
-            }
-
-            if (rxAfterTx) {
-                // Send Schneider specific ACK to make PowerTag happy
-                const networkParameters = await msg.device.zh.getNetworkParameters();
-                const payload = {
-                    options: 0b000,
-                    tempMaster: msg.data.gppNwkAddr,
-                    tempMasterTx: networkParameters.channel - 11,
-                    srcID: msg.data.srcID,
-                    gpdCmd: 0xFE,
-                    gpdPayload: {
-                        commandID: 0xFE,
-                        buffer: Buffer.alloc(1), // I hope it's zero initialised
-                    },
-                };
-
-                await msg.endpoint.commandResponse('greenPower', 'response', payload,
-                    {
-                        srcEndpoint: 242,
-                        disableDefaultResponse: true,
-                    });
-            }
-
-            return ret;
-        },
-    },
     enocean_ptm215z: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
