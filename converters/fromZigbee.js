@@ -2488,6 +2488,11 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = converters.thermostat.convert(model, msg, publish, options, meta);
 
+            // Reports pIHeatingDemand between 0 and 100 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+
             if (typeof msg.data[0x4003] == 'number') {
                 result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
             }

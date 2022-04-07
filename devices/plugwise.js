@@ -46,9 +46,9 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'auto'], ea.ALL)
                 .withPiHeatingDemand(ea.STATE_GET),
-            exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(255)
+            exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
-                    'closed) to 255 (valve fully open)'),
+                    'closed) to 100 (valve fully open)'),
         ],
     },
 ];
