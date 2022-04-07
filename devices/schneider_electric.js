@@ -777,6 +777,15 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['CCT592011_AS'],
+        model: 'CCT592011',
+        vendor: 'Schneider Electric',
+        description: 'Wiser water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.water_leak(), e.tamper()],
+    },
+    {
         fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000e.......$/}],
         model: 'A9MEM1570',
         vendor: 'Schneider Electric',
