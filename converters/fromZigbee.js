@@ -5477,7 +5477,7 @@ const converters = {
             return payload;
         },
     },
-    RTCGQ12LM_occupancy_illuminance: {
+    aqara_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
