@@ -3005,6 +3005,68 @@ const converters = {
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     },
+    connecte_thermostat: {
+        key: [
+            'child_lock', 'current_heating_setpoint', 'local_temperature_calibration', 'max_temperature_protection', 'window_detection',
+            'hysteresis', 'state', 'away_mode', 'sensor', 'system_mode',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'state':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteState, value === 'ON');
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteTempCalibration, value);
+                break;
+            case 'hysteresis':
+                // value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteHysteresis, value);
+                break;
+            case 'max_temperature_protection':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteMaxProtectTemp, Math.round(value));
+                break;
+            case 'current_heating_setpoint':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteHeatingSetpoint, value);
+                break;
+            case 'sensor':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.connecteSensorType,
+                    {'internal': 0, 'external': 1, 'both': 2}[value]);
+                break;
+            case 'system_mode':
+                switch (value) {
+                case 'heat':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                case 'auto':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 1 /* auto */);
+                    break;
+                }
+                break;
+            case 'away_mode':
+                switch (value) {
+                case 'ON':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 2 /* auto */);
+                    break;
+                case 'OFF':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                }
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteOpenWindow, value === 'ON');
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.connecte_thermostat ${key}`);
+            }
+        },
+    },
+
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
