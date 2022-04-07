@@ -179,6 +179,15 @@ module.exports = [
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ogkdpgy2'}],
+        model: 'TS0601_co2_sensor',
+        vendor: 'TuYa',
+        description: 'NDIR co2 sensor',
+        fromZigbee: [fz.tuya_air_quality],
+        toZigbee: [],
+        exposes: [e.co2()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
         model: 'TS0601_smart_CO_air_box',
         vendor: 'TuYa',
