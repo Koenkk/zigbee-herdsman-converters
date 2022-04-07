@@ -10,7 +10,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_4hbx5cvx'}],
         model: '4500994',
         vendor: 'Connecte',
-        description: 'Smart termostat',
+        description: 'Smart thermostat',
         fromZigbee: [fz.connecte_thermostat],
         toZigbee: [tz.connecte_thermostat],
         onEvent: tuya.onEventSetTime,
