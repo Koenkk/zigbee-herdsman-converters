@@ -73,17 +73,30 @@ module.exports = [
         model: '3321-S',
         vendor: 'SmartThings',
         description: 'Multi Sensor (2015 model)',
-        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery, fz.smartthings_acceleration],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            const options = {manufacturerCode: 0x104E};
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
+            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
+            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
+            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
+            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
+            e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
         zigbeeModel: ['3200-Sgb'],
