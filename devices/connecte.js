@@ -20,7 +20,8 @@ module.exports = [
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
         },
         exposes: [
-            e.switch().setAccess('state', ea.STATE_SET),
+            exposes.binary('state', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('On/off state of the switch'),
             e.child_lock(),
             e.window_detection(),
             exposes.climate()
