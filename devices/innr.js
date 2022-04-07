@@ -48,6 +48,14 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OGL 130 C'],
+        model: 'OGL 130 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart globe lights',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 1000], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['OPL 130 C'],
         model: 'OPL 130 C',
         vendor: 'Innr',

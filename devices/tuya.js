@@ -215,7 +215,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zwaadvus'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
@@ -682,6 +682,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_pgq2qvyv'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -728,7 +729,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'}],
+        fingerprint: [
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
+        ],
         model: 'WSD500A',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
