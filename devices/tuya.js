@@ -1400,7 +1400,7 @@ module.exports = [
     },
     {
         fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [69, 68, 65, 64].map((applicationVersion) => {
+            return [69, 68, 65, 64, 74].map((applicationVersion) => {
                 return {modelID: 'TS011F', manufacturerName, applicationVersion};
             });
         })),
