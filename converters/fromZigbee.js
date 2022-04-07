@@ -4264,39 +4264,47 @@ const converters = {
     },
     connecte_thermostat: {
         cluster: 'manuSpecificTuya',
-        type: ['commandGetData'],
+        type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = msg.data;
+            const dpValue = tuya.firstDpValue(msg, meta, 'connecte_thermostat');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
-            case tuya.dataPoints.connecteSwitch:
-                return {state: value ? 'ON': 'OFF'};
+            case tuya.dataPoints.connecteState:
+                return {state: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.connecteMode:
-                // return {preset: {0: 'manual', 1: 'auto', 2: 'holiday'}[value]}; see exposes
-            case tuya.dataPoints.connecteSetTemp:
+                switch (value) {
+                case 0: // manual
+                    return {system_mode: 'heat', away_mode: 'OFF'};
+                case 1: // home (auto)
+                    return {system_mode: 'auto', away_mode: 'OFF'};
+                case 2: // away (auto)
+                    return {system_mode: 'auto', away_mode: 'ON'};
+                }
+                break;
+            case tuya.dataPoints.connecteHeatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.connecteLocalTemp:
                 return {local_temperature: value};
-            case tuya.dataPoints.connecteRoomTempCalibration:
+            case tuya.dataPoints.connecteTempCalibration:
                 return {local_temperature_calibration: value};
             case tuya.dataPoints.connecteChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.connecteTempFloor:
                 return {external_temperature: value};
             case tuya.dataPoints.connecteSensorType:
-                // return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]}; see exposes
-            case tuya.dataPoints.connecteTempActivate:
-                return {activate_temperature: value};
-            case tuya.dataPoints.connecteLoadStatus:
+                return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+            case tuya.dataPoints.connecteHysteresis:
+                return {hysteresis: value};
+            case tuya.dataPoints.connecteRunningState:
                 return {running_state: value ? 'heat' : 'idle'};
             case tuya.dataPoints.connecteTempProgram:
                 break;
             case tuya.dataPoints.connecteOpenWindow:
-                return {window_detection: value ? 'ACTIVE' : 'DISABLED'};
+                return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.connecteMaxProtectTemp:
-                return {max_temperature: value};
+                return {max_temperature_protection: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:connecte_thermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
