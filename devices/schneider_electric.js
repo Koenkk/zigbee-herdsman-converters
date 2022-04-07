@@ -54,7 +54,7 @@ const fzLocal = {
 
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
-                const networkParameters = await msg.device.zh.getNetworkParameters();
+                const networkParameters = await msg.device.zh.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,
                     tempMaster: msg.data.gppNwkAddr,
