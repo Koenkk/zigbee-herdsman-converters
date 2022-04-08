@@ -4726,6 +4726,43 @@ const converters = {
             });
         },
     },
+    tuya_data_point_dump_alt: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandActiveStatusReportAlt'],
+        convert: (model, msg, publis, options, meta) => {
+            // Don't use! This is only for tests with Fantem ZB006-X
+            // tuya_data_point_dump_alt will be removed in future!
+            // Changes will be integrated in tuya_data_point_dump, if tests successful
+            const getHex = (value) => {
+                let hex = value.toString(16);
+                if (hex.length < 2) {
+                    hex = '0' + hex;
+                }
+                return hex;
+            };
+            const now = Date.now().toString();
+            let dataStr = '';
+            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+                tuya.logDataPoint('tuya_data_point_dump_alt', msg, dpValue, meta);
+                dataStr +=
+                    now + ' ' +
+                    meta.device.ieeeAddr + ' ' +
+                    getHex(msg.data.seq) + ' ' +
+                    getHex(i) + ' ' +
+                    getHex(dpValue.dp) + ' ' +
+                    getHex(dpValue.datatype);
+
+                dpValue.data.forEach((elem) => {
+                    dataStr += ' ' + getHex(elem);
+                });
+                dataStr += '\n';
+            }
+            const fs = require('fs');
+            fs.appendFile('data/tuya.dump.alt.txt', dataStr, (err) => {
+                if (err) throw err;
+            });
+        },
+    },
     tuya_switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -7255,7 +7292,7 @@ const converters = {
     },
     ZB006X_settings: {
         cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
+        type: ['commandActiveStatusReportAlt'],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZB006X_settings');
             const dp = dpValue.dp;
