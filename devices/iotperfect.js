@@ -7,7 +7,8 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrjkcam9'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_d0ypnbvn'}],
         model: 'PF-PM02D-TYZ',
         vendor: 'IOTPerfect',
         description: 'Smart water/gas valve',
