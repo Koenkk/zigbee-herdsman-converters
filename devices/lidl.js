@@ -657,7 +657,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
         model: '14149505L/14149506L',
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
