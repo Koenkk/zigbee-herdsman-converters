@@ -441,6 +441,16 @@ module.exports = [
         toZigbee: [],
     },
     {
+        fingerprint: [{modelID: 'TS1001', manufacturerName: '_TYZB01_hww2py6b'}],
+        model: 'FB21-001',
+        vendor: 'Lidl',
+        description: 'Livarno Lux switch and dimming light remote control',
+        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
+            'brightness_move_down'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+        toZigbee: [],
+    },
+    {
         fingerprint: [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wzauvbcs'}, // EU
             {modelID: 'TS011F', manufacturerName: '_TZ3000_1obwwnmq'},
