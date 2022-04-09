@@ -3834,6 +3834,28 @@ const converters = {
             await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
         },
     },
+    plugwise_push_force: {
+        key: ['plugwise_push_force', 'force'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(constants.plugwisePushForce, value, value, Number);
+            const payload = { 0x4012: { value: val, type: 0x23 } };
+            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4012], manufacturerOptions.plugwise);
+        },
+    },
+    plugwise_radio_strength: {
+        key: ['plugwise_radio_strength', 'radio_strength'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(constants.plugwiseRadioStrength, value, value, Number);
+            const payload = { 0x4014: { value: val, type: 0x10 } };
+            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4014], manufacturerOptions.plugwise);
+        },
+    },
     sinope_thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {

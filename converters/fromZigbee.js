@@ -2497,7 +2497,7 @@ const converters = {
                 result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
             }
             if (typeof msg.data[0x4008] == 'number') {
-                // TODO: parse this message
+                result.plugwise_t_diff = msg.data[0x4008];
             }
             if (typeof msg.data[0x4002] == 'number') {
                 result.error_status = msg.data[0x4002];
