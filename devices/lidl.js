@@ -732,6 +732,14 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_lxw3zcdk'}],
+        model: 'HG08633',
+        vendor: 'Lidl',
+        description: 'Livarno gardenspot RGB',
+        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
         model: '368308_2010',
         vendor: 'Lidl',
