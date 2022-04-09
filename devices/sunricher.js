@@ -30,6 +30,16 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
     },
     {
+        zigbeeModel: ['ZGRC-KEY-004'],
+        model: 'SR-ZG9001K2-DIM',
+        vendor: 'Sunricher',
+        description: 'Zigbee wall remote control for single color, 1 zone',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off',
+            'brightness_move_up', 'brightness_move_down', 'brightness_move_stop'])],
+    },
+    {
         zigbeeModel: ['ZGRC-KEY-007'],
         model: 'SR-ZG9001K2-DIM2',
         vendor: 'Sunricher',
