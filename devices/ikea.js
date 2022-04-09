@@ -590,7 +590,8 @@ module.exports = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
-        extend: extend.switch(),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
+        exposes: extend.switch().exposes.concat([e.water_leak()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
