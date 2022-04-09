@@ -711,7 +711,7 @@ module.exports = [
         description: 'TREDANSEN cellular blind',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: { battery: {dontDividePercentage: true}},
+        meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
