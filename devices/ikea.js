@@ -592,6 +592,7 @@ module.exports = [
         vendor: 'IKEA',
         fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
         exposes: extend.switch().exposes.concat([e.water_leak()]),
+        extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
