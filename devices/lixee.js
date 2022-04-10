@@ -229,7 +229,7 @@ const tarifsDef = {
             'PEJP',
         ]},
     histo_EJP: {
-        name: 'Historique - EJP',
+        fname: 'Historique - EJP',
         currentTarf: 'EJP.', excluded: [
             'BASE',
             'HCHC',
