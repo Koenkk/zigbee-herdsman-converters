@@ -707,7 +707,7 @@ module.exports = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
-        zigbeeModel: ['TREDANSEN cellular blind'],
+        zigbeeModel: ['TREDANSEN block-out cellul blind'],
         model: 'E2103',
         vendor: 'IKEA',
         description: 'TREDANSEN cellular blind',
