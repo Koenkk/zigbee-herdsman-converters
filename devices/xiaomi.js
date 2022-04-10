@@ -1118,7 +1118,7 @@ module.exports = [
             }
         },
         exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(),
-                  e.voltage().withAccess(ea.STATE), e.current(),
+            e.voltage().withAccess(ea.STATE), e.current(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },
