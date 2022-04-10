@@ -378,7 +378,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm',
-            'TRADFRI bulb E12 CWS opal 600lm'],
+            'TRADFRI bulb E12 CWS opal 600lm', 'TRADFRI bulb E27 C/WS opal 600'],
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
@@ -590,6 +590,8 @@ module.exports = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
+        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
+        exposes: extend.switch().exposes.concat([e.water_leak()]),
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
