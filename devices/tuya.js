@@ -357,7 +357,7 @@ module.exports = [
         description: 'Motion sensor',
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
-            {vendor: 'Tesla Smart', model: 'Tesla Smart Sensor Motion'}],
+            {vendor: 'Tesla Smart', model: 'TS0202'}],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
