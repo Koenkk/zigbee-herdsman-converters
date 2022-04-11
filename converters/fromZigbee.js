@@ -4744,23 +4744,7 @@ const converters = {
             let dataStr = '';
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
                 tuya.logDataPoint('tuya_data_point_dump_alt', msg, dpValue, meta);
-                dataStr +=
-                    now + ' ' +
-                    meta.device.ieeeAddr + ' ' +
-                    getHex(msg.data.seq) + ' ' +
-                    getHex(i) + ' ' +
-                    getHex(dpValue.dp) + ' ' +
-                    getHex(dpValue.datatype);
-
-                dpValue.data.forEach((elem) => {
-                    dataStr += ' ' + getHex(elem);
-                });
-                dataStr += '\n';
-            }
-            const fs = require('fs');
-            fs.appendFile('data/tuya.dump.alt.txt', dataStr, (err) => {
-                if (err) throw err;
-            });
+            };
         },
     },
     tuya_switch_type: {
