@@ -176,5 +176,5 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-    }		
+    },
 ];
