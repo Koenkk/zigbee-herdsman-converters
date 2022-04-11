@@ -4733,18 +4733,9 @@ const converters = {
             // Don't use! This is only for tests with Fantem ZB006-X
             // tuya_data_point_dump_alt will be removed in future!
             // Changes will be integrated in tuya_data_point_dump, if tests successful
-            const getHex = (value) => {
-                let hex = value.toString(16);
-                if (hex.length < 2) {
-                    hex = '0' + hex;
-                }
-                return hex;
-            };
-            const now = Date.now().toString();
-            let dataStr = '';
-            for (const [i, dpValue] of msg.data.dpValues.entries()) {
+            for (const dpValue of msg.data.dpValues) {
                 tuya.logDataPoint('tuya_data_point_dump_alt', msg, dpValue, meta);
-            };
+            }
         },
     },
     tuya_switch_type: {
