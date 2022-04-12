@@ -1190,7 +1190,6 @@ module.exports = [
         ],
         ota: ota.inovelli,
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: INOVELLI};
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff',
@@ -1219,29 +1218,6 @@ module.exports = [
 
             await reporting.activePower(endpoint);
             await reporting.currentSummDelivered(endpoint);
-
-            // Read in All Current ATTRIBUTES
-            await endpoint.read('genLevelCtrl', ['currentLevel']);
-
-            // Split ATTRIBUTES to prevent timeout
-            const readATTRIBUTES = Object.keys(ATTRIBUTES);
-            const SECTIONS = 5;
-            const ATTRIBUTES_PER_SECTION = Math.ceil(
-                readATTRIBUTES.length / SECTIONS,
-            );
-            await Promise.all(
-                readATTRIBUTES
-                    .reduce((acc, cur, i) => {
-                        if (i % ATTRIBUTES_PER_SECTION === 0) {
-                            acc.push([]);
-                        }
-                        acc[acc.length - 1].push(cur);
-                        return acc;
-                    }, [])
-                    .map((ATTRIBUTES) =>
-                        endpoint.read('manuSpecificInovelliVZM31SN', ATTRIBUTES, options),
-                    ),
-            );
         },
     },
 ];
