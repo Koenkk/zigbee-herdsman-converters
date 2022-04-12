@@ -629,7 +629,7 @@ const tzLocal = {};
 // Generate toZigbee items from attribute list.
 
 tzLocal.inovelli_vzw31sn_parameters = {
-    key: Object.keys(ATTRIBUTES),
+    key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
     convertSet: async (entity, key, value, meta) => {
         const payload = {
             [ATTRIBUTES[key].ID]: {
@@ -674,6 +674,31 @@ tzLocal.inovelli_vzw31sn_parameters = {
             return {state: value};
         }
     },
+};
+
+tzLocal.inovelli_vzw31sn_parameters_readOnly = {
+    key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
+    convertGet: async (entity, key, meta) => {
+        const value = await entity.read('manuSpecificInovelliVZM31SN', [key], {
+            manufacturerCode: INOVELLI,
+        });
+
+        if (ATTRIBUTES[key].displayType === 'enum') {
+            const valueState = Object.keys(ATTRIBUTES[key].values).find(
+                (a) => ATTRIBUTES[key].values[a] === value[key],
+            );
+            meta.state[key] = valueState;
+            return {
+                state: {
+                    [key]: valueState,
+                },
+            };
+        } else {
+            meta.state[key] = value[key];
+            return {state: value};
+        }
+    },
+    convertSet: undefined,
 };
 
 tzLocal.inovelli_led_effect = {
@@ -1098,6 +1123,7 @@ const toZigbee = [
     tz.inovelli_led_effect,
     tzLocal.inovelli_individual_led_effect,
     tzLocal.inovelli_vzw31sn_parameters,
+    tzLocal.inovelli_vzw31sn_parameters_readOnly,
 ];
 
 // Create Expose list with Inovelli Parameters
@@ -1106,7 +1132,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         const enumE = exposes
             .enum(
                 key,
-                ATTRIBUTES[key].readOnly ? ea.GET_STATE : ea.ALL,
+                ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
                 Object.keys(ATTRIBUTES[key].values),
             )
             .withDescription(ATTRIBUTES[key].description);
@@ -1119,30 +1145,25 @@ Object.keys(ATTRIBUTES).forEach((key) => {
             exposes
                 .binary(
                     key,
-                    ATTRIBUTES[key].readOnly ? ea.GET_STATE : ea.ALL,
+                    ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
                 .withDescription(ATTRIBUTES[key].description),
         );
     } else {
-        let numeric = exposes.numeric(
-            key,
-            ATTRIBUTES[key].readOnly ? ea.GET_STATE : ea.ALL,
-        );
-        if (ATTRIBUTES[key].min) {
-            numeric = numeric.withValueMin(ATTRIBUTES[key].min);
-        }
-        if (ATTRIBUTES[key].max) {
-            numeric = numeric.withValueMax(ATTRIBUTES[key].max);
-        }
+        const numeric = exposes
+            .numeric(key, ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL)
+            .withValueMin(ATTRIBUTES[key].min)
+            .withValueMax(ATTRIBUTES[key].max);
+
         if (ATTRIBUTES[key].values) {
             Object.keys(ATTRIBUTES[key].values).forEach((value) => {
-                numeric = numeric.withPreset(value, ATTRIBUTES[key].values[value], '');
+                numeric.withPreset(value, ATTRIBUTES[key].values[value], '');
             });
         }
         if (ATTRIBUTES[key].unit) {
-            numeric = numeric.withUnit(ATTRIBUTES[key].unit);
+            numeric.withUnit(ATTRIBUTES[key].unit);
         }
         numeric.withDescription(ATTRIBUTES[key].description);
         exposesList.push(numeric);

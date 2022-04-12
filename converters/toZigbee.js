@@ -10704,7 +10704,7 @@ const converters = {
                 'manuSpecificInovelliVZM31SN',
                 'led_effect',
                 {
-                    effect: ledEffects[values.effect],
+                    effect: ledEffects[values.effect] || 255,
                     color: Math.min(Math.max(0, values.color), 255),
                     level: Math.min(Math.max(0, values.level), 100),
                     duration: Math.min(Math.max(0, values.duration), 255),
@@ -10732,7 +10732,7 @@ const converters = {
                 'individual_led_effect',
                 {
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    effect: individualLedEffects[values.effect],
+                    effect: individualLedEffects[values.effect] || 255,
                     color: Math.min(Math.max(0, values.color), 255),
                     level: Math.min(Math.max(0, values.level), 100),
                     duration: Math.min(Math.max(0, values.duration), 255),
