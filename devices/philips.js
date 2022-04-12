@@ -642,7 +642,7 @@ module.exports = [
         description: 'Hue Filament Standard A60/E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
-        ota: ota.zigbeeOTA,
+        ota: ota.hue,
     },
     {
         zigbeeModel: ['LCB001'],
@@ -694,7 +694,7 @@ module.exports = [
         description: 'Hue white A60 bulb E27 bluetooth',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
-        ota: ota.zigbeeOTA,
+        ota: ota.hue,
     },
     {
         zigbeeModel: ['LWW003', 'LWF003'],
@@ -901,7 +901,7 @@ module.exports = [
         description: 'Hue white and color ambiance LightStrip plus',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
-        ota: ota.zigbeeOTA,
+        ota: ota.hue,
     },
     {
         zigbeeModel: ['LCL002'],
@@ -2250,7 +2250,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
-        ota: ota.zigbeeOTA,
+        ota: ota.hue,
     },
     {
         zigbeeModel: ['LOM008'],
@@ -2395,9 +2395,9 @@ module.exports = [
         model: '929002241201',
         vendor: 'Philips',
         description: 'Hue white filament Edison E27 LED',
-        ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness(),
+        ota: ota.hue,
     },
     {
         zigbeeModel: ['LTV002'],
