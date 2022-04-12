@@ -35,6 +35,7 @@ module.exports = [
             tz.plugwise_valve_position,
             tz.plugwise_push_force,
             tz.plugwise_radio_strength,
+            tz.plugwise_calibrate_valve,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -51,9 +52,9 @@ module.exports = [
             exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
                     'closed) to 100 (valve fully open)'),
-            exposes.enum('push_force', ea.SET, ['standard', 'high', 'very_high'])
+            exposes.enum('push_force', ea.ALL, ['standard', 'high', 'very_high'])
                 .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),
-            exposes.enum('radio_strength', ea.SET, ['normal', 'high'])
+            exposes.enum('radio_strength', ea.ALL, ['normal', 'high'])
                 .withDescription('Transmits with higher power when range is not sufficient'),
         ],
     },

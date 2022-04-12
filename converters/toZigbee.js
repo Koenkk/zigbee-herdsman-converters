@@ -3824,6 +3824,14 @@ const converters = {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
         },
     },
+    plugwise_calibrate_valve: {
+        key: ['calibrate_valve'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {},
+                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+            return {state: {'calibrate_valve': value}};
+        },
+    },
     plugwise_valve_position: {
         key: ['plugwise_valve_position', 'valve_position'],
         convertSet: async (entity, key, value, meta) => {
@@ -3838,7 +3846,7 @@ const converters = {
         key: ['plugwise_push_force', 'force'],
         convertSet: async (entity, key, value, meta) => {
             const val = utils.getKey(constants.plugwisePushForce, value, value, Number);
-            const payload = { 0x4012: { value: val, type: 0x23 } };
+            const payload = {0x4012: {value: val, type: 0x23}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
         },
         convertGet: async (entity, key, meta) => {
@@ -3849,7 +3857,7 @@ const converters = {
         key: ['plugwise_radio_strength', 'radio_strength'],
         convertSet: async (entity, key, value, meta) => {
             const val = utils.getKey(constants.plugwiseRadioStrength, value, value, Number);
-            const payload = { 0x4014: { value: val, type: 0x10 } };
+            const payload = {0x4014: {value: val, type: 0x10}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
         },
         convertGet: async (entity, key, meta) => {
