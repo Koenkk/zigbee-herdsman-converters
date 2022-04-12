@@ -72,7 +72,7 @@ module.exports = [
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
             'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
-            'SmokeSensor-EF-3.0'],
+            'SmokeSensor-EF-3.0', 'SMOK_HV14'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
