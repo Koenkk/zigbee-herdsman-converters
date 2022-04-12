@@ -56,6 +56,8 @@ module.exports = [
                 .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),
             exposes.enum('radio_strength', ea.ALL, ['normal', 'high'])
                 .withDescription('Transmits with higher power when range is not sufficient'),
+            exposes.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle')
+                .withDescription('Calibrates valve on next wakeup'),
         ],
     },
 ];
