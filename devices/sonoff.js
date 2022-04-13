@@ -20,6 +20,9 @@ module.exports = [
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
         extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Mains (single phase)';
             device.save();
