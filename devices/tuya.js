@@ -284,6 +284,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_mzdax7ha'},
+            {modelID: 'TS0505B', manufacturerName: '_TZB210_tmi0rihb'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
         model: 'TS0505B',
