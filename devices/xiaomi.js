@@ -119,7 +119,9 @@ module.exports = [
         model: 'XDD11LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX960',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -127,7 +129,9 @@ module.exports = [
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -135,7 +139,9 @@ module.exports = [
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
