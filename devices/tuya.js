@@ -1133,7 +1133,7 @@ module.exports = [
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options, tz.tuya_data_point_test],
         exposes: [
-            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
         zigbeeModel: ['kud7u2l'],
