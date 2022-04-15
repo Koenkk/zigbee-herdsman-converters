@@ -25,6 +25,11 @@ module.exports = [
         fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
         exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
         configure: async (device, coordinatorEndpoint, logger) => {
+            // Unbind genPollCtrl to prevent device from sending checkin message.
+            // Zigbee-herdsmans responds to the checkin message which causes the device
+            // to poll slower.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
