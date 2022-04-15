@@ -529,7 +529,7 @@ module.exports = [
         },
     },
     {
-	fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
+    fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
         model: 'HG08008',
         vendor: 'Lidl',
         description: 'Livarno Home LED ceiling light',
