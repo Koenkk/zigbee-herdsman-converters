@@ -528,7 +528,7 @@ module.exports = [
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
     },
-    {    
+    {
 	fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
         model: 'HG08008',
         vendor: 'Lidl',
