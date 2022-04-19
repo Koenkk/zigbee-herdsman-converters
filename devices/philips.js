@@ -591,7 +591,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4090531P9'],
+        zigbeeModel: ['4090531P9', '929003053601'],
         model: '4090531P9',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
