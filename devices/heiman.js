@@ -285,9 +285,17 @@ module.exports = [
         model: 'SMHM-I1',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],
