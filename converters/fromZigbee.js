@@ -5127,6 +5127,37 @@ const converters = {
             }
         },
     },
+    tuya_alecto_smoke: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_alecto_smoke');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            switch (dp) {
+            case tuya.dataPoints.alecto_Smoke_state:
+                return {"Smoke state": {0: "Alarm", 1: "Normal"}[value]};
+            case tuya.dataPoints.alecto_Smoke_value:
+                return {smoke_value: value};
+            case tuya.dataPoints.alecto_Self_checking:
+                return {self_checking: {true: "True", false: "False"}[value]};
+            case tuya.dataPoints.alecto_Checking_result:
+                return {checking_result: {0: "Checking", 1: "Check success", 2: "Check failure", 3: "Others"}[value]};
+            case tuya.dataPoints.alecto_Smoke_test:
+                return {smoke_test: value};
+            case tuya.dataPoints.alecto_Lifecycle:
+                return {lifecycle: value};
+            case tuya.dataPoints.alecto_Battery_percentage:
+                return {battery: value};
+            case tuya.dataPoints.alecto_Battery_state:
+                return {battery_state: {0: "Low", 1: "Middle", 2: "High"}[value]};
+            case tuya.dataPoints.alecto_Silence:
+                return {silence: {true: "True", false: "False"}[value]};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_alecto_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    },
     tuya_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],

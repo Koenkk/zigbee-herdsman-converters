@@ -2490,6 +2490,21 @@ const converters = {
             tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
         },
     },
+    tuya_alecto_smoke: {
+        key: ['self_checking', 'silence'],
+        convertSet: async (entity, key, value, meta) => {
+          switch(key) {
+            case 'self_checking':
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.alecto_Self_checking, value);
+            break;
+            case 'silence':
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.alecto_Silence, value);
+            break;
+      			default: // Unknown key
+				        throw new Error(`zigbee-herdsman-converters:tuya_alecto_smoke: Unhandled key ${key}`);
+          }
+        },
+    },
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: (entity, key, value, meta) => {
