@@ -76,7 +76,19 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/OTA-Image-Types---
 
 ### Philips Hue (Signify)
 
-Philips Hue (Signify) Zigbee OTA firmware images are made publicly available by Dresden Elektronik (third-party) at the following URL:
+Philips Hue OTA firmware images are available for different Hue devices for several official sources that do not all use the same APIs:
+
+https://firmware.meethue.com/v1/checkUpdate
+
+https://firmware.meethue.com/storage/
+
+http://fds.dc1.philips.com/firmware/
+
+Philips Hue (Signify) Zigbee OTA firmware images direct URLs are available by Koenkk zigbee-OTA repository (third-party) at following URL:
+
+https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json
+
+Philips Hue (Signify) Zigbee OTA firmware images are also made publicly available by Dresden Elektronik (third-party) at following URL:
 
 https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/OTA-Image-Types---Firmware-versions#philips-hue
 
