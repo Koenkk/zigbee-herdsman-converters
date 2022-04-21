@@ -52,7 +52,7 @@ const UINT16 = 33;
 const INOVELLI = 0x122f;
 
 const ATTRIBUTES = {
-    dimming_speed_up_remote: {
+    dimmingSpeedUpRemote: {
         ID: 1,
         dataType: UINT8,
         min: 0,
@@ -62,7 +62,7 @@ const ATTRIBUTES = {
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
       'Every number represents 100ms. Default = 25 (2.5s)',
     },
-    dimming_speed_up_local: {
+    dimmingSpeedUpLocal: {
         ID: 2,
         dataType: UINT8,
         min: 0,
@@ -70,9 +70,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light dims up when controlled at the switch. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimming_speed_up_remote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
     },
-    ramp_rate_off_to_on_remote: {
+    rampRateOffToOnRemote: {
         ID: 3,
         dataType: UINT8,
         min: 0,
@@ -80,9 +80,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light turns on when controlled from the hub. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimming_speed_up_remote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
     },
-    ramp_rate_off_to_on_local: {
+    rampRateOffToOnLocal: {
         ID: 4,
         dataType: UINT8,
         min: 0,
@@ -90,9 +90,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light turns on when controlled at the switch. ' +
       'A setting of 0 turns the light immediately on. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimming_speed_up_remote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
     },
-    dimming_speed_down_remote: {
+    dimmingSpeedDownRemote: {
         ID: 5,
         dataType: UINT8,
         min: 0,
@@ -100,9 +100,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light dims down when controlled from the hub. ' +
       'A setting of 0 turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimming_speed_up_remote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.',
     },
-    dimming_speed_down_local: {
+    dimmingSpeedDownLocal: {
         ID: 6,
         dataType: UINT8,
         min: 0,
@@ -110,9 +110,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light dims down when controlled at the switch. ' +
       'A setting of 0 turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with dimming_speed_up_local setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpLocal setting.',
     },
-    ramp_rate_on_to_off_remote: {
+    rampRateOnToOffRemote: {
         ID: 7,
         dataType: UINT8,
         min: 0,
@@ -120,9 +120,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light turns off when controlled from the hub. ' +
       'A setting of \'instant\' turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with ramp_rate_off_to_on_remote setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.',
     },
-    ramp_rate_on_to_off_local: {
+    rampRateOnToOffLocal: {
         ID: 8,
         dataType: UINT8,
         min: 0,
@@ -130,9 +130,9 @@ const ATTRIBUTES = {
         description:
       'This changes the speed that the light turns off when controlled at the switch. ' +
       'A setting of \'instant\' turns the light immediately off. Increasing the value slows down the transition speed. ' +
-      'Every number represents 100ms. Default = 127 - Keep in sync with ramp_rate_off_to_on_local setting.',
+      'Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnLocal setting.',
     },
-    minimum_level: {
+    minimumLevel: {
         ID: 9,
         dataType: UINT8,
         min: 1,
@@ -141,7 +141,7 @@ const ATTRIBUTES = {
       'The minimum level that the dimmer allows the bulb to be dimmed to. ' +
       'Useful when the user has an LED bulb that does not turn on or flickers at a lower level.',
     },
-    maximum_level: {
+    maximumLevel: {
         ID: 10,
         dataType: UINT8,
         min: 2,
@@ -151,7 +151,7 @@ const ATTRIBUTES = {
       'Useful when the user has an LED bulb that reaches its maximum level before the ' +
       'dimmer value of 99 or when the user wants to limit the maximum brightness.',
     },
-    invert_switch: {
+    invertSwitch: {
         ID: 11,
         dataType: BOOLEAN,
         displayType: 'enum',
@@ -162,7 +162,7 @@ const ATTRIBUTES = {
       'Inverts the orientation of the switch.' +
       ' Useful when the switch is installed upside down. Essentially up becomes down and down becomes up.',
     },
-    auto_timer_off: {
+    autoTimerOff: {
         ID: 12,
         min: 0,
         max: 32767,
@@ -173,7 +173,7 @@ const ATTRIBUTES = {
       'Automatically turns the switch off after this many seconds.' +
       ' When the switch is turned on a timer is started. When the timer expires, the switch is turned off. 0 = Auto off is disabled.',
     },
-    default_level_local: {
+    defaultLevelLocal: {
         ID: 13,
         dataType: UINT8,
         min: 0,
@@ -182,7 +182,7 @@ const ATTRIBUTES = {
       'Default level for the dimmer when it is turned on at the switch.' +
       ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
     },
-    default_level_remote: {
+    defaultLevelRemote: {
         ID: 14,
         dataType: UINT8,
         min: 0,
@@ -191,7 +191,7 @@ const ATTRIBUTES = {
       'Default level for the dimmer when it is turned on from the hub.' +
       ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
     },
-    state_after_power_restored: {
+    stateAfterPowerRestored: {
         ID: 15,
         dataType: UINT8,
         min: 0,
@@ -199,7 +199,7 @@ const ATTRIBUTES = {
         description:
       'The state the switch should return to when power is restored after power failure. 0 = off, 1-100 = level, 101 = previous.',
     },
-    load_level_indicator_timeout: {
+    loadLevelIndicatorTimeout: {
         ID: 17,
         dataType: UINT8,
         description:
@@ -223,7 +223,7 @@ const ATTRIBUTES = {
         min: 0,
         max: 11,
     },
-    active_power_reports: {
+    activePowerReports: {
         ID: 18,
         dataType: UINT16,
         min: 0,
@@ -232,7 +232,7 @@ const ATTRIBUTES = {
       'Power level change that will result in a new power report being sent. ' +
       'The value is a percentage of the previous report. \n0 = disabled, 1-32767 = 0.1W-3276.7W.',
     },
-    periodic_power_and_energy_reports: {
+    periodicPowerAndEnergyReports: {
         ID: 19,
         min: 0,
         max: 32767,
@@ -240,7 +240,7 @@ const ATTRIBUTES = {
         description:
       'Time period between consecutive power & energy reports being sent (in seconds). The timer is reset after each report is sent.',
     },
-    active_energy_reports: {
+    activeEnergyReports: {
         ID: 20,
         dataType: UINT16,
         min: 0,
@@ -249,7 +249,7 @@ const ATTRIBUTES = {
       'Energy reports Energy level change which will result in sending a new energy report.' +
       '0 = disabled, 1-32767 = 0.01kWh-327.67kWh. Default setting: 10 (0.1 kWh)',
     },
-    power_type: {
+    powerType: {
         ID: 21,
         dataType: BOOLEAN,
         displayType: 'enum',
@@ -258,7 +258,7 @@ const ATTRIBUTES = {
         max: 1,
         description: 'Set the power type for the device.',
     },
-    switch_type: {
+    switchType: {
         ID: 22,
         dataType: UINT8,
         displayType: 'enum',
@@ -267,7 +267,7 @@ const ATTRIBUTES = {
         max: 2,
         description: 'Set the switch configuration.',
     },
-    physical_on_off_delay: {
+    physicalOnOffDelay: {
         ID: 50,
         dataType: UINT8,
         values: {
@@ -288,7 +288,7 @@ const ATTRIBUTES = {
         description:
       'This will set the button press delay. 0 = no delay, 1 = 100ms, 2 = 200ms, 3 = 300ms, etc. up to 900ms. Default = 500ms.',
     },
-    smart_bulb_mode: {
+    smartBulbMode: {
         ID: 52,
         dataType: BOOLEAN,
         displayType: 'enum',
@@ -296,7 +296,7 @@ const ATTRIBUTES = {
         description:
       'For use with Smart Bulbs that need constant power and are controlled via commands rather than power.',
     },
-    led_color_when_on: {
+    ledColorWhenOn: {
         ID: 95,
         dataType: UINT8,
         min: 0,
@@ -314,7 +314,7 @@ const ATTRIBUTES = {
         },
         description: 'Set the color of the LED Indicator when the load is on.',
     },
-    led_color_when_off: {
+    ledColorWhenOff: {
         ID: 96,
         dataType: UINT8,
         min: 0,
@@ -332,28 +332,28 @@ const ATTRIBUTES = {
         },
         description: 'Set the color of the LED Indicator when the load is off.',
     },
-    led_intensity_when_on: {
+    ledIntensityWhenOn: {
         ID: 97,
         dataType: UINT8,
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is on.',
     },
-    led_intensity_when_off: {
+    ledIntensityWhenOff: {
         ID: 98,
         dataType: UINT8,
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is off.',
     },
-    local_protection: {
+    localProtection: {
         ID: 256,
         dataType: BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
         description: 'Ability to control switch from the wall.',
         displayType: 'enum',
     },
-    remote_protection: {
+    remoteProtection: {
         ID: 257,
         dataType: BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
@@ -361,7 +361,7 @@ const ATTRIBUTES = {
         description: 'Ability to control switch from the hub.',
         displayType: 'enum',
     },
-    output_mode: {
+    outputMode: {
         ID: 258,
         min: 0,
         max: 1,
@@ -370,7 +370,7 @@ const ATTRIBUTES = {
         description: 'Use device as a Dimmer or an On/Off switch.',
         displayType: 'enum',
     },
-    on_off_led_mode: {
+    onOffLedMode: {
         ID: 259,
         min: 0,
         max: 1,
@@ -380,14 +380,14 @@ const ATTRIBUTES = {
       'When the device is in On/Off mode, use full LED bar or just one LED.',
         displayType: 'enum',
     },
-    firmware_update_in_progress_indicator: {
+    firmwareUpdateInProgressIndicator: {
         ID: 260,
         dataType: BOOLEAN,
         values: {Disabled: 0, Enabled: 1},
         description: 'Display progress on LED bar during firmware update.',
         displayType: 'enum',
     },
-    default_led_1_color_when_on: {
+    defaultLed1ColorWhenOn: {
         ID: 60,
         dataType: UINT8,
         min: 0,
@@ -395,7 +395,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_1_color_when_off: {
+    defaultLed1ColorWhenOff: {
         ID: 61,
         dataType: UINT8,
         min: 0,
@@ -403,7 +403,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_1_intensity_when_on: {
+    defaultLed1IntensityWhenOn: {
         ID: 62,
         dataType: UINT8,
         min: 0,
@@ -411,7 +411,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_1_intensity_when_off: {
+    defaultLed1IntensityWhenOff: {
         ID: 63,
         dataType: UINT8,
         min: 0,
@@ -419,7 +419,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_2_color_when_on: {
+    defaultLed2ColorWhenOn: {
         ID: 65,
         dataType: UINT8,
         min: 0,
@@ -427,7 +427,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_2_color_when_off: {
+    defaultLed2ColorWhenOff: {
         ID: 66,
         dataType: UINT8,
         min: 0,
@@ -435,7 +435,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_2_intensity_when_on: {
+    defaultLed2IntensityWhenOn: {
         ID: 67,
         dataType: UINT8,
         min: 0,
@@ -443,7 +443,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_2_intensity_when_off: {
+    defaultLed2IntensityWhenOff: {
         ID: 68,
         dataType: UINT8,
         min: 0,
@@ -451,7 +451,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_3_color_when_on: {
+    defaultLed3ColorWhenOn: {
         ID: 70,
         dataType: UINT8,
         min: 0,
@@ -459,7 +459,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_3_color_when_off: {
+    defaultLed3ColorWhenOff: {
         ID: 71,
         dataType: UINT8,
         min: 0,
@@ -467,7 +467,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_3_intensity_when_on: {
+    defaultLed3IntensityWhenOn: {
         ID: 72,
         dataType: UINT8,
         min: 0,
@@ -475,7 +475,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_3_intensity_when_off: {
+    defaultLed3IntensityWhenOff: {
         ID: 73,
         dataType: UINT8,
         min: 0,
@@ -483,7 +483,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_4_color_when_on: {
+    defaultLed4ColorWhenOn: {
         ID: 75,
         dataType: UINT8,
         min: 0,
@@ -491,7 +491,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_4_color_when_off: {
+    defaultLed4ColorWhenOff: {
         ID: 76,
         dataType: UINT8,
         min: 0,
@@ -499,7 +499,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_4_intensity_when_on: {
+    defaultLed4IntensityWhenOn: {
         ID: 77,
         dataType: UINT8,
         min: 0,
@@ -507,7 +507,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_4_intensity_when_off: {
+    defaultLed4IntensityWhenOff: {
         ID: 78,
         dataType: UINT8,
         min: 0,
@@ -515,7 +515,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_5_color_when_on: {
+    defaultLed5ColorWhenOn: {
         ID: 80,
         dataType: UINT8,
         min: 0,
@@ -523,7 +523,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_5_color_when_off: {
+    defaultLed5ColorWhenOff: {
         ID: 81,
         dataType: UINT8,
         min: 0,
@@ -531,7 +531,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_5_intensity_when_on: {
+    defaultLed5IntensityWhenOn: {
         ID: 82,
         dataType: UINT8,
         min: 0,
@@ -539,7 +539,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_5_intensity_when_off: {
+    defaultLed5IntensityWhenOff: {
         ID: 83,
         dataType: UINT8,
         min: 0,
@@ -547,7 +547,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_6_color_when_on: {
+    defaultLed6ColorWhenOn: {
         ID: 85,
         dataType: UINT8,
         min: 0,
@@ -555,7 +555,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_6_color_when_off: {
+    defaultLed6ColorWhenOff: {
         ID: 86,
         dataType: UINT8,
         min: 0,
@@ -563,7 +563,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_6_intensity_when_on: {
+    defaultLed6IntensityWhenOn: {
         ID: 87,
         dataType: UINT8,
         min: 0,
@@ -571,7 +571,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_6_intensity_when_off: {
+    defaultLed6IntensityWhenOff: {
         ID: 88,
         dataType: UINT8,
         min: 0,
@@ -579,7 +579,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_7_color_when_on: {
+    defaultLed7ColorWhenOn: {
         ID: 90,
         dataType: UINT8,
         min: 0,
@@ -587,7 +587,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_7_color_when_off: {
+    defaultLed7ColorWhenOff: {
         ID: 91,
         dataType: UINT8,
         min: 0,
@@ -595,7 +595,7 @@ const ATTRIBUTES = {
         description:
       '0-254:This is the color of the LED strip in a hex representation. 255:Synchronization with default all LED strip color parameter.',
     },
-    default_led_7_intensity_when_on: {
+    defaultLed7IntensityWhenOn: {
         ID: 92,
         dataType: UINT8,
         min: 0,
@@ -603,7 +603,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when on. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    default_led_7_intensity_when_off: {
+    defaultLed7IntensityWhenOff: {
         ID: 93,
         dataType: UINT8,
         min: 0,
@@ -611,7 +611,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    double_tap_up_event: {
+    doubleTapUpEvent: {
         ID: 53,
         dataType: BOOLEAN,
         min: 0,
@@ -706,7 +706,7 @@ tzLocal.inovelli_led_effect = {
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
-            'led_effect',
+            'ledEffect',
             {
                 effect: ledEffects[values.effect],
                 color: Math.min(Math.max(0, values.color), 255),
@@ -724,7 +724,7 @@ tzLocal.inovelli_individual_led_effect = {
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
-            'individual_led_effect',
+            'individualLedEffect',
             {
                 led: Math.min(Math.max(0, parseInt(values.led)), 7),
                 effect: individualLedEffects[values.effect],
