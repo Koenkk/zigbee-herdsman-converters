@@ -6,7 +6,7 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['PROLIGHT E27 WHITE AND COLOUR'],
-        model: '5412748727388',
+        model: '5412748727371',
         vendor: 'Prolight',
         description: 'E27 white and colour bulb',
         extend: extend.light_onoff_brightness_colortemp_color(),
@@ -33,8 +33,15 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
     {
+        zigbeeModel: ['PROLIGHT GU10 WARM WHITE'],
+        model: '5412748727395',
+        vendor: 'Prolight',
+        description: 'GU10 spot dimmable',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['PROLIGHT REMOTE CONTROL'],
-        model: 'PROLIGHT_REMOTE_CONTROL',
+        model: '5412748727388',
         vendor: 'Prolight',
         description: 'Remote control',
         toZigbee: [],
