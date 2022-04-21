@@ -7,6 +7,80 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const woox = {
+    fz: {
+        status: {
+            cluster: 'manuSpecificTuya',
+            type: ['commandDataResponse', 'commandDataReport'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                for (const dpValue of msg.data.dpValues) {
+                    const dp = dpValue.dp; // First we get the data point ID
+                    const value = tuya.getDataValue(dpValue); // This function will take care of converting the data to proper JS type
+                    switch (dp) {
+                    case 1:
+                        result.smoke = Boolean(!value);
+                        break;
+                    case 8:
+                        result.testAlarm = value;
+                        break;
+                    case 9: {
+                        const testAlarmResult = {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'};
+                        result.testAlarmResult = testAlarmResult[value];
+                        break;
+                    }
+                    case 11:
+                        result.faultAlarm = Boolean(value);
+                        break;
+                    case 14: {
+                        const batteryLevels = {0: 'low', 1: 'middle', 2: 'high'};
+                        result.batteryLevelState = batteryLevels[value];
+                        break;
+                    }
+                    case 16:
+                        result.silenceSiren = value;
+                        break;
+                    case 20: {
+                        const alarm = {0: true, 1: false};
+                        result.alarm = alarm[value];
+                        break;
+                    }
+                    default:
+                        meta.logger.warn(`zigbee-herdsman-converters:Woox Smoke Detector: NOT RECOGNIZED DP #${
+                            dp} with data ${JSON.stringify(dpValue)}`);
+                    }
+                }
+                return result;
+            },
+        },
+    },
+
+    tz: {
+        silenceSiren: {
+            key: ['silenceSiren'],
+            convertSet: async (entity, key, value, meta) => {
+                // tuya.sendDataPoint* functions take care of converting the data to proper format
+                await tuya.sendDataPointBool(entity, 16, value);
+            },
+        },
+        testAlarm: {
+            key: ['testAlarm'],
+            convertSet: async (entity, key, value, meta) => {
+                // tuya.sendDataPoint* functions take care of converting the data to proper format
+                await tuya.sendDataPointBool(entity, 8, value);
+            },
+        },
+        alarm: {
+            key: ['alarm'],
+            convertSet: async (entity, key, value, meta) => {
+                const linkAlarm = {true: 0, false: 1};
+                // tuya.sendDataPoint* functions take care of converting the data to proper format
+                await tuya.sendDataPointEnum(entity, 20, linkAlarm[value]);
+            },
+        },
+    },
+};
+
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_eymunffl'}],
@@ -50,10 +124,18 @@ module.exports = [
         model: 'R7049',
         vendor: 'Woox',
         description: 'Smart smoke alarm',
-        fromZigbee: [fz.tuya_woox_smoke, fz.ignore_tuya_set_time],
-        toZigbee: [],
+        meta: {timeout: 30000, disableDefaultResponse: true},
+        fromZigbee: [woox.fz.status, fz.ignore_tuya_set_time, fz.ignore_time_read],
+        toZigbee: [woox.tz.silenceSiren, woox.tz.testAlarm, woox.tz.alarm],
+        exposes: [e.battery_low(),
+            exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
+            exposes.binary('testAlarm', ea.STATE_SET, true, false).withDescription('Test alarm'),
+            exposes.enum('testAlarmResult', ea.STATE, []).withDescription('Test alarm result'),
+            exposes.enum('batteryLevelState', ea.STATE, []).withDescription('Battery level state'),
+            exposes.binary('alarm', ea.STATE_SET, true, false).withDescription('Alarm enable'),
+            exposes.binary('faultAlarm', ea.STATE, true, false).withDescription('Fault alarm status'),
+            exposes.binary('silenceSiren', ea.STATE_SET, true, false).withDescription('Silence siren')],
         onEvent: tuya.onEventsetTime,
-        exposes: [e.smoke(), e.battery_low()],
     },
     {
         fingerprint: [{modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'}],
