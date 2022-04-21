@@ -9,7 +9,7 @@ module.exports = [
         model: '5412748727371',
         vendor: 'Prolight',
         description: 'E27 white and colour bulb',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
     {
         zigbeeModel: ['PROLIGHT E27 WARM WHITE CLEAR'],
