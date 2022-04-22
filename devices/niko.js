@@ -8,30 +8,30 @@ const ea = exposes.access;
 const fzLocal = {
     fz: {
         switch_operation_mode: {
-            cluster: 'manuSpecificNikoSwitchSetup',
+            cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
-                if (msg.data.hasOwnProperty('operationMode')) {
+                if (msg.data.hasOwnProperty('switchOperationMode')) {
                     const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
-                    state[operationModeProperty] = operationModeMap[msg.data.operationMode];
+                    state[operationModeProperty] = operationModeMap[msg.data.switchOperationMode];
                 }
                 return state;
             },
         },
         switch_action: {
-            cluster: 'manuSpecificNikoSwitch',
+            cluster: 'manuSpecificNiko2',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
 
-                if (msg.data.hasOwnProperty('action')) {
+                if (msg.data.hasOwnProperty('switchAction')) {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
                     const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
-                    state[actionProperty] = actionMap[msg.data.action];
+                    state[actionProperty] = actionMap[msg.data.switchAction];
                 }
                 return state;
             },
@@ -48,12 +48,12 @@ const fzLocal = {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
-                    await entity.write('manuSpecificNikoSwitchSetup', {'operationMode': operationModeLookup[value]});
+                    await entity.write('manuSpecificNiko1', {'switchOperationMode': operationModeLookup[value]});
                     return {state: {[operationModeProperty]: value.toLowerCase()}};
                 }
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+                await entity.read('manuSpecificNiko1', ['switchOperationMode']);
             },
         },
     },
@@ -140,7 +140,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            await endpoint.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            await endpoint.read('manuSpecificNiko1', ['switchOperationMode']);
         },
         exposes: [
             e.switch(),
@@ -166,8 +166,8 @@ module.exports = [
             await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
-            await ep1.read('manuSpecificNikoSwitchSetup', ['operationMode']);
-            await ep2.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            await ep1.read('manuSpecificNiko1', ['switchOperationMode']);
+            await ep2.read('manuSpecificNiko1', ['switchOperationMode']);
         },
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
