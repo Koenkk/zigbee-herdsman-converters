@@ -119,7 +119,9 @@ module.exports = [
         model: 'XDD11LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX960',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -127,7 +129,9 @@ module.exports = [
         model: 'XDD12LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX650',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -135,7 +139,9 @@ module.exports = [
         model: 'XDD13LM',
         vendor: 'Xiaomi',
         description: 'Aqara Opple MX480',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [175, 370]}),
+        meta: {turnsOffAtBrightness1: true},
+        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disableColorTempStartup: true,
+            colorTempRange: [175, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -874,7 +880,7 @@ module.exports = [
         model: 'RTCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 human body movement and illuminance sensor',
-        fromZigbee: [fz.RTCGQ12LM_occupancy_illuminance, fz.aqara_opple, fz.battery],
+        fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval],
         exposes: [e.occupancy(), e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
@@ -895,6 +901,27 @@ module.exports = [
         fromZigbee: [fz.RTCGQ13LM_occupancy, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.motion.ac02'],
+        model: 'RTCGQ14LM',
+        vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'MS-S02'}],
+        description: 'Aqara P1 human body movement and illuminance sensor',
+        fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
+        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
+        exposes: [e.occupancy(), e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
@@ -1097,6 +1124,7 @@ module.exports = [
             }
         },
         exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(),
+            e.voltage().withAccess(ea.STATE), e.current(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
         ota: ota.zigbeeOTA,
     },

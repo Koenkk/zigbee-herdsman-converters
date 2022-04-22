@@ -260,6 +260,22 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SP2610ZB'],
+        model: 'SP2610ZB',
+        vendor: 'Sinopé',
+        description: 'Zigbee smart outlet',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint, {min: 10, change: 1});
+        },
+    },
+    {
         zigbeeModel: ['DM2500ZB'],
         model: 'DM2500ZB',
         vendor: 'Sinopé',

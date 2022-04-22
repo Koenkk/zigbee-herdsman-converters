@@ -2491,7 +2491,6 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_nas_pd07');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             if (dp === 101) return {occupancy: value > 0 ? true : false};
             else if (dp === 102) {
                 return {
@@ -2504,8 +2503,19 @@ const converters = {
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             } else if (dp === 105) {
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+            } else if (dp === tuya.dataPoints.neoMinTemp) {
+                return {temperature_min: value};
+            } else if (dp === tuya.dataPoints.neoMaxTemp) {
+                return {temperature_max: value};
+            } else if (dp === tuya.dataPoints.neoMinHumidity) {
+                return {humidity_min: value};
+            } else if (dp === tuya.dataPoints.neoMaxHumidity) {
+                return {humidity_max: value};
+            } else if (dp === 113) {
+                return {alarm: {0: 'over_temperature', 1: 'over_humidity',
+                    2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
             } else {
-                meta.logger.warn(`zigbee-herdsman-converters:NEO-PD07: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fromZigbee.neo_nas_pd07: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -3127,6 +3137,21 @@ const converters = {
                 voltage: voltage, // @deprecated
                 // voltage: voltage / 1000.0,
             };
+        },
+    },
+    plaid_battery: {
+        cluster: 'genPowerCfg',
+        type: ['readResponse', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('mainsVoltage')) {
+                payload.voltage = msg.data['mainsVoltage'];
+
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                }
+            }
+            return payload;
         },
     },
     silvercrest_smart_led_string: {
@@ -4243,6 +4268,55 @@ const converters = {
                 return {carbon_monoxide: value ? 'OFF' : 'ON'};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:TuyaSmartAirBox: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
+    connecte_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'connecte_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.connecteState:
+                return {state: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.connecteMode:
+                switch (value) {
+                case 0: // manual
+                    return {system_mode: 'heat', away_mode: 'OFF'};
+                case 1: // home (auto)
+                    return {system_mode: 'auto', away_mode: 'OFF'};
+                case 2: // away (auto)
+                    return {system_mode: 'auto', away_mode: 'ON'};
+                }
+                break;
+            case tuya.dataPoints.connecteHeatingSetpoint:
+                return {current_heating_setpoint: value};
+            case tuya.dataPoints.connecteLocalTemp:
+                return {local_temperature: value};
+            case tuya.dataPoints.connecteTempCalibration:
+                return {local_temperature_calibration: value};
+            case tuya.dataPoints.connecteChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.connecteTempFloor:
+                return {external_temperature: value};
+            case tuya.dataPoints.connecteSensorType:
+                return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+            case tuya.dataPoints.connecteHysteresis:
+                return {hysteresis: value};
+            case tuya.dataPoints.connecteRunningState:
+                return {running_state: value ? 'heat' : 'idle'};
+            case tuya.dataPoints.connecteTempProgram:
+                break;
+            case tuya.dataPoints.connecteOpenWindow:
+                return {window_detection: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.connecteMaxProtectTemp:
+                return {max_temperature_protection: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:connecte_thermostat: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
@@ -5452,7 +5526,7 @@ const converters = {
             return payload;
         },
     },
-    RTCGQ12LM_occupancy_illuminance: {
+    aqara_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
         // Therefore we need to publish the no_motion detected by ourselves.
@@ -5465,7 +5539,7 @@ const converters = {
                 // The occupancy sensor only sends a message when motion detected.
                 // Therefore we need to publish the no_motion detected by ourselves.
                 let timeout = meta && meta.state && meta.state.hasOwnProperty('detection_interval') ?
-                    meta.state.detection_interval : 60;
+                    meta.state.detection_interval : ['RTCGQ14LM'].includes(model.model) ? 30 : 60;
                 timeout = options && options.hasOwnProperty('occupancy_timeout') && options.occupancy_timeout >= timeout ?
                     options.occupancy_timeout : timeout + 2;
 
@@ -5974,13 +6048,6 @@ const converters = {
             if (msg.data['aqiMeasuredValue']) result['aqi'] = msg.data['aqiMeasuredValue'];
             if (msg.data['pm10measuredValue']) result['pm10'] = msg.data['pm10measuredValue'];
             return result;
-        },
-    },
-    scenes_recall_scene_65029: {
-        cluster: 65029,
-        type: ['raw'],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.data[msg.data.length - 1]}`};
         },
     },
     scenes_recall_scene_65024: {
@@ -7186,6 +7253,27 @@ const converters = {
             return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
         },
     },
+    ZB006X_settings: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'ZB006X_settings');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            if (dp === 103) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw', 4: 'auto_config'}[value]};
+            } else if (dp === 105) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
+            } else if (dp === 109) {
+                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value]};
+            } else {
+                meta.logger.warn(`fromZigbee.ZB006X_settings: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     ZM35HQ_attr: {
         cluster: 'ssIasZone',
         type: ['attributeReport', 'readResponse'],
@@ -7526,11 +7614,11 @@ const converters = {
             if (0x8000 in msg.data) {
                 const firmware = msg.data[0x8000].join('.');
                 result.current_firmware = firmware;
-                msg.device.zhDevice.softwareBuildID = firmware;
+                meta.device.softwareBuildID = firmware;
             }
 
             if (0x8020 in msg.data) {
-                msg.device.zhDevice.hardwareVersion = msg.data[0x8020].join('.');
+                meta.device.hardwareVersion = msg.data[0x8020].join('.');
             }
 
             return result;

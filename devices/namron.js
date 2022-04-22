@@ -259,8 +259,8 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['4512737'],
-        model: '4512737',
+        zigbeeModel: ['4512737', '4512738'],
+        model: '4512737/4512738',
         vendor: 'Namron',
         description: 'Touch termostat',
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fz.hvac_user_interface],

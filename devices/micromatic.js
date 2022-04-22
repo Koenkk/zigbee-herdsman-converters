@@ -20,6 +20,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
             await reporting.brightness(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2V
             await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, change of 10 / 0,01A
             await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
@@ -28,4 +29,3 @@ module.exports = [
         exposes: [e.light_brightness(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
     },
 ];
-

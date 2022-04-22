@@ -12,7 +12,8 @@ const utils = require('../lib/utils');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt'];
+    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
+    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -44,6 +45,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    scenes_recall_scene_65029: {
+        cluster: '65029',
+        type: ['raw', 'attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
+            return {action: `scene_${id}`};
+        },
+    },
     TS0201_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -171,6 +180,15 @@ module.exports = [
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ogkdpgy2'}],
+        model: 'TS0601_co2_sensor',
+        vendor: 'TuYa',
+        description: 'NDIR co2 sensor',
+        fromZigbee: [fz.tuya_air_quality],
+        toZigbee: [],
+        exposes: [e.co2()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7bztmfm1'}],
         model: 'TS0601_smart_CO_air_box',
         vendor: 'TuYa',
@@ -193,7 +211,8 @@ module.exports = [
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
-            {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'}],
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'}],
         model: 'WHD02',
         vendor: 'TuYa',
         description: 'Wall switch module',
@@ -207,7 +226,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_mvn6jl7x'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_raviyuvk'}, {modelID: 'TS011F', manufacturerName: '_TYZB01_hlla45kx'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_92qd4sqa'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zwaadvus'}],
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
@@ -260,12 +279,16 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_tza2vjxx'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_it1u8ahz'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_k1pe6ibm'},
+            {modelID: 'TS0505B', manufacturerName: '_TZB210_1ecortg6'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bfwvfyx1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_leyz4rju'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_jd3z4yig'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_dgdjiw1c'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_mzdax7ha'},
+            {modelID: 'TS0505B', manufacturerName: '_TZB210_tmi0rihb'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -293,7 +316,6 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'},
-            {modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_i2i0bsnv'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'}],
         model: 'TS0504B',
@@ -335,7 +357,8 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_dr6sduka'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'},
             {modelID: 'TS0202', manufacturerName: '_TZE200_bq5c8xfe'},
@@ -354,7 +377,9 @@ module.exports = [
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
-        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'}, {vendor: 'TuYa', model: 'TY-ZPR06'}],
+        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
+            {vendor: 'TuYa', model: 'TY-ZPR06'},
+            {vendor: 'Tesla Smart', model: 'TS0202'}],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -674,6 +699,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_rm0hthdo'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_pgq2qvyv'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -720,7 +746,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'}],
+        fingerprint: [
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
+        ],
         model: 'WSD500A',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
@@ -1379,7 +1408,7 @@ module.exports = [
     },
     {
         fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [69, 68, 65, 64].map((applicationVersion) => {
+            return [69, 68, 65, 64, 74].map((applicationVersion) => {
                 return {modelID: 'TS011F', manufacturerName, applicationVersion};
             });
         })),
@@ -1713,7 +1742,7 @@ module.exports = [
         model: 'U86KCJ-ZP',
         vendor: 'TuYa',
         description: 'Smart 6 key scene wall switch',
-        fromZigbee: [fz.scenes_recall_scene_65029],
+        fromZigbee: [fzLocal.scenes_recall_scene_65029],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
@@ -1884,7 +1913,7 @@ module.exports = [
         exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_ky0fq4ho'}],
         model: 'TS011F_din_smart_relay',
         description: 'Din smart relay (with power monitoring)',
         vendor: 'TuYa',
@@ -1920,6 +1949,22 @@ module.exports = [
         },
         exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
             exposes.binary('garage_door_contact', ea.STATE, true, false)],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_wfxuhoea'}],
+        model: 'GDC311ZBQ1',
+        vendor: 'TuYa',
+        description: 'LoraTap garage door opener with wireless sensor',
+        fromZigbee: [fz.matsee_garage_door_opener, fz.ignore_basic_report],
+        toZigbee: [tz.matsee_garage_door_opener, tz.tuya_data_point_test],
+        whiteLabel: [{vendor: 'LoraTap', model: 'GDC311ZBQ1'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [exposes.binary('trigger', ea.STATE_SET, true, false).withDescription('Trigger the door movement'),
+            exposes.binary('garage_door_contact', ea.STATE, false, true)
+                .withDescription('Indicates if the garage door contact is closed (= true) or open (= false)')],
     },
     {
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_qaaysllp'}],

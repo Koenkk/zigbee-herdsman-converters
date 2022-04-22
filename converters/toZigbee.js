@@ -3005,6 +3005,68 @@ const converters = {
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
         },
     },
+    connecte_thermostat: {
+        key: [
+            'child_lock', 'current_heating_setpoint', 'local_temperature_calibration', 'max_temperature_protection', 'window_detection',
+            'hysteresis', 'state', 'away_mode', 'sensor', 'system_mode',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'state':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteState, value === 'ON');
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteTempCalibration, value);
+                break;
+            case 'hysteresis':
+                // value = Math.round(value * 10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteHysteresis, value);
+                break;
+            case 'max_temperature_protection':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteMaxProtectTemp, Math.round(value));
+                break;
+            case 'current_heating_setpoint':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.connecteHeatingSetpoint, value);
+                break;
+            case 'sensor':
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.connecteSensorType,
+                    {'internal': 0, 'external': 1, 'both': 2}[value]);
+                break;
+            case 'system_mode':
+                switch (value) {
+                case 'heat':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                case 'auto':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 1 /* auto */);
+                    break;
+                }
+                break;
+            case 'away_mode':
+                switch (value) {
+                case 'ON':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 2 /* auto */);
+                    break;
+                case 'OFF':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                }
+                break;
+            case 'window_detection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.connecteOpenWindow, value === 'ON');
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.connecte_thermostat ${key}`);
+            }
+        },
+    },
+
     moes_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
@@ -5332,6 +5394,27 @@ const converters = {
             await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
+    neo_nas_pd07: {
+        key: ['temperature_max', 'temperature_min', 'humidity_max', 'humidity_min'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_max':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMaxTemp, value);
+                break;
+            case 'temperature_min':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMinTemp, value);
+                break;
+            case 'humidity_max':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMaxHumidity, value);
+                break;
+            case 'humidity_min':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMinHumidity, value);
+                break;
+            default: // Unknown key
+                throw new Error(`toZigbee.neo_nas_pd07: Unhandled key ${key}`);
+            }
+        },
+    },
     neo_t_h_alarm: {
         key: [
             'alarm', 'melody', 'volume', 'duration',
@@ -6282,6 +6365,25 @@ const converters = {
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    },
+    ZB006X_settings: {
+        key: ['ext_switch_type', 'load_detection_mode', 'control_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'ext_switch_type':
+                await tuya.sendDataPointEnum(entity, 103, {'unknown': 0, 'toggle_sw': 1,
+                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value]);
+                break;
+            case 'load_detection_mode':
+                await tuya.sendDataPointEnum(entity, 105, {'none': 0, 'first_power_on': 1, 'every_power_on': 2}[value]);
+                break;
+            case 'control_mode':
+                await tuya.sendDataPointEnum(entity, 109, {'local': 0, 'remote': 1, 'both': 2}[value]);
+                break;
+            default: // Unknown key
+                throw new Error(`toZigbee.ZB006X_settings: Unhandled key ${key}`);
             }
         },
     },
