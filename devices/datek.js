@@ -41,39 +41,45 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            try {
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            } catch (error) {
+                /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/11867 */
+            }
             const payload = [{
                 attribute: 'rmsVoltagePhB',
-                minimumReportInterval: 10,
+                minimumReportInterval: 60,
                 maximumReportInterval: 3600,
                 reportableChange: 0,
             },
             {
                 attribute: 'rmsVoltagePhC',
-                minimumReportInterval: 10,
+                minimumReportInterval: 60,
                 maximumReportInterval: 3600,
                 reportableChange: 0,
             },
             {
                 attribute: 'rmsCurrentPhB',
-                minimumReportInterval: 10,
+                minimumReportInterval: 60,
                 maximumReportInterval: 3600,
                 reportableChange: 0,
             },
             {
                 attribute: 'rmsCurrentPhC',
-                minimumReportInterval: 10,
+                minimumReportInterval: 60,
                 maximumReportInterval: 3600,
                 reportableChange: 0,
             }];
             await endpoint.configureReporting('haElectricalMeasurement', payload);
-            await reporting.rmsVoltage(endpoint, {min: 10, max: 3600, change: 0});
-            await reporting.rmsCurrent(endpoint, {min: 10, max: 3600, change: 0});
-            await reporting.instantaneousDemand(endpoint, {min: 10, max: 3600, change: 0});
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 3600, change: [1, 1]});
+            await reporting.rmsVoltage(endpoint, {min: 60, max: 3600, change: 0});
+            await reporting.rmsCurrent(endpoint, {min: 60, max: 3600, change: 0});
+            await reporting.instantaneousDemand(endpoint, {min: 60, max: 3600, change: 0});
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: [1, 1]});
             await reporting.currentSummReceived(endpoint);
-            await reporting.temperature(endpoint);
+            await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
+            device.powerSource = 'DC source';
+            device.save();
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
@@ -142,6 +148,7 @@ module.exports = [
             }
         },
         exposes: [e.lock(), e.battery(), e.pincode(),
+            e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user(),
             exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
             exposes.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),

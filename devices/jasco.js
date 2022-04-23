@@ -1,7 +1,9 @@
+const fz = require('../converters/fromZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
 const e = exposes.presets;
+
 
 module.exports = [
     {
@@ -30,6 +32,22 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['43095'],
+        model: '43095',
+        vendor: 'Jasco Products',
+        description: 'Zigbee smart plug-in switch with energy metering',
+        fromZigbee: [fz.command_on_state, fz.command_off_state, fz.metering],
+        extend: extend.switch(),
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint1);
+            await reporting.instantaneousDemand(endpoint1);
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
         },
     },
 ];

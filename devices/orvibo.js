@@ -7,6 +7,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
+        model: 'OR-ZB-S010-3C',
+        vendor: 'ORVIBO',
+        description: 'Smart socket',
+        extend: extend.switch(),
+    },
+    {
         zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f', '51725b7bcba945c8a595b325127461e9'],
         model: 'CR11S8UZ',
         vendor: 'ORVIBO',
@@ -289,6 +296,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.cover_position(), e.battery()],
     },

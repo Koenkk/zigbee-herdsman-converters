@@ -139,9 +139,11 @@ module.exports = [
         model: 'ROB_200-018-0',
         vendor: 'ROBB',
         description: 'ZigBee knob smart dimmer',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
-        exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery,
+            fz.command_move_to_color],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'color_move'])],
         toZigbee: [],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
     },
     {

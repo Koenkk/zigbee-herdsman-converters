@@ -43,7 +43,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['NLG-RGBW light'],
-        model: 'NLG-RGBW light',
+        model: 'NLG-RGBW__light',
         vendor: 'Paul Neuhaus',
         description: 'Various RGBW lights (e.g. 100.111.57)',
         extend: extend.light_onoff_brightness_colortemp_color(),

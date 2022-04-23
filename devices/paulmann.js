@@ -89,8 +89,15 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['371232040'],
+        model: '371232040',
+        vendor: 'Paulmann',
+        description: 'LED panels',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 350]}),
+    },
+    {
         zigbeeModel: ['500.45'],
-        model: '798.15',
+        model: '500.45',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Pendulum Light Aptare',
         extend: extend.light_onoff_brightness(),

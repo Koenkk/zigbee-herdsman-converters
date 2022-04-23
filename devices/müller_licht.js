@@ -35,6 +35,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['tint smart power strip'],
+        model: '45391',
+        vendor: 'Müller Licht',
+        description: 'Smart power strip',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         // Identify through fingerprint as modelID is the same as Airam 4713407
         fingerprint: [{modelID: 'ZBT-DimmableLight', manufacturerName: 'MLI'}],
         model: '404001',
@@ -45,7 +57,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZBT-ExtendedColor'],
-        model: '404000/404005/404012',
+        model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556], supportsHS: true}),

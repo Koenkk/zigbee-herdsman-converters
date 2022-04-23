@@ -1,7 +1,10 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
+const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ea = exposes.access;
 const e = exposes.presets;
 
 module.exports = [
@@ -254,5 +257,60 @@ module.exports = [
         description: 'LED Strip RGB+W (5m) IP20',
         meta: {turnsOffAtBrightness1: true},
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['4512737', '4512738'],
+        model: '4512737/4512738',
+        vendor: 'Namron',
+        description: 'Touch termostat',
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,
+            tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_outdoor_temperature,
+            tz.thermostat_system_mode, tz.thermostat_control_sequence_of_operation, tz.thermostat_running_state,
+            tz.thermostat_keypad_lockout],
+        exposes: [
+            e.local_temperature(),
+            exposes.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
+                .withDescription('Current temperature measured from the floor sensor'),
+            e.keypad_lockout(),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 50, 0.01)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-30, 30, 0.1)
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+            e.power(), e.current(), e.voltage(), e.energy(),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'genScenes', 'hvacThermostat',
+                'seMetering', 'haElectricalMeasurement', 'genAlarms', 'msOccupancySensing', 'genTime', 'hvacUserInterfaceCfg',
+            ];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            // standard ZCL attributes
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'ocupancy',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }]);
+
+            await reporting.activePower(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+
+            // Trigger read
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupied_heating_setpoint']);
+        },
     },
 ];

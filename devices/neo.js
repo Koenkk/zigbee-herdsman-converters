@@ -63,9 +63,15 @@ module.exports = [
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
         fromZigbee: [fz.neo_nas_pd07],
-        toZigbee: [],
+        toZigbee: [tz.neo_nas_pd07],
         onEvent: tuya.onEventSetTime,
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),
-            exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb'])],
+            exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),
+            exposes.enum('alarm', ea.STATE, ['over_temperature', 'over_humidity', 'below_min_temperature', 'below_min_humdity', 'off'])
+                .withDescription('Temperature/humidity alarm status'),
+            exposes.numeric('temperature_min', ea.STATE_SET).withUnit('°C').withValueMin(-40).withValueMax(40),
+            exposes.numeric('temperature_max', ea.STATE_SET).withUnit('°C').withValueMin(-40).withValueMax(40),
+            exposes.numeric('humidity_min', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100),
+            exposes.numeric('humidity_max', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)],
     },
 ];
