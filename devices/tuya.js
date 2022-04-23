@@ -2174,9 +2174,8 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'}, 
-                      {modelID: 'TS004F', manufacturerName: '_TZ3000_uri7ongn'},
-                      {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'}],
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'},{modelID: 'TS004F', manufacturerName: '_TZ3000_uri7ongn'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'}],
         model: 'ERS-10TZBVK-AA',
         vendor: 'TuYa',
         description: 'Smart knob',
