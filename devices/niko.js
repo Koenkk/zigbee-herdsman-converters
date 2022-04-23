@@ -101,8 +101,8 @@ module.exports = [
         description: 'Connected socket outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
         toZigbee: [
-          tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
-          local.tz.outlet_child_lock, local.tz.outlet_led_enable,
+            tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
+            local.tz.outlet_child_lock, local.tz.outlet_led_enable,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
