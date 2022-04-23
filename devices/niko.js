@@ -44,6 +44,9 @@ const local = {
                 if (msg.data.hasOwnProperty('outletChildLock')) {
                     state['child_lock'] = (msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK');
                 }
+                if (msg.data.hasOwnProperty('outletLedState')) {
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
+                }
                 return state;
             },
         },
@@ -77,6 +80,16 @@ const local = {
                 await entity.read('manuSpecificNiko1', ['outletChildLock']);
             },
         },
+        outlet_led_enable: {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletLedState']);
+            },
+        },
     },
 };
 
@@ -89,7 +102,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
         toZigbee: [
           tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
-          local.tz.outlet_child_lock,
+          local.tz.outlet_child_lock, local.tz.outlet_led_enable,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -109,12 +122,14 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
 
             await endpoint.read('manuSpecificNiko1', ['outletChildLock']);
+            await endpoint.read('manuSpecificNiko1', ['outletLedState']);
         },
         exposes: [
             e.switch(),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
             e.energy().withAccess(ea.STATE_GET),
             exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
         ],
     },
     {
