@@ -1652,6 +1652,77 @@ const converters = {
     // #endregion
 
     // #region Non-generic converters
+    namron_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x1000)) { // Display brightness
+                const lookup = {0: 'low', 1: 'mid', 2: 'high'};
+                result.lcd_brightness = lookup[data[0x1000]];
+            }
+            if (data.hasOwnProperty(0x1001)) { // Button vibration level
+                const lookup = {0: 'off', 1: 'low', 2: 'high'};
+                result.button_vibration_level = lookup[data[0x1001]];
+            }
+            if (data.hasOwnProperty(0x1002)) { // Floor sensor type
+                const lookup = {1: '10k', 2: '15k', 3: '50k', 4: '100k', 5: '12k'};
+                result.floor_sensor_type = lookup[data[0x1002]];
+            }
+            if (data.hasOwnProperty(0x1003)) { // Sensor
+                const lookup = {0: 'air', 1: 'floor', 2: 'both'};
+                result.sensor = lookup[data[0x1003]];
+            }
+            if (data.hasOwnProperty(0x1004)) { // PowerUpStatus
+                const lookup = {0: 'default', 1: 'last_status'};
+                result.powerup_status = lookup[data[0x1004]];
+            }
+            if (data.hasOwnProperty(0x1005)) { // FloorSensorCalibration
+                result.floor_sensor_calibration = precisionRound(data[0x1005], 2) / 10;
+            }
+            if (data.hasOwnProperty(0x1006)) { // DryTime
+                result.dry_time = data[0x1006];
+            }
+            if (data.hasOwnProperty(0x1007)) { // ModeAfterDry
+                const lookup = {0: 'off', 1: 'manual', 2: 'auto', 3: 'away'};
+                result.mode_after_dry = lookup[data[0x1007]];
+            }
+            if (data.hasOwnProperty(0x1008)) { // TemperatureDisplay
+                const lookup = {0: 'room', 1: 'floor'};
+                result.temperature_display = lookup[data[0x1008]];
+            }
+            if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
+                result.window_open_check = data[0x1009];
+            }
+            if (data.hasOwnProperty(0x100A)) { // Hysterersis
+                result.hysterersis = data[0x100A];
+            }
+            if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
+                const lookup = {0: 'enable', 1: 'disable'};
+                result.display_auto_off_enabled = lookup[data[0x100B]];
+            }
+            if (data.hasOwnProperty(0x2001)) { // AlarmAirTempOverValue
+                result.alarm_airtemp_overvalue = data[0x2001];
+            }
+            if (data.hasOwnProperty(0x2002)) { // Away Mode Set
+                result.away_mode = data[0x2002] ? 'ON' : 'OFF';
+            }
+
+            return result;
+        },
+    },
+    namron_hvac_user_interface: {
+        cluster: 'hvacUserInterfaceCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('keypadLockout')) { // Set as child lock instead as keypadlockout
+                result.child_lock = msg.data['keypadLockout'] === 0 ? 'UNLOCK' : 'LOCK';
+            }
+            return result;
+        },
+    },
     elko_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
