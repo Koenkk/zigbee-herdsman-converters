@@ -279,8 +279,10 @@ module.exports = [
                 .withLocalTemperatureCalibration(-30, 30, 0.1)
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat']),
-            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF'),
-            e.child_lock(),
+            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enable/disable away mode'),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+                .withDescription('Enables/disables physical input on the device'),
             e.power(), e.current(), e.voltage(), e.energy(),
             exposes.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
                 .withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
