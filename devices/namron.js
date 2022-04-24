@@ -391,14 +391,14 @@ module.exports = [
                 attribute: {ID: 0x1005, type: 0x28},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
+                reportableChange: 0}],
             options);
             // DryTime
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1006, type: 0x20},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
+                reportableChange: 0}],
             options);
             // ModeAfterDry
             await endpoint.configureReporting('hvacThermostat', [{
@@ -419,7 +419,7 @@ module.exports = [
                 attribute: {ID: 0x1009, type: 0x20},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
+                reportableChange: 0}],
             options);
 
             // Hysterersis
@@ -427,7 +427,7 @@ module.exports = [
                 attribute: {ID: 0x100A, type: 0x20},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
+                reportableChange: 0}],
             options);
             // DisplayAutoOffEnable
             await endpoint.configureReporting('hvacThermostat', [{
@@ -442,7 +442,7 @@ module.exports = [
                 attribute: {ID: 0x2001, type: 0x20},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
+                reportableChange: 0}],
             options);
             // Away Mode Set
             await endpoint.configureReporting('hvacThermostat', [{
@@ -452,8 +452,7 @@ module.exports = [
                 reportableChange: null}],
             options);
 
-            // Device does not asks for the time with binding
-            // So, we need to write time during configure
+            // Device does not asks for the time with binding, we need to write time during configure
             const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             const values = {time: time};
             endpoint.write('genTime', values);
