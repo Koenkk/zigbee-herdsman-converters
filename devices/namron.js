@@ -278,8 +278,8 @@ module.exports = [
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-30, 30, 0.1)
                 .withSystemMode(['off', 'auto', 'heat'])
-                .withRunningState(['idle', 'heat'])
-                .withAwayMode(),
+                .withRunningState(['idle', 'heat']),
+            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF'),
             e.child_lock(),
             e.power(), e.current(), e.voltage(), e.energy(),
             exposes.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
