@@ -5,7 +5,7 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
+const local = {
     fz: {
         switch_operation_mode: {
             cluster: 'manuSpecificNiko1',
@@ -36,6 +36,20 @@ const fzLocal = {
                 return state;
             },
         },
+        outlet: {
+            cluster: 'manuSpecificNiko1',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+                if (msg.data.hasOwnProperty('outletChildLock')) {
+                    state['child_lock'] = (msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK');
+                }
+                if (msg.data.hasOwnProperty('outletLedState')) {
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
+                }
+                return state;
+            },
+        },
     },
     tz: {
         switch_operation_mode: {
@@ -56,6 +70,26 @@ const fzLocal = {
                 await entity.read('manuSpecificNiko1', ['switchOperationMode']);
             },
         },
+        outlet_child_lock: {
+            key: ['child_lock'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletChildLock': ((value.toLowerCase() === 'lock') ? 0 : 1)});
+                return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletChildLock']);
+            },
+        },
+        outlet_led_enable: {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletLedState']);
+            },
+        },
     },
 };
 
@@ -65,8 +99,11 @@ module.exports = [
         model: '170-33505',
         vendor: 'Niko',
         description: 'Connected socket outlet',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
+        toZigbee: [
+            tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
+            local.tz.outlet_child_lock, local.tz.outlet_led_enable,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -83,11 +120,16 @@ module.exports = [
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+
+            await endpoint.read('manuSpecificNiko1', ['outletChildLock']);
+            await endpoint.read('manuSpecificNiko1', ['outletLedState']);
         },
         exposes: [
             e.switch(),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
             e.energy().withAccess(ea.STATE_GET),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
         ],
     },
     {
@@ -134,8 +176,8 @@ module.exports = [
         model: '552-721X1',
         vendor: 'Niko',
         description: 'Single connectable switch',
-        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
-        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -153,8 +195,8 @@ module.exports = [
         model: '552-721X2',
         vendor: 'Niko',
         description: 'Double connectable switch',
-        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
-        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
