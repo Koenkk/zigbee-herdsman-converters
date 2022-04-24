@@ -3106,9 +3106,9 @@ const converters = {
             case 'alarm_airtemp_overvalue':
                 await entity.read('hvacThermostat', [0x2001], manufacturerOptions.sunricher);
                 break;
-                case 'away_mode':
-                    await entity.read('hvacThermostat', [0x2002], manufacturerOptions.sunricher);
-                    break;
+            case 'away_mode':
+                await entity.read('hvacThermostat', [0x2002], manufacturerOptions.sunricher);
+                break;
 
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.namron_thermostat.convertGet ${key}`);
