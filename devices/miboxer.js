@@ -60,17 +60,17 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-            await endpoint.command('genGroups', 'miboxerSetZones', { zones: [
-                { zoneNum: 1, groupId: 101 },
-                { zoneNum: 2, groupId: 102 },
-                { zoneNum: 3, groupId: 103 },
-                { zoneNum: 4, groupId: 104 },
-                { zoneNum: 5, groupId: 105 },
-                { zoneNum: 6, groupId: 106 },
-                { zoneNum: 7, groupId: 107 },
-                { zoneNum: 8, groupId: 108 },
+            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
+                {zoneNum: 1, groupId: 101},
+                {zoneNum: 2, groupId: 102},
+                {zoneNum: 3, groupId: 103},
+                {zoneNum: 4, groupId: 104},
+                {zoneNum: 5, groupId: 105},
+                {zoneNum: 6, groupId: 106},
+                {zoneNum: 7, groupId: 107},
+                {zoneNum: 8, groupId: 108},
             ]});
             await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
         },
-    }
+    },
 ];
