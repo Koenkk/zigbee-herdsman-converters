@@ -4294,7 +4294,6 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            const swapPM25CO2 = ['_TZE200_ryfmq5rl', '_TZE200_dwcarsat'];
             switch (dp) {
             case tuya.dataPoints.tuyaSabTemp:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
@@ -4302,14 +4301,14 @@ const converters = {
                 return {humidity: calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity')};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
             case tuya.dataPoints.tuyaSabFormaldehyd:
-                if (swapPM25CO2.includes(meta.device.manufacturerName)) {
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
                 } else {
                     return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
                 }
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
             case tuya.dataPoints.tuyaSabCO2:
-                if (swapPM25CO2.includes(meta.device.manufacturerName)) {
+                if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
                     return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
                 } else {
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
