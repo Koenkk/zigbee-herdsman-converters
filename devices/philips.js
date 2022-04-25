@@ -447,7 +447,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -591,7 +591,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['4090531P9'],
+        zigbeeModel: ['4090531P9', '929003053601'],
         model: '4090531P9',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
@@ -1787,9 +1787,18 @@ module.exports = [
         zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
         model: '5061031P7',
         vendor: 'Philips',
-        description: 'Hue White & Color ambience Centris ceiling light (2 spots)',
+        description: 'Hue White & Color ambience Centris ceiling light (2 spots) (white)',
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5061030P7_01', '5061030P7_02', '5061030P7_03'],
+        model: '5061030P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (2 spots) (black)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {

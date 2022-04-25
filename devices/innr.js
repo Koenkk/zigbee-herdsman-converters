@@ -498,6 +498,18 @@ module.exports = [
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
     },
     {
+        zigbeeModel: ['SP 110'],
+        model: 'SP 110',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SP 220'],
         model: 'SP 220',
         vendor: 'Innr',
