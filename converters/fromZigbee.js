@@ -4692,7 +4692,7 @@ const converters = {
     },
     tuya_data_point_dump: {
         cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport'],
+        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
         convert: (model, msg, publis, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
@@ -7255,22 +7255,32 @@ const converters = {
     },
     ZB006X_settings: {
         cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReportAlt'],
+        type: ['commandActiveStatusReport', 'commandActiveStatusReportAlt'],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZB006X_settings');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            if (dp === 103) {
-                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            if (dp === 101) {
+                return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
+            } else if (dp === 103) {
                 return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw', 4: 'auto_config'}[value]};
             } else if (dp === 105) {
-                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
                 return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
+            } else if (dp === 106) {
+                return {ext_switch_status: value};
             } else if (dp === 109) {
-                meta.logger.debug(`fromZigbee.ZB006X_settings: Found DP #${dp} with data ${JSON.stringify(dpValue)}`);
                 return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value]};
+            } else if (dp === 111) {
+                // Value 0 is received after each device power-on. No idea what it is.
+                return;
+            } else if (dp === 112) {
+                // Not sure if 0 is 'resistive' and 2 is 'resistive_inductive'.
+                // If you see 'unknown', pls. check with Tuya gateway and app and update with label from Tuya app.
+                return {load_type: {0: 'unknown', 1: 'resistive_capacitive', 2: 'unknown', 3: 'detecting'}[value]};
+            } else if (dp === 113) {
+                return {load_dimmable: {0: 'unknown', 1: 'dimmable', 2: 'not_dimmable'}[value]};
             } else {
-                meta.logger.warn(`fromZigbee.ZB006X_settings: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.ZB006X_settings: Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`);
             }
         },
     },
