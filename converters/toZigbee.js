@@ -11,6 +11,7 @@ const libColor = require('../lib/color');
 const exposes = require('../lib/exposes');
 
 const manufacturerOptions = {
+    sunricher: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
     xiaomi: {manufacturerCode: herdsman.Zcl.ManufacturerCode.LUMI_UNITED_TECH, disableDefaultResponse: true},
     osram: {manufacturerCode: herdsman.Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
@@ -3003,6 +3004,127 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             const isPosition = (key === 'position');
             await entity.read('closuresWindowCovering', [isPosition ? 'currentPositionLiftPercentage' : 'currentPositionTiltPercentage']);
+        },
+    },
+    namron_thermostat: {
+        key: [
+            'lcd_brightness', 'button_vibration_level', 'floor_sensor_type', 'sensor', 'powerup_status', 'floor_sensor_calibration',
+            'dry_time', 'mode_after_dry', 'temperature_display', 'window_open_check', 'hysterersis', 'display_auto_off_enabled',
+            'alarm_airtemp_overvalue', 'away_mode',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'lcd_brightness') {
+                const lookup = {'low': 0, 'mid': 1, 'high': 2};
+                const payload = {0x1000: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key === 'button_vibration_level') {
+                const lookup = {'off': 0, 'low': 1, 'high': 2};
+                const payload = {0x1001: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key === 'floor_sensor_type') {
+                const lookup = {'10k': 1, '15k': 2, '50k': 3, '100k': 4, '12k': 5};
+                const payload = {0x1002: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key === 'sensor') {
+                const lookup = {'air': 0, 'floor': 1, 'both': 2};
+                const payload = {0x1003: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='powerup_status') {
+                const lookup = {'default': 0, 'last_status': 1};
+                const payload = {0x1004: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='floor_sensor_calibration') {
+                const payload = {0x1005: {value: Math.round(value * 10), type: 0x28}}; // INT8S
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='dry_time') {
+                const payload = {0x1006: {value: value, type: 0x20}}; // INT8U
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='mode_after_dry') {
+                const lookup = {'off': 0, 'manual': 1, 'auto': 2, 'away': 3};
+                const payload = {0x1007: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='temperature_display') {
+                const lookup = {'room': 0, 'floor': 1};
+                const payload = {0x1008: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='window_open_check') {
+                const payload = {0x1009: {value: Math.round(value * 10), type: 0x20}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='hysterersis') {
+                const payload = {0x100A: {value: Math.round(value * 10), type: 0x20}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='display_auto_off_enabled') {
+                const lookup = {'enable': 0, 'disabled': 1};
+                const payload = {0x100B: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='alarm_airtemp_overvalue') {
+                const payload = {0x2001: {value: value, type: 0x20}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='away_mode') {
+                const payload = {0x2002: {value: Number(value==='ON'), type: 0x30}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'lcd_brightness':
+                await entity.read('hvacThermostat', [0x1000], manufacturerOptions.sunricher);
+                break;
+            case 'button_vibration_level':
+                await entity.read('hvacThermostat', [0x1001], manufacturerOptions.sunricher);
+                break;
+            case 'floor_sensor_type':
+                await entity.read('hvacThermostat', [0x1002], manufacturerOptions.sunricher);
+                break;
+            case 'sensor':
+                await entity.read('hvacThermostat', [0x1003], manufacturerOptions.sunricher);
+                break;
+            case 'powerup_status':
+                await entity.read('hvacThermostat', [0x1004], manufacturerOptions.sunricher);
+                break;
+            case 'floor_sensor_calibration':
+                await entity.read('hvacThermostat', [0x1005], manufacturerOptions.sunricher);
+                break;
+            case 'dry_time':
+                await entity.read('hvacThermostat', [0x1006], manufacturerOptions.sunricher);
+                break;
+            case 'mode_after_dry':
+                await entity.read('hvacThermostat', [0x1007], manufacturerOptions.sunricher);
+                break;
+            case 'temperature_display':
+                await entity.read('hvacThermostat', [0x1008], manufacturerOptions.sunricher);
+                break;
+            case 'window_open_check':
+                await entity.read('hvacThermostat', [0x1009], manufacturerOptions.sunricher);
+                break;
+            case 'hysterersis':
+                await entity.read('hvacThermostat', [0x100A], manufacturerOptions.sunricher);
+                break;
+            case 'display_auto_off_enabled':
+                await entity.read('hvacThermostat', [0x100B], manufacturerOptions.sunricher);
+                break;
+            case 'alarm_airtemp_overvalue':
+                await entity.read('hvacThermostat', [0x2001], manufacturerOptions.sunricher);
+                break;
+            case 'away_mode':
+                await entity.read('hvacThermostat', [0x2002], manufacturerOptions.sunricher);
+                break;
+
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.namron_thermostat.convertGet ${key}`);
+            }
+        },
+
+    },
+    namron_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = Number(value==='LOCK');
+            await entity.write('hvacUserInterfaceCfg', {keypadLockout});
+            return {readAfterWriteTime: 250, state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
         },
     },
     connecte_thermostat: {

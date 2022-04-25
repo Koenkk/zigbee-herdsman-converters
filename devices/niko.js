@@ -5,33 +5,47 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
+const local = {
     fz: {
         switch_operation_mode: {
-            cluster: 'manuSpecificNikoSwitchSetup',
+            cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
-                if (msg.data.hasOwnProperty('operationMode')) {
+                if (msg.data.hasOwnProperty('switchOperationMode')) {
                     const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
-                    state[operationModeProperty] = operationModeMap[msg.data.operationMode];
+                    state[operationModeProperty] = operationModeMap[msg.data.switchOperationMode];
                 }
                 return state;
             },
         },
         switch_action: {
-            cluster: 'manuSpecificNikoSwitch',
+            cluster: 'manuSpecificNiko2',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
 
-                if (msg.data.hasOwnProperty('action')) {
+                if (msg.data.hasOwnProperty('switchAction')) {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
                     const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
-                    state[actionProperty] = actionMap[msg.data.action];
+                    state[actionProperty] = actionMap[msg.data.switchAction];
+                }
+                return state;
+            },
+        },
+        outlet: {
+            cluster: 'manuSpecificNiko1',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+                if (msg.data.hasOwnProperty('outletChildLock')) {
+                    state['child_lock'] = (msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK');
+                }
+                if (msg.data.hasOwnProperty('outletLedState')) {
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
                 }
                 return state;
             },
@@ -48,12 +62,32 @@ const fzLocal = {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
                     const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
-                    await entity.write('manuSpecificNikoSwitchSetup', {'operationMode': operationModeLookup[value]});
+                    await entity.write('manuSpecificNiko1', {'switchOperationMode': operationModeLookup[value]});
                     return {state: {[operationModeProperty]: value.toLowerCase()}};
                 }
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+                await entity.read('manuSpecificNiko1', ['switchOperationMode']);
+            },
+        },
+        outlet_child_lock: {
+            key: ['child_lock'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletChildLock': ((value.toLowerCase() === 'lock') ? 0 : 1)});
+                return {state: {child_lock: ((value.toLowerCase() === 'lock') ? 'LOCK' : 'UNLOCK')}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletChildLock']);
+            },
+        },
+        outlet_led_enable: {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletLedState']);
             },
         },
     },
@@ -65,8 +99,11 @@ module.exports = [
         model: '170-33505',
         vendor: 'Niko',
         description: 'Connected socket outlet',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
+        toZigbee: [
+            tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered,
+            local.tz.outlet_child_lock, local.tz.outlet_led_enable,
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -83,11 +120,16 @@ module.exports = [
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
+
+            await endpoint.read('manuSpecificNiko1', ['outletChildLock']);
+            await endpoint.read('manuSpecificNiko1', ['outletLedState']);
         },
         exposes: [
             e.switch(),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
             e.energy().withAccess(ea.STATE_GET),
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
         ],
     },
     {
@@ -134,13 +176,13 @@ module.exports = [
         model: '552-721X1',
         vendor: 'Niko',
         description: 'Single connectable switch',
-        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
-        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-            await endpoint.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            await endpoint.read('manuSpecificNiko1', ['switchOperationMode']);
         },
         exposes: [
             e.switch(),
@@ -153,8 +195,8 @@ module.exports = [
         model: '552-721X2',
         vendor: 'Niko',
         description: 'Double connectable switch',
-        fromZigbee: [fz.on_off, fzLocal.fz.switch_operation_mode, fzLocal.fz.switch_action],
-        toZigbee: [tz.on_off, fzLocal.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -166,8 +208,8 @@ module.exports = [
             await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
-            await ep1.read('manuSpecificNikoSwitchSetup', ['operationMode']);
-            await ep2.read('manuSpecificNikoSwitchSetup', ['operationMode']);
+            await ep1.read('manuSpecificNiko1', ['switchOperationMode']);
+            await ep2.read('manuSpecificNiko1', ['switchOperationMode']);
         },
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),

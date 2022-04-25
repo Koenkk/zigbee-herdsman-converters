@@ -34,19 +34,111 @@ const fzLocal = {
             const ret = {};
 
             switch (commandID) {
-            case 0xA1:
-                Object.entries(msg.data.commandFrame.attributes).forEach(([attr, val]) => {
-                    switch (attr) {
-                    case 'totalActivePower':
-                        ret['power'] = val;
-                        break;
-                    case 'currentSummDelivered':
-                        ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / 1000.0;
-                        break;
+            case 0xA1: {
+                const attr = msg.data.commandFrame.attributes;
+                const clusterID = msg.data.commandFrame.clusterID;
+
+                switch (clusterID) {
+                case 2820: { // haElectricalMeasurement
+                    const acCurrentDivisor = attr['acCurrentDivisor'];
+                    const acVoltageDivisor = attr['acVoltageDivisor'];
+                    const acFrequencyDivisor = attr['acFrequencyDivisor'];
+                    const powerDivisor = attr['powerDivisor'];
+
+                    if (attr.hasOwnProperty('rmsVoltage')) {
+                        ret['voltage_phase_a'] = attr['rmsVoltage'] / acVoltageDivisor;
                     }
-                });
+
+                    if (attr.hasOwnProperty('rmsVoltagePhB')) {
+                        ret['voltage_phase_b'] = attr['rmsVoltagePhB'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsVoltagePhC')) {
+                        ret['voltage_phase_c'] = attr['rmsVoltagePhC'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19200')) {
+                        ret['voltage_phase_ab'] = attr['19200'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19456')) {
+                        ret['voltage_phase_bc'] = attr['19456'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19712')) {
+                        ret['voltage_phase_ca'] = attr['19712'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrent')) {
+                        ret['current_phase_a'] = attr['rmsCurrent'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrentPhB')) {
+                        ret['current_phase_b'] = attr['rmsCurrentPhB'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrentPhC')) {
+                        ret['current_phase_c'] = attr['rmsCurrentPhC'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('totalActivePower')) {
+                        ret['power'] = attr['totalActivePower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('totalApparentPower')) {
+                        ret['power_apparent'] = attr['totalApparentPower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('acFrequency')) {
+                        ret['ac_frequency'] = attr['acFrequency'] / acFrequencyDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePower')) {
+                        ret['power_phase_a'] = attr['activePower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePowerPhB')) {
+                        ret['power_phase_b'] = attr['activePowerPhB'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePowerPhC')) {
+                        ret['power_phase_c'] = attr['activePowerPhC'] * 1000 / powerDivisor;
+                    }
+                    break;
+                }
+                case 1794: { // seMetering
+                    const divisor = attr['divisor'];
+
+                    if (attr.hasOwnProperty('currentSummDelivered')) {
+                        const val = attr['currentSummDelivered'];
+                        ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('16652')) {
+                        const val = attr['16652'];
+                        ret['energy_phase_a'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('16908')) {
+                        const val = attr['16908'];
+                        ret['energy_phase_b'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('17164')) {
+                        const val = attr['17164'];
+                        ret['energy_phase_c'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('powerFactor')) {
+                        ret['power_factor'] = attr['powerFactor'];
+                    }
+
+                    break;
+                }
+                }
 
                 break;
+            }
             case 0xA3:
                 // Should handle this cluster as well
                 break;
@@ -54,7 +146,7 @@ const fzLocal = {
 
             if (rxAfterTx) {
                 // Send Schneider specific ACK to make PowerTag happy
-                const networkParameters = await msg.device.zh.getNetworkParameters();
+                const networkParameters = await msg.device.zh.constructor.adapter.getNetworkParameters();
                 const payload = {
                     options: 0b000,
                     tempMaster: msg.data.gppNwkAddr,
@@ -792,6 +884,33 @@ module.exports = [
         description: 'PowerTag power sensor',
         fromZigbee: [fzLocal.schneider_powertag],
         toZigbee: [],
-        exposes: [e.power(), e.energy()],
+        exposes: [
+            e.power(),
+            e.power_apparent(),
+            exposes.numeric('power_phase_a', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase A'),
+            exposes.numeric('power_phase_b', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase B'),
+            exposes.numeric('power_phase_c', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase C'),
+            e.power_factor(),
+            e.energy(),
+            exposes.numeric('energy_phase_a', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase A'),
+            exposes.numeric('energy_phase_b', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase B'),
+            exposes.numeric('energy_phase_c', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase C'),
+            e.ac_frequency(),
+            exposes.numeric('voltage_phase_a', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase A'),
+            exposes.numeric('voltage_phase_b', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase B'),
+            exposes.numeric('voltage_phase_c', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase C'),
+            exposes.numeric('voltage_phase_ab', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase A and B'),
+            exposes.numeric('voltage_phase_bc', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase B and C'),
+            exposes.numeric('voltage_phase_ca', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase C and A'),
+            exposes.numeric('current_phase_a', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase A'),
+            exposes.numeric('current_phase_b', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
+            exposes.numeric('current_phase_c', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
+        ],
     },
 ];
