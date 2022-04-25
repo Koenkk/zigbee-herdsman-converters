@@ -7340,7 +7340,7 @@ const converters = {
             } else if (dp === 106) {
                 return {ext_switch_status: value};
             } else if (dp === 109) {
-                return {control_mode: {0: 'local', 1: 'remote', 2: 'both'}[value]};
+                return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
             } else if (dp === 111) {
                 // Value 0 is received after each device power-on. No idea what it is.
                 return;
