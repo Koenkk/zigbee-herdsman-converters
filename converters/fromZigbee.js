@@ -4726,18 +4726,6 @@ const converters = {
             });
         },
     },
-    tuya_data_point_dump_alt: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReportAlt'],
-        convert: (model, msg, publis, options, meta) => {
-            // Don't use! This is only for tests with Fantem ZB006-X
-            // tuya_data_point_dump_alt will be removed in future!
-            // Changes will be integrated in tuya_data_point_dump, if tests successful
-            for (const dpValue of msg.data.dpValues) {
-                tuya.logDataPoint('tuya_data_point_dump_alt', msg, dpValue, meta);
-            }
-        },
-    },
     tuya_switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
