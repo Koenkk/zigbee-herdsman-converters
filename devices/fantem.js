@@ -14,7 +14,7 @@ module.exports = [
         description: 'Smart dimmer module without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee, fz.command_on, fz.command_off,
-            fz.command_move, fz.command_stop, fz.ZB006X_settings, fz.tuya_data_point_dump_alt],
+            fz.command_move, fz.command_stop, fz.ZB006X_settings],
         toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tz.ZB006X_settings],
         exposes: [e.light_brightness(),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
