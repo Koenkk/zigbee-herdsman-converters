@@ -6496,16 +6496,16 @@ const converters = {
             switch (key) {
             case 'ext_switch_type':
                 await tuya.sendDataPointEnum(entity, 103, {'unknown': 0, 'toggle_sw': 1,
-                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value]);
+                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value], 4);
                 break;
             case 'load_detection_mode':
-                await tuya.sendDataPointEnum(entity, 105, {'none': 0, 'first_power_on': 1, 'every_power_on': 2}[value]);
+                await tuya.sendDataPointEnum(entity, 105, {'none': 0, 'first_power_on': 1, 'every_power_on': 2}[value], 4);
                 break;
             case 'control_mode':
-                await tuya.sendDataPointEnum(entity, 109, {'local': 0, 'remote': 1, 'both': 2}[value]);
+                await tuya.sendDataPointEnum(entity, 109, {'ext_switch': 0, 'remote': 1, 'both': 2}[value], 4);
                 break;
             default: // Unknown key
-                throw new Error(`toZigbee.ZB006X_settings: Unhandled key ${key}`);
+                throw new Error(`tz.ZB006X_settings: Unhandled key ${key}`);
             }
         },
     },
