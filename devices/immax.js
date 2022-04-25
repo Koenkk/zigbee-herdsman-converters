@@ -163,4 +163,53 @@ module.exports = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}],
+        model: 'TS0601_thermostat_2',
+        vendor: 'Immax',
+        description: 'Radiator valve with thermostat',
+        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        toZigbee: [tz.tuya_thermostat_child_lock,
+			tz.tuya_thermostat_auto_lock,
+			tz.tuya_thermostat_valve_detection,
+            tz.tuya_thermostat_current_heating_setpoint,
+            tz.tuya_thermostat_calibration,
+			tz.tuya_thermostat_min_temp,
+			tz.tuya_thermostat_max_temp,
+            tz.tuya_thermostat_comfort_temp,
+			tz.tuya_thermostat_eco_temp,
+			tz.tuya_thermostat_force,
+			tz.tuya_thermostat_preset,
+            tz.tuya_thermostat_schedule, 
+			tz.tuya_thermostat_week, 
+			tz.tuya_thermostat_away_preset,
+			tz.tuya_thermostat_away_mode,
+			tz.tuya_thermostat_schedule_programming_mode,
+			tz.tuya_thermostat_boost_time,],
+        meta: {tuyaThermostatPreset: tuya.thermostatPresets},
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [e.child_lock(),
+			e.auto_lock(),
+            e.battery_low(), 
+			e.position(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 10, 25, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+				.withAwayMode()
+				.withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco']),
+            e.comfort_temperature(), 
+			e.eco_temperature(), 
+			e.force(),
+            e.max_temperature(), 
+			e.min_temperature(),
+			e.boost_time(),
+			e.away_preset_days(), 
+            e.away_preset_temperature(),
+            exposes.composite('programming_mode').withDescription('Schedule MODE ⏱ - In this mode, ' +
+                    'the device executes a preset week programming temperature time and temperature.')
+                .withFeature(e.week())
+                .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
+                .withFeature(exposes.text('holidays_schedule', ea.STATE_SET)),],
+    },	
 ];
