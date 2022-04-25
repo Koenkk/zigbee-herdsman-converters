@@ -7335,7 +7335,7 @@ const converters = {
             case tuya.dataPoints.fantemPowerSupplyMode:
                 return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
             case tuya.dataPoints.fantemExtSwitchType:
-                 return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw',
+                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw',
                     4: 'auto_config'}[value]};
             case tuya.dataPoints.fantemLoadDetectionMode:
                 return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
