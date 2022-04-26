@@ -1348,9 +1348,16 @@ module.exports = [
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.xiaomi_curtain_acn002_position, fz.xiaomi_curtain_acn002_status, fz.xiaomi_curtain_position_tilt,
-            fz.ignore_basic_report, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_curtain_position, fz.xiaomi_curtain_acn002_status, fz.ignore_basic_report, fz.aqara_opple],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_battery, tz.xiaomi_curtain_acn002_charging_status],
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genMultistateOutput' &&
+                data.data.hasOwnProperty('presentValue') && data.data['presentValue'] > 1) {
+                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                // Might need to add delay, seems to be working without one but needs more tests.
+                await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
+            }
+        },
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
             exposes.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
