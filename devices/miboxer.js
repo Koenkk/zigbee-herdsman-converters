@@ -50,7 +50,6 @@ module.exports = [
     },
     {
         fingerprint: [{manufacturerName: '_TZ3000_xwh1e22x'}],
-        zigbeeModel: ['TS1002'],
         model: 'FUT089Z',
         vendor: 'MiBoxer',
         description: 'RGB+CCT Remote',
