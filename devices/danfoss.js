@@ -80,7 +80,7 @@ module.exports = [
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
                 .withDescription('Load estimate on this radiator')
-                .withValueMin(-8000).withValueMax(65535),
+                .withValueMin(-8000).withValueMax(3600),
             exposes.binary('preheat_status', ea.STATE_GET, true, false)
                 .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
             exposes.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
