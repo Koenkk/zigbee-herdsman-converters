@@ -2447,7 +2447,7 @@ const converters = {
                     // In Koenkk/zigbee-herdsman-converters#4163 the position is read through onEvent
                     // each time the motor stops, so it becomes redundant, and ZNJLBL01LM is excluded.
                     // The code is left here to avoid breaking compatibility, ideally all devices using
-                    // this converter should be tested so the code can be adjusted/deleted. 
+                    // this converter should be tested so the code can be adjusted/deleted.
 
                     // Xiaomi curtain does not send position update on stop, request this.
                     await entity.read('genAnalogOutput', [0x0055]);
