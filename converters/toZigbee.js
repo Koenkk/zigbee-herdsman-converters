@@ -2440,8 +2440,10 @@ const converters = {
                     await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
                 }
 
-                // Xiaomi curtain does not send position update on stop, request this.
-                await entity.read('genAnalogOutput', [0x0055]);
+                if (!['ZNCLDJ11LM', 'ZNJLBL01LM'].includes(meta.mapped.model)) {
+                    // Xiaomi curtain does not send position update on stop, request this.
+                    await entity.read('genAnalogOutput', [0x0055]);
+                }
             } else {
                 const lookup = {'open': 100, 'close': 0, 'on': 100, 'off': 0};
 
