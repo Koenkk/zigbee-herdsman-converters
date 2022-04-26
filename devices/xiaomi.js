@@ -1353,6 +1353,8 @@ module.exports = [
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genMultistateOutput' &&
                 data.data.hasOwnProperty('presentValue') && data.data['presentValue'] > 1) {
+                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                // Might need to add delay, seems to be working without one but needs more tests.
                 await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
             }
         },
