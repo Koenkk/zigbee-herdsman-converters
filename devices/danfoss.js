@@ -79,7 +79,8 @@ module.exports = [
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator'),
+                .withDescription('Load estimate on this radiator')
+                .withValueMin(-8000).withValueMax(3600),
             exposes.binary('preheat_status', ea.STATE_GET, true, false)
                 .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
             exposes.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
