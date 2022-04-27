@@ -1826,6 +1826,79 @@ const converters = {
             }
         },
     },
+    giderwel_light_onoff_brightness: {
+        key: ['state', 'brightness', 'brightness_percent'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            return await converters.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    },
+    giderwel_light_colortemp: {
+        key: ['color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            const result = await converters.light_colortemp.convertSet(entity, key, value, meta);
+            result.state = {...result.state, ...state};
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_colortemp.convertGet(entity, key, meta);
+        },
+    },
+    giderwel_light_color: {
+        key: ['color'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message && meta.message.hasOwnProperty('transition')) {
+                meta.message.transition = meta.message.transition * 3.3;
+            }
+
+            if (key === 'color' && !meta.message.transition) {
+                // Always provide a transition when setting color, otherwise CCT to RGB
+                // doesn't work properly (CCT leds stay on).
+                meta.message.transition = 0.4;
+            }
+
+            const result = await converters.light_color.convertSet(entity, key, value, meta);
+            result.state = {...result.state, ...state};
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_color.convertGet(entity, key, meta);
+        },
+    },
+    giderwel_light_color_colortemp: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'color') {
+                const result = await converters.giderwel_light_color.convertSet(entity, key, value, meta);
+                if (result.state && result.state.color.hasOwnProperty('x') && result.state.color.hasOwnProperty('y')) {
+                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
+                }
+
+                return result;
+            } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                const result = await converters.giderwel_light_colortemp.convertSet(entity, key, value, meta);
+                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
+                return result;
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            return await converters.light_color_colortemp.convertGet(entity, key, meta);
+        },
+    },
     gledopto_light_onoff_brightness: {
         key: ['state', 'brightness', 'brightness_percent'],
         options: [exposes.options.transition()],
