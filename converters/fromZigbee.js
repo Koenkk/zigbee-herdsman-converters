@@ -5872,19 +5872,9 @@ const converters = {
             return result;
         },
     },
-    xiaomi_curtain_acn002_position: {
-        cluster: 'genAnalogOutput',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.invert_cover()],
-        convert: (model, msg, publish, options, meta) => {
-            let position = precisionRound(msg.data['presentValue'], 2);
-            position = options.invert_cover ? 100 - position : position;
-            return {position: position};
-        },
-    },
     xiaomi_curtain_acn002_status: {
         cluster: 'genMultistateOutput',
-        type: ['attributeReport', 'readResponse'],
+        type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
             let running = false;
             const data = msg.data;
