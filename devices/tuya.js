@@ -2247,4 +2247,22 @@ module.exports = [
         fromZigbee: [fz.tuya_remote],
         toZigbee: [],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
+        model: 'Zigbee',
+        vendor: 'ELIVCO',
+        description: 'Smart Temperature&Humidity Sensor',
+        fromZigbee: [
+            fz.elivco_lcd_temperature_humidity_sensor,
+        ],
+        toZigbee: [
+            tz.elivco_lcd_temperature_humidity_sensor,
+        ],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
 ];

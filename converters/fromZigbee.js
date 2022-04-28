@@ -1939,6 +1939,41 @@ const converters = {
             }
         },
     },
+    elivco_lcd_temperature_humidity_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case tuya.dataPoints.nousTemperature: //    1
+                    result.temperature = (value / 10).toFixed(1);
+                    break;
+                case tuya.dataPoints.nousHumidity: //   2
+                    result.humidity = value;
+                    break;
+                case tuya.dataPoints.nousBattery: //    4
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.nousTempUnitConvert: //    9
+                    result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
+                    break;
+                case 10: // unknown, value is always 104?
+                case 11: // unknown, value is always 200?
+                case 12: // unknown, value is always 70?
+                case 13: // unknown, value is alwaus 20?
+                case 17: // unknown, value is always 30?
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:elivco_lcd_temperature_humidity_sensor: NOT RECOGNIZED DP #${
+                        dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
     tuya_illuminance_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
