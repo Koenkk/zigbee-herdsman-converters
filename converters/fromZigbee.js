@@ -4311,12 +4311,16 @@ const converters = {
                 if (meta.device.manufacturerName === '_TZE200_dwcarsat') {
                     return {pm25: calibrateAndPrecisionRoundOptions(value, options, 'pm25')};
                 } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
-                    return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
+                    return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd') / 100};
                 } else {
                     return {co2: calibrateAndPrecisionRoundOptions(value, options, 'co2')};
                 }
             case tuya.dataPoints.tuyaSabVOC:
-                return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
+                if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
+                    return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc') / 10};
+                } else {
+                    return {voc: calibrateAndPrecisionRoundOptions(value, options, 'voc')};
+                }
             case tuya.dataPoints.tuyaSahkFormaldehyd:
                 return {formaldehyd: calibrateAndPrecisionRoundOptions(value, options, 'formaldehyd')};
             default:
