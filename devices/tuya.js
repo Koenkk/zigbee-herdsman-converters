@@ -2268,8 +2268,8 @@ module.exports = [
                 .withDescription('Detection delay').withUnit('s'),
             exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),
-         //   exposes.text('cli', ea.STATE).withDescription('not recognize'),
-         //   exposes.text('self_test', ea.STATE).withDescription('not recognize'),
+           // exposes.text('cli', ea.STATE).withDescription('not recognize'),
+           // exposes.text('self_test', ea.STATE).withDescription('not recognize'),
         ],
-    },    
+    },
 ];

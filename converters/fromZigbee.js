@@ -8446,14 +8446,15 @@ const converters = {
             case tuya.dataPoints.tshpsIlluminanceLux:
                 result = {illuminance_lux: value};
                 break;
-            case tuya.dataPoints.tshpsCLI: //not recognize
+            case tuya.dataPoints.tshpsCLI: // not recognize
                 result = {cli: value};
                 break;
-            case tuya.dataPoints.tshpsSelfTest: //not recognize
+            case tuya.dataPoints.tshpsSelfTest: // not recognize
                 result = {self_test: value};
                 break;
             default:
-                meta.logger.warn(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger
+                    .warn(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
         },

@@ -7373,7 +7373,7 @@ const converters = {
         },
     },
     tuya_smart_human_presense_sensor: {
-        key: ['radar_sensitivity', 'minimum_range', 'maximum_range','detection_delay','fading_time'],
+        key: ['radar_sensitivity', 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'radar_sensitivity':
@@ -7395,7 +7395,7 @@ const converters = {
                 meta.logger.warn(`toZigbee.tuya_smart_human_presense_sensor: Unhandled Key ${key}`);
             }
         },
-    },   
+    },
     // #endregion
 
     // #region Ignore converters
