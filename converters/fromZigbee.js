@@ -2582,17 +2582,25 @@ const converters = {
                 return {humidity_min: value};
             } else if (dp === tuya.dataPoints.neoMaxHumidity) {
                 return {humidity_max: value};
+            } else if (dp === tuya.dataPoints.neoTempScale) {
+                return {temperature_scale: value ? '°C' : '°F'};
+            } else if (dp === 111) {
+                return {unknown_111: value ? 'ON' : 'OFF'};
+            } else if (dp === 112) {
+                return {unknown_112: value ? 'ON' : 'OFF'};
             } else if (dp === 113) {
                 return {alarm: {0: 'over_temperature', 1: 'over_humidity',
                     2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
             } else {
-                meta.logger.warn(`fromZigbee.neo_nas_pd07: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.neo_nas_pd07: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_t_h_alarm');
             const dp = dpValue.dp;
@@ -2610,9 +2618,9 @@ const converters = {
             case tuya.dataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
                 return {duration: value};
             case tuya.dataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
-                return {temperature: (value / 10).toFixed(1)};
+                return {temperature: calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
             case tuya.dataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
-                return {humidity: value};
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             case tuya.dataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
                 return {temperature_min: value};
             case tuya.dataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
