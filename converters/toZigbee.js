@@ -5531,7 +5531,7 @@ const converters = {
         },
     },
     neo_nas_pd07: {
-        key: ['temperature_max', 'temperature_min', 'humidity_max', 'humidity_min'],
+        key: ['temperature_max', 'temperature_min', 'humidity_max', 'humidity_min', 'temperature_scale', 'unknown_111', 'unknown_112'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'temperature_max':
@@ -5546,8 +5546,17 @@ const converters = {
             case 'humidity_min':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.neoMinHumidity, value);
                 break;
+            case 'temperature_scale':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.neoTempScale, value === '°C');
+                break;
+            case 'unknown_111':
+                await tuya.sendDataPointBool(entity, 111, value === 'ON');
+                break;
+            case 'unknown_112':
+                await tuya.sendDataPointBool(entity, 112, value === 'ON');
+                break;
             default: // Unknown key
-                throw new Error(`toZigbee.neo_nas_pd07: Unhandled key ${key}`);
+                throw new Error(`tz.neo_nas_pd07: Unhandled key ${key}`);
             }
         },
     },
@@ -5593,7 +5602,7 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.neoHumidityAlarm, value);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
+                throw new Error(`tz.neo_t_h_alarm: Unhandled key ${key}`);
             }
         },
     },

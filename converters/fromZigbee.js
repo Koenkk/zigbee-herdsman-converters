@@ -2562,42 +2562,51 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_nas_pd07');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            if (dp === 101) return {occupancy: value > 0 ? true : false};
-            else if (dp === 102) {
+            switch (dp) {
+            case tuya.dataPoints.neoOccupancy:
+                return {occupancy: value > 0 ? true : false};
+            case 102:
                 return {
                     power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                     battery_low: value === 3,
                 };
-            } else if (dp === 103) {
+            case tuya.dataPoints.neoTamper:
                 return {tamper: value > 0 ? true : false};
-            } else if (dp === 104) {
+            case 104:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            } else if (dp === 105) {
+            case 105:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            } else if (dp === tuya.dataPoints.neoMinTemp) {
+            case tuya.dataPoints.neoMinTemp:
                 return {temperature_min: value};
-            } else if (dp === tuya.dataPoints.neoMaxTemp) {
+            case tuya.dataPoints.neoMaxTemp:
                 return {temperature_max: value};
-            } else if (dp === tuya.dataPoints.neoMinHumidity) {
+            case tuya.dataPoints.neoMinHumidity:
                 return {humidity_min: value};
-            } else if (dp === tuya.dataPoints.neoMaxHumidity) {
+            case tuya.dataPoints.neoMaxHumidity:
                 return {humidity_max: value};
-            } else if (dp === 113) {
+            case tuya.dataPoints.neoTempScale:
+                return {temperature_scale: value ? '°C' : '°F'};
+            case 111:
+                return {unknown_111: value ? 'ON' : 'OFF'};
+            case 112:
+                return {unknown_112: value ? 'ON' : 'OFF'};
+            case tuya.dataPoints.neoTempHumidityAlarm:
                 return {alarm: {0: 'over_temperature', 1: 'over_humidity',
                     2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
-            } else {
-                meta.logger.warn(`fromZigbee.neo_nas_pd07: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            default: // Unknown code
+                meta.logger.warn(`fz.neo_nas_pd07: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
     neo_t_h_alarm: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_t_h_alarm');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
             case tuya.dataPoints.neoAlarm:
                 return {alarm: value};
@@ -2610,9 +2619,9 @@ const converters = {
             case tuya.dataPoints.neoDuration: // 0x0267 [0,0,0,10] duration alarm in second
                 return {duration: value};
             case tuya.dataPoints.neoTemp: // 0x0269 [0,0,0,240] temperature
-                return {temperature: (value / 10).toFixed(1)};
+                return {temperature: calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
             case tuya.dataPoints.neoHumidity: // 0x026A [0,0,0,36] humidity
-                return {humidity: value};
+                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             case tuya.dataPoints.neoMinTemp: // 0x026B [0,0,0,18] min alarm temperature
                 return {temperature_min: value};
             case tuya.dataPoints.neoMaxTemp: // 0x026C [0,0,0,27] max alarm temperature
@@ -2633,7 +2642,7 @@ const converters = {
             case tuya.dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
                 return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
             default: // Unknown code
-                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.neo_t_h_alarm: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
