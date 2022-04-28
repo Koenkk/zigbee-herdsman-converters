@@ -844,15 +844,17 @@ module.exports = [
         model: 'WSDCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 temperature, humidity and pressure sensor',
-        fromZigbee: [fz.xiaomi_basic, fz.temperature, fz.humidity, fz.pressure],
+        fromZigbee: [fz.aqara_opple, fz.temperature, fz.humidity, fz.pressure, fz.battery],
         toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.pressure(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.sensor_motion'],
