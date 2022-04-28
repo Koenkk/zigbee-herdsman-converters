@@ -2562,36 +2562,38 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_nas_pd07');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            if (dp === 101) return {occupancy: value > 0 ? true : false};
-            else if (dp === 102) {
+            switch (dp) {
+            case tuya.dataPoints.neoOccupancy:
+                return {occupancy: value > 0 ? true : false};
+            case 102:
                 return {
                     power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
                     battery_low: value === 3,
                 };
-            } else if (dp === 103) {
+            case tuya.dataPoints.neoTamper:
                 return {tamper: value > 0 ? true : false};
-            } else if (dp === 104) {
+            case 104:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            } else if (dp === 105) {
+            case 105:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            } else if (dp === tuya.dataPoints.neoMinTemp) {
+            case tuya.dataPoints.neoMinTemp:
                 return {temperature_min: value};
-            } else if (dp === tuya.dataPoints.neoMaxTemp) {
+            case tuya.dataPoints.neoMaxTemp:
                 return {temperature_max: value};
-            } else if (dp === tuya.dataPoints.neoMinHumidity) {
+            case tuya.dataPoints.neoMinHumidity:
                 return {humidity_min: value};
-            } else if (dp === tuya.dataPoints.neoMaxHumidity) {
+            case tuya.dataPoints.neoMaxHumidity:
                 return {humidity_max: value};
-            } else if (dp === tuya.dataPoints.neoTempScale) {
+            case tuya.dataPoints.neoTempScale:
                 return {temperature_scale: value ? '°C' : '°F'};
-            } else if (dp === 111) {
+            case 111:
                 return {unknown_111: value ? 'ON' : 'OFF'};
-            } else if (dp === 112) {
+            case 112:
                 return {unknown_112: value ? 'ON' : 'OFF'};
-            } else if (dp === 113) {
+            case tuya.dataPoints.neoTempHumidityAlarm:
                 return {alarm: {0: 'over_temperature', 1: 'over_humidity',
                     2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
-            } else {
+            default: // Unknown code
                 meta.logger.warn(`fz.neo_nas_pd07: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
@@ -2605,7 +2607,6 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'neo_t_h_alarm');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
             case tuya.dataPoints.neoAlarm:
                 return {alarm: value};
@@ -2641,7 +2642,7 @@ const converters = {
             case tuya.dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
                 return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
             default: // Unknown code
-                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.neo_t_h_alarm: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
