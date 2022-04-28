@@ -286,7 +286,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['LXN60-LS27-Z30'],
+        zigbeeModel: ['LXN60-LS27-Z30', 'FEB56-ZCW2CLX1.0'],
         model: 'WL-SD001-9W',
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',
