@@ -332,13 +332,31 @@ module.exports = [
             exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpointLeft = device.getEndpoint(1);
+            const endpointLeft = device.getEndpoint(2);
             await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff']);
-            const endpointRight = device.getEndpoint(2);
+            const endpointRight = device.getEndpoint(1);
             await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff']);
         },
         endpoint: (device) => {
-            return {left: 1, right: 2};
+            return {left: 2, right: 1};
+        },
+    },
+    {
+        zigbeeModel: [' Mobile outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: 'WNRR15/WNRR20',
+        vendor: 'Legrand',
+        ota: ota.zigbeeOTA,
+        description: 'Outlet with power consumption monitoring',
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+        exposes: [e.switch(), e.action(['identify']), e.power()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
         },
     },
 ];

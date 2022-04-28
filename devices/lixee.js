@@ -196,7 +196,8 @@ const fzLocal = {
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),
 // and change based on that. Just some few attributes are useless, so we exclude them
 const tarifsDef = {
-    histo_BASE: {fname: 'Historique - BASE',
+    histo_BASE: {
+        fname: 'Historique - BASE',
         currentTarf: 'BASE', excluded: [
             'HCHC',
             'HCHP',
@@ -212,7 +213,8 @@ const tarifsDef = {
             'DEMAIN',
             'PEJP',
         ]},
-    histo_HCHP: {fname: 'Historique - HCHP',
+    histo_HCHP: {
+        fname: 'Historique - HCHP',
         currentTarf: 'HC..', excluded: [
             'BASE',
             'EJPHN',
@@ -226,7 +228,8 @@ const tarifsDef = {
             'DEMAIN',
             'PEJP',
         ]},
-    histo_EJP: {fname: 'Historique - EJP',
+    histo_EJP: {
+        fname: 'Historique - EJP',
         currentTarf: 'EJP.', excluded: [
             'BASE',
             'HCHC',
@@ -239,7 +242,8 @@ const tarifsDef = {
             'BBRHPJR',
             'DEMAIN',
         ]},
-    histo_BBR: {fname: 'Historique - BBR',
+    histo_BBR: {
+        fname: 'Historique - BBR',
         currentTarf: 'BBR', excluded: [
             'BASE',
             'HCHC',
@@ -248,7 +252,8 @@ const tarifsDef = {
             'EJPHPM',
             'PEJP',
         ]},
-    stand_SEM_WE_MERCR: {fname: 'Standard - Sem WE Mercredi',
+    stand_SEM_WE_MERCR: {
+        fname: 'Standard - Sem WE Mercredi',
         currentTarf: 'SEM WE MERCREDI', excluded: [
             'EASF04',
             'EASF05',
@@ -271,7 +276,58 @@ const tarifsDef = {
             'PJOURF+1',
             'PPOINTE1',
         ]},
+    stand_BASE: {
+        fname: 'Standard - BASE',
+        currentTarf: 'BASE',
+        excluded: [
+            'EASF03',
+            'EASF04',
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD02',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
+    stand_HPHC: {
+        fname: 'Standard - Heure Pleine Heure Creuse',
+        currentTarf: 'H PLEINE/CREUSE', excluded: [
+            'EASF03',
+            'EASF04',
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
 };
+
 
 const linkyModeDef = {
     standard: 'standard',
@@ -297,20 +353,20 @@ const clustersDef = {
 // Properties must be EAXCTLY ".split(/(?=[A-Z])/).join('_').toLowerCase()" of att
 const exposedData = [
     // Historique
-    {cluster: clustersDef._0x0702, att: 'meterSerialNumber', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('ADCO', ea.STATE).withProperty('meter_serial_number').withDescription('Serial Number')},
+    {cluster: clustersDef._0x0702, att: 'meterSerialNumber', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.text('ADCO', ea.STATE).withProperty('meter_serial_number').withDescription('Serial Number')},
     {cluster: clustersDef._0x0702, att: 'currentSummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BASE', ea.STATE).withUnit('kWh').withProperty('current_summ_delivered').withDescription('Base index')},
-    {cluster: clustersDef._0xFF66, att: 'currentTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('OPTARIF', ea.STATE).withProperty('current_tarif').withDescription('Tarif option')},
-    {cluster: clustersDef._0x0B01, att: 'availablePower', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ISOUSC', ea.STATE).withUnit('A').withProperty('available_power').withDescription('Subscribed intensity level')},
-    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HCHC', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('HCHC index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HCHP', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('HCHP index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('EJPHN', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('EJPHN index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('EJPHPM', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('EJPHPM index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJB', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('BBRHCJB index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJB', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('BBRHPJB index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier3SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJW', ea.STATE).withUnit('kWh').withProperty('current_tier3_summ_delivered').withDescription('BBRHCJW index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier4SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJW', ea.STATE).withUnit('kWh').withProperty('current_tier4_summ_delivered').withDescription('BBRHPJW index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier5SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJR', ea.STATE).withUnit('kWh').withProperty('current_tier5_summ_delivered').withDescription('BBRHCJR index')},
-    {cluster: clustersDef._0x0702, att: 'currentTier6SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJR', ea.STATE).withUnit('kWh').withProperty('current_tier6_summ_delivered').withDescription('BBRHPJR index')},
+    {cluster: clustersDef._0xFF66, att: 'currentTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.text('OPTARIF', ea.STATE).withProperty('current_tarif').withDescription('Tarif option')},
+    {cluster: clustersDef._0x0B01, att: 'availablePower', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ISOUSC', ea.STATE).withUnit('A').withProperty('available_power').withDescription('Subscribed intensity level')},
+    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HCHC', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('HCHC index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HCHP', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('HCHP index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('EJPHN', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('EJPHN index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('EJPHPM', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('EJPHPM index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJB', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('BBRHCJB index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJB', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('BBRHPJB index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier3SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJW', ea.STATE).withUnit('kWh').withProperty('current_tier3_summ_delivered').withDescription('BBRHCJW index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier4SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJW', ea.STATE).withUnit('kWh').withProperty('current_tier4_summ_delivered').withDescription('BBRHPJW index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier5SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHCJR', ea.STATE).withUnit('kWh').withProperty('current_tier5_summ_delivered').withDescription('BBRHCJR index')},
+    {cluster: clustersDef._0x0702, att: 'currentTier6SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('BBRHPJR', ea.STATE).withUnit('kWh').withProperty('current_tier6_summ_delivered').withDescription('BBRHPJR index')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('IINST', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('IINST1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('IINST2', ea.STATE).withUnit('A').withProperty('rms_current_ph_b').withDescription('RMS current (phase 2)')},
@@ -321,57 +377,57 @@ const exposedData = [
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentMaxPhC', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('IMAX3', ea.STATE).withUnit('A').withProperty('rms_current_max_ph_c').withDescription('RMS current peak (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'activePowerMax', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('PMAX', ea.STATE).withUnit('W').withProperty('active_power_max').withDescription('Three-phase power peak')},
     {cluster: clustersDef._0x0B04, att: 'apparentPower', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('PAPP', ea.STATE).withUnit('VA').withProperty('apparent_power').withDescription('Apparent power')},
-    {cluster: clustersDef._0x0702, att: 'activeRegisterTierDelivered', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('PTEC', ea.STATE).withProperty('active_register_tier_delivered').withDescription('Current pricing period')},
-    {cluster: clustersDef._0xFF66, att: 'tomorrowColor', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.text('DEMAIN', ea.STATE).withProperty('tomorrow_color').withDescription('Tomorrow color')},
-    {cluster: clustersDef._0xFF66, att: 'scheduleHPHC', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HHPHC', ea.STATE).withProperty('schedule_h_p_h_c').withDescription('Schedule HPHC')},
+    {cluster: clustersDef._0x0702, att: 'activeRegisterTierDelivered', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.text('PTEC', ea.STATE).withProperty('active_register_tier_delivered').withDescription('Current pricing period')},
+    {cluster: clustersDef._0xFF66, att: 'tomorrowColor', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.text('DEMAIN', ea.STATE).withProperty('tomorrow_color').withDescription('Tomorrow color')},
+    {cluster: clustersDef._0xFF66, att: 'scheduleHPHC', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('HHPHC', ea.STATE).withProperty('schedule_h_p_h_c').withDescription('Schedule HPHC')},
     {cluster: clustersDef._0xFF66, att: 'presencePotential', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('PPOT', ea.STATE).withProperty('presence_potential').withDescription('Presence of potentials')},
-    {cluster: clustersDef._0xFF66, att: 'startNoticeEJP', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('PEJP', ea.STATE).withUnit('min').withProperty('start_notice_e_j_p').withDescription('EJP start notice (30min)')},
+    {cluster: clustersDef._0xFF66, att: 'startNoticeEJP', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('PEJP', ea.STATE).withUnit('min').withProperty('start_notice_e_j_p').withDescription('EJP start notice (30min)')},
     {cluster: clustersDef._0xFF66, att: 'warnDPS', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADPS', ea.STATE).withUnit('A').withProperty('warn_d_p_s').withDescription('Subscribed Power Exceeded Warning')},
     {cluster: clustersDef._0xFF66, att: 'warnDIR1', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR1', ea.STATE).withUnit('A').withProperty('warn_d_i_r1').withDescription('Over Current Warning (phase 1)')},
     {cluster: clustersDef._0xFF66, att: 'warnDIR2', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR2', ea.STATE).withUnit('A').withProperty('warn_d_i_r2').withDescription('Over Current Warning (phase 2)')},
     {cluster: clustersDef._0xFF66, att: 'warnDIR3', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.legacy, exposes: exposes.numeric('ADIR3', ea.STATE).withUnit('A').withProperty('warn_d_i_r3').withDescription('Over Current Warning (phase 3)')},
-    {cluster: clustersDef._0x0702, att: 'meterSerialNumber', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('ADSC', ea.STATE).withProperty('meter_serial_number').withDescription('Serial Number')},
-    {cluster: clustersDef._0xFF66, att: 'currentTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('NGTF', ea.STATE).withProperty('current_tarif').withDescription('Supplier pricing schedule name')},
-    {cluster: clustersDef._0xFF66, att: 'currentPrice', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('LTARF', ea.STATE).withProperty('current_price').withDescription('Current supplier price label')},
-    {cluster: clustersDef._0xFF66, att: 'currentIndexTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NTARF', ea.STATE).withProperty('current_index_tarif').withDescription('Current tariff index number')},
-    {cluster: clustersDef._0x0B01, att: 'softwareRevision', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('VTIC', ea.STATE).withProperty('software_revision').withDescription('Customer tele-information protocol version')},
-    {cluster: clustersDef._0xFF66, att: 'currentDate', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('DATE', ea.STATE).withProperty('current_date').withDescription('Current date and time')},
-    {cluster: clustersDef._0x0702, att: 'currentSummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EAST', ea.STATE).withUnit('kWh').withProperty('current_summ_delivered').withDescription('Total active power delivered')},
-    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF01', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('Total provider active power delivered (index 01)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF02', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('Total provider active power delivered (index 02)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier3SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF03', ea.STATE).withUnit('kWh').withProperty('current_tier3_summ_delivered').withDescription('Total provider active power delivered (index 03)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier4SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF04', ea.STATE).withUnit('kWh').withProperty('current_tier4_summ_delivered').withDescription('Total provider active power delivered (index 04)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier5SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF05', ea.STATE).withUnit('kWh').withProperty('current_tier5_summ_delivered').withDescription('Total provider active power delivered (index 05)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier6SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF06', ea.STATE).withUnit('kWh').withProperty('current_tier6_summ_delivered').withDescription('Total provider active power delivered (index 06)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier7SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF07', ea.STATE).withUnit('kWh').withProperty('current_tier7_summ_delivered').withDescription('Total provider active power delivered (index 07)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier8SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF08', ea.STATE).withUnit('kWh').withProperty('current_tier8_summ_delivered').withDescription('Total provider active power delivered (index 08)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier9SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF09', ea.STATE).withUnit('kWh').withProperty('current_tier9_summ_delivered').withDescription('Total provider active power delivered (index 09)')},
-    {cluster: clustersDef._0x0702, att: 'currentTier10SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF10', ea.STATE).withUnit('kWh').withProperty('current_tier10_summ_delivered').withDescription('Total provider active power delivered (index 10)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD02', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD03', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
-    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD04', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
-    {cluster: clustersDef._0x0702, att: 'currentSummReceived', reportable: true, report: {change: 100}, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EAIT', ea.STATE).withUnit('kWh').withProperty('current_summ_received').withDescription('Total active power injected')},
-    {cluster: clustersDef._0x0B04, att: 'totalReactivePower', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ1', ea.STATE).withUnit('VArh').withProperty('total_reactive_power').withDescription('Total reactive power (Q1)')},
-    {cluster: clustersDef._0x0B04, att: 'reactivePower', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ2', ea.STATE).withUnit('VArh').withProperty('reactive_power').withDescription('Total reactive power (Q2)')},
-    {cluster: clustersDef._0x0B04, att: 'reactivePowerPhB', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ3', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_b').withDescription('Total reactive power (Q3)')},
-    {cluster: clustersDef._0x0B04, att: 'reactivePowerPhC', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ4', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_c').withDescription('Total reactive power (Q4)')},
+    {cluster: clustersDef._0x0702, att: 'meterSerialNumber', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('ADSC', ea.STATE).withProperty('meter_serial_number').withDescription('Serial Number')},
+    {cluster: clustersDef._0xFF66, att: 'currentTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('NGTF', ea.STATE).withProperty('current_tarif').withDescription('Supplier pricing schedule name')},
+    {cluster: clustersDef._0xFF66, att: 'currentPrice', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('LTARF', ea.STATE).withProperty('current_price').withDescription('Current supplier price label')},
+    {cluster: clustersDef._0xFF66, att: 'currentIndexTarif', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NTARF', ea.STATE).withProperty('current_index_tarif').withDescription('Current tariff index number')},
+    {cluster: clustersDef._0x0B01, att: 'softwareRevision', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('VTIC', ea.STATE).withProperty('software_revision').withDescription('Customer tele-information protocol version')},
+    {cluster: clustersDef._0xFF66, att: 'currentDate', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('DATE', ea.STATE).withProperty('current_date').withDescription('Current date and time')},
+    {cluster: clustersDef._0x0702, att: 'currentSummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EAST', ea.STATE).withUnit('kWh').withProperty('current_summ_delivered').withDescription('Total active power delivered')},
+    {cluster: clustersDef._0x0702, att: 'currentTier1SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF01', ea.STATE).withUnit('kWh').withProperty('current_tier1_summ_delivered').withDescription('Total provider active power delivered (index 01)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier2SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF02', ea.STATE).withUnit('kWh').withProperty('current_tier2_summ_delivered').withDescription('Total provider active power delivered (index 02)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier3SummDelivered', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF03', ea.STATE).withUnit('kWh').withProperty('current_tier3_summ_delivered').withDescription('Total provider active power delivered (index 03)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier4SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF04', ea.STATE).withUnit('kWh').withProperty('current_tier4_summ_delivered').withDescription('Total provider active power delivered (index 04)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier5SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF05', ea.STATE).withUnit('kWh').withProperty('current_tier5_summ_delivered').withDescription('Total provider active power delivered (index 05)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier6SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF06', ea.STATE).withUnit('kWh').withProperty('current_tier6_summ_delivered').withDescription('Total provider active power delivered (index 06)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier7SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF07', ea.STATE).withUnit('kWh').withProperty('current_tier7_summ_delivered').withDescription('Total provider active power delivered (index 07)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier8SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF08', ea.STATE).withUnit('kWh').withProperty('current_tier8_summ_delivered').withDescription('Total provider active power delivered (index 08)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier9SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF09', ea.STATE).withUnit('kWh').withProperty('current_tier9_summ_delivered').withDescription('Total provider active power delivered (index 09)')},
+    {cluster: clustersDef._0x0702, att: 'currentTier10SummDelivered', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASF10', ea.STATE).withUnit('kWh').withProperty('current_tier10_summ_delivered').withDescription('Total provider active power delivered (index 10)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD01', reportable: true, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD01', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d01').withDescription('Active energy withdrawn Distributor (index 01)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD02', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD02', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d02').withDescription('Active energy withdrawn Distributor (index 02)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD03', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD03', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d03').withDescription('Active energy withdrawn Distributor (index 03)')},
+    {cluster: clustersDef._0xFF66, att: 'activeEnerfyOutD04', reportable: false, report: {change: 100}, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EASD04', ea.STATE).withUnit('kWh').withProperty('active_enerfy_out_d04').withDescription('Active energy withdrawn Distributor (index 04)')},
+    {cluster: clustersDef._0x0702, att: 'currentSummReceived', reportable: true, report: {change: 100}, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('EAIT', ea.STATE).withUnit('kWh').withProperty('current_summ_received').withDescription('Total active power injected')},
+    {cluster: clustersDef._0x0B04, att: 'totalReactivePower', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ1', ea.STATE).withUnit('VArh').withProperty('total_reactive_power').withDescription('Total reactive power (Q1)')},
+    {cluster: clustersDef._0x0B04, att: 'reactivePower', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ2', ea.STATE).withUnit('VArh').withProperty('reactive_power').withDescription('Total reactive power (Q2)')},
+    {cluster: clustersDef._0x0B04, att: 'reactivePowerPhB', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ3', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_b').withDescription('Total reactive power (Q3)')},
+    {cluster: clustersDef._0x0B04, att: 'reactivePowerPhC', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('ERQ4', ea.STATE).withUnit('VArh').withProperty('reactive_power_ph_c').withDescription('Total reactive power (Q4)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrent', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('IRMS1', ea.STATE).withUnit('A').withProperty('rms_current').withDescription('RMS current')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('IRMS2', ea.STATE).withUnit('A').withProperty('rms_current_ph_b').withDescription('RMS current (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsCurrentPhC', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('IRMS3', ea.STATE).withUnit('A').withProperty('rms_current_ph_c').withDescription('RMS current (phase 3)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltage', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('URMS1', ea.STATE).withUnit('V').withProperty('rms_voltage').withDescription('RMS voltage')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('URMS2', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_b').withDescription('RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'rmsVoltagePhC', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('URMS3', ea.STATE).withUnit('V').withProperty('rms_voltage_ph_c').withDescription('RMS voltage (phase 3)')},
-    {cluster: clustersDef._0x0B01, att: 'availablePower', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PREF', ea.STATE).withUnit('kVA').withProperty('available_power').withDescription('Apparent power of reference')},
+    {cluster: clustersDef._0x0B01, att: 'availablePower', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PREF', ea.STATE).withUnit('kVA').withProperty('available_power').withDescription('Apparent power of reference')},
     {cluster: clustersDef._0xFF66, att: 'statusRegister', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('STGE', ea.STATE).withProperty('status_register').withDescription('Register of Statutes')},
-    {cluster: clustersDef._0x0B01, att: 'powerThreshold', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PCOUP', ea.STATE).withUnit('kVA').withProperty('power_threshold').withDescription('Apparent power threshold')},
-    {cluster: clustersDef._0xFF66, att: 'injectedVA', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SINSTI', ea.STATE).withUnit('VA').withProperty('injected_v_a').withDescription('Instantaneous apparent power injected')},
-    {cluster: clustersDef._0xFF66, att: 'injectedVAMaxN', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXIN', ea.STATE).withUnit('VA').withProperty('injected_v_a_max_n').withDescription('Apparent power max. injected n')},
-    {cluster: clustersDef._0xFF66, att: 'injectedVAMaxN1', reportable: false, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXIN-1', ea.STATE).withUnit('VA').withProperty('injected_v_a_max_n1').withDescription('Apparent power max. injected n-1')},
-    {cluster: clustersDef._0x0B04, att: 'activePower', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCASN', ea.STATE).withUnit('W').withProperty('active_power').withDescription('Current point of the active load curve drawn')},
-    {cluster: clustersDef._0x0B04, att: 'activePowerPhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCASN-1', ea.STATE).withUnit('W').withProperty('active_power_ph_b').withDescription('Previous point of the active load curve drawn')},
-    {cluster: clustersDef._0xFF66, att: 'injectedActiveLoadN', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCAIN', ea.STATE).withUnit('W').withProperty('injected_active_load_n').withDescription('Point n of the withdrawn active load curve')},
-    {cluster: clustersDef._0xFF66, att: 'injectedActiveLoadN1', reportable: false, onlyProducer: true, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCAIN-1', ea.STATE).withUnit('W').withProperty('injected_active_load_n1').withDescription('Point n-1 of the withdrawn active load curve')},
+    {cluster: clustersDef._0x0B01, att: 'powerThreshold', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('PCOUP', ea.STATE).withUnit('kVA').withProperty('power_threshold').withDescription('Apparent power threshold')},
+    {cluster: clustersDef._0xFF66, att: 'injectedVA', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SINSTI', ea.STATE).withUnit('VA').withProperty('injected_v_a').withDescription('Instantaneous apparent power injected')},
+    {cluster: clustersDef._0xFF66, att: 'injectedVAMaxN', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXIN', ea.STATE).withUnit('VA').withProperty('injected_v_a_max_n').withDescription('Apparent power max. injected n')},
+    {cluster: clustersDef._0xFF66, att: 'injectedVAMaxN1', reportable: false, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXIN-1', ea.STATE).withUnit('VA').withProperty('injected_v_a_max_n1').withDescription('Apparent power max. injected n-1')},
+    {cluster: clustersDef._0x0B04, att: 'activePower', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCASN', ea.STATE).withUnit('W').withProperty('active_power').withDescription('Current point of the active load curve drawn')},
+    {cluster: clustersDef._0x0B04, att: 'activePowerPhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCASN-1', ea.STATE).withUnit('W').withProperty('active_power_ph_b').withDescription('Previous point of the active load curve drawn')},
+    {cluster: clustersDef._0xFF66, att: 'injectedActiveLoadN', reportable: true, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCAIN', ea.STATE).withUnit('W').withProperty('injected_active_load_n').withDescription('Point n of the withdrawn active load curve')},
+    {cluster: clustersDef._0xFF66, att: 'injectedActiveLoadN1', reportable: false, onlyProducer: true, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('CCAIN-1', ea.STATE).withUnit('W').withProperty('injected_active_load_n1').withDescription('Point n-1 of the withdrawn active load curve')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasPeriod', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('UMOY1', ea.STATE).withUnit('V').withProperty('average_rms_voltage_meas_period').withDescription('Average RMS voltage (phase 1)')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasurePeriodPhB', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('UMOY2', ea.STATE).withUnit('V').withProperty('average_rms_voltage_measure_period_ph_b').withDescription('Average RMS voltage (phase 2)')},
     {cluster: clustersDef._0x0B04, att: 'averageRmsVoltageMeasPeriodPhC', reportable: true, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('UMOY3', ea.STATE).withUnit('V').withProperty('average_rms_voltage_meas_period_ph_c').withDescription('Average RMS voltage (phase 3)')},
@@ -387,20 +443,20 @@ const exposedData = [
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXN1-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1').withDescription('Apparent power max. draw-off n-1 (phase 1)')},
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1P2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXN2-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1_p2').withDescription('Apparent power max. draw-off n-1 (phase 2)')},
     {cluster: clustersDef._0xFF66, att: 'drawnVAMaxN1P3', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.three, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('SMAXN3-1', ea.STATE).withUnit('VA').withProperty('drawn_v_a_max_n1_p3').withDescription('Apparent power max. draw-off n-1 (phase 3)')},
-    {cluster: clustersDef._0xFF66, att: 'message1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG1', ea.STATE).withProperty('message1').withDescription('Message short')},
-    {cluster: clustersDef._0xFF66, att: 'message2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG2', ea.STATE).withProperty('message2').withDescription('Message ultra-short')},
-    {cluster: clustersDef._0x0702, att: 'siteId', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PRM', ea.STATE).withProperty('site_id').withDescription('PRM number')},
-    {cluster: clustersDef._0xFF66, att: 'startMobilePoint1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM1', ea.STATE).withProperty('start_mobile_point1').withDescription('Start mobile point 1')},
-    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM1', ea.STATE).withProperty('stop_mobile_point1').withDescription('Stop mobile point 1')},
-    {cluster: clustersDef._0xFF66, att: 'startMobilePoint2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM2', ea.STATE).withProperty('start_mobile_point2').withDescription('Start mobile point 2')},
-    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM2', ea.STATE).withProperty('stop_mobile_point2').withDescription('Stop mobile point 2')},
-    {cluster: clustersDef._0xFF66, att: 'startMobilePoint3', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM3', ea.STATE).withProperty('start_mobile_point3').withDescription('Start mobile point 3')},
-    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint3', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM3', ea.STATE).withProperty('stop_mobile_point3').withDescription('Stop mobile point 3')},
-    {cluster: clustersDef._0xFF66, att: 'relais', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('RELAIS', ea.STATE).withProperty('relais')},
-    {cluster: clustersDef._0xFF66, att: 'daysNumberCurrentCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NJOURF', ea.STATE).withProperty('days_number_current_calendar').withDescription('Current day number supplier calendar')},
-    {cluster: clustersDef._0xFF66, att: 'daysNumberNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NJOURF+1', ea.STATE).withProperty('days_number_next_calendar').withDescription('Next day number supplier calendar')},
-    {cluster: clustersDef._0xFF66, att: 'daysProfileCurrentCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PJOURF+1', ea.STATE).withProperty('days_profile_current_calendar').withDescription('Profile of the next supplier calendar day')},
-    {cluster: clustersDef._0xFF66, att: 'daysProfileNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard, exposes: exposes.text('PPOINTE1', ea.STATE).withProperty('days_profile_next_calendar').withDescription('Profile of the next check-in day')},
+    {cluster: clustersDef._0xFF66, att: 'message1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG1', ea.STATE).withProperty('message1').withDescription('Message short')},
+    {cluster: clustersDef._0xFF66, att: 'message2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('MSG2', ea.STATE).withProperty('message2').withDescription('Message ultra-short')},
+    {cluster: clustersDef._0x0702, att: 'siteId', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('PRM', ea.STATE).withProperty('site_id').withDescription('PRM number')},
+    {cluster: clustersDef._0xFF66, att: 'startMobilePoint1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM1', ea.STATE).withProperty('start_mobile_point1').withDescription('Start mobile point 1')},
+    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint1', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM1', ea.STATE).withProperty('stop_mobile_point1').withDescription('Stop mobile point 1')},
+    {cluster: clustersDef._0xFF66, att: 'startMobilePoint2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM2', ea.STATE).withProperty('start_mobile_point2').withDescription('Start mobile point 2')},
+    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint2', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM2', ea.STATE).withProperty('stop_mobile_point2').withDescription('Stop mobile point 2')},
+    {cluster: clustersDef._0xFF66, att: 'startMobilePoint3', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('DPM3', ea.STATE).withProperty('start_mobile_point3').withDescription('Start mobile point 3')},
+    {cluster: clustersDef._0xFF66, att: 'stopMobilePoint3', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('FPM3', ea.STATE).withProperty('stop_mobile_point3').withDescription('Stop mobile point 3')},
+    {cluster: clustersDef._0xFF66, att: 'relais', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('RELAIS', ea.STATE).withProperty('relais')},
+    {cluster: clustersDef._0xFF66, att: 'daysNumberCurrentCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NJOURF', ea.STATE).withProperty('days_number_current_calendar').withDescription('Current day number supplier calendar')},
+    {cluster: clustersDef._0xFF66, att: 'daysNumberNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.numeric('NJOURF+1', ea.STATE).withProperty('days_number_next_calendar').withDescription('Next day number supplier calendar')},
+    {cluster: clustersDef._0xFF66, att: 'daysProfileCurrentCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('PJOURF+1', ea.STATE).withProperty('days_profile_current_calendar').withDescription('Profile of the next supplier calendar day')},
+    {cluster: clustersDef._0xFF66, att: 'daysProfileNextCalendar', reportable: false, onlyProducer: false, linkyPhase: linkyPhaseDef.all, linkyMode: linkyModeDef.standard, exposes: exposes.text('PPOINTE1', ea.STATE).withProperty('days_profile_next_calendar').withDescription('Profile of the next check-in day')},
 ];
 
 function getCurrentConfig(device, options, logger=console) {
@@ -478,10 +534,24 @@ function getCurrentConfig(device, options, logger=console) {
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_MERCR.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
+        break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_BASE.excluded.includes(a.exposes.name));
+        break;
     default:
         break;
     }
 
+    // Filter exposed attributes with user whitelist
+    if (options && options.hasOwnProperty('tic_command_whitelist')) {
+        const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
+        if (tic_commands_str !== 'ALL') {
+            const tic_commands = tic_commands_str.split(',').map((a) => a.trim());
+            myExpose = myExpose.filter((a) => tic_commands.includes(a.exposes.name));
+        }
+    }
 
     return myExpose;
 }
@@ -520,6 +590,7 @@ const definition = {
             .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
         exposes.options.precision(`kWh`),
         exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+        exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
     ],
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);
@@ -531,7 +602,11 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+            .catch((e) => {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                logger.warn(`Failed to read zigbee attributes: ${e}`);
+            });
 
         const configReportings = [];
         const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
@@ -572,7 +647,11 @@ const definition = {
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'start') {
-            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+                .catch((e) => {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                });
         } else if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
@@ -594,7 +673,11 @@ const definition = {
                             // Split array by chunks
                             for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                 await endpoint
-                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null});
+                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                    .catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                                    });
                             }
                         }
                     }

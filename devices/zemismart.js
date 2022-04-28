@@ -125,7 +125,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
+        ],
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
@@ -150,5 +153,14 @@ module.exports = [
         // exposes.numeric('time_total', ea.STATE).withUnit('ms'),
         // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'}],
+        model: 'ZM25TQ',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options, tz.tuya_data_point_test],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];

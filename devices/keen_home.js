@@ -21,8 +21,8 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0',
-            'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-610-MP-1.1', 'SV01-612-MP-1.0', 'SV01-610-MP-1.4'],
+        zigbeeModel: ['SV01-410-MP-1.0', 'SV01-410-MP-1.1', 'SV01-410-MP-1.4', 'SV01-410-MP-1.5', 'SV01-412-MP-1.0', 'SV01-612-MP-1.1',
+            'SV01-412-MP-1.1', 'SV01-412-MP-1.4', 'SV01-610-MP-1.0', 'SV01-610-MP-1.1', 'SV01-612-MP-1.0', 'SV01-610-MP-1.4'],
         model: 'SV01',
         vendor: 'Keen Home',
         description: 'Smart vent',
@@ -41,7 +41,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.temperature(), e.battery(), e.pressure()],
     },
     {
-        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-412-MP-1.3', 'SV02-610-MP-1.3', 'SV02-612-MP-1.3', 'SV02-410-MP-1.0'],
+        zigbeeModel: ['SV02-410-MP-1.3', 'SV02-412-MP-1.3', 'SV02-610-MP-1.3', 'SV02-612-MP-1.3', 'SV02-410-MP-1.0', 'SV02-410-MP-1.2'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',

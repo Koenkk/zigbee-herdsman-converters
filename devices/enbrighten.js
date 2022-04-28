@@ -74,12 +74,16 @@ module.exports = [
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
         extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        fromZigbee: [...extend.light_onoff_brightness({disableEffect: true, noConfigure: true}).fromZigbee, fz.metering],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'seMetering']);
             await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
+        exposes: [e.light_brightness(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['43084'],

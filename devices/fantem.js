@@ -5,6 +5,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 const extend = require('../lib/extend');
 const reporting = require('../lib/reporting');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -13,10 +14,34 @@ module.exports = [
         vendor: 'Fantem',
         description: 'Smart dimmer module without neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness()],
+        fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
+            fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ZB006X_settings],
+        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tz.ZB006X_settings],
+        exposes: [e.light_brightness(),
+            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
+            exposes.enum('control_mode', ea.STATE_SET, ['ext_switch', 'remote', 'both']).withDescription('Control mode'),
+            exposes.enum('ext_switch_type', ea.STATE_SET, ['unknown', 'toggle_sw', 'momentary_sw', 'rotary_sw', 'auto_config'])
+                .withDescription('External switch type'),
+            exposes.numeric('ext_switch_status', ea.STATE).withDescription('External switch status')
+                .withValueMin(-10000).withValueMax(10000),
+            exposes.enum('load_detection_mode', ea.STATE_SET, ['none', 'first_power_on', 'every_power_on'])
+                .withDescription('Load detection mode'),
+            // If you see load_type 'unknown', pls. check with Tuya gateway and app and update with label from Tuya app.
+            exposes.enum('load_type', ea.STATE, ['unknown', 'resistive_capacitive', 'unknown', 'detecting'])
+                .withDescription('Load type'),
+            exposes.enum('load_dimmable', ea.STATE, ['unknown', 'dimmable', 'not_dimmable'])
+                .withDescription('Load dimmable'),
+            exposes.enum('power_supply_mode', ea.STATE, ['unknown', 'no_neutral', 'with_neutral'])
+                .withDescription('Power supply mode'),
+        ],
+        meta: {disableActionGroup: true},
+        onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
+            // Enables reporting of physical state changes
+            // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },

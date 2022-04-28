@@ -25,6 +25,8 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genBasic',
+                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -99,6 +101,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
