@@ -2587,7 +2587,7 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         ota: ota.zigbeeOTA,
-    };
+    },
     {
         zigbeeModel: ['5309331P6', '5309330P6', '929003046301_03', '929003046301_02'],
         model: '5309331P6',
