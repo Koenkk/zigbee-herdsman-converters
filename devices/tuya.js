@@ -2248,4 +2248,28 @@ module.exports = [
         fromZigbee: [fz.tuya_remote],
         toZigbee: [],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'}],
+        model: 'TS0601_smart_human_presense_sensor',
+        vendor: 'TuYa',
+        description: 'Smart Human presence sensor',
+        fromZigbee: [fz.tuya_smart_human_presense_sensor],
+        toZigbee: [tz.tuya_smart_human_presense_sensor],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            exposes.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            exposes.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Minimum range').withUnit('m'),
+            exposes.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Maximum range').withUnit('m'),
+            exposes.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+         //   exposes.text('cli', ea.STATE).withDescription('not recognize'),
+         //   exposes.text('self_test', ea.STATE).withDescription('not recognize'),
+        ],
+    },    
 ];

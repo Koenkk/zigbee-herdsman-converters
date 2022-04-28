@@ -8413,6 +8413,51 @@ const converters = {
             return result;
         },
     },
+    tuya_smart_human_presense_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_smart_human_presense_sensor');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.tshpsPresenceState:
+                result = {presence: {0: false, 1: true}[value]};
+                break;
+            case tuya.dataPoints.tshpscSensitivity:
+                result = {radar_sensitivity: value};
+                break;
+            case tuya.dataPoints.tshpsMinimumRange:
+                result = {minimum_range: value/100};
+                break;
+            case tuya.dataPoints.tshpsMaximumRange:
+                result = {maximum_range: value/100};
+                break;
+            case tuya.dataPoints.tshpsTargetDistance:
+                result = {target_distance: value/100};
+                break;
+            case tuya.dataPoints.tshpsDetectionDelay:
+                result = {detection_delay: value/10};
+                break;
+            case tuya.dataPoints.tshpsFadingTime:
+                result = {fading_time: value/10};
+                break;
+            case tuya.dataPoints.tshpsIlluminanceLux:
+                result = {illuminance_lux: value};
+                break;
+            case tuya.dataPoints.tshpsCLI: //not recognize
+                result = {cli: value};
+                break;
+            case tuya.dataPoints.tshpsSelfTest: //not recognize
+                result = {self_test: value};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
