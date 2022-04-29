@@ -8417,7 +8417,7 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'raw'],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'moes_hps');
+            const dpValue = tuya.firstDpValue(msg, meta);
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
             const result = {};
