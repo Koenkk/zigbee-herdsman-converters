@@ -6519,8 +6519,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'ext_switch_type':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle_sw': 1,
-                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value], 'sendData');
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle': 1,
+                    'momentary': 2, 'rotary': 3, 'auto_config': 4}[value], 'sendData');
                 break;
             case 'load_detection_mode':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemLoadDetectionMode, {'none': 0, 'first_power_on': 1,
