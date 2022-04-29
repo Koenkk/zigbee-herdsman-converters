@@ -7391,7 +7391,7 @@ const converters = {
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSHoldTime, value);
                     break;
                 default: // Unknown Key
-                    meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
+                    meta.logger.warn(`toZigbee.tuya_moes_hps: Unhandled Key ${key}`);
                 }
             },
         },

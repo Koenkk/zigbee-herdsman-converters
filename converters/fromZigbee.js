@@ -8421,8 +8421,7 @@ const converters = {
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
             const result = {};
-            meta.logger.debug(`from hoch_din, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
-
+            meta.logger.debug(`from moes_hps, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
             if (dp === tuya.dataPoints.moesHPSPresenceState) {
                 result.presence ={0: false, 1: true}[value];
             }
@@ -8449,7 +8448,7 @@ const converters = {
                     3: 'others',
                     4: 'comm_fault',
                     5: 'radar_fault',
-            };
+                };
                 result.self_test = moesHPSCheckingResult[value];
             }
             if (dp === tuya.dataPoints.moesHPSDetectionLatence) {

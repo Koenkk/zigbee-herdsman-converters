@@ -334,19 +334,20 @@ module.exports = [
         toZigbee: [tz.moes_hps],
         exposes: [e.illuminance_lux(), e.presence(),
             exposes.numeric('sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9)
-            .withDescription('Radar-sensitivity 0(lowest) - 9(highest)'),
+                .withDescription('Radar-sensitivity 0(lowest) - 9(highest)'),
             exposes.numeric('near_detection', ea.STATE_SET).withValueMin(0).withValueMax(950).withUnit('cm')
-            .withDescription('Change, if you need a senseless area close around the radar (0-9,5 meter)'),
+                .withDescription('Change, if you need a senseless area close around the radar (0-9,5 meter)'),
             exposes.numeric('far_detection', ea.STATE_SET).withValueMin(0).withValueMax(950).withUnit('cm')
-            .withDescription('Change, if you need to limit the outer radar-radius (0-9,5 meter)'),
+                .withDescription('Change, if you need to limit the outer radar-radius (0-9,5 meter)'),
             exposes.numeric('target_distance', ea.STATE).withUnit('cm')
-            .withDescription('shows the nearest point of recognizing a person.'),
+                .withDescription('shows the nearest point of recognizing a person.'),
             exposes.enum('self_test', ea.STATE, Object.values(tuya.moesHPSCheckingResult))
-            .withDescription('the radar-sensor makes a self-test several times. Possible results are: checking, check_success, check_failure, other reasons, comm_fault, radar_fault.'),
+                // eslint-disable-next-line max-len
+                .withDescription('the radar-sensor makes a self-test several times. Possible results are: checking, check_success, check_failure, other reasons, comm_fault, radar_fault.'),
             exposes.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withUnit('seconds')
-            .withDescription('Time from recognizing a person until action (presence true after x seconds).'),
+                .withDescription('Time from recognizing a person until action (presence true after x seconds).'),
             exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withUnit('seconds')
-            .withDescription('individual time, the sensor would stay in Presence True State.')],
+                .withDescription('individual time, the sensor would stay in Presence True State.')],
     },
 
 ];

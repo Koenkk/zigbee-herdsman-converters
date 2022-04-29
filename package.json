@@ -41,7 +41,8 @@
     "zigbee-herdsman": "^0.14.26"
   },
   "devDependencies": {
-    "eslint": "*",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.14.0",
     "eslint-config-google": "*",
     "eslint-plugin-jest": "*",
     "fast-deep-equal": "*",
