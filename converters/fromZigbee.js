@@ -8413,6 +8413,54 @@ const converters = {
             return result;
         },
     },
+    moes_hps: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport', 'raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'moes_hps');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            const result = {};
+            meta.logger.debug(`from hoch_din, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
+
+            if (dp === tuya.dataPoints.moesHPSPresenceState) {
+                result.presence ={0: false, 1: true}[value];
+            }
+            if (dp === tuya.dataPoints.moesHPSNearDetection) {
+                result.near_detection = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSFarDetection) {
+                result.far_detection = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSSensitivity) {
+                result.sensitivity = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSIlluminance) {
+                result.illuminance_lux = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSTargetDisClosest) {
+                result.target_distance = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSCheckingResult) {
+                const moesHPSCheckingResult = {
+                    0: 'chacking',
+                    1: 'check_success',
+                    2: 'check_failure',
+                    3: 'others',
+                    4: 'comm_fault',
+                    5: 'radar_fault',
+            };
+                result.self_test = moesHPSCheckingResult[value];
+            }
+            if (dp === tuya.dataPoints.moesHPSDetectionLatence) {
+                result.detection_delay = value;
+            }
+            if (dp === tuya.dataPoints.moesHPSHoldTime) {
+                result.fading_time = value;
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
