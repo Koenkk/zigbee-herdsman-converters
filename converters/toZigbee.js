@@ -7389,11 +7389,11 @@ const converters = {
                 return {state: {detection_delay: value}};
             } else if (key === 'fading_time') {
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSHoldTime, value);
-                return {state: {fading_time: value}};    
+                return {state: {fading_time: value}};
             }
         },
     },
-// #endregion
+    // #endregion
 
     // #region Ignore converters
     ignore_transition: {

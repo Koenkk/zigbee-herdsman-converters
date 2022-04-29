@@ -8448,8 +8448,8 @@ const converters = {
                     3: 'others',
                     4: 'comm_fault',
                     5: 'radar_fault',
-            };
-            result.self_test = moesHPSCheckingResult[value];
+                };
+                result.self_test = moesHPSCheckingResult[value];
             }
             if (dp === tuya.dataPoints.moesHPSDetectionLatence) {
                 result.detection_delay = value;
