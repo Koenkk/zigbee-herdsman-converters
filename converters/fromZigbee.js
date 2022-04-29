@@ -8417,18 +8417,17 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'raw'],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta);
+            const dpValue = tuya.firstDpValue(msg, meta, 'moes_hps');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
             const result = {};
             meta.logger.debug(`from moes_hps, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
-            if (dp === tuya.dataPoints.moesHPSPresenceState) {
-                result.presence = {0: false, 1: true}[value];
-            }
-            if (dp === tuya.dataPoints.moesHPSNearDetection) {
-                result.near_detection = value;
-            }
-            if (dp === tuya.dataPoints.moesHPSFarDetection) {
+            switch(dp) {
+            case tuya.dataPoints.moesHPSPresenceState:
+                result = presence = {0: false, 1: true}[value];
+            case tuya.dataPoints.moesHPSNearDetection:
+                result = near_detection = value;
+            case tuya.dataPoints.moesHPSFarDetection:
                 result.far_detection = value;
             }
             if (dp === tuya.dataPoints.moesHPSSensitivity) {

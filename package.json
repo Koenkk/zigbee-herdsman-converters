@@ -24,8 +24,8 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "ZHC_TEST=true jest test",
-    "test-watch": "ZHC_TEST=true jest test --watch"
+    "test": "cross-env ZHC_TEST=true jest test",
+    "test-watch": "cross-env ZHC_TEST=true jest test --watch"
   },
   "author": "Koen Kanters",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "zigbee-herdsman": "^0.14.26"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
+    "cross-env": "^6.0.3",
     "eslint": "^8.14.0",
     "eslint-config-google": "*",
     "eslint-plugin-jest": "*",

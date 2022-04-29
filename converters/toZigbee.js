@@ -7371,32 +7371,29 @@ const converters = {
                 break;
             }
         },
-        moes_hps: {
-            key: ['sensitivity', 'near_detection', 'far_detection', 'detection_delay', 'fading_time'],
-            convertSet: async (entity, key, value, meta) => {
-                switch (key) {
-                case 'sensitivity':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSSensitivity, value);
-                    break;
-                case 'near_detection':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSNearDetection, value);
-                    break;
-                case 'far_detection':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSFarDetection, value);
-                    break;
-                case 'detection_delay':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSDetectionLatence, value);
-                    break;
-                case 'fading_time':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSHoldTime, value);
-                    break;
-                default: // Unknown Key
-                    meta.logger.warn(`toZigbee.tuya_moes_hps: Unhandled Key ${key}`);
-                }
-            },
+    },
+    moes_hps: {
+        key: ['sensitivity', 'near_detection', 'far_detection', 'detection_delay', 'fading_time'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'sensitivity') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSSensitivity, value);
+                return {state: {sensitivity: value}};
+            } else if (key === 'near_detection') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSNearDetection, value);
+                return {state: {near_detection: value}};
+            } else if (key === 'far_detection') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSFarDetection, value);
+                return {state: {far_detection: value}};
+            } else if (key === 'detection_delay') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSDetectionLatence, value);
+                return {state: {detection_delay: value}};
+            } else if (key === 'fading_time') {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHPSHoldTime, value);
+                return {state: {fading_time: value}};    
+            }
         },
     },
-    // #endregion
+// #endregion
 
     // #region Ignore converters
     ignore_transition: {
