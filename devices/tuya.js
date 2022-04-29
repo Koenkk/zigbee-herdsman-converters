@@ -2270,6 +2270,7 @@ module.exports = [
                 .withDescription('Fading time').withUnit('s'),
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
             // exposes.text('self_test', ea.STATE).withDescription('not recognize'),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
