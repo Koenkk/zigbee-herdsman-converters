@@ -8423,7 +8423,7 @@ const converters = {
             const result = {};
             meta.logger.debug(`from moes_hps, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
             if (dp === tuya.dataPoints.moesHPSPresenceState) {
-                result.presence ={0: false, 1: true}[value];
+                result.presence = {0: false, 1: true}[value];
             }
             if (dp === tuya.dataPoints.moesHPSNearDetection) {
                 result.near_detection = value;
