@@ -8450,14 +8450,6 @@ const converters = {
                 result = {cli: value};
                 break;
             case tuya.dataPoints.tshpsSelfTest:
-                const tuyaHPSCheckingResult = {
-                    0: 'chacking',
-                    1: 'check_success',
-                    2: 'check_failure',
-                    3: 'others',
-                    4: 'comm_fault',
-                    5: 'radar_fault',
-            };
                 result = {self_test: tuya.tuyaHPSCheckingResult [value]};
                 break;
             default:
