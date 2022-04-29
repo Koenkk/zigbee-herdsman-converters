@@ -2269,7 +2269,8 @@ module.exports = [
             exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
-            // exposes.text('self_test', ea.STATE).withDescription('not recognize'),
+            exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
+                .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
     },
     {

@@ -8449,8 +8449,16 @@ const converters = {
             case tuya.dataPoints.tshpsCLI: // not recognize
                 result = {cli: value};
                 break;
-            case tuya.dataPoints.tshpsSelfTest: // not recognize
-                result = {self_test: value};
+            case tuya.dataPoints.tshpsSelfTest:
+                const tuyaHPSCheckingResult = {
+                    0: 'chacking',
+                    1: 'check_success',
+                    2: 'check_failure',
+                    3: 'others',
+                    4: 'comm_fault',
+                    5: 'radar_fault',
+            };
+                result = {self_test: tuya.tuyaHPSCheckingResult [value]};
                 break;
             default:
                 meta.logger
