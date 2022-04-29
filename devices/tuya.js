@@ -2270,6 +2270,36 @@ module.exports = [
                 .withDescription('Fading time').withUnit('s'),
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
             // exposes.text('self_test', ea.STATE).withDescription('not recognize'),
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
+        model: 'JM-TRH-ZGB-V1',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor with clock',
+        fromZigbee: [fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(),
+            exposes.numeric('report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withValueStep(5)
+                .withDescription('Report interval'),
+            exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+            exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
+                .withDescription('Temperature alarm status'),
+            exposes.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature max'),
+            exposes.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+                .withDescription('Alarm temperature min'),
+            exposes.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
+                .withDescription('Humidity alarm status'),
+            exposes.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Alarm humidity max'),
+            exposes.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Alarm humidity min'),
         ],
     },
 ];
