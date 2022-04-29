@@ -6515,10 +6515,10 @@ const converters = {
         },
     },
     ZB006X_settings: {
-        key: ['ext_switch_type', 'load_detection_mode', 'control_mode'],
+        key: ['switch_type', 'load_detection_mode', 'control_mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-            case 'ext_switch_type':
+            case 'switch_type':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle': 1,
                     'momentary': 2, 'rotary': 3, 'auto_config': 4}[value], 'sendData');
                 break;

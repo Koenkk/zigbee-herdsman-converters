@@ -20,9 +20,9 @@ module.exports = [
         exposes: [e.light_brightness(),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
             exposes.enum('control_mode', ea.STATE_SET, ['ext_switch', 'remote', 'both']).withDescription('Control mode'),
-            exposes.enum('ext_switch_type', ea.STATE_SET, ['unknown', 'toggle', 'momentary', 'rotary', 'auto_config'])
+            exposes.enum('switch_type', ea.STATE_SET, ['unknown', 'toggle', 'momentary', 'rotary', 'auto_config'])
                 .withDescription('External switch type'),
-            exposes.numeric('ext_switch_status', ea.STATE).withDescription('External switch status')
+            exposes.numeric('switch_status', ea.STATE).withDescription('External switch status')
                 .withValueMin(-10000).withValueMax(10000),
             exposes.enum('load_detection_mode', ea.STATE_SET, ['none', 'first_power_on', 'every_power_on'])
                 .withDescription('Load detection mode'),
