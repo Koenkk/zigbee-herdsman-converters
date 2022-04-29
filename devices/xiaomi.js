@@ -1960,6 +1960,7 @@ module.exports = [
         model: 'WXKG16LM',
         vendor: 'Xiaomi',
         description: 'Aqara wireless remote switch E1 (single rocker)',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.xiaomi_switch_click_mode],
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold']),
