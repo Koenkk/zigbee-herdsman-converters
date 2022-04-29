@@ -59,12 +59,12 @@ module.exports = [
             exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration in lux')
                 .withValueMin(-20).withValueMax(20),
             exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration (-2.0...2.0)')
-                .withValueMin(-2).withValueMax(2),
+                .withValueMin(-2).withValueMax(2).withValueStep(0.1),
             exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration')
                 .withValueMin(-15).withValueMax(15),
             exposes.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enable reporting'),
             exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
-                .withValueMin(0).withValueMax(1440),
+                .withValueMin(0).withValueMax(1440).withValueStep(5),
             exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enable LED'),
             exposes.binary('pir_enable', ea.STATE_SET, true, false).withDescription('Enable PIR sensor'),
             exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
