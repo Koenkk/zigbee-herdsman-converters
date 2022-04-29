@@ -6507,7 +6507,7 @@ const converters = {
                 break;
             case 'keep_time':
                 await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3,
-                '240': 4, '480': 5}[value], type: 0x20}});
+                    '240': 4, '480': 5}[value], type: 0x20}});
                 break;
             default: // Unknown key
                 throw new Error(`tz.ZB003X: Unhandled key ${key}`);
