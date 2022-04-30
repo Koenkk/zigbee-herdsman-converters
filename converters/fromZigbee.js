@@ -7272,14 +7272,14 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZB003X');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
             case tuya.dataPoints.fantemTemp:
-                return {temperature: calibrateAndPrecisionRoundOptions((value / 10).toFixed(1), options, 'temperature')};
+                return {temperature: calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
             case tuya.dataPoints.fantemHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             case tuya.dataPoints.fantemBattery:
-                return {battery: value};
+                // second battery level, first battery is reported by fz.battery
+                return {battery2: value};
             case tuya.dataPoints.fantemReportingTime:
                 return {reporting_time: value};
             case tuya.dataPoints.fantemTempCalibration:
@@ -7295,12 +7295,11 @@ const converters = {
             case tuya.dataPoints.fantemMotionEnable:
                 return {pir_enable: value};
             case tuya.dataPoints.fantemLedEnable:
-                return {led_enable: value};
+                return {led_enable: value ? false : true};
             case tuya.dataPoints.fantemReportingEnable:
                 return {reporting_enable: value};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:FantemZB003X: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.ZB003X: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -7310,7 +7309,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
-            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
+            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240, '5': 480};
             if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
                 const value = data.currentZoneSensitivityLevel;
                 return {sensitivity: senslookup[value]};
@@ -7340,12 +7339,11 @@ const converters = {
             case tuya.dataPoints.fantemPowerSupplyMode:
                 return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
             case tuya.dataPoints.fantemExtSwitchType:
-                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw',
-                    4: 'auto_config'}[value]};
+                return {switch_type: {0: 'unknown', 1: 'toggle', 2: 'momentary', 3: 'rotary', 4: 'auto_config'}[value]};
             case tuya.dataPoints.fantemLoadDetectionMode:
                 return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
             case tuya.dataPoints.fantemExtSwitchStatus:
-                return {ext_switch_status: value};
+                return {switch_status: value};
             case tuya.dataPoints.fantemControlMode:
                 return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
             case 111:

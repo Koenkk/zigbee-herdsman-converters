@@ -6490,48 +6490,49 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'reporting_time':
-                await tuya.sendDataPointValue(entity, 102, value, 'sendData');
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.fantemReportingTime, value, 'sendData');
                 break;
             case 'temperature_calibration':
                 value = Math.round(value * 10);
                 if (value < 0) value = 0xFFFFFFFF + value + 1;
-                await tuya.sendDataPointValue(entity, 104, value, 'sendData');
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.fantemTempCalibration, value, 'sendData');
                 break;
             case 'humidity_calibration':
                 if (value < 0) value = 0xFFFFFFFF + value + 1;
-                await tuya.sendDataPointValue(entity, 105, value, 'sendData');
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.fantemHumidityCalibration, value, 'sendData');
                 break;
             case 'illuminance_calibration':
                 if (value < 0) value = 0xFFFFFFFF + value + 1;
-                await tuya.sendDataPointValue(entity, 106, value, 'sendData');
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.fantemLuxCalibration, value, 'sendData');
                 break;
             case 'pir_enable':
-                await tuya.sendDataPointBool(entity, 109, value, 'sendData');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.fantemMotionEnable, value, 'sendData');
                 break;
             case 'led_enable':
-                await tuya.sendDataPointBool(entity, 111, value, 'sendData');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.fantemLedEnable, value === false, 'sendData');
                 break;
             case 'reporting_enable':
-                await tuya.sendDataPointBool(entity, 112, value, 'sendData');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.fantemReportingEnable, value, 'sendData');
                 break;
             case 'sensitivity':
                 await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
                 break;
             case 'keep_time':
-                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4}[value], type: 0x20}});
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3,
+                    '240': 4, '480': 5}[value], type: 0x20}});
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
+                throw new Error(`tz.ZB003X: Unhandled key ${key}`);
             }
         },
     },
     ZB006X_settings: {
-        key: ['ext_switch_type', 'load_detection_mode', 'control_mode'],
+        key: ['switch_type', 'load_detection_mode', 'control_mode'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-            case 'ext_switch_type':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle_sw': 1,
-                    'momentary_sw': 2, 'rotary_sw': 3, 'auto_config': 4}[value], 'sendData');
+            case 'switch_type':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle': 1,
+                    'momentary': 2, 'rotary': 3, 'auto_config': 4}[value], 'sendData');
                 break;
             case 'load_detection_mode':
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.fantemLoadDetectionMode, {'none': 0, 'first_power_on': 1,
