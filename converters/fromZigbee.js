@@ -4751,7 +4751,7 @@ const converters = {
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else if (meta.device.manufacturerName === '_TZE200_3p5ydos3') {
+            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
                 if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
                     return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
                 } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {
