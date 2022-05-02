@@ -14,12 +14,12 @@ module.exports = [{
     exposes: [e.switch().setAccess('state', ea.STATE_SET), e.battery(),
         exposes.enum('timer_state', ea.STATE_SET, ['disabled', 'active', 'enabled']),
         exposes.numeric('timer', exposes.access.STATE_SET).withValueMin(0).withValueMax(240).withUnit('min')
-        .withDescription('Auto off after specific time'),
+            .withDescription('Auto off after specific time'),
         exposes.numeric('timer_time_left', exposes.access.STATE).withUnit('min')
-        .withDescription('Auto off timer time left'),
+            .withDescription('Auto off timer time left'),
         exposes.numeric('last_valve_open_duration', exposes.access.STATE).withUnit('min')
-        .withDescription('Time the valve was open when state on'),
+            .withDescription('Time the valve was open when state on'),
         exposes.numeric('water_consumed', exposes.access.STATE).withUnit('l')
-        .withDescription('Liters of water consumed')
+            .withDescription('Liters of water consumed'),
     ],
-}, ];
+}];
