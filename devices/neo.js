@@ -58,7 +58,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
         model: 'NAS-PD07',
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
