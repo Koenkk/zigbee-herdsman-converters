@@ -21,7 +21,6 @@ module.exports = [
             exposes.numeric('last_valve_open_duration', exposes.access.STATE).withUnit('min')
                 .withDescription('Time the valve was open when state on'),
             exposes.numeric('water_consumed', exposes.access.STATE).withUnit('l')
-                .withDescription('Liters of water consumed'),
-        ],
+                .withDescription('Liters of water consumed')],
     },
 ];
