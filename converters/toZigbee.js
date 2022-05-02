@@ -3837,6 +3837,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4001: {value, type: 0x20}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
+            // Tom does not automatically send back updated value so ask for it
+            await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
