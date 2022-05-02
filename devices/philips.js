@@ -1398,6 +1398,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003054101'],
+        model: '929003054101',
+        vendor: 'Philips',
+        description: 'Hue Wellner white ambiance E27 806lm with Bluetooth',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['3261330P6'],
         model: '3261330P6',
         vendor: 'Philips',
