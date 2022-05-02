@@ -35,7 +35,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t1blo2bj'}, {modelID: 'TS0202', manufacturerName: '_TZ3000_kmh5qpmb'}],
         zigbeeModel: ['1blo2bj'],
         model: 'NAS-AB02B2',
         vendor: 'Neo',
@@ -58,7 +58,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}, {modelID: 'TS0601', manufacturerName: '_TZE200_7hfcudw5'}],
         model: 'NAS-PD07',
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
