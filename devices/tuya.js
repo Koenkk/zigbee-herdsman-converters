@@ -405,7 +405,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'}],
         model: 'IH012-RT01',
         vendor: 'TuYa',
-        description: 'Motion Sensor',
+        description: 'Motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr],
         toZigbee: [tz.ZM35HQ_attr],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(),
