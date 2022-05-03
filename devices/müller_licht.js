@@ -110,7 +110,7 @@ module.exports = [
     {
         fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],
         zigbeeModel: ['ZBT-Remote-ALL-RGBW', 'TS1001'],
-        model: 'MLI-404011',
+        model: 'MLI-404011/MLI-404049',
         description: 'Tint remote control',
         vendor: 'Müller Licht',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
