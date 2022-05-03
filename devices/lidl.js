@@ -554,7 +554,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_hxtfthp5'}],
         model: '14158804L',
         vendor: 'Lidl',
-        description: 'Livarno Home LED desk lamp, RGBW',
+        description: 'Livarno Home LED desk lamp RGBW',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
