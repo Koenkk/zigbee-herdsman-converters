@@ -49,7 +49,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
     },
     {
-        fingerprint: [{manufacturerName: '_TZ3000_xwh1e22x'}],
+        fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_xwh1e22x'}],
         model: 'FUT089Z',
         vendor: 'MiBoxer',
         description: 'RGB+CCT Remote',
