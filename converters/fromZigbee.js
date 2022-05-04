@@ -1909,34 +1909,57 @@ const converters = {
     },
     nous_lcd_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
+        type: ['commandDataResponse', 'commandDataReport'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
             exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'nous_lcd_temperature_humidity_sensor');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            switch (dp) {
-            case tuya.dataPoints.nousTemperature:
-                return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            case tuya.dataPoints.nousHumidity:
-                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            case tuya.dataPoints.nousBattery:
-                return {battery: value};
-            case tuya.dataPoints.nousTempUnitConvert:
-                return {temperature_unit_convert: {0x00: 'celsius', 0x01: 'fahrenheit'}[value]};
-            case tuya.dataPoints.nousMaxTemp:
-                return {max_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            case tuya.dataPoints.nousMinTemp:
-                return {min_temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            case tuya.dataPoints.nousTempAlarm:
-                return {temperature_alarm: {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value]};
-            case tuya.dataPoints.nousTempSensitivity:
-                return {temperature_sensitivity: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
-                    `DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case tuya.dataPoints.nousTemperature:
+                    result.temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    break;
+                case tuya.dataPoints.nousHumidity:
+                    result.humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousBattery:
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.nousTempUnitConvert:
+                    result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
+                    break;
+                case tuya.dataPoints.nousMaxTemp:
+                    result.max_temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    break;
+                case tuya.dataPoints.nousMinTemp:
+                    result.min_temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    break;
+                case tuya.dataPoints.nousMaxHumi:
+                    result.max_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousMinHumi:
+                    result.min_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousTempAlarm:
+                    result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    break;
+                case tuya.dataPoints.nousHumiAlarm:
+                    result.humidity_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    break;
+                case tuya.dataPoints.nousTempSensitivity:
+                    result.temperature_sensitivity = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
+                    break;
+                case tuya.dataPoints.nousReportInterval:
+                    result.report_interval = value;
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
+                        `DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                }
             }
+            return result;
         },
     },
     tuya_illuminance_temperature_humidity_sensor: {
