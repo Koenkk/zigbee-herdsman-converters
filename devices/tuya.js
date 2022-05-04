@@ -1948,7 +1948,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
-        model: 'TS011F_din_smart_relay ATMS1601Z',
+        model: 'ATMS1601Z',
         description: 'Din smart relay (without power monitoring)',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
