@@ -279,10 +279,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm'],
+        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 1055 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED bulb E26/27 1100/1055 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -378,7 +378,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm',
-            'TRADFRI bulb E12 CWS opal 600lm'],
+            'TRADFRI bulb E12 CWS opal 600lm', 'TRADFRI bulb E27 C/WS opal 600'],
         model: 'LED1624G9',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14/E26/E27 600 lumen, dimmable, color, opal white',
@@ -590,6 +590,8 @@ module.exports = [
         model: 'E1842',
         description: 'KNYCKLAN receiver electronic water valve shut-off',
         vendor: 'IKEA',
+        fromZigbee: extend.switch().fromZigbee.concat([fz.ias_water_leak_alarm_1]),
+        exposes: extend.switch().exposes.concat([e.water_leak()]),
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -705,6 +707,40 @@ module.exports = [
         exposes: [e.cover_position(), e.battery()],
     },
     {
+        zigbeeModel: ['PRAKTLYSING cellular blind'],
+        model: 'E2102',
+        vendor: 'IKEA',
+        description: 'PRAKTLYSING cellular blind',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {battery: {dontDividePercentage: true}},
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position(), e.battery()],
+    },
+    {
+        zigbeeModel: ['TREDANSEN block-out cellul blind'],
+        model: 'E2103',
+        vendor: 'IKEA',
+        description: 'TREDANSEN cellular blind',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {battery: {dontDividePercentage: true}},
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position(), e.battery()],
+    },
+    {
         zigbeeModel: ['TRADFRI open/close remote'],
         model: 'E1766',
         vendor: 'IKEA',
@@ -746,7 +782,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp_color({colorTempRange: [250, 454]}),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm'],
+        zigbeeModel: ['TRADFRI bulb E14 CWS 470lm', 'TRADFRI bulb E12 CWS 450lm', 'TRADFRI bulb E17 CWS 440lm'],
         model: 'LED1925G6',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 470 lumen, opal, dimmable, white spectrum, color spectrum',
@@ -760,10 +796,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WW 345lm'],
+        zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WW 345lm', 'TRADFRIbulbGU10WS380lm'],
         model: 'LED2005R5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb GU10 345 lumen, dimmable, white spectrum',
+        description: 'TRADFRI LED bulb GU10 345/380 lumen, dimmable, white spectrum',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -818,6 +854,13 @@ module.exports = [
         model: 'LED1949C5',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['NYMANE PENDANT'],
+        model: '90504044',
+        vendor: 'IKEA',
+        description: 'NYMÅNE Pendant lamp',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];

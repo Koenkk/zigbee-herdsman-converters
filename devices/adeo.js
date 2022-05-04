@@ -7,8 +7,29 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ZBEK-4'],
+        model: 'IM-CDZDGAAA0005KA_MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN RGBTW GU10 Bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['ZBEK-12'],
         model: 'IA-CDZFB2AA007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-13'],
+        model: 'IG-CDZFB2AG010RA-MNZ',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-5'],
+        model: 'IST-CDZFB2AS007NA-MZN-01',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
@@ -83,6 +104,13 @@ module.exports = [
         model: 'IG-CDZOTAAG014RA-MAN',
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 14W to 100W LED RGBW v2',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-1'],
+        model: 'IA-CDZOTAAA007MA-MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 7.2 to 60W LED RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
