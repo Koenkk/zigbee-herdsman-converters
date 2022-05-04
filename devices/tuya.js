@@ -1947,6 +1947,22 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
+        model: 'TS011F_din_smart_relay ATMS1601Z',
+        description: 'Din smart relay (without power monitoring)',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            device.save();
+        },
+        exposes: [e.switch(),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nklqjk62'}],
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
