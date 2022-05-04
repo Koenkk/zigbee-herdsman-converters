@@ -7409,7 +7409,7 @@ const converters = {
             }
         },
     },
-        inovelli_led_effect: {
+    inovelli_led_effect: {
         key: ['ledEffect'],
         convertSet: async (entity, key, values, meta) => {
             const ledEffects = {
