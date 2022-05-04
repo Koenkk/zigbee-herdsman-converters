@@ -1693,10 +1693,10 @@ const converters = {
                 result.temperature_display = lookup[data[0x1008]];
             }
             if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
-                result.window_open_check = data[0x1009];
+                result.window_open_check = data[0x1009] / 2;
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = data[0x100A];
+                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
                 const lookup = {0: 'enable', 1: 'disable'};
