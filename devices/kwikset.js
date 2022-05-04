@@ -21,6 +21,21 @@ module.exports = [
         exposes: [e.lock(), e.battery(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
     },
     {
+        zigbeeModel: ['SMARTCODE_CONVERT_GEN1_W3'],
+        model: '99140-139',
+        vendor: 'Kwikset',
+        description: 'Home connect smart lock conversion kit',
+        fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
+        toZigbee: [tz.lock],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.lock(), e.battery(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
+    },
+    {
         zigbeeModel: ['SMARTCODE_DEADBOLT_10_L'],
         model: '99140-002',
         vendor: 'Kwikset',
