@@ -20,9 +20,9 @@ module.exports = [
         exposes: [e.light_brightness(),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
             exposes.enum('control_mode', ea.STATE_SET, ['ext_switch', 'remote', 'both']).withDescription('Control mode'),
-            exposes.enum('ext_switch_type', ea.STATE_SET, ['unknown', 'toggle_sw', 'momentary_sw', 'rotary_sw', 'auto_config'])
+            exposes.enum('switch_type', ea.STATE_SET, ['unknown', 'toggle', 'momentary', 'rotary', 'auto_config'])
                 .withDescription('External switch type'),
-            exposes.numeric('ext_switch_status', ea.STATE).withDescription('External switch status')
+            exposes.numeric('switch_status', ea.STATE).withDescription('External switch status')
                 .withValueMin(-10000).withValueMax(10000),
             exposes.enum('load_detection_mode', ea.STATE_SET, ['none', 'first_power_on', 'every_power_on'])
                 .withDescription('Load detection mode'),
@@ -43,30 +43,33 @@ module.exports = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.onOff(endpoint);
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'}, {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [tz.ZB003X],
-        exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
-            e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
-                .withValueMin(0).withValueMax(1440),
-            exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration')
+        exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
+            e.battery(), e.battery_voltage(),
+            exposes.numeric('battery2', ea.STATE).withUnit('%').withDescription('Remaining battery 2 in %'),
+            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration in lux')
                 .withValueMin(-20).withValueMax(20),
+            exposes.numeric('temperature_calibration', ea.STATE_SET).withDescription('Temperature calibration (-2.0...2.0)')
+                .withValueMin(-2).withValueMax(2).withValueStep(0.1),
             exposes.numeric('humidity_calibration', ea.STATE_SET).withDescription('Humidity calibration')
-                .withValueMin(-50).withValueMax(50),
-            exposes.numeric('illuminance_calibration', ea.STATE_SET).withDescription('Illuminance calibration')
-                .withValueMin(-10000).withValueMax(10000),
+                .withValueMin(-15).withValueMax(15),
+            exposes.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enable reporting'),
+            exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
+                .withValueMin(0).withValueMax(1440).withValueStep(5),
+            exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enable LED'),
             exposes.binary('pir_enable', ea.STATE_SET, true, false).withDescription('Enable PIR sensor'),
-            exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
-            exposes.binary('reporting_enable', ea.STATE_SET, true, false).withDescription('Enabled reporting'),
             exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             // eslint-disable-next-line
-            exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
+            exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240', '480'])
+                .withDescription('PIR keep time in seconds')],
     },
 ];

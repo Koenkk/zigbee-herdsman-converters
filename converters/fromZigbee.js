@@ -4774,7 +4774,7 @@ const converters = {
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else if (meta.device.manufacturerName === '_TZE200_3p5ydos3') {
+            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
                 if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
                     return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
                 } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {
@@ -7295,14 +7295,14 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'ZB003X');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-
             switch (dp) {
             case tuya.dataPoints.fantemTemp:
-                return {temperature: calibrateAndPrecisionRoundOptions((value / 10).toFixed(1), options, 'temperature')};
+                return {temperature: calibrateAndPrecisionRoundOptions((value / 10), options, 'temperature')};
             case tuya.dataPoints.fantemHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
             case tuya.dataPoints.fantemBattery:
-                return {battery: value};
+                // second battery level, first battery is reported by fz.battery
+                return {battery2: value};
             case tuya.dataPoints.fantemReportingTime:
                 return {reporting_time: value};
             case tuya.dataPoints.fantemTempCalibration:
@@ -7318,12 +7318,11 @@ const converters = {
             case tuya.dataPoints.fantemMotionEnable:
                 return {pir_enable: value};
             case tuya.dataPoints.fantemLedEnable:
-                return {led_enable: value};
+                return {led_enable: value ? false : true};
             case tuya.dataPoints.fantemReportingEnable:
                 return {reporting_enable: value};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:FantemZB003X: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.warn(`fz.ZB003X: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -7333,7 +7332,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const senslookup = {'0': 'low', '1': 'medium', '2': 'high'};
-            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240};
+            const keeptimelookup = {'0': 0, '1': 30, '2': 60, '3': 120, '4': 240, '5': 480};
             if (data && data.hasOwnProperty('currentZoneSensitivityLevel')) {
                 const value = data.currentZoneSensitivityLevel;
                 return {sensitivity: senslookup[value]};
@@ -7363,12 +7362,11 @@ const converters = {
             case tuya.dataPoints.fantemPowerSupplyMode:
                 return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
             case tuya.dataPoints.fantemExtSwitchType:
-                return {ext_switch_type: {0: 'unknown', 1: 'toggle_sw', 2: 'momentary_sw', 3: 'rotary_sw',
-                    4: 'auto_config'}[value]};
+                return {switch_type: {0: 'unknown', 1: 'toggle', 2: 'momentary', 3: 'rotary', 4: 'auto_config'}[value]};
             case tuya.dataPoints.fantemLoadDetectionMode:
                 return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
             case tuya.dataPoints.fantemExtSwitchStatus:
-                return {ext_switch_status: value};
+                return {switch_status: value};
             case tuya.dataPoints.fantemControlMode:
                 return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
             case 111:
@@ -8432,6 +8430,52 @@ const converters = {
                 } else {
                     result.action = `${buttonMapping[dpValue.dp]}_${clickMapping[value]}`;
                 }
+            }
+            return result;
+        },
+    },
+    tuya_smart_human_presense_sensor: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_smart_human_presense_sensor');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.tshpsPresenceState:
+                result = {presence: {0: false, 1: true}[value]};
+                break;
+            case tuya.dataPoints.tshpscSensitivity:
+                result = {radar_sensitivity: value};
+                break;
+            case tuya.dataPoints.tshpsMinimumRange:
+                result = {minimum_range: value/100};
+                break;
+            case tuya.dataPoints.tshpsMaximumRange:
+                result = {maximum_range: value/100};
+                break;
+            case tuya.dataPoints.tshpsTargetDistance:
+                result = {target_distance: value/100};
+                break;
+            case tuya.dataPoints.tshpsDetectionDelay:
+                result = {detection_delay: value/10};
+                break;
+            case tuya.dataPoints.tshpsFadingTime:
+                result = {fading_time: value/10};
+                break;
+            case tuya.dataPoints.tshpsIlluminanceLux:
+                result = {illuminance_lux: value};
+                break;
+            case tuya.dataPoints.tshpsCLI: // not recognize
+                result = {cli: value};
+                break;
+            case tuya.dataPoints.tshpsSelfTest:
+                result = {self_test: tuya.tuyaHPSCheckingResult [value]};
+                break;
+            default:
+                meta.logger
+                    .warn(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
         },

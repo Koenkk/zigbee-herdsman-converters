@@ -13,7 +13,7 @@ const utils = require('../lib/utils');
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
-    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau'];
+    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -211,6 +211,7 @@ module.exports = [
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'}],
         model: 'WHD02',
@@ -365,7 +366,6 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_kmh5qpmb'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_zwvaj5wy'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_bsvqrxru'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
@@ -390,8 +390,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'}],
         model: 'ZM-35H-Q',
         vendor: 'TuYa',
         description: 'Motion Sensor',
@@ -399,7 +398,19 @@ module.exports = [
         toZigbee: [tz.ZM35HQ_attr],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(),
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            exposes.enum('keep_time', ea.ALL, ['30', '60', '120']).withDescription('PIR keep time in seconds'),
+            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'}],
+        model: 'IH012-RT01',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr],
+        toZigbee: [tz.ZM35HQ_attr],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(),
+            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
     },
     {
@@ -700,6 +711,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zwqnazkb'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pgq2qvyv'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_nvaik6gk'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -2247,6 +2259,32 @@ module.exports = [
                 '4_single', '4_double', '4_hold', '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
         fromZigbee: [fz.tuya_remote],
         toZigbee: [],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'}],
+        model: 'TS0601_smart_human_presense_sensor',
+        vendor: 'TuYa',
+        description: 'Smart Human presence sensor',
+        fromZigbee: [fz.tuya_smart_human_presense_sensor],
+        toZigbee: [tz.tuya_smart_human_presense_sensor],
+        exposes: [
+            e.illuminance_lux(), e.presence(),
+            exposes.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
+            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1)
+                .withDescription('sensitivity of the radar'),
+            exposes.numeric('minimum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Minimum range').withUnit('m'),
+            exposes.numeric('maximum_range', ea.STATE_SET).withValueMin(0).withValueMax(9.5).withValueStep(0.15)
+                .withDescription('Maximum range').withUnit('m'),
+            exposes.numeric('detection_delay', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(0.1)
+                .withDescription('Detection delay').withUnit('s'),
+            exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
+                .withDescription('Fading time').withUnit('s'),
+            // exposes.text('cli', ea.STATE).withDescription('not recognize'),
+            exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
+                .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
