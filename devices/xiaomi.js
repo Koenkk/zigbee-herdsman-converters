@@ -1360,7 +1360,7 @@ module.exports = [
                 await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
             }
         },
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.temperature(),
             exposes.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
             exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
