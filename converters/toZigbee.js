@@ -10686,7 +10686,7 @@ const converters = {
         },
     },
     inovelli_led_effect: {
-        key: ['led_effect'],
+        key: ['ledEffect'],
         convertSet: async (entity, key, values, meta) => {
             const ledEffects = {
                 'Off': 0,
@@ -10702,7 +10702,7 @@ const converters = {
 
             await entity.command(
                 'manuSpecificInovelliVZM31SN',
-                'led_effect',
+                'ledEffect',
                 {
                     effect: ledEffects[values.effect] || 255,
                     color: Math.min(Math.max(0, values.color), 255),
@@ -10715,7 +10715,7 @@ const converters = {
         },
     },
     inovelli_individual_led_effect: {
-        key: ['individual_led_effect'],
+        key: ['individualLedEffect'],
         convertSet: async (entity, key, values, meta) => {
             const individualLedEffects = {
                 'Off': 0,
@@ -10729,7 +10729,7 @@ const converters = {
 
             await entity.command(
                 'manuSpecificInovelliVZM31SN',
-                'individual_led_effect',
+                'individualLedEffect',
                 {
                     led: Math.min(Math.max(0, parseInt(values.led)), 7),
                     effect: individualLedEffects[values.effect] || 255,

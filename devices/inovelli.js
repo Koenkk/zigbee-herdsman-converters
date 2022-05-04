@@ -229,8 +229,8 @@ const ATTRIBUTES = {
         min: 0,
         max: 32767,
         description:
-      'Power level change that will result in a new power report being sent. ' +
-      'The value is a percentage of the previous report. \n0 = disabled, 1-32767 = 0.1W-3276.7W.',
+      'Power level change that will result in a new power report being sent. The value is a percentage of the previous report.' +
+      '0 = disabled, 1-32767 = 0.1W-3276.7W.',
     },
     periodicPowerAndEnergyReports: {
         ID: 19,
@@ -272,8 +272,6 @@ const ATTRIBUTES = {
         dataType: UINT8,
         values: {
             '0ms': 0,
-            '100ms': 1,
-            '200ms': 2,
             '300ms': 3,
             '400ms': 4,
             '500ms': 5,
@@ -286,7 +284,8 @@ const ATTRIBUTES = {
         min: 0,
         max: 9,
         description:
-      'This will set the button press delay. 0 = no delay, 1 = 100ms, 2 = 200ms, 3 = 300ms, etc. up to 900ms. Default = 500ms.',
+      'This will set the button press delay. 0 = no delay (Disables Button Press Events),' +
+      ' 1 = 100ms, 2 = 200ms, 3 = 300ms, etc. up to 900ms. Default = 500ms.',
     },
     smartBulbMode: {
         ID: 52,
@@ -645,12 +644,11 @@ tzLocal.inovelli_vzw31sn_parameters = {
             manufacturerCode: INOVELLI,
         });
 
+        meta.state[key] = value;
+
         return {
             state: {
-                [key]:
-          ATTRIBUTES[key].displayType === 'enum' ?
-              ATTRIBUTES[key].values[value] :
-              value,
+                [key]: value,
             },
         };
     },
@@ -702,7 +700,7 @@ tzLocal.inovelli_vzw31sn_parameters_readOnly = {
 };
 
 tzLocal.inovelli_led_effect = {
-    key: ['led_effect'],
+    key: ['ledEffect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
@@ -720,7 +718,7 @@ tzLocal.inovelli_led_effect = {
 };
 
 tzLocal.inovelli_individual_led_effect = {
-    key: ['individual_led_effect'],
+    key: ['individualLedEffect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
@@ -926,7 +924,16 @@ tzLocal.light_onoff_brightness_inovelli = {
                         },
                         utils.getOptions(meta.mapped, entity),
                     );
-                    return {state: {state: 'ON'}, readAfterWriteTime: 5 * 100}; // Need to read parameter to get value here.
+                    const defaultTransitionTime = await entity.read(
+                        'manuSpecificInovelliVZM31SN',
+                        ['rampRateOffToOnRemote'],
+                    );
+                    return {
+                        state: {state: 'ON'},
+                        readAfterWriteTime: transition.specified ?
+                            transition.time * 100 :
+                            defaultTransitionTime.rampRateOffToOnRemote * 100,
+                    };
                 } else {
                     // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
                     // with transition.
@@ -971,13 +978,20 @@ tzLocal.light_onoff_brightness_inovelli = {
                 utils.getOptions(meta.mapped, entity),
             );
 
+            const defaultTransitionTime = await entity.read(
+                'manuSpecificInovelliVZM31SN',
+                ['rampRateOnToOffRemote'],
+            );
+
             return {
                 state: {
                     state: brightness === 0 ? 'OFF' : 'ON',
                     brightness: Number(brightness),
                 },
                 readAfterWriteTime:
-          transition.time === 0 ? 5 * 100 : transition.time * 100, // need on speed
+          transition.time === 0 ?
+              defaultTransitionTime.rampRateOnToOffRemote * 100 :
+              transition.time * 100, // need on speed
             };
         }
     },
@@ -1117,8 +1131,6 @@ const exposesList = [
 
 const toZigbee = [
     tzLocal.light_onoff_brightness_inovelli,
-    tz.ignore_transition,
-    tz.ignore_rate,
     tz.power_on_behavior,
     tz.inovelli_led_effect,
     tzLocal.inovelli_individual_led_effect,
@@ -1194,28 +1206,16 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'genOnOff',
                 'genLevelCtrl',
-                'haElectricalMeasurement',
-                'manuSpecificInovelliVZM31SN',
             ]);
 
-            // Bind for Event Reporting
+            // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
                 'manuSpecificInovelliVZM31SN',
             ]);
 
-            await reporting.onOff(endpoint, {
-                min: 1,
-                max: 3600,
-                change: 0,
-            });
-
-            await reporting.brightness(endpoint, {
-                min: 1,
-                max: 3600,
-                change: 1,
-            });
-
+            await reporting.activePower(endpoint);
+            await reporting.currentSummDelivered(endpoint);
             await reporting.activePower(endpoint);
             await reporting.currentSummDelivered(endpoint);
         },
