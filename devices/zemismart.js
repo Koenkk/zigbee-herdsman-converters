@@ -97,7 +97,7 @@ module.exports = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 await reporting.onOff(endpoint);
             }
-        }
+        },
     },
     {
         zigbeeModel: ['LXN56-SS27LX1.1'],
