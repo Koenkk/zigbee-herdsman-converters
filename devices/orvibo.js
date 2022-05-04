@@ -7,6 +7,20 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
+        model: 'DS20Z07B',
+        vendor: 'ORVIBO',
+        description: 'Downlight (S series)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [166, 370]}),
+    },
+    {
+        zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
+        model: 'OR-ZB-S010-3C',
+        vendor: 'ORVIBO',
+        description: 'Smart socket',
+        extend: extend.switch(),
+    },
+    {
         zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f', '51725b7bcba945c8a595b325127461e9'],
         model: 'CR11S8UZ',
         vendor: 'ORVIBO',

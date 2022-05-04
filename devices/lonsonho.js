@@ -127,7 +127,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_4ubylghk'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
@@ -210,7 +210,7 @@ module.exports = [
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_ngqk6jia'}],
         model: 'TS110E_1gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 1 gang with neutral',
