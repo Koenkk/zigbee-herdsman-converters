@@ -76,19 +76,19 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{ modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo' }],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'}],
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-        exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous']),
         ],
         endpoint: () => {
-            return { 'left': 1, 'center': 2, 'right': 3 };
+            return {'left': 1, 'center': 2, 'right': 3};
         },
-        meta: { multiEndpoint: true },
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).read('genBasic',
                 ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
