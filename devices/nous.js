@@ -17,7 +17,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lve3dvpy'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lve3dvpy'}, {modelID: 'TS0601', manufacturerName: '_TZE200_c7emyjom'}],
         model: 'SZ-T04',
         vendor: 'Nous',
         description: 'Temperature and humidity sensor with clock',
