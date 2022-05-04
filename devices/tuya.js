@@ -1417,11 +1417,12 @@ module.exports = [
             .withDescription('Plug LED indicator mode'), e.child_lock()],
     },
     {
-        fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [69, 68, 65, 64, 74].map((applicationVersion) => {
-                return {modelID: 'TS011F', manufacturerName, applicationVersion};
-            });
-        })),
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_gjnozsaz', applicationVersion: 74}]
+            .concat(...TS011Fplugs.map((manufacturerName) => {
+                return [69, 68, 65, 64].map((applicationVersion) => {
+                    return {modelID: 'TS011F', manufacturerName, applicationVersion};
+                });
+            })),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
