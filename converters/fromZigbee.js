@@ -7206,7 +7206,7 @@ const converters = {
                 }
             }
         },
-    },    
+    },
     ias_keypad: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',

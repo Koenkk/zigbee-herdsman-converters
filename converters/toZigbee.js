@@ -2541,7 +2541,7 @@ const converters = {
             await entity.write('genOnOff', {0x8001: {value: payload, type: 0x30}});
             return {state: {indicator_mode: value}};
         },
-    },    
+    },
     kmpcil_res005_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
