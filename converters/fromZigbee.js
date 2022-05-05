@@ -1693,10 +1693,10 @@ const converters = {
                 result.temperature_display = lookup[data[0x1008]];
             }
             if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
-                result.window_open_check = data[0x1009];
+                result.window_open_check = data[0x1009] / 2;
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = data[0x100A];
+                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
                 const lookup = {0: 'enable', 1: 'disable'};
@@ -5408,7 +5408,7 @@ const converters = {
                     payload.device_mode = 'unknown';
                 }
             }
-            if (msg.data.hasOwnProperty('1')) payload.permanent_led = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
+            if (msg.data.hasOwnProperty('1')) payload.led_when_off = msg.data['1'] === 0x00 ? 'OFF' : 'ON';
             if (msg.data.hasOwnProperty('2')) payload.led_when_on = msg.data['2'] === 0x00 ? 'OFF' : 'ON';
             return payload;
         },

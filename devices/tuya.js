@@ -1417,11 +1417,12 @@ module.exports = [
             .withDescription('Plug LED indicator mode'), e.child_lock()],
     },
     {
-        fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [69, 68, 65, 64, 74].map((applicationVersion) => {
-                return {modelID: 'TS011F', manufacturerName, applicationVersion};
-            });
-        })),
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_gjnozsaz', applicationVersion: 74}]
+            .concat(...TS011Fplugs.map((manufacturerName) => {
+                return [69, 68, 65, 64].map((applicationVersion) => {
+                    return {modelID: 'TS011F', manufacturerName, applicationVersion};
+                });
+            })),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
@@ -1947,6 +1948,22 @@ module.exports = [
                 .withDescription('Recover state after power outage')],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
+        model: 'ATMS1601Z',
+        description: 'Din smart relay (without power monitoring)',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            device.save();
+        },
+        exposes: [e.switch(),
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nklqjk62'}],
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
@@ -2262,7 +2279,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presense_sensor',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',

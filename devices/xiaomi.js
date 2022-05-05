@@ -922,7 +922,8 @@ module.exports = [
         description: 'Aqara P1 human body movement and illuminance sensor',
         fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
-        exposes: [e.occupancy(), e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+        exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
@@ -1360,7 +1361,7 @@ module.exports = [
                 await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
             }
         },
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.temperature(),
             exposes.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
             exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])

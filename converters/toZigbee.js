@@ -3062,10 +3062,10 @@ const converters = {
                 const payload = {0x1008: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='window_open_check') {
-                const payload = {0x1009: {value: Math.round(value * 10), type: 0x20}};
+                const payload = {0x1009: {value: value * 2, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='hysterersis') {
-                const payload = {0x100A: {value: Math.round(value * 10), type: 0x20}};
+                const payload = {0x100A: {value: value* 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='display_auto_off_enabled') {
                 const lookup = {'enable': 0, 'disabled': 1};
@@ -4839,13 +4839,13 @@ const converters = {
     },
     legrand_settingAlwaysEnableLed: {
         // connected power outlet is on attribute 2 and not 1
-        key: ['permanent_led'],
+        key: ['led_when_off'],
         convertSet: async (entity, key, value, meta) => {
             // enable or disable the LED (blue) when permitJoin=false (LED off)
             const enableLedIfOn = value === 'ON' || (value === 'OFF' ? false : !!value);
             const payload = {1: {value: enableLedIfOn, type: 16}};
             await entity.write('manuSpecificLegrandDevices', payload, manufacturerOptions.legrand);
-            return {state: {'permanent_led': value}};
+            return {state: {'led_when_off': value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificLegrandDevices', [0x0001], manufacturerOptions.legrand);

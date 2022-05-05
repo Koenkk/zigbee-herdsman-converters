@@ -276,7 +276,7 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-30, 30, 0.1)
+                .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat']),
             exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
@@ -308,16 +308,16 @@ module.exports = [
                 .withDescription('The temperature on the display.  Default: Room Temperature.'),
             exposes.numeric('window_open_check', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(3).withValueMax(8).withValueStep(0.5)
-                .withDescription('The threshold to detect window open, between 3 and 8 in 0.5 °C.  Default: 0 (disabled).'),
+                .withValueMin(1.5).withValueMax(4).withValueStep(0.5)
+                .withDescription('The threshold to detect window open, between 1.5 and 4 in 0.5 °C.  Default: 0 (disabled).'),
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(5).withValueMax(20).withValueStep(0.1)
-                .withDescription('Hysteresis setting, between 5 and 20 in 0.1 °C.  Default: 5.'),
+                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
+                .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
             exposes.enum('display_auto_off_enabled', ea.ALL, ['enable', 'disabled']),
             exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(20).withValueMax(60).withValueStep(1)
+                .withValueMin(20).withValueMax(60)
                 .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
