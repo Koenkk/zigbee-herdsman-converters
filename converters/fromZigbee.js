@@ -7191,6 +7191,22 @@ const converters = {
             }
         },
     },
+    tuya_relay_din_led_indicator: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 0x8001;
+
+            if (msg.data.hasOwnProperty(property)) {
+                const dict = {0x00: 'off', 0x01: 'on_off', 0x02: 'off_on'};
+                const value = msg.data[property];
+
+                if (dict.hasOwnProperty(value)) {
+                    return {[postfixWithEndpointName('indicator_mode', msg, model)]: dict[value]};
+                }
+            }
+        },
+    },    
     ias_keypad: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
