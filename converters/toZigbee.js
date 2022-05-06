@@ -2546,8 +2546,9 @@ const converters = {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             const options = {disableDefaultResponse: true};
+            value = value.toLowerCase();
             utils.validateValue(value, ['toggle', 'off', 'on']);
-            if (value.toLowerCase() === 'toggle') {
+            if (value === 'toggle') {
                 if (!meta.state.hasOwnProperty('state')) {
                     throw new Error('Cannot toggle, state not known yet');
                 } else {
