@@ -67,6 +67,7 @@ module.exports = [
         vendor: 'AwoX',
         description: 'LED white',
         extend: extend.light_onoff_brightness(),
+        whiteLabel: [{vendor: 'EGLO', model: '12229'}],
     },
     {
         fingerprint: [
@@ -248,6 +249,7 @@ module.exports = [
         vendor: 'AwoX',
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        whiteLabel: [{vendor: 'EGLO', model: '12239'}],
     },
     {
         fingerprint: [
