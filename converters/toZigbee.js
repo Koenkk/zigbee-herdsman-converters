@@ -2531,6 +2531,17 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
+    tuya_relay_din_led_indicator: {
+        key: ['indicator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0x00, 'on_off': 0x01, 'off_on': 0x02};
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+            await entity.write('genOnOff', {0x8001: {value: payload, type: 0x30}});
+            return {state: {indicator_mode: value}};
+        },
+    },
     kmpcil_res005_on_off: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
