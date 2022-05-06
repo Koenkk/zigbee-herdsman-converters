@@ -13,11 +13,15 @@ const {
     calibrateAndPrecisionRoundOptions, postfixWithEndpointName, getMetaValue,
 } = require('../lib/utils');
 
-const bulbOnEvent = async (type, data, device) => {
+const bulbOnEvent = async (type, data, device, options, state) => {
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
      * Reconfigure the configured reoprting here.
+     *
+     * Additionally some other information is lost like
+     *   color_options.execute_if_off. We also restore these.
+     *
      * NOTE: binds are not lost so rebinding is not needed!
      */
     if (type === 'deviceAnnounce') {
@@ -28,6 +32,12 @@ const bulbOnEvent = async (type, data, device) => {
                     maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
                 }]);
             }
+        }
+
+        // NOTE: execute_if_off default is false
+        //       we only restore if true, to save unneeded network writes
+        if (state.color_options.execute_if_off === true) {
+            device.endpoints[0].write('lightingColorCtrl', {'options': 1});
         }
     }
 };
