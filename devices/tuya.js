@@ -2355,14 +2355,8 @@ module.exports = [
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance Motion Sensor',
-        fromZigbee: [
-//                fz.ignore_basic_report,
-//                fz.tuya_data_point_dump,
-                fz.ZG204ZL_lms],
-        toZigbee: [
-//                tz.tuya_data_point_test,
-                tz.ZG204ZL_lms,
-                ],
+        fromZigbee: [fz.ZG204ZL_lms],
+        toZigbee: [tz.ZG204ZL_lms],
         exposes: [
                 e.occupancy(), e.illuminance(), e.battery(),
                 exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity (refresh and update only while active)'),
