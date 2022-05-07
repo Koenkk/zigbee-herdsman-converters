@@ -2365,8 +2365,8 @@ module.exports = [
                 ],
         exposes: [
                 e.occupancy(), e.illuminance(), e.battery(),
-                exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-                exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120']).withDescription('PIR keep time in seconds'),
+                exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity (refresh and update only while active)'),
+                exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120']).withDescription('PIR keep time in seconds (refresh and update only while active)'),
         ],
     },
 
