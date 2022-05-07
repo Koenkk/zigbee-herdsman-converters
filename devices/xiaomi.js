@@ -919,7 +919,7 @@ module.exports = [
         model: 'RTCGQ14LM',
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'MS-S02'}],
-        description: 'Aqara P1 human body movement and illuminance sensor',
+        description: 'Aqara P1 human body movement and illuminance sensor (trigger indicator not supported for now)',
         fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
