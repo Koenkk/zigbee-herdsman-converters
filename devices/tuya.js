@@ -2350,4 +2350,24 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}],
+        model: 'ZG-204ZL',
+        vendor: 'TuYa',
+        description: 'Luminance Motion Sensor',
+        fromZigbee: [
+//                fz.ignore_basic_report,
+//                fz.tuya_data_point_dump,
+                fz.ZG204ZL_lms],
+        toZigbee: [
+//                tz.tuya_data_point_test,
+                tz.ZG204ZL_lms,
+                ],
+        exposes: [
+                e.occupancy(), e.illuminance(), e.battery(),
+                exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+                exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120']).withDescription('PIR keep time in seconds'),
+        ],
+    },
+
 ];
