@@ -532,6 +532,24 @@ const converters = {
                 }
             }
 
+            // onLevel - range 0x00 to 0xff - optional
+            //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
+            if (msg.data.hasOwnProperty('onLevel') && (msg.data['onLevel'] !== undefined)) {
+                result.level_config.on_level = Number(msg.data['onLevel']);
+                if (result.level_config.on_level === 255) {
+                    result.level_config.on_level = 'previous';
+                }
+            }
+
+            // options - 8-bit map
+            //   bit 0: ExecuteIfOff - when 0, Move commands are ignored if the device is off;
+            //          when 1, CurrentLevel can be changed while the device is off.
+            //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
+            //          (What this means is not defined, but it's most likely to be "dim to warm".)
+            if (msg.data.hasOwnProperty('options') && msg.data['options'] !== undefined) {
+                result.level_config.execute_if_off = !!(Number(msg.data['options']) & 1);
+            }
+
             if (Object.keys(result.level_config).length > 0) {
                 return result;
             }

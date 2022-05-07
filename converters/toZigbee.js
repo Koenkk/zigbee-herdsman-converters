@@ -535,12 +535,41 @@ const converters = {
                 Object.assign(state, {current_level_startup: startUpCurrentLevelValue});
             }
 
+            // onLevel - range 0x00 to 0xff - optional
+            //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
+            if (value.hasOwnProperty('on_level')) {
+                let onLevel = value.on_level;
+                if (typeof onLevel === 'string' && onLevel.toLowerCase() == 'previous') {
+                    onLevel = 255;
+                } else {
+                    onLevel = Number(onLevel);
+                }
+                if (onLevel > 255) onLevel = 254;
+                if (onLevel < 1) onLevel = 1;
+                await entity.write('genLevelCtrl', {onLevel}, utils.getOptions(meta.mapped, entity));
+                Object.assign(state, {on_level: onLevel == 255 ? 'previous' : onLevel});
+            }
+
+            // options - 8-bit map
+            //   bit 0: ExecuteIfOff - when 0, Move commands are ignored if the device is off;
+            //          when 1, CurrentLevel can be changed while the device is off.
+            //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
+            //          (What this means is not defined, but it's most likely to be "dim to warm".)
+            if (value.hasOwnProperty('execute_if_off')) {
+                const executeIfOffValue = !!value.execute_if_off;
+                await entity.write('genLevelCtrl', {options: executeIfOffValue ? 1 : 0}, utils.getOptions(meta.mapped, entity));
+                Object.assign(state, {execute_if_off: executeIfOffValue});
+            }
+
             if (Object.keys(state).length > 0) {
                 return {state: {level_config: state}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            for (const attribute of ['onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel']) {
+            for (const attribute of [
+                'onOffTransitionTime', 'onTransitionTime', 'offTransitionTime', 'startUpCurrentLevel',
+                'onLevel', 'options',
+            ]) {
                 try {
                     await entity.read('genLevelCtrl', [attribute]);
                 } catch (ex) {

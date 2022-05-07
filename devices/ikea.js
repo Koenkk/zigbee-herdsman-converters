@@ -36,8 +36,11 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 
         // NOTE: execute_if_off default is false
         //       we only restore if true, to save unneeded network writes
-        if (state.color_options.execute_if_off === true) {
+        if (state.color_options !== undefined && state.color_options.execute_if_off === true) {
             device.endpoints[0].write('lightingColorCtrl', {'options': 1});
+        }
+        if (state.level_config !== undefined && state.level_config.execute_if_off === true) {
+            device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
     }
 };
