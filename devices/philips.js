@@ -82,6 +82,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['929003045501_01', '929003045501_02', '929003045501_03'],
+        model: '929003045501',
+        vendor: 'Philips',
+        description: 'Hue Centura recessed spotlight white and color ambiance GU10 (black)',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['929003047501'],
         model: '929003047501',
         vendor: 'Philips',
