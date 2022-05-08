@@ -7436,6 +7436,33 @@ const converters = {
             }
         },
     },
+    ZG204ZL_lms: {
+        key: ['sensitivity', 'keep_time'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.lmsSensitivity, {'low': 0, 'medium': 1, 'high': 2}[value]);
+                break;
+            case 'keep_time':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.lmsKeepTime, {'10': 0, '30': 1, '60': 2, '120': 3}[value]);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`tz.ZG204ZL_lms: Unhandled key ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'sensitivity':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.lmsSensitivity, 0, 'dataQuery' );
+                break;
+            case 'keep_time':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.lmsKeepTime, 0, 'dataQuery' );
+                break;
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key toZigbee.ZG204ZL_lms.convertGet ${key}`);
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters
