@@ -7463,7 +7463,7 @@ const converters = {
             }
         },
     },
-    moes_cover: { 
+    moes_cover: {
         key: ['backlight', 'calibration', 'motor_reversal', 'state', 'position'],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value, meta) => {
@@ -7471,31 +7471,33 @@ const converters = {
             case 'position':
                 if (value >= 0 && value <= 100) {
                     const invert = !tuya.isCoverInverted(meta.device.manufacturerName) ?
-                        !meta.options.invert_cover : meta.options.invert_cover;					
+                        !meta.options.invert_cover : meta.options.invert_cover;
                     const position = invert ? 100 - value : value;
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, position);
                     return {position: value};
-				}
+                }
                 break;
-            case 'state': 
+            case 'state': {
                 const state = {'OPEN': 0, 'STOP': 1, 'CLOSE': 2}[value.toUpperCase()];
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, state);
                 break;
-            case 'backlight': 
+            }
+            case 'backlight': {
                 const backlight = value.toUpperCase() === 'ON' ? true : false;
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.moesCoverBacklight, backlight);
                 return {backlight: value};
-                break;
-            case 'calibration': 
+            }
+            case 'calibration': {
                 const calibration = value.toUpperCase() === 'ON' ? 0 : 1;
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesCoverCalibration, calibration);
                 break;
-            case 'motor_reversal':
-                const motor_reversal = value.toUpperCase() === 'ON' ? 1 : 0;
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesCoverMotorReversal, motor_reversal);
+            }
+            case 'motor_reversal': {
+                const motorReversal = value.toUpperCase() === 'ON' ? 1 : 0;
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesCoverMotorReversal, motorReversal);
                 return {motor_reversal: value};
-                break;
-			}
+            }
+            }
         },
     },
     // #endregion

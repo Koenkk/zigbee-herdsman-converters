@@ -8538,12 +8538,13 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
             let result = null;
             switch (dp) {
-            case tuya.dataPoints.coverPosition:
+            case tuya.dataPoints.coverPosition: {
                 const invert = !tuya.isCoverInverted(meta.device.manufacturerName) ?
-                    !options.invert_cover : options.invert_cover;				
+                    !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - value : value;
                 result = {position: position};
                 break;
+            }
             case tuya.dataPoints.state:
                 result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: 'true', 1: 'false', 2: 'true'}[value]};
                 break;
