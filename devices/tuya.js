@@ -2354,7 +2354,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}],
         model: 'ZG-204ZL',
         vendor: 'TuYa',
-        description: 'Luminance Motion Sensor',
+        description: 'Luminance motion sensor',
         fromZigbee: [fz.ZG204ZL_lms],
         toZigbee: [tz.ZG204ZL_lms],
         exposes: [
