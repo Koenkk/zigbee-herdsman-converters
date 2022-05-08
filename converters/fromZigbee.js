@@ -1699,7 +1699,7 @@ const converters = {
                 result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
-                const lookup = {0: 'enable', 1: 'disabled'};
+                const lookup = {0: 'enabled', 1: 'disabled'};
                 result.display_auto_off_enabled = lookup[data[0x100B]];
             }
             if (data.hasOwnProperty(0x2001)) { // AlarmAirTempOverValue
