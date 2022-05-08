@@ -884,7 +884,8 @@ module.exports = [
         description: 'Aqara T1 human body movement and illuminance sensor',
         fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
         toZigbee: [tz.aqara_detection_interval],
-        exposes: [e.occupancy(), e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+        exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
