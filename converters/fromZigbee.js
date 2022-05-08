@@ -8528,6 +8528,40 @@ const converters = {
             return result;
         },
     },
+    moes_cover: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'moes_cover');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.coverPosition:
+                const invert = !tuya.isCoverInverted(meta.device.manufacturerName) ?
+                    !options.invert_cover : options.invert_cover;				
+                const position = invert ? 100 - value : value;
+                result = {position: position};
+                break;
+            case tuya.dataPoints.state:
+                result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: 'true', 1: 'false', 2: 'true'}[value]};
+                break;
+            case tuya.dataPoints.moesCoverBacklight:
+                result = {backlight: {false: 'OFF', true: 'ON'}[value]};
+                break;
+            case tuya.dataPoints.moesCoverCalibration:
+                result = {calibration: {0: 'ON', 1: 'OFF'}[value]};
+                break;
+            case tuya.dataPoints.moesCoverMotorReversal:
+                result = {motor_reversal: {0: 'OFF', 1: 'ON'}[value]};
+                break;
+            default:
+                meta.logger.warn(`fromZigbee.moes_cover: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
