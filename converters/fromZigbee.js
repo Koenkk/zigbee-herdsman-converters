@@ -8505,26 +8505,24 @@ const converters = {
                 const dp = dpValue.dp;
                 const value = tuya.getDataValue(dpValue);
                 switch (dp) {
-                    case tuya.dataPoints.lmsState:
-                        result.occupancy = (value === 0);
-                        break;
-                    case tuya.dataPoints.lmsBattery:
-                        result.battery = value;
-                        break;
-                    case tuya.dataPoints.lmsSensitivity:
-                        const sensLookup = {'0': 'low', '1': 'medium', '2': 'high'};
-                        result.sensitivity = sensLookup[value];
-                        break;
-                    case tuya.dataPoints.lmsKeepTime:
-                        const keepTimeLookup = {'0': '10', '1': '30', '2': '60', '3': '120'};
-                        result.keep_time = keepTimeLookup[value];
-                        break;
-                    case tuya.dataPoints.lmsIlluminance:
-                        result.illuminance = value;
-                        break;
-                    default:
-                        meta.logger.warn(`zigbee-herdsman-converters:ZG204ZL_lms: NOT RECOGNIZED DP #${
-                                dp} with data ${JSON.stringify(dpValue)}`);
+                case tuya.dataPoints.lmsState:
+                    result.occupancy = (value === 0);
+                    break;
+                case tuya.dataPoints.lmsBattery:
+                    result.battery = value;
+                    break;
+                case tuya.dataPoints.lmsSensitivity:
+                    result.sensitivity = {'0': 'low', '1': 'medium', '2': 'high'}[value];
+                    break;
+                case tuya.dataPoints.lmsKeepTime:
+                    result.keep_time = {'0': '10', '1': '30', '2': '60', '3': '120'}[value];
+                    break;
+                case tuya.dataPoints.lmsIlluminance:
+                    result.illuminance = value;
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:ZG204ZL_lms: NOT RECOGNIZED DP #${
+                        dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }
             return result;
