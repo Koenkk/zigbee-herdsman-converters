@@ -7409,63 +7409,6 @@ const converters = {
             }
         },
     },
-    inovelli_led_effect: {
-        key: ['ledEffect'],
-        convertSet: async (entity, key, values, meta) => {
-            const ledEffects = {
-                'Off': 0,
-                'Solid': 1,
-                'Fast Blink': 2,
-                'Slow Blink': 3,
-                'Pulse': 4,
-                'Chase': 5,
-                'Open/Close': 6,
-                'Small to Big': 7,
-                'Clear': 255,
-            };
-
-            await entity.command(
-                'manuSpecificInovelliVZM31SN',
-                'ledEffect',
-                {
-                    effect: ledEffects[values.effect] || 255,
-                    color: Math.min(Math.max(0, values.color), 255),
-                    level: Math.min(Math.max(0, values.level), 100),
-                    duration: Math.min(Math.max(0, values.duration), 255),
-                },
-                {disableResponse: true, disableDefaultResponse: true},
-            );
-            return {state: {[key]: values}};
-        },
-    },
-    inovelli_individual_led_effect: {
-        key: ['individualLedEffect'],
-        convertSet: async (entity, key, values, meta) => {
-            const individualLedEffects = {
-                'Off': 0,
-                'Solid': 1,
-                'Fast Blink': 2,
-                'Slow Blink': 3,
-                'Pulse': 4,
-                'Chase': 5,
-                'Clear': 255,
-            };
-
-            await entity.command(
-                'manuSpecificInovelliVZM31SN',
-                'individualLedEffect',
-                {
-                    led: Math.min(Math.max(0, parseInt(values.led)), 7),
-                    effect: individualLedEffects[values.effect] || 255,
-                    color: Math.min(Math.max(0, values.color), 255),
-                    level: Math.min(Math.max(0, values.level), 100),
-                    duration: Math.min(Math.max(0, values.duration), 255),
-                },
-                {disableResponse: true, disableDefaultResponse: true},
-            );
-            return {state: {[key]: values}};
-        },
-    },
     // #endregion
 
     // #region Ignore converters

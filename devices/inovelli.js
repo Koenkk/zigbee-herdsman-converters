@@ -1132,7 +1132,7 @@ const exposesList = [
 const toZigbee = [
     tzLocal.light_onoff_brightness_inovelli,
     tz.power_on_behavior,
-    tz.inovelli_led_effect,
+    tzLocal.inovelli_led_effect,
     tzLocal.inovelli_individual_led_effect,
     tzLocal.inovelli_vzw31sn_parameters,
     tzLocal.inovelli_vzw31sn_parameters_readOnly,
