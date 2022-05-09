@@ -327,8 +327,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
-        zigbeeModel: ['TS0601'],
-        model: 'TS0601',
+        model: 'ZTS-EUR-C',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',
         onEvent: tuya.onEventSetLocalTime,

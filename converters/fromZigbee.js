@@ -8546,7 +8546,7 @@ const converters = {
                 break;
             }
             case tuya.dataPoints.state:
-                result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: 'true', 1: 'false', 2: 'true'}[value]};
+                result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: true, 1: false, 2: true}[value]};
                 break;
             case tuya.dataPoints.moesCoverBacklight:
                 result = {backlight: {false: 'OFF', true: 'ON'}[value]};
