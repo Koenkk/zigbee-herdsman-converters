@@ -1418,7 +1418,10 @@ module.exports = [
             .withDescription('Plug LED indicator mode'), e.child_lock()],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_gjnozsaz', applicationVersion: 74}]
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_gjnozsaz', applicationVersion: 74},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_cehuw1lw', applicationVersion: 74},
+        ]
             .concat(...TS011Fplugs.map((manufacturerName) => {
                 return [69, 68, 65, 64].map((applicationVersion) => {
                     return {modelID: 'TS011F', manufacturerName, applicationVersion};
