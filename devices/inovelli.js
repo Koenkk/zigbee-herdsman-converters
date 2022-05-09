@@ -25,25 +25,25 @@ const buttonLookup = {
 };
 
 const ledEffects = {
-    'Off': 0,
-    'Solid': 1,
-    'Fast Blink': 2,
-    'Slow Blink': 3,
-    'Pulse': 4,
-    'Chase': 5,
-    'Open/Close': 6,
-    'Small to Big': 7,
-    'Clear': 255,
+    'off': 0,
+    'solid': 1,
+    'fast_blink': 2,
+    'slow_blink': 3,
+    'pulse': 4,
+    'chase': 5,
+    'open_close': 6,
+    'small_to_big': 7,
+    'clear_effect': 255,
 };
 
 const individualLedEffects = {
-    'Off': 0,
-    'Solid': 1,
-    'Fast Blink': 2,
-    'Slow Blink': 3,
-    'Pulse': 4,
-    'Chase': 5,
-    'Clear': 255,
+    'off': 0,
+    'solid': 1,
+    'fast_blink': 2,
+    'slow_blink': 3,
+    'pulse': 4,
+    'chase': 5,
+    'clear_effect': 255,
 };
 
 const UINT8 = 32;
@@ -1043,15 +1043,15 @@ const exposesList = [
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'Off',
-                    'Solid',
-                    'Chase',
-                    'Fast Blink',
-                    'Slow Blink',
-                    'Pulse',
-                    'Open/Close',
-                    'Small to Big',
-                    'Clear Effect',
+                    'off',
+                    'solid',
+                    'chase',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'open_close',
+                    'small_to_big',
+                    'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LEDs'),
         )
@@ -1092,11 +1092,13 @@ const exposesList = [
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'Off',
-                    'Solid',
-                    'Fast Blink',
-                    'Slow Blink',
-                    'Pulse',
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LED'),
         )
