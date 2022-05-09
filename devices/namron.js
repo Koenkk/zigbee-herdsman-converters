@@ -314,7 +314,7 @@ module.exports = [
                 .withUnit('°C')
                 .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
                 .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
-            exposes.enum('display_auto_off_enabled', ea.ALL, ['enable', 'disabled']),
+            exposes.enum('display_auto_off_enabled', ea.ALL, ['enabled', 'disabled']),
             exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(20).withValueMax(60)

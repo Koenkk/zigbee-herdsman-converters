@@ -3092,10 +3092,10 @@ const converters = {
                 const payload = {0x1009: {value: value * 2, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='hysterersis') {
-                const payload = {0x100A: {value: value* 10, type: 0x20}};
+                const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='display_auto_off_enabled') {
-                const lookup = {'enable': 0, 'disabled': 1};
+                const lookup = {'enabled': 0, 'disabled': 1};
                 const payload = {0x100B: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='alarm_airtemp_overvalue') {
