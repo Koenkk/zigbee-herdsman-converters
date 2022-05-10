@@ -152,7 +152,7 @@ module.exports = [
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ko6v90pg', applicationVersion: 74}]
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ko6v90pg', applicationVersion: 74}],
         model: 'WK36',
         description: 'Smart plug (with power monitoring)',
         vendor: 'LELLKI',
