@@ -47,7 +47,7 @@ module.exports = [
         description: 'Aqara E1 door & window contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        exposes: [e.contact(), e.battery_low(), e.battery_voltage(), e.tamper()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
