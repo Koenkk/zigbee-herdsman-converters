@@ -45,9 +45,10 @@ module.exports = [
         model: 'MCCGQ14LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.battery_voltage(), e.tamper()],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage(), e.tamper()],
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
