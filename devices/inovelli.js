@@ -1189,7 +1189,7 @@ module.exports = [
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
         vendor: 'Inovelli',
-        description: 'Inovelli 2-in-1 Switch + Dimmer',
+        description: 'Inovelli 2-in-1 switch + dimmer',
         exposes: exposesList,
         toZigbee: toZigbee,
         fromZigbee: [
