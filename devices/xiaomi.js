@@ -48,7 +48,13 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage(), e.tamper()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
+        // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
