@@ -5927,6 +5927,29 @@ const converters = {
             return result;
         },
     },
+    xiaomi_curtain_hagl04_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'closing',
+                1: 'opening',
+                2: 'stop',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true;
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running,
+                };
+            }
+        },
+    },
     xiaomi_curtain_acn002_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
