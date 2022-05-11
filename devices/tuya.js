@@ -592,7 +592,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}, {modelID: 'TS0601', manufacturerName: 'TZE200_k6jhsr0q'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}, {modelID: 'TS0601', manufacturerName: '_TZE200_k6jhsr0q'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_di3tfv5b'}],
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
         description: '4 gang switch',
