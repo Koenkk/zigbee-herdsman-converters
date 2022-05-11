@@ -1329,7 +1329,7 @@ module.exports = [
         model: 'ZNCLDJ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara B1 curtain motor',
-        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.battery, fz.xiaomi_curtain_position_tilt],
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         onEvent: async (type, data, device) => {
             // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
@@ -1341,11 +1341,6 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.endpoints[0];
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
         ota: ota.zigbeeOTA,
     },
     {
