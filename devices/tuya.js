@@ -1383,6 +1383,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -1419,15 +1420,11 @@ module.exports = [
             .withDescription('Plug LED indicator mode'), e.child_lock()],
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_gjnozsaz', applicationVersion: 74},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_cehuw1lw', applicationVersion: 74},
-        ]
-            .concat(...TS011Fplugs.map((manufacturerName) => {
-                return [69, 68, 65, 64].map((applicationVersion) => {
-                    return {modelID: 'TS011F', manufacturerName, applicationVersion};
-                });
-            })),
+        fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
+            return [69, 68, 65, 64].map((applicationVersion) => {
+                return {modelID: 'TS011F', manufacturerName, applicationVersion};
+            });
+        })),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
