@@ -1904,15 +1904,10 @@ module.exports = [
         model: 'MCCGQ12LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 door & window contact sensor',
-        fromZigbee: [fz.xiaomi_contact, fz.battery],
+        fromZigbee: [fz.xiaomi_contact, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-        },
     },
     {
         zigbeeModel: ['lumi.plug.sacn02'],
