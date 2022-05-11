@@ -1341,6 +1341,8 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
+            exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+                .withDescription('The current state of the motor.'),
         ota: ota.zigbeeOTA,
     },
     {
