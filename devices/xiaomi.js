@@ -642,6 +642,7 @@ module.exports = [
                 'left_single', 'left_double', 'center_single', 'center_double', 'right_single', 'right_double',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
+            e.power_outage_count(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
