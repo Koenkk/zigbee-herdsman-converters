@@ -54,24 +54,25 @@ module.exports = [
         vendor: 'KMPCIL',
         description: 'Arrival sensor',
         fromZigbee: [fz.kmpcil_presence_binary_input, fz.kmpcil_presence_power, fz.temperature],
-        exposes: [e.battery(), e.presence(), exposes.binary('power_state',exposes.access.STATE,true,false), e.occupancy(), e.vibration(), e.temperature()],
+        exposes: [e.battery(), e.presence(), exposes.binary('power_state', exposes.access.STATE, true, false),
+            e.occupancy(), e.vibration(), e.temperature()],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'},},
+        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            for (const cluster of ['msTemperatureMeasurement','genPowerCfg', 'genBinaryInput']){
-               await utils.sleep(2000);
-               await endpoint.bind(cluster, coordinatorEndpoint);
+            for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
+                await utils.sleep(2000);
+                await endpoint.bind(cluster, coordinatorEndpoint);
             }
 
             await utils.sleep(1000);
             const p = reporting.payload('batteryVoltage', 0, 10, 1);
-            await endpoint.configureReporting('genPowerCfg', p);	    
-           
+            await endpoint.configureReporting('genPowerCfg', p);
+
             await utils.sleep(1000);
             const p2 = reporting.payload('presentValue', 0, 300, 1);
             await endpoint.configureReporting('genBinaryInput', p2);
-            
+
             await utils.sleep(1000);
             await reporting.temperature(endpoint);
             await endpoint.read('genBinaryInput', ['presentValue']);
