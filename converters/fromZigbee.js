@@ -22,6 +22,12 @@ const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const xiaomi = require('../lib/xiaomi');
 
+const {
+    handleKmpcilPresence,
+} = require('../lib/kmpcil');
+
+const kmpcil = require('../lib/kmpcil');
+
 const converters = {
     // #region Generic/recommended converters
     fan: {
@@ -5176,6 +5182,35 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             return {state: (msg.data['presentValue']==0) ? 'OFF' : 'ON'};
+        },
+    },
+    kmpcil_presence_binary_input: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+          const payload = handleKmpcilPresence(model, msg, publish, options, meta);
+          if (msg.data.hasOwnProperty('presentValue')) {
+            const presentValue =  msg.data['presentValue']
+            payload.power_state = (presentValue & 0x01)> 0;
+            payload.occupancy = (presentValue & 0x04) > 0;
+            payload.vibration = (presentValue & 0x02) > 0;
+          }
+          return payload;
+        },
+    },
+    kmpcil_presence_power: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        options: [kmpcil.options.presence_timeout_dc(),kmpcil.options.presence_timeout_battery()],
+        convert: (model, msg, publish, options, meta) => {
+          const payload = handleKmpcilPresence(model, msg, publish, options, meta);
+          if (msg.data.hasOwnProperty('batteryVoltage')) {
+               payload.voltage = msg.data['batteryVoltage'] * 100;
+              if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                  payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+              }
+          }
+          return payload;
         },
     },
     _3310_humidity: {
