@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 
 module.exports = [
@@ -47,7 +48,7 @@ module.exports = [
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
         },
     },
-  {
+    {
         zigbeeModel: ['tagv1'],
         model: 'KMPCIL-tag-001',
         vendor: 'KMPCIL',
@@ -75,5 +76,5 @@ module.exports = [
             await reporting.temperature(endpoint);
             await endpoint.read('genBinaryInput', ['presentValue']);
         },
-  },
+    },
 ];
