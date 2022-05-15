@@ -45,14 +45,10 @@ module.exports = [
         model: 'MCCGQ14LM',
         vendor: 'Xiaomi',
         description: 'Aqara E1 door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
-        },
         // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
         ota: ota.zigbeeOTA,
     },
