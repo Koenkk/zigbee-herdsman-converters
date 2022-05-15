@@ -7,8 +7,8 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['SR-ZG9023A(EU)'],
-        model: 'SR-ZG9023A(EU)',
+        zigbeeModel: ['SR-ZG9023A-EU'],
+        model: 'SR-ZG9023A-EU',
         vendor: 'Sunricher',
         description: '4 ports switch with 2 usb ports (no metering)',
         extend: extend.switch(),
