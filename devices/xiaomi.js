@@ -1580,6 +1580,7 @@ module.exports = [
             device.type = 'Router';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],
