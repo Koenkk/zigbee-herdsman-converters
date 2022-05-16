@@ -16,10 +16,11 @@ module.exports = [
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            ])],
+            ]),
+            e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
@@ -57,10 +58,11 @@ module.exports = [
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            ])],
+            ]),
+            e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
@@ -99,10 +101,11 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
-                'brightness_stop_s2'])],
+                'brightness_stop_s2']),
+            e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
