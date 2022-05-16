@@ -10,7 +10,7 @@ module.exports = [
     {
         zigbeeModel: ['ROB_200-050-0'],
         model: 'ROB_200-050-0',
-        vendor: 'ROBB smarrt',
+        vendor: 'ROBB',
         description: '4 port switch with 2 usb ports (no metering)',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
