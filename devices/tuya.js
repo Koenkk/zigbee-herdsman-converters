@@ -13,7 +13,8 @@ const utils = require('../lib/utils');
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
-    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit'];
+    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit',
+    '_TZ3000_cjrngdr3'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -715,6 +716,8 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pgq2qvyv'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_nvaik6gk'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_armwcncd'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_2p6wbry3'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_qamcypen'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -950,6 +953,8 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            await ep1.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },

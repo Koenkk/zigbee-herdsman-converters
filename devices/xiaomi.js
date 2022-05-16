@@ -1344,7 +1344,7 @@ module.exports = [
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
-                .withDescription('The current state of the motor.')],
+                .withDescription('The current state of the motor.'), e.power_outage_count()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1580,6 +1580,7 @@ module.exports = [
             device.type = 'Router';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],

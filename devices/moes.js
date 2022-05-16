@@ -118,7 +118,7 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}, {modelID: 'TS0601', manufacturerName: '_TZE200_tviaymwx'}],
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
