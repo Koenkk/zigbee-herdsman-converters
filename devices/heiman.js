@@ -454,6 +454,15 @@ module.exports = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['SGPHM-I1'],
+        model: 'SGPHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Propane gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         fingerprint: [{modelID: 'Vibration-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-N',
         vendor: 'HEIMAN',
