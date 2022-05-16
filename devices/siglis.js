@@ -115,7 +115,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['zigfred plus'],
-        model: 'ZFP-A1-CH',
+        model: 'ZFP-1A-CH',
         vendor: 'Siglis',
         description: 'zigfred plus smart in-wall switch',
         exposes: [
