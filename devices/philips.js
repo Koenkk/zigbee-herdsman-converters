@@ -465,7 +465,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031N6'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',

@@ -48,7 +48,13 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.aqara_opple, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage(), e.tamper()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
+        // OTA request: "fieldControl":0, "manufacturerCode":4447, "imageType":10635
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.magnet.ac01'],
@@ -636,6 +642,7 @@ module.exports = [
                 'left_single', 'left_double', 'center_single', 'center_double', 'right_single', 'right_double',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
+            e.power_outage_count(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1337,7 +1344,7 @@ module.exports = [
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
-                .withDescription('The current state of the motor.')],
+                .withDescription('The current state of the motor.'), e.power_outage_count()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1573,6 +1580,7 @@ module.exports = [
             device.type = 'Router';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],
