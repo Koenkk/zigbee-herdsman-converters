@@ -152,6 +152,15 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qoy0ekbd'}],
+        model: 'CX-0726',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.tuya_temperature_humidity_sensor],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.battery()],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
         model: 'TS0601_illuminance_temperature_humidity_sensor',
         vendor: 'TuYa',
