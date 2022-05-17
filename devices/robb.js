@@ -8,6 +8,21 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-029-0'],
+        model: 'ROB_200-029-0',
+        vendor: 'ROBB',
+        description: 'Zigbee curtain motor controller',
+        meta: {coverInverted: true},
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
+    {
         zigbeeModel: ['ROB_200-050-0'],
         model: 'ROB_200-050-0',
         vendor: 'ROBB',
