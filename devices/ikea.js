@@ -320,6 +320,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbB22WSglobeopal1055lm', 'TRADFRIbulbB22WSglobeopal1055lm'],
+        model: 'LED2035G10',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb B22 1055 lumen, dimmable, white spectrum, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WS 400lm'],
         model: 'LED1537R6/LED1739R5',
         vendor: 'IKEA',
