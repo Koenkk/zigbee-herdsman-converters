@@ -72,7 +72,7 @@ module.exports = [
     {
         zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
             'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
-            'SmokeSensor-EF-3.0'],
+            'SmokeSensor-EF-3.0', 'SMOK_HV14'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -285,9 +285,17 @@ module.exports = [
         model: 'SMHM-I1',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['HT-EM', 'TH-EM', 'TH-T_V14'],
@@ -398,7 +406,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}],
+        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
@@ -446,6 +454,15 @@ module.exports = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['SGPHM-I1'],
+        model: 'SGPHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Propane gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         fingerprint: [{modelID: 'Vibration-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-N',
         vendor: 'HEIMAN',
@@ -461,7 +478,7 @@ module.exports = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}, {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-EF',
         vendor: 'HEIMAN',
         description: 'Vibration sensor',

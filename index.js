@@ -62,7 +62,7 @@ function addDefinition(definition) {
     const {extend, ...definitionWithoutExtend} = definition;
     if (extend) {
         if (extend.hasOwnProperty('configure') && definition.hasOwnProperty('configure')) {
-            console.log(`'${definition.model}' has configure in extend and device, this is not allowed`);
+            assert.fail(`'${definition.model}' has configure in extend and device, this is not allowed`);
         }
 
         definition = {
@@ -75,7 +75,8 @@ function addDefinition(definition) {
         };
     }
 
-    definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write);
+    definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write,
+        tz.command);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
@@ -88,7 +89,8 @@ function addDefinition(definition) {
     const optionKeys = definition.options.map((o) => o.name);
     for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
         if (converter.options) {
-            for (const option of converter.options) {
+            const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
+            for (const option of options) {
                 if (!optionKeys.includes(option.name)) {
                     definition.options.push(option);
                     optionKeys.push(option.name);

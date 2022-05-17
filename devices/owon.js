@@ -27,7 +27,6 @@ module.exports = [
         model: 'CB432',
         vendor: 'OWON',
         description: '32A/63A power circuit breaker',
-        supports: 'on/off, power measurement',
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],

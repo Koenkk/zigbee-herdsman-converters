@@ -8,6 +8,27 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-050-0'],
+        model: 'ROB_200-050-0',
+        vendor: 'ROBB',
+        description: '4 port switch with 2 usb ports (no metering)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
+        },
+        meta: {multiEndpoint: true},
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9023A(EU)'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['ROB_200-006-0'],
         model: 'ROB_200-006-0',
         vendor: 'ROBB',
@@ -139,9 +160,11 @@ module.exports = [
         model: 'ROB_200-018-0',
         vendor: 'ROBB',
         description: 'ZigBee knob smart dimmer',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
-        exposes: [e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery,
+            fz.command_move_to_color],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_to_level', 'color_temperature_move', 'color_move'])],
         toZigbee: [],
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
     },
     {

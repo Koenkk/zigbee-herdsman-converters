@@ -10,7 +10,7 @@ const lockExtend = (meta) => {
             fz.lock_user_status_response],
         toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 250, ...meta},
-        exposes: [e.lock(), e.battery(), e.pincode()],
+        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -40,6 +40,13 @@ module.exports = [
         model: 'YRD256HA20BP',
         vendor: 'Yale',
         description: 'Assure lock SL',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['0600000001'],
+        model: 'YMF30',
+        vendor: 'Yale',
+        description: 'Digital lock',
         extend: lockExtend(),
     },
     {
@@ -123,5 +130,12 @@ module.exports = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['06ffff2027'],
+        model: 'YMF40A RL',
+        vendor: 'Yale',
+        description: 'Real living lock / Intelligent biometric digital lock',
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
 ];

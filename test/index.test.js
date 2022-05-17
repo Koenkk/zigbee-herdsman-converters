@@ -1,5 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -375,7 +376,8 @@ describe('index.js', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
                 const toCheck = [];
-                for (const expose of device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
                     } else if (expose.features && expose.type !== 'composite') {
@@ -457,7 +459,8 @@ describe('index.js', () => {
     it('Number exposes with set access should have a range', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
-                for (const expose of device.exposes) {
+                const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
+                for (const expose of expss) {
                     if (expose.type == 'numeric' && expose.access & exposes.access.SET) {
                         if (expose.value_min == null || expose.value_max == null) {
                             throw new Error(`Value min or max unknown for ${expose.property}`);
@@ -474,5 +477,29 @@ describe('index.js', () => {
                 expect(definition.exposes().find((e) => e.property === 'linkquality')).not.toBeUndefined();
             }
         });
+    });
+
+    it('Verify options filter', () => {
+        const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
+        expect(ZNCLDJ12LM.options.length).toBe(1);
+        const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
+        expect(ZNCZ04LM.options.length).toBe(2);
+    });
+
+    it('Verify imports', () => {
+        const files = fs.readdirSync('devices');
+        for (const file of files) {
+            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            expect(content).not.toContain(`require('zigbee-herdsman-converters`);
+        }
+    });
+
+    it('Test to percentage', () => {
+        expect(utils.toPercentage(3000, 2850, 3200, true)).toBe(79);
+        expect(utils.toPercentage(3200, 2850, 3200, true)).toBe(100);
+        expect(utils.toPercentage(4000, 2850, 3200, true)).toBe(100);
+        expect(utils.toPercentage(2000, 2850, 3200, true)).toBe(0);
+        expect(utils.toPercentage(2850, 2850, 3200, true)).toBe(0);
+        expect(utils.toPercentage(2851, 2850, 3200, true)).toBe(2);
     });
 });

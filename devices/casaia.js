@@ -3,8 +3,16 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const tz = require('../converters/toZigbee');
+const extend = require('../lib/extend');
 
 module.exports = [
+    {
+        zigbeeModel: ['CSLC601-D-E'],
+        model: 'CSLC601-D-E',
+        vendor: 'CASAIA',
+        description: 'Dry contact relay switch module in 220v AC for gas boiler',
+        extend: extend.switch(),
+    },
     {
         zigbeeModel: ['CTHS317ET'],
         model: 'CTHS-317-ET',

@@ -16,8 +16,10 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(85);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            // await reporting.readMeteringMultiplierDivisor(endpoint);
+            // Fix for UNSUPPORTED_ATTRIBUTE
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
         exposes: [e.switch(), e.power(), e.energy()],

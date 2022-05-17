@@ -10,20 +10,23 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_2xlvlnez'}],
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_child_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_child_mode],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+                .withDescription('Recover state after power outage'), e.child_lock()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genBasic',
+                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -98,6 +101,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
@@ -114,13 +118,17 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}, {modelID: 'TS0601', manufacturerName: '_TZE200_tviaymwx'}],
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
-        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+        exposes: [e.switch().setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -135,9 +143,13 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (2 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -158,9 +170,14 @@ module.exports = [
         vendor: 'Moes',
         description: 'Wall touch light switch (3 gang)',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -203,7 +220,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}, {modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'}],
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
@@ -303,10 +320,20 @@ module.exports = [
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
-        supports: 'open, close, stop, position',
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),
             exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF')],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nhyj64w2'}],
+        model: 'ZTS-EUR-C',
+        vendor: 'Moes',
+        description: 'Zigbee + RF curtain switch',
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [fz.moes_cover, fz.ignore_basic_report],
+        toZigbee: [tz.moes_cover],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
+            exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },
 ];

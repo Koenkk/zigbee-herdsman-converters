@@ -36,4 +36,11 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['S32053'],
+        model: 'S32053',
+        vendor: 'The Light Group',
+        description: 'SLC SmartOne CV led dimmable driver',
+        extend: extend.light_onoff_brightness(),
+    },
 ];

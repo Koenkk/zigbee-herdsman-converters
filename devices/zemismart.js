@@ -76,6 +76,30 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'}],
+        model: 'TB25',
+        vendor: 'Zemismart',
+        description: 'Smart light switch and socket - 2 gang with neutral wire',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous']),
+        ],
+        endpoint: () => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).read('genBasic',
+                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            for (const endpointID of [1, 2, 3]) {
+                const endpoint = device.getEndpoint(endpointID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                await reporting.onOff(endpoint);
+            }
+        },
+    },
+    {
         zigbeeModel: ['LXN56-SS27LX1.1'],
         model: 'LXN56-SS27LX1.1',
         vendor: 'Zemismart',
@@ -125,18 +149,26 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
-        model: 'ZM-AM02',
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
+        ],
+        model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
-        fromZigbee: [fz.ZMAM02],
-        toZigbee: [tz.ZMAM02],
-        exposes: [exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02MotorMode)),
-            exposes.enum('control', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Control)),
+        fromZigbee: [fz.ZMAM02_cover],
+        toZigbee: [tz.ZMAM02_cover],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.composite('options', 'options')
+                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(255)
+                    .withDescription('Motor speed')),
+            exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02MotorWorkingMode)),
             exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Mode)),
-            exposes.enum('control_back_mode', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Direction)),
-            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMAM02.AM02Border)),
+            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Mode)),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
         // ---------------------------------------------------------------------------------
         // DP exists, but not used at the moment
         // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
@@ -145,5 +177,14 @@ module.exports = [
         // exposes.numeric('time_total', ea.STATE).withUnit('ms'),
         // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fzo2pocs'}],
+        model: 'ZM25TQ',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options, tz.tuya_data_point_test],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];
