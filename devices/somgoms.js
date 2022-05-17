@@ -26,6 +26,15 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
+        zigbeeModel: ['sbordckq'],
+        model: 'TS0601_switch_cover',
+        vendor: 'Somgoms',
+        description: 'Curtain switch',
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+    },
+    {
         zigbeeModel: ['hpb9yts'],
         model: 'ZSTY-SM-1DMZG-US-W',
         vendor: 'Somgoms',
