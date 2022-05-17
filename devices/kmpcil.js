@@ -1,7 +1,3 @@
-const {
-    batteryVoltageToPercentage,
-} = require('../lib/utils');
-
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
@@ -64,7 +60,7 @@ const kmpcilConverters = {
             if (msg.data.hasOwnProperty('batteryVoltage')) {
                 payload.voltage = msg.data['batteryVoltage'] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
-                    payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                    payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
                 }
             }
             return payload;
