@@ -127,6 +127,10 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
+                // This sleep here(and the sleep) after is to allow the command to be
+                // fully sent to coordinator.  In case repeater involved and the repeater
+                // is litted in resources,  we may want to give some time so that the sequence of
+                // commands does not overwhelm the repeater.
                 await utils.sleep(2000);
                 await endpoint.bind(cluster, coordinatorEndpoint);
             }
