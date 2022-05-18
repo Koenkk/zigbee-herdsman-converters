@@ -21,7 +21,7 @@ const manufacturerOptions = {
 
 const ubisys = {
     fz: {
-        ubisys_dimmer_setup: {
+        dimmer_setup: {
             cluster: 'manuSpecificUbisysDimmerSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -65,7 +65,7 @@ const ubisys = {
                 }
             },
         },
-        ubisys_dimmer_setup_genLevelCtrl: {
+        dimmer_setup_genLevelCtrl: {
             cluster: 'genLevelCtrl',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -76,7 +76,7 @@ const ubisys = {
         },
     },
     tz: {
-        ubisys_configure_j1: {
+        configure_j1: {
             key: ['configure_j1'],
             convertSet: async (entity, key, value, meta) => {
                 const log = (message) => {
@@ -192,7 +192,7 @@ const ubisys = {
                     await sleepSeconds(2);
                     // re-read and dump all relevant attributes
                     log('  Done - will now read back the results.');
-                    ubisys.tz.ubisys_configure_j1.convertGet(entity, key, meta);
+                    ubisys.tz.configure_j1.convertGet(entity, key, meta);
                 }
             },
             convertGet: async (entity, key, meta) => {
@@ -229,7 +229,7 @@ const ubisys = {
                 ], manufacturerOptions.ubisys));
             },
         },
-        ubisys_dimmer_setup: {
+        dimmer_setup: {
             key: ['capabilities_forward_phase_control',
                 'capabilities_reverse_phase_control',
                 'capabilities_reactance_discriminator',
@@ -249,7 +249,7 @@ const ubisys = {
                     await entity.write('manuSpecificUbisysDimmerSetup',
                         {'mode': phaseControlValues[phaseControl]}, manufacturerOptions.ubisysNull);
                 }
-                ubisys.tz.ubisys_dimmer_setup.convertGet(entity, key, meta);
+                ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
@@ -257,19 +257,19 @@ const ubisys = {
                 await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
             },
         },
-        ubisys_dimmer_setup_genLevelCtrl: {
+        dimmer_setup_genLevelCtrl: {
             key: ['minimum_on_level'],
             convertSet: async (entity, key, value, meta) => {
                 if (key === 'minimum_on_level') {
                     await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
                 }
-                ubisys.tz.ubisys_dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+                ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
             },
         },
-        ubisys_device_setup: {
+        configure_device_setup: {
             key: ['configure_device_setup'],
             convertSet: async (entity, key, value, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
@@ -478,7 +478,7 @@ const ubisys = {
                 }
 
                 // re-read effective settings and dump them to the log
-                ubisys.tz.ubisys_device_setup.convertGet(entity, key, meta);
+                ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
             },
 
             convertGet: async (entity, key, meta) => {
@@ -508,7 +508,7 @@ module.exports = [
             e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.ubisys_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
@@ -550,7 +550,7 @@ module.exports = [
             e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.ubisys_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
@@ -593,7 +593,7 @@ module.exports = [
             e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.ubisys_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
@@ -637,10 +637,10 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.ubisys_dimmer_setup,
-            ubisys.fz.ubisys_dimmer_setup_genLevelCtrl],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.ubisys_dimmer_setup,
-            ubisys.tz.ubisys_dimmer_setup_genLevelCtrl, ubisys.tz.ubisys_device_setup, tz.ignore_transition],
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,
+            ubisys.fz.dimmer_setup_genLevelCtrl],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
+            ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition],
         exposes: [e.light_brightness().withLevelConfig(), e.power(),
             exposes.numeric('ballast_physical_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output the ballast can achieve.'),
@@ -703,7 +703,7 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
-            ubisys.tz.ubisys_configure_j1, ubisys.tz.ubisys_device_setup],
+            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
         exposes: [e.cover_position_tilt(),
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -739,7 +739,7 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Control unit C4',
         fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover],
-        toZigbee: [ubisys.tz.ubisys_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
         exposes: [e.action([
             '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
             '2_scene_*', '2_on', '2_off', '2_toggle', '2_level_move_down', '2_level_move_up',
