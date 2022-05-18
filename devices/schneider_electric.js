@@ -446,7 +446,7 @@ module.exports = [
             .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(5);
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
