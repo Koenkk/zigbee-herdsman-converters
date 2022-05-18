@@ -324,7 +324,7 @@ module.exports = [
         model: '067772',
         vendor: 'Legrand',
         description: 'Double wired switch with neutral',
-        fromZigbee: [fz.on_off, fz.legrand_cluster_fc01],
+        fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn],
         exposes: [e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
@@ -333,9 +333,9 @@ module.exports = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpointLeft = device.getEndpoint(2);
-            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpointLeft, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
             const endpointRight = device.getEndpoint(1);
-            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpointRight, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
         },
         endpoint: (device) => {
             return {left: 2, right: 1};
