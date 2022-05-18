@@ -177,7 +177,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']), e.temperature(), e.power_outage_count()],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_basic,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
