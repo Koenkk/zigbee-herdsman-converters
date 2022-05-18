@@ -1001,7 +1001,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature(), e.power_outage_count()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
