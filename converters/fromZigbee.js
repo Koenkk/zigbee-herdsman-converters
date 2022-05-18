@@ -7270,59 +7270,6 @@ const converters = {
             };
         },
     },
-    ubisys_dimmer_setup: {
-        cluster: 'manuSpecificUbisysDimmerSetup',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('capabilities')) {
-                const capabilities = msg.data.capabilities;
-                const forwardPhaseControl = capabilities & 1;
-                const reversePhaseControl = (capabilities & 2) >>> 1;
-                const reactanceDiscriminator = (capabilities & 0x20) >>> 5;
-                const configurableCurve = (capabilities & 0x40) >>> 6;
-                const overloadDetection = (capabilities & 0x80) >>> 7;
-                return {
-                    capabilities_forward_phase_control: forwardPhaseControl ? true : false,
-                    capabilities_reverse_phase_control: reversePhaseControl ? true : false,
-                    capabilities_reactance_discriminator: reactanceDiscriminator ? true : false,
-                    capabilities_configurable_curve: configurableCurve ? true : false,
-                    capabilities_overload_detection: overloadDetection ? true : false,
-                };
-            }
-            if (msg.data.hasOwnProperty('status')) {
-                const status = msg.data.status;
-                const forwardPhaseControl = status & 1;
-                const reversePhaseControl = (status & 2) >>> 1;
-                const overload = (status & 8) >>> 3;
-                const capacitiveLoad = (status & 0x40) >>> 6;
-                const inductiveLoad = (status & 0x80) >>> 7;
-                return {
-                    status_forward_phase_control: forwardPhaseControl ? true : false,
-                    status_reverse_phase_control: reversePhaseControl ? true : false,
-                    status_overload: overload ? true : false,
-                    status_capacitive_load: capacitiveLoad ? true : false,
-                    status_inductive_load: inductiveLoad ? true : false,
-                };
-            }
-            if (msg.data.hasOwnProperty('mode')) {
-                const mode = msg.data.mode;
-                const phaseControl = mode & 3;
-                const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
-                return {
-                    mode_phase_control: phaseControlValues[phaseControl],
-                };
-            }
-        },
-    },
-    ubisys_dimmer_setup_genLevelCtrl: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('ubisysMinimumOnLevel')) {
-                return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
-            }
-        },
-    },
     itcmdr_clicks: {
         cluster: 'genMultistateInput',
         type: ['readResponse', 'attributeReport'],
