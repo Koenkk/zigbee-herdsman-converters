@@ -5379,6 +5379,15 @@ const converters = {
             return {action: msg.data.presentValue ? 'moving' : 'stopped'};
         },
     },
+    legrand_binary_input_on_off: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta && model.meta.multiEndpoint;
+            const property = multiEndpoint ? postfixWithEndpointName('state', msg, model) : 'state';
+            return {[property]: msg.data.presentValue ? 'ON' : 'OFF'};
+        },
+    },
     bticino_4027C_binary_input_moving: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
