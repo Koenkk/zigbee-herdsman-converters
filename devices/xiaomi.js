@@ -1286,7 +1286,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
+            e.battery(), e.temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
         ],
