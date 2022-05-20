@@ -2734,6 +2734,17 @@ const converters = {
             await entity.read('aqaraOpple', [0x0002], manufacturerOptions.xiaomi);
         },
     },
+    RTCGQ14LM_trigger_indicator: {
+        key: ['trigger_indicator'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {true: 1, false: 0};
+            await entity.write('aqaraOpple', {0x0152: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {trigger_indicator: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0152], manufacturerOptions.xiaomi);
+        },
+    },
     LLKZMK11LM_interlock: {
         key: ['interlock'],
         convertSet: async (entity, key, value, meta) => {

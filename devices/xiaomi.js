@@ -925,18 +925,21 @@ module.exports = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'MS-S02'}],
         description: 'Aqara P1 human body movement and illuminance sensor',
         fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
+        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
+                .withDescription('Time interval for detecting actions'),
+            exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
+                'blue LED will blink once when motion is detected'), e.temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0152], {manufacturerCode: 0x115f});
         },
         ota: ota.zigbeeOTA,
     },
