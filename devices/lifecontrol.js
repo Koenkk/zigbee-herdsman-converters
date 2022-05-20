@@ -80,8 +80,8 @@ module.exports = [
         model: 'MCLH-08',
         vendor: 'LifeControl',
         description: 'Air sensor',
-        fromZigbee: [fz.lifecontrolVoc],
+        fromZigbee: [fz.lifecontrolVoc, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.eco2()],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.eco2(), e.battery()],
     },
 ];
