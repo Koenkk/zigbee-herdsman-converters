@@ -3,7 +3,70 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
+const utils = require('../lib/utils');
 const e = exposes.presets;
+
+const kmpcilOptions={
+    presence_timeout_dc: () => {
+        return exposes.numeric('presence_timeout_dc').withValueMin(60).withDescription(
+            'Time in seconds after which presence is cleared after detecting it (default 60 seconds) while in DC.');
+    },
+    presence_timeout_battery: () => {
+        return exposes.numeric('presence_timeout_battery').withValueMin(120).withDescription(
+            'Time in seconds after which presence is cleared after detecting it (default 420 seconds) while in Battery.');
+    },
+};
+
+function handleKmpcilPresence(model, msg, publish, options, meta) {
+    const useOptionsTimeoutBattery = options && options.hasOwnProperty('presence_timeout_battery');
+    const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
+
+    const useOptionsTimeoutDc = options && options.hasOwnProperty('presence_timeout_dc');
+    const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
+
+    const mode = meta.state? meta.state['power_state'] : false;
+
+    const timeout = mode ? timeoutDc : timeoutBattery;
+    // Stop existing timer because motion is detected and set a new one.
+    clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+    const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+    globalStore.putValue(msg.endpoint, 'timer', timer);
+
+    return {presence: true};
+}
+
+const kmpcilConverters = {
+    presence_binary_input: {
+        cluster: 'genBinaryInput',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = handleKmpcilPresence(model, msg, publish, options, meta);
+            if (msg.data.hasOwnProperty('presentValue')) {
+                const presentValue = msg.data['presentValue'];
+                payload.power_state = (presentValue & 0x01)> 0;
+                payload.occupancy = (presentValue & 0x04) > 0;
+                payload.vibration = (presentValue & 0x02) > 0;
+            }
+            return payload;
+        },
+    },
+    presence_power: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        options: [kmpcilOptions.presence_timeout_dc(), kmpcilOptions.presence_timeout_battery()],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = handleKmpcilPresence(model, msg, publish, options, meta);
+            if (msg.data.hasOwnProperty('batteryVoltage')) {
+                payload.voltage = msg.data['batteryVoltage'] * 100;
+                if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
+                    payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
+                }
+            }
+            return payload;
+        },
+    },
+};
 
 module.exports = [
     {
@@ -45,6 +108,40 @@ module.exports = [
             const payloadBinaryOutput = [{
                 attribute: 'presentValue', minimumReportInterval: 0, maximumReportInterval: 30, reportableChange: 1}];
             await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
+        },
+    },
+    {
+        zigbeeModel: ['tagv1'],
+        model: 'KMPCIL-tag-001',
+        vendor: 'KMPCIL',
+        description: 'Arrival sensor',
+        fromZigbee: [kmpcilConverters.presence_binary_input, kmpcilConverters.presence_power, fz.temperature],
+        exposes: [e.battery(), e.presence(), exposes.binary('power_state', exposes.access.STATE, true, false),
+            e.occupancy(), e.vibration(), e.temperature()],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
+                // This sleep here(and the sleep) after is to allow the command to be
+                // fully sent to coordinator.  In case repeater involved and the repeater
+                // is litted in resources,  we may want to give some time so that the sequence of
+                // commands does not overwhelm the repeater.
+                await utils.sleep(2000);
+                await endpoint.bind(cluster, coordinatorEndpoint);
+            }
+
+            await utils.sleep(1000);
+            const p = reporting.payload('batteryVoltage', 0, 10, 1);
+            await endpoint.configureReporting('genPowerCfg', p);
+
+            await utils.sleep(1000);
+            const p2 = reporting.payload('presentValue', 0, 300, 1);
+            await endpoint.configureReporting('genBinaryInput', p2);
+
+            await utils.sleep(1000);
+            await reporting.temperature(endpoint);
+            await endpoint.read('genBinaryInput', ['presentValue']);
         },
     },
 ];
