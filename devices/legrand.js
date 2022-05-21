@@ -32,7 +32,7 @@ module.exports = [
     {
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: 'FC80CC',
+        model: '412171',
         description: 'Legrand (or Bticino) DIN contactor module',
         vendor: 'Legrand',
         extend: extend.switch(),
