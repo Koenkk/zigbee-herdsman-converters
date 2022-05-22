@@ -102,7 +102,7 @@ module.exports = [
         zigbeeModel: ['3RSB015BZ'],
         model: '3RSB015BZ',
         vendor: 'Third Reality',
-        description: 'Roller Shade',
+        description: 'Roller shade',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {battery: {dontDividePercentage: false}},
