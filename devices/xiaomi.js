@@ -337,8 +337,8 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_multistate_action],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power(), e.energy(), e.voltage(),
+            e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action([
                 'single_left', 'single_right', 'single_both',
                 'double_left', 'double_right', 'double_both']),
@@ -963,8 +963,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['Reset']).withDescription('Reset the status of no presence'),
-            e.device_temperature(), e.power_outage_count()
-        ],
+            e.device_temperature(), e.power_outage_count()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
