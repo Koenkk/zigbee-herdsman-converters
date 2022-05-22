@@ -79,7 +79,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        exposes: [e.power(), e.energy(), e.voltage(), e.temperature(), e.power_outage_memory(),
+        exposes: [e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
             // Do not control l2 in rgbw mode
             e.light_brightness_colortemp_colorxy([153, 370]).removeFeature('color_temp_startup').withEndpoint('l1'),
@@ -178,7 +178,7 @@ module.exports = [
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']),
-            e.temperature(), e.power_outage_count()],
+            e.device_temperature(), e.power_outage_count()],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_basic,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -338,7 +338,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
-            e.power(), e.energy(), e.voltage(), e.temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
+            e.power(), e.energy(), e.voltage(), e.device_temperature(), e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             e.action([
                 'single_left', 'single_right', 'single_both',
                 'double_left', 'double_right', 'double_both']),
@@ -398,7 +398,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE_GET), e.energy(), e.flip_indicator_light(),
-            e.power_outage_memory(), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.device_temperature().withAccess(ea.STATE),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -425,7 +425,7 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.temperature().withAccess(ea.STATE), e.power_outage_memory(), e.flip_indicator_light()],
+            e.device_temperature().withAccess(ea.STATE), e.power_outage_memory(), e.flip_indicator_light()],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -466,7 +466,7 @@ module.exports = [
             fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic,
             fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.temperature(),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(),
             e.action(['single', 'double', 'release', 'hold']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
@@ -488,7 +488,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            e.temperature(),
+            e.device_temperature(),
             e.action(['release_left', 'release_right', 'release_both', 'double_left', 'double_right',
                 'single_left', 'single_right', 'hold_release_left', 'hold_release_left']),
             exposes.enum('operation_mode', ea.STATE_SET, ['control_left_relay', 'control_right_relay', 'decoupled'])
@@ -522,7 +522,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            e.temperature(),
+            e.device_temperature(),
             e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
@@ -638,7 +638,7 @@ module.exports = [
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
-            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE), e.flip_indicator_light(),
+            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'left_single', 'left_double', 'center_single', 'center_double', 'right_single', 'right_double',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
@@ -668,7 +668,7 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(),
-            e.temperature().withAccess(ea.STATE), e.flip_indicator_light(),
+            e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
@@ -699,7 +699,7 @@ module.exports = [
         onEvent: preventReset,
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE_GET),
-            e.energy(), e.temperature().withAccess(ea.STATE),
+            e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.action(['single', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
@@ -749,7 +749,7 @@ module.exports = [
             tz.xiaomi_led_disabled_night, tz.xiaomi_flip_indicator_light],
         exposes: [
             e.switch(), e.action(['single', 'double']), e.power().withAccess(ea.STATE), e.energy(),
-            e.voltage().withAccess(ea.STATE), e.temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.device_temperature().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button'),
@@ -772,7 +772,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE), e.flip_indicator_light(),
-            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -800,7 +800,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE), e.energy(), e.voltage().withAccess(ea.STATE), e.flip_indicator_light(),
-            e.power_outage_memory(), e.led_disabled_night(), e.temperature().withAccess(ea.STATE),
+            e.power_outage_memory(), e.led_disabled_night(), e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center',
                 'single_right', 'double_right', 'single_left_center', 'double_left_center',
@@ -850,7 +850,7 @@ module.exports = [
         description: 'Aqara T1 temperature, humidity and pressure sensor',
         fromZigbee: [fz.aqara_opple, fz.temperature, fz.humidity, fz.pressure, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.battery(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -878,7 +878,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
+        exposes: [e.battery(), e.occupancy(), e.device_temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
     },
     {
@@ -891,7 +891,7 @@ module.exports = [
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery(), e.battery_voltage()],
+                .withDescription('Time interval for detecting actions'), e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -909,7 +909,7 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery(), e.battery_voltage()],
+                .withDescription('Time interval for detecting actions'), e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -933,7 +933,7 @@ module.exports = [
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
                 .withDescription('Time interval for detecting actions'),
             exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
-                'blue LED will blink once when motion is detected'), e.temperature(), e.battery(), e.battery_voltage()],
+                'blue LED will blink once when motion is detected'), e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -952,7 +952,7 @@ module.exports = [
         fromZigbee: [fz.aqara_opple],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
             tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
-        exposes: [e.presence().withAccess(ea.STATE_GET), e.power_outage_count(), e.temperature(),
+        exposes: [e.presence().withAccess(ea.STATE_GET),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
                 '"right_enter", "left_leave", "approach", "away"'),
@@ -963,6 +963,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['Reset']).withDescription('Reset the status of no presence'),
+            e.device_temperature(), e.power_outage_count()
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -991,7 +992,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.temperature(), e.battery_voltage()],
+        exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage()],
         configure: async (device) => {
             device.powerSource = 'Battery';
             device.save();
@@ -1005,7 +1006,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature(), e.power_outage_count()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -1025,7 +1026,7 @@ module.exports = [
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.temperature(), e.power_outage_count(),
+        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
@@ -1037,7 +1038,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.power_outage_memory()],
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.power_outage_memory()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1047,7 +1048,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE)],
     },
     {
@@ -1060,7 +1061,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
             tz.xiaomi_overload_protection],
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
@@ -1075,7 +1076,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE)],
     },
     {
@@ -1147,7 +1148,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.ignore_occupancy_report, fz.xiaomi_basic],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_led_disabled_night,
             tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(),
             exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('If the power is constantly lower than 2W within half an hour, ' +
@@ -1173,7 +1174,7 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.power_outage_memory()],
         ota: ota.zigbeeOTA,
     },
@@ -1259,7 +1260,7 @@ module.exports = [
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
-            e.temperature(), e.battery(), e.battery_voltage()],
+            e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1290,7 +1291,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
+            e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
         ],
@@ -1366,7 +1367,7 @@ module.exports = [
                 await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
             }
         },
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.temperature(),
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET), e.device_temperature(),
             exposes.binary('charging_status', ea.STATE_GET, true, false)
                 .withDescription('The current charging status.'),
             exposes.enum('motor_state', ea.STATE, ['declining', 'rising', 'pause', 'blocked'])
@@ -1392,7 +1393,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature(), e.voltage(), e.current(),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature(), e.voltage(), e.current(),
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power_outage_count(false),
             e.power_outage_memory(),
             exposes.binary('interlock', ea.STATE_SET, true, false)
@@ -1593,7 +1594,7 @@ module.exports = [
         description: 'Aqara single switch module T1 (with neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_type, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.temperature().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.switch_type()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
@@ -1731,7 +1732,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.power_outage_memory(), e.action(['single', 'double']),
-            e.temperature(), e.flip_indicator_light(),
+            e.device_temperature(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for button'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
@@ -1755,7 +1756,7 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [
-            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.temperature(),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
@@ -1816,7 +1817,7 @@ module.exports = [
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
             e.action(['single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both']),
-            e.power_outage_memory(), e.temperature(), e.flip_indicator_light(),
+            e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1832,7 +1833,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
             tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
@@ -1847,7 +1848,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_flip_indicator_light],
-        exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.temperature(), e.flip_indicator_light(),
+        exposes: [e.switch(), e.action(['single', 'double']), e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode')],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1900,7 +1901,7 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('relay'), e.switch().withEndpoint('usb'),
-            e.power().withAccess(ea.STATE), e.energy(), e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
+            e.power().withAccess(ea.STATE), e.energy(), e.device_temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
@@ -1928,7 +1929,7 @@ module.exports = [
             tz.xiaomi_overload_protection, tz.xiaomi_socket_button_lock],
         exposes: [
             e.switch(), e.power().withAccess(ea.STATE), e.energy(),
-            e.temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
+            e.device_temperature().withAccess(ea.STATE), e.voltage().withAccess(ea.STATE),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
                 .withDescription('Maximum allowed load, turns off if exceeded')],

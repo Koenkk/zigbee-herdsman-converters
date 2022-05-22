@@ -5529,6 +5529,9 @@ const converters = {
             if (definition.exposes.find((e) => e.name === 'temperature')) {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
+            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
+                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+            }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
                 result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
             }
@@ -5550,6 +5553,9 @@ const converters = {
             if (definition.exposes.find((e) => e.name === 'temperature')) {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
+            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
+                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+            }
             return result;
         },
         convert: (model, msg, publish, options, meta) => {
@@ -5568,6 +5574,9 @@ const converters = {
             const result = [];
             if (definition.exposes.find((e) => e.name === 'temperature')) {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
+            }
+            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
+                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
                 result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
