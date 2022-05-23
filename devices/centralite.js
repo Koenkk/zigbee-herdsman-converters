@@ -171,11 +171,11 @@ module.exports = [
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
-        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
             .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
             .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-            .withLocalTemperatureCalibration(-30, 30, 0.1)],
+            .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
+            .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -200,11 +200,11 @@ module.exports = [
         exposes: [e.battery(),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration(-30, 30, 0.1)],
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -230,10 +230,10 @@ module.exports = [
         exposes: [e.battery(),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 6.66, 30, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 6.66, 30, 1)
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
                 .withLocalTemperatureCalibration(-30, 30, 0.1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
