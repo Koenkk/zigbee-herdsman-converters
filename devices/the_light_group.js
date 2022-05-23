@@ -1,10 +1,34 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['S24019'],
+        model: 'S24019',
+        vendor: 'The Light Group',
+        description: 'SLC SmartOne led dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config],
+        exposes: [e.light_brightness().withLevelConfig()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Endpoint 1
+            const endpoint1 = device.getEndpoint(1);
+            const binds1 = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
+            await reporting.bind(endpoint1, coordinatorEndpoint, binds1);
+            await reporting.onOff(endpoint1);
+            await reporting.brightness(endpoint1);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
+            await reporting.activePower(endpoint1, {min: 5, max: 3600, change: 1000});
+            await reporting.rmsCurrent(endpoint1, {min: 5, max: 3600, change: 100});
+            await reporting.rmsVoltage(endpoint1, {min: 5, max: 3600, change: 100});
+            // read switch state
+            await endpoint1.read('genOnOff', ['onOff']);
+        },
+    },
     {
         zigbeeModel: ['S57003'],
         model: 'S57003',

@@ -177,7 +177,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release']),
+            e.temperature(), e.power_outage_count()],
         fromZigbee: [fz.xiaomi_multistate_action, fz.xiaomi_WXKG11LM_action, fz.xiaomi_basic,
             fz.legacy.WXKG11LM_click, fz.legacy.xiaomi_action_click_multistate],
         toZigbee: [],
@@ -890,7 +891,7 @@ module.exports = [
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
+                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -908,7 +909,7 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
+                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -925,18 +926,21 @@ module.exports = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'MS-S02'}],
         description: 'Aqara P1 human body movement and illuminance sensor',
         fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
+        toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.temperature(), e.battery()],
+                .withDescription('Time interval for detecting actions'),
+            exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
+                'blue LED will blink once when motion is detected'), e.temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0152], {manufacturerCode: 0x115f});
         },
         ota: ota.zigbeeOTA,
     },
@@ -1001,7 +1005,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.temperature(), e.power_outage_count()],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -1021,7 +1025,7 @@ module.exports = [
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'),
+        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.temperature(), e.power_outage_count(),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
@@ -1255,7 +1259,7 @@ module.exports = [
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
-            e.temperature(), e.battery()],
+            e.temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1286,7 +1290,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.DJT11LM_vibration],
         toZigbee: [tz.DJT11LM_vibration_sensitivity],
         exposes: [
-            e.battery(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
+            e.battery(), e.temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
         ],
@@ -1344,7 +1348,7 @@ module.exports = [
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
-                .withDescription('The current state of the motor.')],
+                .withDescription('The current state of the motor.'), e.power_outage_count()],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1466,7 +1470,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara Opple switch 1 band',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.battery, fz.aqara_opple_multistate, fz.aqara_opple],
-        exposes: [e.battery(), e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
         ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
@@ -1486,7 +1490,7 @@ module.exports = [
         description: 'Aqara Opple switch 2 bands',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_step_color_temp, fz.battery,
             fz.aqara_opple_multistate, fz.aqara_opple],
-        exposes: [e.battery(), e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
@@ -1510,7 +1514,7 @@ module.exports = [
         description: 'Aqara Opple switch 3 bands',
         fromZigbee: [fz.aqara_opple_on, fz.aqara_opple_off, fz.aqara_opple_step, fz.aqara_opple_move, fz.aqara_opple_stop,
             fz.aqara_opple_step_color_temp, fz.aqara_opple_move_color_temp, fz.battery, fz.aqara_opple_multistate, fz.aqara_opple],
-        exposes: [e.battery(), e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.action([
             'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
             'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
             'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
@@ -1568,7 +1572,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.device_temperature, fz.aqara_opple, fz.ignore_metering, fz.ignore_electrical_measurement,
             fz.xiaomi_power],
         exposes: [e.switch(), e.energy(), e.power(), e.device_temperature(), e.power_outage_memory(), e.power_outage_count(),
-            e.switch_type(), e.voltage(), e.temperature(), e.current(),
+            e.switch_type(), e.voltage(), e.current(),
         ],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1580,6 +1584,7 @@ module.exports = [
             device.type = 'Router';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n0acn2'],
@@ -1601,7 +1606,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara single switch module T1 (without neutral). Doesn\'t work as a router and doesn\'t support power meter',
         fromZigbee: [fz.on_off, fz.aqara_opple],
-        exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
+        exposes: [e.switch(), e.power_outage_memory(), e.switch_type(), e.power_outage_count(), e.device_temperature()],
         toZigbee: [tz.xiaomi_switch_type, tz.on_off, tz.xiaomi_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1777,7 +1782,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.voc()],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'];
@@ -2001,6 +2006,7 @@ module.exports = [
                     'multi: supports more events like double and hold'),
             exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
                 .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
