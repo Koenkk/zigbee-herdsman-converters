@@ -465,7 +465,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031N6'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -2549,6 +2549,15 @@ module.exports = [
     {
         zigbeeModel: ['5047131P9', '5047131P6'],
         model: '5047131P9',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Buckram single spotlight with bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['5047130P9'],
+        model: '5047130P9 ',
         vendor: 'Philips',
         description: 'Hue White ambiance Buckram single spotlight with bluetooth',
         meta: {turnsOffAtBrightness1: true},
