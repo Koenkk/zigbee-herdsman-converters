@@ -222,7 +222,7 @@ module.exports = [
         vendor: 'Centralite',
         description: 'HA thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
@@ -233,8 +233,7 @@ module.exports = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
-                .withLocalTemperatureCalibration(-30, 30, 0.1)],
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
