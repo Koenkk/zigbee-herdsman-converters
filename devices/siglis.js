@@ -174,15 +174,8 @@ module.exports = [
             };
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            const controlEp = device.getEndpoint(zigfredEndpoint);
-            const dimmer1Ep = device.getEndpoint(7);
-            const dimmer2Ep = device.getEndpoint(8);
-            const dimmer3Ep = device.getEndpoint(9);
-            const dimmer4Ep = device.getEndpoint(10);
-            const cover1Ep = device.getEndpoint(11);
-            const cover2Ep = device.getEndpoint(12);
-
             // Bind Control EP (LED)
+            const controlEp = device.getEndpoint(zigfredEndpoint);
             await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
             await reporting.onOff(controlEp);
             await reporting.brightness(controlEp);
@@ -195,31 +188,37 @@ module.exports = [
             await controlEp.configureReporting('manuSpecificSiglisZigfred', payload, {manufacturerCode: siglisManufacturerCode});
 
             // Bind Dimmer 1 EP
+            const dimmer1Ep = device.getEndpoint(7);
             await reporting.bind(dimmer1Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(dimmer1Ep);
             await reporting.brightness(dimmer1Ep);
 
             // Bind Dimmer 2 EP
+            const dimmer2Ep = device.getEndpoint(8);
             await reporting.bind(dimmer2Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(dimmer2Ep);
             await reporting.brightness(dimmer2Ep);
 
             // Bind Dimmer 3 EP
+            const dimmer3Ep = device.getEndpoint(9);
             await reporting.bind(dimmer3Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(dimmer3Ep);
             await reporting.brightness(dimmer3Ep);
 
             // Bind Dimmer 4 EP
+            const dimmer4Ep = device.getEndpoint(10);
             await reporting.bind(dimmer4Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(dimmer4Ep);
             await reporting.brightness(dimmer4Ep);
 
             // Bind Cover 1 EP
+            const cover1Ep = device.getEndpoint(11);
             await reporting.bind(cover1Ep, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(cover1Ep);
             await reporting.currentPositionTiltPercentage(cover1Ep);
 
             // Bind Cover 2 EP
+            const cover2Ep = device.getEndpoint(12);
             await reporting.bind(cover2Ep, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(cover2Ep);
             await reporting.currentPositionTiltPercentage(cover2Ep);
