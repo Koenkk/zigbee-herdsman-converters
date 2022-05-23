@@ -27,7 +27,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['sbordckq'],
-        model: 'TS0601_switch_cover',
+        model: 'SM-1CTW-EU',
         vendor: 'Somgoms',
         description: 'Curtain switch',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
