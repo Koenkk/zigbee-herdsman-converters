@@ -3,6 +3,7 @@ const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const assert = require('assert');
 
 
 const siglisManufacturerCode = 0x129C;
@@ -62,6 +63,128 @@ const coverAndLightToZigbee = {
         }
     },
 };
+
+class ZigfredBase {
+    withEndpoint(endpointName) {
+        this.endpoint = endpointName;
+
+        if (this.hasOwnProperty('property')) {
+            this.property = `${this.property}_${this.endpoint}`;
+        }
+
+        if (this.features) {
+            for (const feature of this.features) {
+                if (feature.property) {
+                    feature.property = `${feature.property}_${endpointName}`;
+                    feature.endpoint = endpointName;
+                }
+            }
+        }
+
+        return this;
+    }
+
+    withAccess(a) {
+        assert(this.hasOwnProperty('access'), 'Cannot add access if not defined yet');
+        this.access = a;
+        return this;
+    }
+
+    withProperty(property) {
+        this.property = property;
+        return this;
+    }
+
+    withDescription(description) {
+        this.description = description;
+        return this;
+    }
+
+    removeFeature(feature) {
+        assert(this.features, 'Does not have any features');
+        const f = this.features.find((f) => f.name === feature);
+        assert(f, `Does not have feature '${feature}'`);
+        this.features.splice(this.features.indexOf(f), 1);
+        return this;
+    }
+
+    setAccess(feature, a) {
+        assert(this.features, 'Does not have any features');
+        const f = this.features.find((f) => f.name === feature);
+        assert(f.access !== a, `Access mode not changed for '${f.name}'`);
+        f.access = a;
+        return this;
+    }
+}
+
+class ZigfredEnum extends ZigfredBase {
+    constructor(name, access, values) {
+        super();
+        this.type = 'enum';
+        this.name = name;
+        this.property = name;
+        this.access = access;
+        this.values = values;
+    }
+}
+
+class ZigfredNumeric extends ZigfredBase {
+    constructor(name, access) {
+        super();
+        this.type = 'numeric';
+        this.name = name;
+        this.property = name;
+        this.access = access;
+    }
+
+    withUnit(unit) {
+        this.unit = unit;
+        return this;
+    }
+
+    withValueMax(value) {
+        this.value_max = value;
+        return this;
+    }
+
+    withValueMin(value) {
+        this.value_min = value;
+        return this;
+    }
+
+    withValueStep(value) {
+        this.value_step = value;
+        return this;
+    }
+
+    withPreset(name, value, description) {
+        if (!this.presets) this.presets = [];
+        this.presets.push({ name, value, description });
+        return this;
+    }
+}
+
+class ZigfredCover extends ZigfredBase {
+    constructor() {
+        super();
+        this.type = 'cover';
+        this.features = [];
+        this.features.push(new ZigfredEnum('state', exposes.access.STATE_SET | exposes.access.STATE_GET, ['OPEN', 'CLOSE', 'STOP']));
+    }
+
+    withPosition() {
+        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
+        this.features.push(new ZigfredNumeric('position', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover'));
+        return this;
+    }
+
+    withTilt() {
+        assert(!this.endpoint, 'Cannot add feature after adding endpoint');
+        this.features.push(new ZigfredNumeric('tilt', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover'));
+        return this;
+    }
+}
+
 
 module.exports = [
     {
@@ -145,8 +268,8 @@ module.exports = [
             e.light_brightness().withEndpoint('l3'),
             e.light_brightness().withEndpoint('l4'),
             e.light_brightness().withEndpoint('l5'),
-            e.cover_position_tilt().withEndpoint('l6'),
-            e.cover_position_tilt().withEndpoint('l7'),
+            new ZigfredCover().withPosition().withTilt().withEndpoint('l6'),
+            new ZigfredCover().withPosition().withTilt().withEndpoint('l7'),
             e.action([
                 'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
                 'button_2_single', 'button_2_double', 'button_2_hold', 'button_2_release',
