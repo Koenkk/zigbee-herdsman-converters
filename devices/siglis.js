@@ -38,7 +38,7 @@ const zifgredFromZigbee = {
 
             if (buttonName && stateName) {
                 const action = `${buttonName}_${stateName}`;
-                return { action };
+                return {action};
             }
         }
     },
@@ -59,7 +59,7 @@ const coverAndLightToZigbee = {
         if (key === 'brightness') {
             await entity.read('genLevelCtrl', ['currentLevel']);
         } else if (key === 'state') {
-            await converters.on_off.convertGet(entity, key, meta);
+            await tz.on_off.convertGet(entity, key, meta);
         }
     },
 };
@@ -159,7 +159,7 @@ class ZigfredNumeric extends ZigfredBase {
 
     withPreset(name, value, description) {
         if (!this.presets) this.presets = [];
-        this.presets.push({ name, value, description });
+        this.presets.push({name, value, description});
         return this;
     }
 }
@@ -174,13 +174,15 @@ class ZigfredCover extends ZigfredBase {
 
     withPosition() {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new ZigfredNumeric('position', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover'));
+        this.features.push(
+            new ZigfredNumeric('position', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of this cover'));
         return this;
     }
 
     withTilt() {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new ZigfredNumeric('tilt', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover'));
+        this.features.push(
+            new ZigfredNumeric('tilt', exposes.access.ALL).withValueMin(0).withValueMax(100).withDescription('Tilt of this cover'));
         return this;
     }
 }
@@ -193,12 +195,12 @@ module.exports = [
         vendor: 'Siglis',
         description: 'zigfred uno smart in-wall switch',
         exposes: [e.light_brightness_colorxy().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.light_brightness().withEndpoint('l3'),
-        e.action([
-            'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
-            'button_2_single', 'button_2_double', 'button_2_hold', 'button_2_release',
-            'button_3_single', 'button_3_double', 'button_3_hold', 'button_3_release',
-            'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
-        ])],
+            e.action([
+                'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
+                'button_2_single', 'button_2_double', 'button_2_hold', 'button_2_release',
+                'button_3_single', 'button_3_double', 'button_3_hold', 'button_3_release',
+                'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
+            ])],
         fromZigbee: [
             zifgredFromZigbee,
             fz.color_colortemp,
@@ -222,7 +224,7 @@ module.exports = [
             tz.light_color_options,
             tz.light_color_mode,
         ],
-        meta: { multiEndpoint: true },
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
                 'l1': zigfredEndpoint,
@@ -245,7 +247,7 @@ module.exports = [
                 maximumReportInterval: 0,
                 reportableChange: 0,
             }];
-            await controlEp.configureReporting('manuSpecificSiglisZigfred', payload, { manufacturerCode: siglisManufacturerCode });
+            await controlEp.configureReporting('manuSpecificSiglisZigfred', payload, {manufacturerCode: siglisManufacturerCode});
 
             // Bind Relay EP
             await reporting.bind(relayEp, coordinatorEndpoint, ['genOnOff']);
@@ -304,7 +306,7 @@ module.exports = [
             tz.cover_position_tilt,
             coverAndLightToZigbee,
         ],
-        meta: { multiEndpoint: true, coverInverted: true },
+        meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
             return {
                 'l1': zigfredEndpoint,
@@ -328,7 +330,7 @@ module.exports = [
                 maximumReportInterval: 0,
                 reportableChange: 0,
             }];
-            await controlEp.configureReporting('manuSpecificSiglisZigfred', payload, { manufacturerCode: siglisManufacturerCode });
+            await controlEp.configureReporting('manuSpecificSiglisZigfred', payload, {manufacturerCode: siglisManufacturerCode});
 
             // Bind Dimmer 1 EP
             const dimmer1Ep = device.getEndpoint(7);
