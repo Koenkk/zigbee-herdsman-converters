@@ -122,6 +122,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['915005996601'],
+        model: '915005996601',
+        vendor: 'Philips',
+        description: 'Hue white ambiance ceiling white Enrave M with Bluetooth',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['915005996801', '915005996901'],
         model: '915005996901',
         vendor: 'Philips',
