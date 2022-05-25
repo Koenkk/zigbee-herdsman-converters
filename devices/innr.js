@@ -60,7 +60,8 @@ module.exports = [
         model: 'OPL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart pedestal light colour',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 555], supportsHS: true, disableColorTempStartup: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {

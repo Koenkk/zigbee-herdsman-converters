@@ -21,7 +21,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['Generic UP Device'],
+        zigbeeModel: ['NEXENTRO Blinds Actuator', 'Generic UP Device'],
         model: '57008000',
         vendor: 'Insta',
         description: 'Blinds actor with lift/tilt calibration & with with inputs for wall switches',
