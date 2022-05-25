@@ -48,7 +48,7 @@ const coverAndLightToZigbee = {
     key: ['state', 'brightness', 'brightness_percent', 'on_time'],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        const isCover = ['open', 'close', 'stop'].includes(value.toLowerCase());
+        const isCover = (typeof value === 'string' && ['open', 'close', 'stop'].includes(value.toLowerCase()));
         if (isCover) {
             return tz.cover_state.convertSet(entity, key, value, meta);
         } else {
