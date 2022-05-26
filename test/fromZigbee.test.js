@@ -86,12 +86,12 @@ describe('converters/fromZigbee', () => {
                     },
                 };
                 expect(fz.tuya_data_point_dump.convert(null, msg, null, null, meta)).toEqual(undefined);
-                expect(meta.logger.info).nthCalledWith(1, expect.stringMatching(/Received DP #1 from 0x123456789abcdef with raw data '\{"dp":1,"datatype":0,"data":\[0,1\]\}': type='commandDataResponse', datatype='raw', value='0,1', known DP# usage: \[.*"state"/));
-                expect(meta.logger.info).nthCalledWith(2, expect.stringMatching(/Received DP #2 from 0x123456789abcdef with raw data '\{"dp":2,"datatype":1,"data":\[1\]\}': type='commandDataResponse', datatype='bool', value='true', known DP# usage: \[.*"heatingSetpoint"/));
-                expect(meta.logger.info).nthCalledWith(3, expect.stringMatching(/Received DP #3 from 0x123456789abcdef with raw data '\{"dp":3,"datatype":2,"data":\[0,0,0,97\]\}': type='commandDataResponse', datatype='value', value='97', known DP# usage: \[.*"occupancy"/));
-                expect(meta.logger.info).nthCalledWith(4, expect.stringMatching(/Received DP #4 from 0x123456789abcdef with raw data '\{"dp":4,"datatype":3,"data":\[102,111,111\]\}': type='commandDataResponse', datatype='string', value='foo', known DP# usage: \[.*"mode"/));
-                expect(meta.logger.info).nthCalledWith(5, expect.stringMatching(/Received DP #5 from 0x123456789abcdef with raw data '\{"dp":5,"datatype":4,"data":\[1\]\}': type='commandDataResponse', datatype='enum', value='1', known DP# usage: \[.*"config"/));
-                expect(meta.logger.info).nthCalledWith(6, expect.stringMatching(/Received DP #7 from 0x123456789abcdef with raw data '\{"dp":7,"datatype":5,"data":\[1,2\]\}': type='commandDataResponse', datatype='bitmap', value='258', known DP# usage: \[.*"childLock"/));
+                expect(meta.logger.info).nthCalledWith(1, expect.stringMatching(/Received Tuya DataPoint #1 from 0x123456789abcdef with raw data '\{"dp":1,"datatype":0,"data":\[0,1\]\}': type='commandDataResponse', datatype='raw', value='0,1', known DP# usage: \[.*"state"/));
+                expect(meta.logger.info).nthCalledWith(2, expect.stringMatching(/Received Tuya DataPoint #2 from 0x123456789abcdef with raw data '\{"dp":2,"datatype":1,"data":\[1\]\}': type='commandDataResponse', datatype='bool', value='true', known DP# usage: \[.*"heatingSetpoint"/));
+                expect(meta.logger.info).nthCalledWith(3, expect.stringMatching(/Received Tuya DataPoint #3 from 0x123456789abcdef with raw data '\{"dp":3,"datatype":2,"data":\[0,0,0,97\]\}': type='commandDataResponse', datatype='value', value='97', known DP# usage: \[.*"occupancy"/));
+                expect(meta.logger.info).nthCalledWith(4, expect.stringMatching(/Received Tuya DataPoint #4 from 0x123456789abcdef with raw data '\{"dp":4,"datatype":3,"data":\[102,111,111\]\}': type='commandDataResponse', datatype='string', value='foo', known DP# usage: \[.*"mode"/));
+                expect(meta.logger.info).nthCalledWith(5, expect.stringMatching(/Received Tuya DataPoint #5 from 0x123456789abcdef with raw data '\{"dp":5,"datatype":4,"data":\[1\]\}': type='commandDataResponse', datatype='enum', value='1', known DP# usage: \[.*"config"/));
+                expect(meta.logger.info).nthCalledWith(6, expect.stringMatching(/Received Tuya DataPoint #7 from 0x123456789abcdef with raw data '\{"dp":7,"datatype":5,"data":\[1,2\]\}': type='commandDataResponse', datatype='bitmap', value='258', known DP# usage: \[.*"childLock"/));
             });
         });
     });

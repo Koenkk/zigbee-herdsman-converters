@@ -13,9 +13,20 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const state = value.toLowerCase();
             utils.validateValue(state, ['toggle', 'off', 'on']);
-            const endpoint = meta.mapped.model === 'AU-A1ZBDSS' ? meta.device.getEndpoint(3) : meta.device.getEndpoint(2);
+            const endpoint = meta.device.getEndpoint(3);
             await endpoint.command('genOnOff', state, {});
             return {state: {backlight_led: state.toUpperCase()}};
+        },
+    },
+    backlight_brightness: {
+        key: ['brightness'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genLevelCtrl', 'moveToLevel', {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {brightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
         },
     },
 };
@@ -181,11 +192,12 @@ module.exports = [
         model: 'AU-A1ZBDSS',
         vendor: 'Aurora Lighting',
         description: 'Double smart socket UK',
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.brightness],
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.power().withEndpoint('right'),
-            exposes.binary('backlight_led', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable the blue backlight LED')],
-        toZigbee: [tz.on_off, tzLocal.aOneBacklight],
+            exposes.numeric('brightness', ea.ALL).withValueMin(0).withValueMax(254)
+                .withDescription('Brightness of this backlight LED')],
+        toZigbee: [tzLocal.backlight_brightness, tz.on_off],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};

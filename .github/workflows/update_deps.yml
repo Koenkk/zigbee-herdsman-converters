@@ -8,15 +8,15 @@ jobs:
   update_deps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    - uses: actions/setup-node@v2-beta
+    - uses: actions/setup-node@v3
       with:
-        node-version: 14
+        node-version: 16
     - run: npm install
     - run: npm ls --depth 0 --prod --parseable | tail -n +2 | xargs -I '{}' basename "{}" | xargs -I '{}' npm install '{}'@latest
-    - run: rm -rf node_modules npm-shrinkwrap.json && npm install && npm shrinkwrap --dev
+    - run: rm -rf node_modules package-lock.json && npm install
     - uses: peter-evans/create-pull-request@v3
       with:
         commit-message: Update dependencies

@@ -17,4 +17,11 @@ module.exports = [
         toZigbee: [],
         exposes: [],
     },
+    {
+        zigbeeModel: ['ZBT-RGBWLight-AR0844'],
+        model: '1001923',
+        vendor: 'SLV',
+        description: 'VALETO LED GU10 RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
+    },
 ];

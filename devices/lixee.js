@@ -196,7 +196,8 @@ const fzLocal = {
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),
 // and change based on that. Just some few attributes are useless, so we exclude them
 const tarifsDef = {
-    histo_BASE: {fname: 'Historique - BASE',
+    histo_BASE: {
+        fname: 'Historique - BASE',
         currentTarf: 'BASE', excluded: [
             'HCHC',
             'HCHP',
@@ -212,7 +213,8 @@ const tarifsDef = {
             'DEMAIN',
             'PEJP',
         ]},
-    histo_HCHP: {fname: 'Historique - HCHP',
+    histo_HCHP: {
+        fname: 'Historique - HCHP',
         currentTarf: 'HC..', excluded: [
             'BASE',
             'EJPHN',
@@ -226,7 +228,8 @@ const tarifsDef = {
             'DEMAIN',
             'PEJP',
         ]},
-    histo_EJP: {fname: 'Historique - EJP',
+    histo_EJP: {
+        fname: 'Historique - EJP',
         currentTarf: 'EJP.', excluded: [
             'BASE',
             'HCHC',
@@ -239,7 +242,8 @@ const tarifsDef = {
             'BBRHPJR',
             'DEMAIN',
         ]},
-    histo_BBR: {fname: 'Historique - BBR',
+    histo_BBR: {
+        fname: 'Historique - BBR',
         currentTarf: 'BBR', excluded: [
             'BASE',
             'HCHC',
@@ -248,7 +252,8 @@ const tarifsDef = {
             'EJPHPM',
             'PEJP',
         ]},
-    stand_SEM_WE_MERCR: {fname: 'Standard - Sem WE Mercredi',
+    stand_SEM_WE_MERCR: {
+        fname: 'Standard - Sem WE Mercredi',
         currentTarf: 'SEM WE MERCREDI', excluded: [
             'EASF04',
             'EASF05',
@@ -271,8 +276,10 @@ const tarifsDef = {
             'PJOURF+1',
             'PPOINTE1',
         ]},
-    stand_HPHC: {fname: 'Standard - Heure Pleine Heure Creuse',
-        currentTarf: 'H PLEINE/CREUSE', excluded: [
+    stand_BASE: {
+        fname: 'Standard - BASE',
+        currentTarf: 'BASE',
+        excluded: [
             'EASF03',
             'EASF04',
             'EASF05',
@@ -295,7 +302,32 @@ const tarifsDef = {
             'PJOURF+1',
             'PPOINTE1',
         ]},
+    stand_HPHC: {
+        fname: 'Standard - Heure Pleine Heure Creuse',
+        currentTarf: 'H PLEINE/CREUSE', excluded: [
+            'EASF03',
+            'EASF04',
+            'EASF05',
+            'EASF06',
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
 };
+
 
 const linkyModeDef = {
     standard: 'standard',
@@ -505,10 +537,21 @@ function getCurrentConfig(device, options, logger=console) {
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_BASE.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_BASE.excluded.includes(a.exposes.name));
+        break;
     default:
         break;
     }
 
+    // Filter exposed attributes with user whitelist
+    if (options && options.hasOwnProperty('tic_command_whitelist')) {
+        const tic_commands_str = options['tic_command_whitelist'].toUpperCase();
+        if (tic_commands_str !== 'ALL') {
+            const tic_commands = tic_commands_str.split(',').map((a) => a.trim());
+            myExpose = myExpose.filter((a) => tic_commands.includes(a.exposes.name));
+        }
+    }
 
     return myExpose;
 }
@@ -547,6 +590,7 @@ const definition = {
             .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
         exposes.options.precision(`kWh`),
         exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+        exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
     ],
     configure: async (device, coordinatorEndpoint, logger, options) => {
         const endpoint = device.getEndpoint(1);
@@ -558,7 +602,11 @@ const definition = {
             clustersDef._0xFF66, /* liXeePrivate */
         ]);
 
-        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+            .catch((e) => {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                logger.warn(`Failed to read zigbee attributes: ${e}`);
+            });
 
         const configReportings = [];
         const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
@@ -599,7 +647,11 @@ const definition = {
     onEvent: async (type, data, device, options) => {
         const endpoint = device.getEndpoint(1);
         if (type === 'start') {
-            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null});
+            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+                .catch((e) => {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                });
         } else if (type === 'stop') {
             clearInterval(globalStore.getValue(device, 'interval'));
             globalStore.clearValue(device, 'interval');
@@ -621,7 +673,11 @@ const definition = {
                             // Split array by chunks
                             for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                 await endpoint
-                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null});
+                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                    .catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                                    });
                             }
                         }
                     }

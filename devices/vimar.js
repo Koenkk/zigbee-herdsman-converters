@@ -26,4 +26,15 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },
+    {
+        zigbeeModel: ['Mains_Power_Outlet_v1.0'],
+        model: '14593',
+        vendor: 'Vimar',
+        description: '16A outlet IoT connected',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];

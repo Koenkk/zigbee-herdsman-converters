@@ -20,9 +20,10 @@ module.exports = [
         model: '3RSS008Z',
         vendor: 'Third Reality',
         description: 'RealitySwitch Plus',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.switch(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['3RSS007Z'],
@@ -96,5 +97,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['3RSB015BZ'],
+        model: '3RSB015BZ',
+        vendor: 'Third Reality',
+        description: 'Roller shade',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {battery: {dontDividePercentage: false}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position(), e.battery()],
     },
 ];

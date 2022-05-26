@@ -137,8 +137,13 @@ module.exports = [
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.brightness(device.getEndpoint(1));
+        },
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5', 'FB56+ZSW1HKJ2.7'],
@@ -282,7 +287,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['LXN60-LS27-Z30'],
+        zigbeeModel: ['LXN60-LS27-Z30', 'FEB56-ZCW2CLX1.0'],
         model: 'WL-SD001-9W',
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',

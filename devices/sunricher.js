@@ -7,6 +7,26 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['SR-ZG9023A-EU'],
+        model: 'SR-ZG9023A-EU',
+        vendor: 'Sunricher',
+        description: '4 ports switch with 2 usb ports (no metering)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
         vendor: 'Sunricher',
@@ -28,6 +48,16 @@ module.exports = [
         vendor: 'Sunricher',
         description: '50W Zigbee CCT LED driver (constant current)',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-004'],
+        model: 'SR-ZG9001K2-DIM',
+        vendor: 'Sunricher',
+        description: 'Zigbee wall remote control for single color, 1 zone',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off',
+            'brightness_move_up', 'brightness_move_down', 'brightness_move_stop'])],
     },
     {
         zigbeeModel: ['ZGRC-KEY-007'],

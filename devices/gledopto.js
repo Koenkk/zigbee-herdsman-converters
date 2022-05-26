@@ -316,6 +316,13 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-B-002P'],
+        model: 'GL-B-002P',
+        vendor: 'Gledopto',
+        description: 'Zigbee smart filament LED bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-MC-001P'],
         model: 'GL-MC-001P',
         vendor: 'Gledopto',

@@ -1,6 +1,6 @@
 {
   "name": "zigbee-herdsman-converters",
-  "version": "14.0.443",
+  "version": "14.0.526",
   "description": "Collection of device converters to be used with zigbee-herdsman",
   "main": "index.js",
   "files": [
@@ -34,11 +34,11 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^0.27.2",
     "buffer-crc32": "^0.2.13",
-    "https-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^5.0.1",
     "tar-stream": "^2.2.0",
-    "zigbee-herdsman": "^0.14.20"
+    "zigbee-herdsman": "^0.14.32"
   },
   "devDependencies": {
     "eslint": "*",
