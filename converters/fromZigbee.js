@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 'use strict';
 
 /**
@@ -8570,7 +8571,7 @@ const converters = {
             const seq = msg.data.seq;
             const irMsg = zosung.messagesGet(msg.endpoint, seq);
             meta.logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`);
-        }
+        },
     },
     zosung_send_ir_code_02: {
         cluster: 'zosungIRTransmit',
@@ -8582,17 +8583,17 @@ const converters = {
             const irMsg = zosung.messagesGet(msg.endpoint, seq);
             const part = irMsg.substring(position, position+0x32);
             const sum = zosung.calcStringCrc(part);
-            await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode03',
+            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode03',
                 {
-                    zero: 0, 
-                    seq: seq, 
-                    position: position, 
-                    msgpart: Buffer.from(part), 
-                    msgpartcrc: sum
+                    zero: 0,
+                    seq: seq,
+                    position: position,
+                    msgpart: Buffer.from(part),
+                    msgpartcrc: sum,
                 },
                 {disableDefaultResponse: true});
             meta.logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`);
-        }
+        },
     },
     zosung_send_ir_code_04: {
         cluster: 'zosungIRTransmit',
@@ -8600,15 +8601,15 @@ const converters = {
         convert: async (model, msg, publish, options, meta) => {
             meta.logger.debug(`"IR-Message-Code04" received (msg:${JSON.stringify(msg.data)})`);
             const seq = msg.data.seq;
-            await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode05',
+            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode05',
                 {
-                    seq: seq, 
-                    zero: 0
+                    seq: seq,
+                    zero: 0,
                 },
-                {disableDefaultResponse: true}); 
+                {disableDefaultResponse: true});
             zosung.messagesClear(msg.endpoint, seq);
             meta.logger.debug(`IRCode has been successfuly sent. (seq:${seq})`);
-        }
+        },
     },
     zosung_send_ir_code_00: {
         cluster: 'zosungIRTransmit',
@@ -8618,28 +8619,28 @@ const converters = {
             const seq = msg.data.seq;
             const length = msg.data.length;
             zosung.messagesSet(msg.endpoint, seq, {position: 0, buf: Buffer.alloc(length)});
-            await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode01',
+            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode01',
                 {
-                    zero: 0, 
-                    seq: seq, 
-                    length: length, 
-                    unk1: msg.data.unk1, 
-                    unk2: msg.data.unk2, 
-                    unk3: msg.data.unk3, 
-                    cmd: msg.data.cmd, 
-                    unk4: msg.data.unk4
+                    zero: 0,
+                    seq: seq,
+                    length: length,
+                    unk1: msg.data.unk1,
+                    unk2: msg.data.unk2,
+                    unk3: msg.data.unk3,
+                    cmd: msg.data.cmd,
+                    unk4: msg.data.unk4,
                 },
                 {disableDefaultResponse: true});
             meta.logger.debug(`"IR-Message-Code00" response sent.`);
-            await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode02',
+            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode02',
                 {
-                    seq: msg.data.seq, 
+                    seq: msg.data.seq,
                     position: 0,
-                    maxlen: 0x38
+                    maxlen: 0x38,
                 },
                 {disableDefaultResponse: true});
-                meta.logger.debug(`"IR-Message-Code00" transfer started.`);
-            }
+            meta.logger.debug(`"IR-Message-Code00" transfer started.`);
+        },
     },
     zosung_send_ir_code_03: {
         cluster: 'zosungIRTransmit',
@@ -8648,27 +8649,27 @@ const converters = {
             meta.logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`);
             const seq = msg.data.seq;
             const rcv = zosung.messagesGet(msg.endpoint, seq);
-            if(rcv.position==msg.data.position){
+            if (rcv.position==msg.data.position) {
                 const rcvMsgPart = msg.data.msgpart;
                 const sum = zosung.calcArrayCrc(rcvMsgPart);
                 const expectedPartCrc = msg.data.msgpartcrc;
-                if(sum==expectedPartCrc){
-                    const position = rcvMsgPart.copy(rcv.buf,rcv.position);
+                if (sum==expectedPartCrc) {
+                    const position = rcvMsgPart.copy(rcv.buf, rcv.position);
                     rcv.position += position;
-                    if(rcv.position<rcv.buf.length){
-                        await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode02',
+                    if (rcv.position<rcv.buf.length) {
+                        await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode02',
                             {
-                                seq: seq, 
-                                position: rcv.position, 
-                                maxlen: 0x38
+                                seq: seq,
+                                position: rcv.position,
+                                maxlen: 0x38,
                             },
                             {disableDefaultResponse: true});
                     } else {
-                        await msg.endpoint.command('zosungIRTransmit','zosungSendIRCode04',
+                        await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode04',
                             {
-                                zero0: 0, 
-                                seq: seq, 
-                                zero1: 0
+                                zero0: 0,
+                                seq: seq,
+                                zero1: 0,
                             },
                             {disableDefaultResponse: true});
                     }
@@ -8679,7 +8680,7 @@ const converters = {
             } else {
                 meta.logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`);
             }
-        }
+        },
     },
     zosung_send_ir_code_05: {
         cluster: 'zosungIRTransmit',
@@ -8691,15 +8692,15 @@ const converters = {
             const learnedIRCode = rcv.buf.toString('base64');
             meta.logger.debug(`Received: ${learnedIRCode}`);
             zosung.messagesClear(msg.endpoint, seq);
-            await msg.endpoint.command('zosungIRControl','zosungControlIRCommand00',
+            await msg.endpoint.command('zosungIRControl', 'zosungControlIRCommand00',
                 {
-                    data: Buffer.from(JSON.stringify({"study":1}))
+                    data: Buffer.from(JSON.stringify({"study": 1})),
                 },
                 {disableDefaultResponse: true});
             return {
-                learnedIRCode: learnedIRCode
-            }
-        }
+                learnedIRCode: learnedIRCode,
+            };
+        },
     },
     // #endregion
 
