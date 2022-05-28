@@ -8694,7 +8694,7 @@ const converters = {
             zosung.messagesClear(msg.endpoint, seq);
             await msg.endpoint.command('zosungIRControl', 'zosungControlIRCommand00',
                 {
-                    data: Buffer.from(JSON.stringify({"study": 1})),
+                    data: Buffer.from(JSON.stringify({'study': 1})),
                 },
                 {disableDefaultResponse: true});
             return {
