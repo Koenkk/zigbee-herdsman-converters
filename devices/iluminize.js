@@ -200,7 +200,8 @@ module.exports = [
         model: '511.524',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 wall dimmer CCT 4 zones',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_recall, fz.command_move_to_color_temp, fz.command_step, fz.command_move, fz.command_stop],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_recall,
+                     fz.command_move_to_color_temp, fz.command_step, fz.command_move, fz.command_stop],
         toZigbee: [],
         meta: {multiEndpoint: true},
         exposes: [e.action([
