@@ -2,7 +2,6 @@ const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
 const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -12,7 +11,7 @@ const switchTypeValues = [
     'maintained_toggle',
     'momentary_state',
     'momentary_press',
-    'momentary_release'
+    'momentary_release',
 ];
 
 const defaultOnOffStateValues = [
@@ -28,10 +27,10 @@ const fzPerenio = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('lastMessageLqi')) {
-                result['last_message_lqi'] = msg.data['lastMessageLqi']
+                result['last_message_lqi'] = msg.data['lastMessageLqi'];
             }
             if (msg.data.hasOwnProperty('lastMessageRssi')) {
-                result['last_message_rssi'] = msg.data['lastMessageRssi']
+                result['last_message_rssi'] = msg.data['lastMessageRssi'];
             }
             return result;
         },
@@ -50,7 +49,7 @@ const fzPerenio = {
             };
             if (msg.data.hasOwnProperty('presentValue')) {
                 const property = utils.postfixWithEndpointName('switch_type', msg, model);
-                result[property] = switchTypeLookup[msg.data['presentValue']]
+                result[property] = switchTypeLookup[msg.data['presentValue']];
             }
             return result;
         },
@@ -61,16 +60,16 @@ const fzPerenio = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty(3)) {
-                result['rms_voltage'] = msg.data[3]
+                result['rms_voltage'] = msg.data[3];
             }
             if (msg.data.hasOwnProperty(10)) {
-                result['active_power'] = msg.data[10]
+                result['active_power'] = msg.data[10];
             }
             if (msg.data.hasOwnProperty(14)) {
-                result['consumed_energy'] = msg.data[14]
+                result['consumed_energy'] = msg.data[14];
             }
             if (msg.data.hasOwnProperty(24)) {
-                result['rssi'] = msg.data[24]
+                result['rssi'] = msg.data[24];
             }
             const powerOnStateLookup = {
                 0: 'off',
@@ -78,23 +77,22 @@ const fzPerenio = {
                 2: 'previous',
             };
             if (msg.data.hasOwnProperty(0)) {
-                result['default_on_off_state'] = powerOnStateLookup[msg.data[0]]
+                result['default_on_off_state'] = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data.hasOwnProperty(1)) {
                 if (msg.data[1] == 0) {
-                    result['alarm_voltage_min'] = false
-                    result['alarm_voltage_max'] = false
-                    result['alarm_power_max'] = false
-                }
-                else {
+                    result['alarm_voltage_min'] = false;
+                    result['alarm_voltage_max'] = false;
+                    result['alarm_power_max'] = false;
+                } else {
                     if (msg.data[1] & 1) {
-                        result['alarm_voltage_min'] = true
+                        result['alarm_voltage_min'] = true;
                     }
                     if (msg.data[1] & 2) {
-                        result['alarm_voltage_max'] = true
+                        result['alarm_voltage_max'] = true;
                     }
                     if (msg.data[1] & 4) {
-                        result['alarm_power_max'] = true
+                        result['alarm_power_max'] = true;
                     }
                 }
             }
@@ -151,10 +149,10 @@ const tzPerenio = {
         convertSet: async (entity, key, value, meta) => {
             const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ['toggle', 'off', 'on']);
-            const alarm_voltage_min = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`]
-            const alarm_voltage_max = meta.state[`alarm_voltage_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`]
-            const alarm_power_max = meta.state[`alarm_power_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`]
-            if (alarm_voltage_min || alarm_voltage_max || alarm_power_max) {
+            const alarmVoltageMin = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+            const alarmVoltageMax = meta.state[`alarm_voltage_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+            const alarmPowerMax = meta.state[`alarm_power_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+            if (alarmVoltageMin || alarmVoltageMax || alarmPowerMax) {
                 return {state: {state: 'OFF'}};
             }
             if (state === 'on' && (meta.message.hasOwnProperty('on_time') || meta.message.hasOwnProperty('off_wait_time'))) {
@@ -233,8 +231,8 @@ module.exports = [
     {
         zigbeeModel: ['PEHWE20', 'PEHWE2X'],
         model: 'PEHWE20',
-        vendor: 'Perenio IoT',
-        description: 'Perenio two channel single wire mini-relay',
+        vendor: 'Perenio',
+        description: 'Two channel single wire mini-relay',
         fromZigbee: [fz.on_off, fz.power_on_behavior, fzPerenio.diagnostic, fzPerenio.switch_type],
         toZigbee: [tz.on_off, tz.power_on_behavior, tzPerenio.switch_type],
         endpoint: (device) => {
@@ -254,7 +252,7 @@ module.exports = [
                 maximumReportInterval: 3600,
                 reportableChange: 0,
             }];
-            const payload_diagnostic = [{
+            const payloadDiagnostic = [{
                 attribute: 'lastMessageLqi',
                 minimumReportInterval: 5,
                 maximumReportInterval: 60,
@@ -267,7 +265,7 @@ module.exports = [
             }];
             await endpoint1.configureReporting('genOnOff', payload);
             await endpoint2.configureReporting('genOnOff', payload);
-            await endpoint10.configureReporting('haDiagnostic', payload_diagnostic);
+            await endpoint10.configureReporting('haDiagnostic', payloadDiagnostic);
             await endpoint1.read('genOnOff', ['onOff', 'startUpOnOff']);
             await endpoint2.read('genOnOff', ['onOff', 'startUpOnOff']);
             await endpoint1.read('genMultistateValue', ['presentValue']);
@@ -281,15 +279,17 @@ module.exports = [
             e.switch().withEndpoint('l2'),
             e.power_on_behavior().withEndpoint('l2'),
             exposes.enum('switch_type', ea.ALL, switchTypeValues).withEndpoint('l2'),
-            exposes.numeric('last_message_lqi', ea.STATE).withUnit('lqi').withDescription('LQI seen by the device').withValueMin(0).withValueMax(255),
-            exposes.numeric('last_message_rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
+            exposes.numeric('last_message_lqi', ea.STATE).withUnit('lqi')
+                .withDescription('LQI seen by the device').withValueMin(0).withValueMax(255),
+            exposes.numeric('last_message_rssi', ea.STATE).withUnit('dB')
+                .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
     },
     {
         zigbeeModel: ['PEHPL0X'],
         model: 'PEHPL0X',
-        vendor: 'Perenio IoT',
-        description: 'Perenio Power Link',
+        vendor: 'Perenio',
+        description: 'Power link',
         fromZigbee: [fz.on_off, fzPerenio.smart_plug],
         toZigbee: [tzPerenio.on_off_mod, tzPerenio.default_state, tzPerenio.alarms_reset],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -310,10 +310,14 @@ module.exports = [
             exposes.numeric('rms_voltage', ea.STATE).withUnit('V').withDescription('RMS voltage'),
             exposes.numeric('active_power', ea.STATE).withUnit('W').withDescription('Active power'),
             exposes.numeric('consumed_energy', ea.STATE).withUnit('W*h').withDescription('Consumed energy'),
-            exposes.binary('alarm_voltage_min', ea.ALL, true, false).withDescription('Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms'),
-            exposes.binary('alarm_voltage_max', ea.ALL, true, false).withDescription('Indicates if the alarm is triggered on the voltage rise above the limit, allows to reset alarms'),
-            exposes.binary('alarm_power_max', ea.ALL, true, false).withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
-            exposes.numeric('rssi', ea.STATE).withUnit('dB').withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
+            exposes.binary('alarm_voltage_min', ea.ALL, true, false)
+                .withDescription('Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms'),
+            exposes.binary('alarm_voltage_max', ea.ALL, true, false)
+                .withDescription('Indicates if the alarm is triggered on the voltage rise above the limit, allows to reset alarms'),
+            exposes.binary('alarm_power_max', ea.ALL, true, false)
+                .withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
+            exposes.numeric('rssi', ea.STATE).withUnit('dB')
+                .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
     },
 ];
