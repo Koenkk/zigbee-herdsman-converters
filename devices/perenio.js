@@ -8,18 +8,11 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const switchTypeValues = [
-    'maintained-state',
-    'maintained-toggle',
-    'momentary-state',
-    'momentary-press',
-    'momentary-release'
-];
-
-const alarmTypeValues = [
-    'voltage-min',
-    'voltage-max',
-    'power-max',
-    'temperature',
+    'maintained_state',
+    'maintained_toggle',
+    'momentary_state',
+    'momentary_press',
+    'momentary_release'
 ];
 
 const defaultOnOffStateValues = [
@@ -49,11 +42,11 @@ const fzPerenio = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const switchTypeLookup = {
-                0x0001: 'momentary-state',
-                0x0010: 'maintained-state',
-                0x00CC: 'maintained-toggle',
-                0x00CD: 'momentary-release',
-                0x00DC: 'momentary-press',
+                0x0001: 'momentary_state',
+                0x0010: 'maintained_state',
+                0x00CC: 'maintained_toggle',
+                0x00CD: 'momentary_release',
+                0x00DC: 'momentary_press',
             };
             if (msg.data.hasOwnProperty('presentValue')) {
                 const property = utils.postfixWithEndpointName('switch_type', msg, model);
@@ -115,11 +108,11 @@ const tzPerenio = {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
             const switchTypeLookup = {
-                'momentary-state': 0x0001,
-                'maintained-state': 0x0010,
-                'maintained-toggle': 0x00CC,
-                'momentary-release': 0x00CD,
-                'momentary-press': 0x00DC,
+                'momentary_state': 0x0001,
+                'maintained_state': 0x0010,
+                'maintained_toggle': 0x00CC,
+                'momentary_release': 0x00CD,
+                'momentary_press': 0x00DC,
             };
             await entity.write('genMultistateValue', {presentValue: switchTypeLookup[value]}, utils.getOptions(meta.mapped, entity));
             return {state: {switch_type: value}};
@@ -247,7 +240,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        meta: {configureKey: 2, multiEndpoint: true},
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -324,3 +317,4 @@ module.exports = [
         ],
     },
 ];
+
