@@ -88,7 +88,7 @@ module.exports = [
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
     },
     {
-        zigbeeModel: ['lumi.light.aqcn02', 'lumi.light.acn014'],
+        zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
@@ -109,7 +109,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['lumi.light.cwac02'],
+        zigbeeModel: ['lumi.light.cwac02', 'lumi.light.acn014'],
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 smart LED bulb',
@@ -1188,7 +1188,7 @@ module.exports = [
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
-            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'),
+            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'), e.device_temperature(),
         ],
     },
     {
