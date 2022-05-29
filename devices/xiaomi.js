@@ -1779,19 +1779,19 @@ module.exports = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.battery(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.device_temperature(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryVoltage(endpoint);
             await reporting.humidity(endpoint);
             await reporting.temperature(endpoint);
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('genAnalogInput', payload);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         ota: ota.zigbeeOTA,
     },
