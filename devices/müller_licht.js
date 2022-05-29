@@ -165,6 +165,14 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['tint-ColorTemperature2'],
+        model: '404038',
+        vendor: 'Müller Licht',
+        description: 'Tint retro filament LED-bulb E27, Globe bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
         fingerprint: [{
             // Identify through fingerprint as modelID is the same as Sunricher ZG192910-4
             type: 'Router', manufacturerID: 4635, manufacturerName: 'MLI', modelID: 'CCT Lighting',
