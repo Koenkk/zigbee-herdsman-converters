@@ -4814,9 +4814,6 @@ const converters = {
                 return {factory_reset: value ? 'ON' : 'OFF'};
             }
             case tuya.dataPoints.x5hFaultAlarm: {
-                // don't know what is it
-                // not displayed in tuya app, but present as item in device logs on the tuya iot
-                // value only changes on the factory reset to "0"
                 return {fault_alarm: value};
             }
             case tuya.dataPoints.x5hTempDiff: {
@@ -4843,9 +4840,6 @@ const converters = {
                 return {brightness_state: lookup[lastValue]};
             }
             case tuya.dataPoints.x5hWeeklyProcedure: {
-                // not working with dp of moesSchedule
-                // maybe thermostatWeeklyProcedure
-                // need to test
                 return;
             }
             case tuya.dataPoints.x5hChildLock: {
@@ -4855,9 +4849,7 @@ const converters = {
                 return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hSetTempCeiling: {
-                // Not ok
                 // It overwrites heating setpoint
-                // need more tests
                 return {upper_temp: value / 10};
             }
             case tuya.dataPoints.x5hCurrentTemp: {
@@ -4874,9 +4866,8 @@ const converters = {
                 return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hMode: {
-                // temporary_pattern exists in tuya app but no ideas how it works
+                // 'temporary_pattern' exists only in Tuya app
                 // impossible to set this preset via thermostat itself
-                // need more tests
                 const lookup = {0: 'manual', 1: 'program', 2: 'temporary_pattern'};
                 return {preset: lookup[value]};
             }
