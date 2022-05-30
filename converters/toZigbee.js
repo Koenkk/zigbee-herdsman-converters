@@ -4937,25 +4937,15 @@ const converters = {
             case 'system_mode':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hState, value === 'heat');
                 break;
-            case 'preset':
-                if (typeof value === 'string') {
-                    value = value.toLowerCase();
-                    const lookup = {manual: 0, program: 1, temporary_pattern: 2};
-                    utils.validateValue(value, Object.keys(lookup));
-                    value = lookup[value];
-                }
-
-                if (typeof value === 'number' && value >= 0 && value <= 2) {
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
-                } else {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
+            case 'preset': {
+                value = value.toLowerCase();
+                const lookup = {manual: 0, program: 1, temporary_pattern: 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
                 break;
+            }
             case 'upper_temp':
-                if (typeof value !== 'number') {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
-
                 if (value >= 35 && value <= 95) {
                     await tuya.sendDataPointValue(
                         entity,
@@ -4974,10 +4964,6 @@ const converters = {
                 );
                 break;
             case 'temp_diff':
-                if (typeof value !== 'number') {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
-
                 if (value >= 1 && value <= 9.5) {
                     value = Math.round(value * 10);
 
@@ -4991,10 +4977,6 @@ const converters = {
                 }
                 break;
             case 'protection_temp_limit':
-                if (typeof value !== 'number') {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
-
                 if (value >= 5 && value <= 60) {
                     await tuya.sendDataPointValue(
                         entity,
@@ -5006,10 +4988,6 @@ const converters = {
                 }
                 break;
             case 'local_temperature_calibration':
-                if (typeof value !== 'number') {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
-
                 if (value >= -9.9 && value <= 9.9) {
                     value = Math.round(value * 10);
 
@@ -5054,40 +5032,28 @@ const converters = {
                     value === 'ON',
                 );
                 break;
-            case 'brightness_state':
-                if (typeof value === 'string') {
-                    value = value.toLowerCase();
-                    const lookup = {off: 0, low: 1, medium: 2, high: 3};
-                    utils.validateValue(value, Object.keys(lookup));
-                    value = lookup[value];
-                }
-
-                if (typeof value === 'number' && value >= 0 && value <= 3) {
-                    await tuya.sendDataPointEnum(
-                        entity,
-                        tuya.dataPoints.x5hBackplaneBrightness,
-                        value,
-                    );
-                } else {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
+            case 'brightness_state': {
+                value = value.toLowerCase();
+                const lookup = {off: 0, low: 1, medium: 2, high: 3};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(
+                    entity,
+                    tuya.dataPoints.x5hBackplaneBrightness,
+                    value,
+                );
                 break;
-            case 'sensor':
-                if (typeof value === 'string') {
-                    value = value.toLowerCase();
-                    const lookup = {'internal': 0, 'external': 1, 'both': 2};
-                    utils.validateValue(value, Object.keys(lookup));
-                    value = lookup[value];
-                }
-
-                if (typeof value === 'number' && value >= 0 && value <= 2) {
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
-                } else {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
+            }
+            case 'sensor': {
+                value = value.toLowerCase();
+                const lookup = {'internal': 0, 'external': 1, 'both': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
                 break;
+            }
             case 'current_heating_setpoint':
-                if (typeof value === 'number' && value >= 5 && value <= 60) {
+                if (value >= 5 && value <= 60) {
                     value = Math.round(value * 10);
                     await tuya.sendDataPointValue(
                         entity,
