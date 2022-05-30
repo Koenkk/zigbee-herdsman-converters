@@ -5702,7 +5702,10 @@ const converters = {
                     globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
                 }
 
-                const illuminance = msg.data['illuminance'] - 65536;
+                // Sometimes RTCGQ14LM reports high illuminance values in the dark
+                // https://github.com/Koenkk/zigbee2mqtt/issues/12596
+                const illuminance = msg.data['illuminance'] > 130536 ? 0 : msg.data['illuminance'] - 65536;
+
                 const payload = {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
                 utils.noOccupancySince(msg.endpoint, options, publish, 'start');
                 return payload;
