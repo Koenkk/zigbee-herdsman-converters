@@ -1934,58 +1934,31 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.x5h_thermostat],
         toZigbee: [tz.x5h_thermostat],
         exposes: [
-            exposes
-                .climate()
-                .withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(['manual', 'program', 'temporary_pattern'])
-                .withSensor(['IN', 'OU', 'AL'], ea.STATE_SET),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
+                .withPreset(['manual', 'program', 'temporary_pattern']).withSensor(['IN', 'OU', 'AL'], ea.STATE_SET),
             e.child_lock(),
             e.week(),
-            exposes
-                .enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
+            exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
                 .withDescription('Screen brightness'),
-            exposes
-                .binary('sound', ea.STATE_SET, 'ON', 'OFF')
+            exposes.binary('sound', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Switches beep sound when interacting with thermostat'),
-            exposes
-                .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+            exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Antifreeze function'),
-            exposes
-                .binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
+            exposes.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Resets all settings to default. Doesn\'t unpair device.'),
-            exposes
-                .numeric('protection_temp_limit', ea.STATE_SET)
-                .withUnit('°C')
-                .withValueMax(60)
-                .withValueMin(5)
-                .withValueStep(1)
-                .withPreset('default', 35, 'Default value')
+            exposes.numeric('protection_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
+                .withValueMin(5).withValueStep(1).withPreset('default', 35, 'Default value')
                 .withDescription('Temperature limit'),
-            exposes
-                .numeric('temp_diff', ea.STATE_SET)
-                .withUnit('°C')
-                .withValueMax(9.5)
-                .withValueMin(1)
-                .withValueStep(0.5)
-                .withPreset('default', 1, 'Default value')
+            exposes.numeric('temp_diff', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
+                .withValueMin(1).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('Difference between the current measured temperature on the device ' +
                     'and the setpoint temperature to start heating'),
-            exposes
-                .binary('output_reverse', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('???'),
+            exposes.binary('output_reverse', ea.STATE_SET, 'ON', 'OFF'),
             exposes.numeric('fault_alarm', ea.STATE),
-            exposes
-                .numeric('upper_temp', ea.STATE_SET)
-                .withUnit('°C')
-                .withValueMax(95)
-                .withValueMin(35)
-                .withValueStep(0.5)
-                .withPreset('default', 60, 'Default value')
-                .withDescription(),
+            exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
+                .withValueMin(35).withValueStep(0.5).withPreset('default', 60, 'Default value'),
         ],
         onEvent: tuya.onEventSetTime,
     },
