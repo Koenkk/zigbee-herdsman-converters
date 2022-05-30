@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -13,6 +14,159 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
             return {state: {lift_duration: value}};
+        },
+    },
+};
+
+const fzLocal = {
+    schneider_powertag: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: async (model, msg, publish, options, meta) => {
+            if (msg.type !== 'commandNotification') {
+                return;
+            }
+
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+
+            const rxAfterTx = (msg.data.options & (1<<11));
+            const ret = {};
+
+            switch (commandID) {
+            case 0xA1: {
+                const attr = msg.data.commandFrame.attributes;
+                const clusterID = msg.data.commandFrame.clusterID;
+
+                switch (clusterID) {
+                case 2820: { // haElectricalMeasurement
+                    const acCurrentDivisor = attr['acCurrentDivisor'];
+                    const acVoltageDivisor = attr['acVoltageDivisor'];
+                    const acFrequencyDivisor = attr['acFrequencyDivisor'];
+                    const powerDivisor = attr['powerDivisor'];
+
+                    if (attr.hasOwnProperty('rmsVoltage')) {
+                        ret['voltage_phase_a'] = attr['rmsVoltage'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsVoltagePhB')) {
+                        ret['voltage_phase_b'] = attr['rmsVoltagePhB'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsVoltagePhC')) {
+                        ret['voltage_phase_c'] = attr['rmsVoltagePhC'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19200')) {
+                        ret['voltage_phase_ab'] = attr['19200'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19456')) {
+                        ret['voltage_phase_bc'] = attr['19456'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('19712')) {
+                        ret['voltage_phase_ca'] = attr['19712'] / acVoltageDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrent')) {
+                        ret['current_phase_a'] = attr['rmsCurrent'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrentPhB')) {
+                        ret['current_phase_b'] = attr['rmsCurrentPhB'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('rmsCurrentPhC')) {
+                        ret['current_phase_c'] = attr['rmsCurrentPhC'] / acCurrentDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('totalActivePower')) {
+                        ret['power'] = attr['totalActivePower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('totalApparentPower')) {
+                        ret['power_apparent'] = attr['totalApparentPower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('acFrequency')) {
+                        ret['ac_frequency'] = attr['acFrequency'] / acFrequencyDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePower')) {
+                        ret['power_phase_a'] = attr['activePower'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePowerPhB')) {
+                        ret['power_phase_b'] = attr['activePowerPhB'] * 1000 / powerDivisor;
+                    }
+
+                    if (attr.hasOwnProperty('activePowerPhC')) {
+                        ret['power_phase_c'] = attr['activePowerPhC'] * 1000 / powerDivisor;
+                    }
+                    break;
+                }
+                case 1794: { // seMetering
+                    const divisor = attr['divisor'];
+
+                    if (attr.hasOwnProperty('currentSummDelivered')) {
+                        const val = attr['currentSummDelivered'];
+                        ret['energy'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('16652')) {
+                        const val = attr['16652'];
+                        ret['energy_phase_a'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('16908')) {
+                        const val = attr['16908'];
+                        ret['energy_phase_b'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('17164')) {
+                        const val = attr['17164'];
+                        ret['energy_phase_c'] = ((parseInt(val[0]) << 32) + parseInt(val[1])) / divisor;
+                    }
+
+                    if (attr.hasOwnProperty('powerFactor')) {
+                        ret['power_factor'] = attr['powerFactor'];
+                    }
+
+                    break;
+                }
+                }
+
+                break;
+            }
+            case 0xA3:
+                // Should handle this cluster as well
+                break;
+            }
+
+            if (rxAfterTx) {
+                // Send Schneider specific ACK to make PowerTag happy
+                const networkParameters = await msg.device.zh.constructor.adapter.getNetworkParameters();
+                const payload = {
+                    options: 0b000,
+                    tempMaster: msg.data.gppNwkAddr,
+                    tempMasterTx: networkParameters.channel - 11,
+                    srcID: msg.data.srcID,
+                    gpdCmd: 0xFE,
+                    gpdPayload: {
+                        commandID: 0xFE,
+                        buffer: Buffer.alloc(1), // I hope it's zero initialised
+                    },
+                };
+
+                await msg.endpoint.commandResponse('greenPower', 'response', payload,
+                    {
+                        srcEndpoint: 242,
+                        disableDefaultResponse: true,
+                    });
+            }
+
+            return ret;
         },
     },
 };
@@ -285,10 +439,11 @@ module.exports = [
         zigbeeModel: ['1GANG/SHUTTER/1'],
         model: 'MEG5113-0300/MEG5165-0000',
         vendor: 'Schneider Electric',
-        description: 'Merten PlusLink Shutter insert with Merten Wiser System M Push Button',
+        description: 'Merten MEG5165 PlusLink Shutter insert with Merten Wiser System M Push Button (1fold)',
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
-        exposes: [e.cover_position()],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
+        exposes: [e.cover_position(), exposes.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+            .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
@@ -680,7 +835,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['CCT595011_AS'],
-        model: 'CCT595011_AS',
+        model: 'CCT595011',
         vendor: 'Schneider Electric',
         description: 'Wiser motion sensor',
         fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2, fz.illuminance],
@@ -713,5 +868,50 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
         },
+    },
+    {
+        zigbeeModel: ['CCT592011_AS'],
+        model: 'CCT592011',
+        vendor: 'Schneider Electric',
+        description: 'Wiser water leakage sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.water_leak(), e.tamper()],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000e.......$/}],
+        model: 'A9MEM1570',
+        vendor: 'Schneider Electric',
+        description: 'PowerTag power sensor',
+        fromZigbee: [fzLocal.schneider_powertag],
+        toZigbee: [],
+        exposes: [
+            e.power(),
+            e.power_apparent(),
+            exposes.numeric('power_phase_a', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase A'),
+            exposes.numeric('power_phase_b', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase B'),
+            exposes.numeric('power_phase_c', ea.STATE).withUnit('W').withDescription('Instantaneous measured power on phase C'),
+            e.power_factor(),
+            e.energy(),
+            exposes.numeric('energy_phase_a', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase A'),
+            exposes.numeric('energy_phase_b', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase B'),
+            exposes.numeric('energy_phase_c', ea.STATE).withUnit('kWh').withDescription('Sum of consumed energy on phase C'),
+            e.ac_frequency(),
+            exposes.numeric('voltage_phase_a', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase A'),
+            exposes.numeric('voltage_phase_b', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase B'),
+            exposes.numeric('voltage_phase_c', ea.STATE).withUnit('V').withDescription('Measured electrical potential value on phase C'),
+            exposes.numeric('voltage_phase_ab', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase A and B'),
+            exposes.numeric('voltage_phase_bc', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase B and C'),
+            exposes.numeric('voltage_phase_ca', ea.STATE)
+                .withUnit('V').withDescription('Measured electrical potential value between phase C and A'),
+            exposes.numeric('current_phase_a', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase A'),
+            exposes.numeric('current_phase_b', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
+            exposes.numeric('current_phase_c', ea.STATE)
+                .withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
+        ],
     },
 ];

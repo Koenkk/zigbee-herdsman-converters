@@ -24,7 +24,8 @@ module.exports = [
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
-            tz.danfoss_window_open_feature],
+            tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
+            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -44,7 +45,7 @@ module.exports = [
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                 .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
@@ -78,7 +79,20 @@ module.exports = [
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator')],
+                .withDescription('Load estimate on this radiator')
+                .withValueMin(-8000).withValueMax(3600),
+            exposes.binary('preheat_status', ea.STATE_GET, true, false)
+                .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
+            exposes.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
+                .withDescription('Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, ' +
+                    'Valve Characteristic Lost'),
+            exposes.binary('adaptation_run_settings', ea.ALL, true, false)
+                .withDescription('Automatic adaptation run enabled (the one during the night)'),
+            exposes.enum('adaptation_run_control', ea.ALL, ['initate_adaptation', 'cancel_adaptation'])
+                .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
+            exposes.numeric('regulation_setpoint_offset', ea.ALL)
+                .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
+                .withValueMin(-25).withValueMax(25)],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -116,6 +130,23 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'danfossAdaptionRunStatus',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], options);
+
+            try {
+                await endpoint.configureReporting('hvacThermostat', [{
+                    attribute: 'danfossPreheatStatus',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                }], options);
+            } catch (e) {
+                /* not supported by all */
+            }
 
             try {
                 await endpoint.read('hvacThermostat', [
@@ -131,6 +162,9 @@ module.exports = [
                     'danfossRadiatorCovered',
                     'danfossLoadBalancingEnable',
                     'danfossLoadRoomMean',
+                    'danfossAdaptionRunControl',
+                    'danfossAdaptionRunSettings',
+                    'danfossRegulationSetpointOffset',
                 ], options);
             } catch (e) {
                 /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */

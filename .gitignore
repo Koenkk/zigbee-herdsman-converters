@@ -7,3 +7,6 @@ node_modules/
 .eslintrc.js
 .vscode
 tmp
+# Eclipse project files
+.project
+.settings/

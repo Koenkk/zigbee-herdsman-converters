@@ -110,7 +110,7 @@ module.exports = [
     {
         fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],
         zigbeeModel: ['ZBT-Remote-ALL-RGBW', 'TS1001'],
-        model: 'MLI-404011',
+        model: 'MLI-404011/MLI-404049',
         description: 'Tint remote control',
         vendor: 'Müller Licht',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
@@ -162,6 +162,14 @@ module.exports = [
         vendor: 'Müller Licht',
         description: 'Tint retro filament LED-bulb E27, Edison bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
         extend: extend.light_onoff_brightness_colortemp(),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        zigbeeModel: ['tint-ColorTemperature2'],
+        model: '404038',
+        vendor: 'Müller Licht',
+        description: 'Tint retro filament LED-bulb E27, Globe bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {

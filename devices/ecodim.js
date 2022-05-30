@@ -126,4 +126,11 @@ module.exports = [
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137}],
+        model: 'ED-10041',
+        vendor: 'EcoDim',
+        description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];

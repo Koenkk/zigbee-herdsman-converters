@@ -1,9 +1,11 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -19,8 +21,17 @@ module.exports = [
         model: 'ZBMINI-L',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
+        ota: ota.zigbeeOTA,
         extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
         configure: async (device, coordinatorEndpoint, logger) => {
+            // Unbind genPollCtrl to prevent device from sending checkin message.
+            // Zigbee-herdsmans responds to the checkin message which causes the device
+            // to poll slower.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
             device.powerSource = 'Mains (single phase)';
             device.save();
         },

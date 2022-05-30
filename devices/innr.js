@@ -48,11 +48,20 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OGL 130 C'],
+        model: 'OGL 130 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart globe lights',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 1000], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['OPL 130 C'],
         model: 'OPL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart pedestal light colour',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 555], supportsHS: true, disableColorTempStartup: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -146,6 +155,14 @@ module.exports = [
     {
         zigbeeModel: ['BY 285 C'],
         model: 'BY 285 C',
+        vendor: 'Innr',
+        description: 'B22 bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['BY 286 C'],
+        model: 'BY 286 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
@@ -480,6 +497,18 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
+    },
+    {
+        zigbeeModel: ['SP 110'],
+        model: 'SP 110',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['SP 220'],

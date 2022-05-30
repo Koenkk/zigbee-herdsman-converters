@@ -5,6 +5,16 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['501.34'],
+        model: '501.34',
+        vendor: 'Paulmann',
+        description: 'Smart switch 4 buttons white',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2'])],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ['H036-0007'],
         model: '929.66',
         vendor: 'Paulmann',

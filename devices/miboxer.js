@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -46,5 +47,29 @@ module.exports = [
         description: 'RGBW LED controller',
         vendor: 'Miboxer',
         extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+    },
+    {
+        fingerprint: [{modelID: 'TS1002', manufacturerName: '_TZ3000_xwh1e22x'}],
+        model: 'FUT089Z',
+        vendor: 'MiBoxer',
+        description: 'RGB+CCT Remote',
+        fromZigbee: [fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
+                {zoneNum: 1, groupId: 101},
+                {zoneNum: 2, groupId: 102},
+                {zoneNum: 3, groupId: 103},
+                {zoneNum: 4, groupId: 104},
+                {zoneNum: 5, groupId: 105},
+                {zoneNum: 6, groupId: 106},
+                {zoneNum: 7, groupId: 107},
+                {zoneNum: 8, groupId: 108},
+            ]});
+            await endpoint.command('genBasic', 'tuyaSetup', {}, {disableDefaultResponse: true});
+        },
     },
 ];

@@ -8,7 +8,7 @@ const constants = require('../lib/constants');
 
 module.exports = [
     {
-        zigbeeModel: ['easyCodeTouch_v1'],
+        zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch'],
         model: 'easyCodeTouch_v1',
         vendor: 'Onesti Products AS',
         description: 'Zigbee module for EasyAccess code touch series',
