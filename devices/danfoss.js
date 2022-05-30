@@ -130,20 +130,23 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
-
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'danfossPreheatStatus',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 1,
-            }], options);
-
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'danfossAdaptionRunStatus',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], options);
+
+            try {
+                await endpoint.configureReporting('hvacThermostat', [{
+                    attribute: 'danfossPreheatStatus',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                }], options);
+            } catch (e) {
+                /* not supported by all */
+            }
 
             try {
                 await endpoint.read('hvacThermostat', [
