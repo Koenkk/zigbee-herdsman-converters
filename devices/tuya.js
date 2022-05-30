@@ -304,6 +304,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZB210_tmi0rihb'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_iwbaamgh'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'}],
         model: 'TS0505B',
         vendor: 'TuYa',
@@ -313,7 +314,7 @@ module.exports = [
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
         ],
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
