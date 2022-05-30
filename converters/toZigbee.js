@@ -5075,7 +5075,7 @@ const converters = {
             case 'sensor':
                 if (typeof value === 'string') {
                     value = value.toLowerCase();
-                    const lookup = {in: 0, ou: 1, al: 2};
+                    const lookup = {'internal': 0, 'external': 1, 'both': 2};
                     utils.validateValue(value, Object.keys(lookup));
                     value = lookup[value];
                 }

@@ -1937,7 +1937,7 @@ module.exports = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(['manual', 'program', 'temporary_pattern']).withSensor(['IN', 'OU', 'AL'], ea.STATE_SET),
+                .withPreset(['manual', 'program', 'temporary_pattern']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
             e.child_lock(),
             e.week(),
             exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])

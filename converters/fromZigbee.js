@@ -4881,8 +4881,7 @@ const converters = {
                 return {preset: lookup[value]};
             }
             case tuya.dataPoints.x5hSensorSelection: {
-                // maybe rename to "internal", "external", "both"
-                const lookup = {0: 'IN', 1: 'OU', 2: 'AL'};
+                const lookup = {0: 'internal', 1: 'external', 2: 'both'};
                 return {sensor: lookup[value]};
             }
             default: {
