@@ -2792,6 +2792,29 @@ const converters = {
             }
         },
     },
+    tuya_indicate_switch: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 'tuyaBacklightMode';
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                const indicateLookup = {0: 'off', 1: 'switch', 2: 'position'};
+                return {indicate_switch: indicateLookup[value]};
+            }
+        },
+    },
+    tuya_backlight_switch: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 'tuyaBacklightSwitch';
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                return {backlight_switch: value ? 'ON' : 'OFF'};
+            }
+        },
+    },
     ts011f_plug_indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -4863,6 +4886,19 @@ const converters = {
             const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
             if (msg.data.hasOwnProperty('switchType')) {
                 return {switch_type: lookup[msg.data['switchType']]};
+            }
+        },
+    },
+    tuya_power_on_behavior: {
+        cluster: 'manuSpecificTuya_3',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const attribute = 'powerOnBehavior';
+            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+
+            if (msg.data.hasOwnProperty(attribute)) {
+                const property = postfixWithEndpointName('tuya_power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data[attribute]]};
             }
         },
     },
