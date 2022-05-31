@@ -43,7 +43,7 @@ const tzLocal = {
             }
         },
     },
-    tuya_indicate_switch: {
+    indicate_switch: {
         key: ['indicate_switch'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'off': 0, 'switch': 1, 'position': 2};
@@ -57,7 +57,7 @@ const tzLocal = {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
-    tuya_backlight: {
+    backlight: {
         key: ['backlight'],
         convertSet: async (entity, key, value, meta) => {
             const backlight = value === 'ON' ? 1 : 0;
@@ -68,7 +68,7 @@ const tzLocal = {
             await entity.read('genOnOff', ['tuyaBacklightSwitch']);
         },
     },
-    tuya_power_on_behavior: {
+    power_on_behavior: {
         key: ['tuya_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
             value = value.toLowerCase();
@@ -138,7 +138,7 @@ const fzLocal = {
             }
         },
     },
-    tuya_indicate_switch: {
+    indicate_switch: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -150,7 +150,7 @@ const fzLocal = {
             }
         },
     },
-    tuya_backlight: {
+    backlight: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -162,7 +162,7 @@ const fzLocal = {
             }
         },
     },
-    tuya_power_on_behavior: {
+    power_on_behavior: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -1874,10 +1874,10 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.tuya_power_on_behavior, fzLocal.tuya_backlight,
-            fzLocal.tuya_indicate_switch, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.tuya_power_on_behavior, tzLocal.tuya_backlight,
-            tzLocal.tuya_indicate_switch],
+        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.power_on_behavior, fzLocal.backlight,
+            fzLocal.indicate_switch, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.power_on_behavior, tzLocal.backlight,
+            tzLocal.indicate_switch],
         exposes: [
             e.power_on_behavior(),
             exposes.switch().withState('backlight', true, ''),
