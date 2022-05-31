@@ -57,12 +57,12 @@ const tzLocal = {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
-    tuya_backlight_switch: {
-        key: ['backlight_switch'],
+    tuya_backlight: {
+        key: ['backlight'],
         convertSet: async (entity, key, value, meta) => {
-            const backlightSwitchValue = value === 'ON' ? 1 : 0;
-            await entity.write('genOnOff', {tuyaBacklightSwitch: backlightSwitchValue});
-            return {state: {backlight_switch: backlightSwitchValue}};
+            const backlight = value === 'ON' ? 1 : 0;
+            await entity.write('genOnOff', {tuyaBacklightSwitch: backlight});
+            return {state: {backlight}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightSwitch']);
@@ -150,14 +150,15 @@ const fzLocal = {
             }
         },
     },
-    tuya_backlight_switch: {
+    tuya_backlight: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const property = 'tuyaBacklightSwitch';
             if (msg.data.hasOwnProperty(property)) {
                 const value = msg.data[property];
-                return {backlight_switch: value ? 'ON' : 'OFF'};
+                const backlight = value ? 'ON' : 'OFF';
+                return {backlight};
             }
         },
     },
@@ -1873,13 +1874,13 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.tuya_power_on_behavior, fzLocal.tuya_backlight_switch,
+        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.tuya_power_on_behavior, fzLocal.tuya_backlight,
             fzLocal.tuya_indicate_switch, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.tuya_power_on_behavior, tzLocal.tuya_backlight_switch,
+        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.tuya_power_on_behavior, tzLocal.tuya_backlight,
             tzLocal.tuya_indicate_switch],
         exposes: [
             e.power_on_behavior(),
-            exposes.switch().withState('backlight_switch', true, ''),
+            exposes.switch().withState('backlight', true, ''),
             exposes.enum('indicate_switch', ea.ALL, ['off', 'switch', 'position'])
                 .withDescription('Indicator light status'),
             e.switch().withEndpoint('l1'),
