@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 'use strict';
 
 const globalStore = require('../lib/store');
@@ -10,7 +9,6 @@ const light = require('../lib/light');
 const constants = require('../lib/constants');
 const libColor = require('../lib/color');
 const exposes = require('../lib/exposes');
-const zosung = require('../lib/zosung');
 
 const manufacturerOptions = {
     sunricher: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SHENZHEN_SUNRICH},
@@ -7118,52 +7116,6 @@ const converters = {
                 return {motor_reversal: value};
             }
             }
-        },
-    },
-    zosung_ir_code_to_send: {
-        key: ['IRCodeToSend'],
-        convertSet: async (entity, key, value, meta) => {
-            if (!value) {
-                meta.logger.error(`There is no IR code to send`);
-                return;
-            }
-            const irMsg = JSON.stringify({
-                'key_num': 1,
-                'delay': 300,
-                'key1': {
-                    'num': 1,
-                    'freq': 38000,
-                    'type': 1,
-                    'key_code': value,
-                },
-            });
-            meta.logger.debug(`Sending IR code: ${JSON.stringify(value)}`);
-            const seq = zosung.nextSeq(entity);
-            zosung.messagesSet(entity, seq, irMsg);
-            await entity.command('zosungIRTransmit', 'zosungSendIRCode00',
-                {
-                    seq: seq,
-                    length: irMsg.length,
-                    unk1: 0x00000000,
-                    unk2: 0xe004,
-                    unk3: 0x01,
-                    cmd: 0x02,
-                    unk4: 0x0000,
-                },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR code initiated.`);
-        },
-    },
-    zosung_learn_ir_code: {
-        key: ['learnIRCode'],
-        convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`Starting IR Code Learning...`);
-            await entity.command('zosungIRControl', 'zosungControlIRCommand00',
-                {
-                    data: Buffer.from(JSON.stringify({'study': 0})),
-                },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`IR Code Learning started.`);
         },
     },
     // #endregion

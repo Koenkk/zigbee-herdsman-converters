@@ -1,8 +1,7 @@
-/* eslint-disable linebreak-style */
-const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const ea = exposes.access;
+const zosung = require('../lib/zosung');
+const fzZosung = zosung.fzZosung;
+const tzZosung = zosung.tzZosung;
+const ez = zosung.presetsZosung;
 
 module.exports = [
     {
@@ -11,16 +10,12 @@ module.exports = [
         vendor: 'AUBESS',
         description: 'Universal Smart IR Remote Control',
         fromZigbee: [
-            fz.zosung_send_ir_code_00, fz.zosung_send_ir_code_01, fz.zosung_send_ir_code_02, fz.zosung_send_ir_code_03,
-            fz.zosung_send_ir_code_04, fz.zosung_send_ir_code_05,
+            fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
+            fzZosung.zosung_send_ir_code_03, fzZosung.zosung_send_ir_code_04, fzZosung.zosung_send_ir_code_05,
         ],
         toZigbee: [
-            tz.zosung_ir_code_to_send, tz.zosung_learn_ir_code,
+            tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code,
         ],
-        exposes: [
-            exposes.switch().withState('learnIRCode', undefined, 'Turn on to learn new IR code', ea.SET),
-            exposes.text('learnedIRCode', ea.STATE).withDescription('The IR code learned by device'),
-            exposes.text('IRCodeToSend', ea.SET).withDescription('The IR code to send by device'),
-        ],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
 ];
