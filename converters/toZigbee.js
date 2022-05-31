@@ -3862,20 +3862,6 @@ const converters = {
             await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
-    tuya_power_on_behavior: {
-        key: ['tuya_power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('manuSpecificTuya_3', {'powerOnBehavior': pState}, {disableDefaultResponse: true});
-            return {state: {tuya_power_on_behavior: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
-        },
-    },
     tuya_min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -6025,31 +6011,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    tuya_indicate_switch: {
-        key: ['indicate_switch'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'off': 0, 'switch': 1, 'position': 2};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const indicate = lookup[value];
-            await entity.write('genOnOff', {tuyaBacklightMode: indicate});
-            return {state: {indicate_switch: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    tuya_backlight_switch: {
-        key: ['backlight_switch'],
-        convertSet: async (entity, key, value, meta) => {
-            const backlightSwitchValue = value === 'ON' ? 1 : 0;
-            await entity.write('genOnOff', {tuyaBacklightSwitch: backlightSwitchValue});
-            return {state: {backlight_switch: backlightSwitchValue}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
         },
     },
     ts011f_plug_indicator_mode: {
