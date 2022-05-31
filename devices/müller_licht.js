@@ -8,9 +8,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['tint-ExtendedColor'],
-        model: '404036',
+        model: '404036/45327',
         vendor: 'Müller Licht',
-        description: 'Tint LED-globeform white+color',
+        description: 'Tint LED white+color',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },

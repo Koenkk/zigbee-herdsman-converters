@@ -1248,6 +1248,15 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['4503748C6'],
+        model: '4503748C6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Muscari ceiling light',
+        meta: {turnsOffAtBrightness1: true},
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['LTD003'],
         model: '4503848C5',
         vendor: 'Philips',
