@@ -1880,7 +1880,8 @@ module.exports = [
         exposes: [
             e.power_on_behavior(),
             exposes.switch().withState('backlight_switch', true, ''),
-            exposes.enum('indicate_switch', ea.ALL, ['off', 'switch', 'position']),
+            exposes.enum('indicate_switch', ea.ALL, ['off', 'switch', 'position'])
+                .withDescription('Indicator light status'),
             e.switch().withEndpoint('l1'),
             e.power_on_behavior().withProperty('tuya_power_on_behavior').withEndpoint('l1'),
             e.switch().withEndpoint('l2'),
