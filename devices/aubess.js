@@ -8,7 +8,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_acv1iuslxi3shaaj'}],
         model: 'ZXZIR-02',
         vendor: 'AUBESS',
-        description: 'Universal Smart IR Remote Control',
+        description: 'Universal smart IR remote control',
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
             fzZosung.zosung_send_ir_code_03, fzZosung.zosung_send_ir_code_04, fzZosung.zosung_send_ir_code_05,
