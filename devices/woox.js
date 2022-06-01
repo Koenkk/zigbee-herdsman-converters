@@ -134,7 +134,7 @@ module.exports = [
         onEvent: tuya.onEventsetTime,
     },
     {
-        fingerprint: [{modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'}],
+        fingerprint: [{modelID: 'TS0219', manufacturerName: '_TYZB01_ynsiasng'}, {modelID: 'TS0219', manufacturerName: '_TYZB01_bwsijaty'}],
         model: 'R7051',
         vendor: 'Woox',
         description: 'Smart siren',

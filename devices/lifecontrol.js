@@ -14,6 +14,7 @@ module.exports = [
         description: 'Water leak switch',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
@@ -82,6 +83,7 @@ module.exports = [
         description: 'Air sensor',
         fromZigbee: [fz.lifecontrolVoc, fz.battery],
         toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.temperature(), e.humidity(), e.voc(), e.eco2(), e.battery()],
     },
 ];

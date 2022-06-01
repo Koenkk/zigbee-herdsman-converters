@@ -6,10 +6,17 @@ const fz = require('../converters/fromZigbee');
 
 module.exports = [
     {
+        zigbeeModel: ['ZG50CC-CCT-DRIVER'],
+        model: 'ZG50CC-CCT-DRIVER',
+        vendor: 'Envilar',
+        description: 'Zigbee LED driver',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ZGR904-S'],
         model: 'ZGR904-S',
         vendor: 'Envilar',
-        description: 'Envilar touchlink remote',
+        description: 'Touchlink remote',
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
