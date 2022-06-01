@@ -2598,7 +2598,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['5047130P9'],
-        model: '5047130P9 ',
+        model: '5047130P9',
         vendor: 'Philips',
         description: 'Hue White ambiance Buckram single spotlight with bluetooth',
         meta: {turnsOffAtBrightness1: true},
