@@ -299,6 +299,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
+            {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
@@ -381,7 +382,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_iwbaamgh'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
