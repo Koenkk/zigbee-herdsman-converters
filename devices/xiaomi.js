@@ -1382,6 +1382,24 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.acn003'],
+        model: 'ZNCLBL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara curtain motor E1',
+        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.xiaomi_curtain_acn003_motor_state],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(), e.battery_voltage(),
+                exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+                    .withDescription('Motor state'),
+                exposes.binary('running', ea.STATE, true, false)
+                    .withDescription('Whether the motor is moving or not')],    
+        configure: async (device, coordinatorEndpoint, logger) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
+        ota: ota.zigbeeOTA,
+    };
+    {
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Xiaomi',
