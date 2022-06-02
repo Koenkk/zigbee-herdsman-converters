@@ -43,31 +43,6 @@ const tzLocal = {
             }
         },
     },
-    indicate_switch: {
-        key: ['indicate_switch'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'off': 0, 'switch': 1, 'position': 2};
-            value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const indicate = lookup[value];
-            await entity.write('genOnOff', {tuyaBacklightMode: indicate});
-            return {state: {indicate_switch: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    backlight: {
-        key: ['backlight'],
-        convertSet: async (entity, key, value, meta) => {
-            const backlight = value === 'ON' ? 1 : 0;
-            await entity.write('genOnOff', {tuyaBacklightSwitch: backlight});
-            return {state: {backlight}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
-        },
-    },
     power_on_behavior: {
         key: ['tuya_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -135,30 +110,6 @@ const fzLocal = {
             if (dp === 4) return {battery: value};
             else {
                 meta.logger.warn(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-    indicate_switch: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'tuyaBacklightMode';
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const indicateLookup = {0: 'off', 1: 'switch', 2: 'position'};
-                return {indicate_switch: indicateLookup[value]};
-            }
-        },
-    },
-    backlight: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'tuyaBacklightSwitch';
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const backlight = value ? 'ON' : 'OFF';
-                return {backlight};
             }
         },
     },
@@ -1876,10 +1827,8 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.power_on_behavior, fzLocal.backlight,
-            fzLocal.indicate_switch, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.power_on_behavior, tzLocal.backlight,
-            tzLocal.indicate_switch],
+        fromZigbee: [fz.on_off, fz.moes_power_on_behavior, fzLocal.power_on_behavior, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tzLocal.power_on_behavior],
         exposes: [
             e.power_on_behavior(),
             e.switch().withEndpoint('l1'),
