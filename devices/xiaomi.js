@@ -1386,7 +1386,7 @@ module.exports = [
         model: 'ZNCLBL01LM',
         vendor: 'Xiaomi',
         description: 'Aqara curtain driver E1',
-        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.xiaomi_curtain_acn003_motor_state],
+        fromZigbee: [fz.xiaomi_curtain_position, fz.battery, fz.cover_position_tilt, fz.aqara_opple],
         toZigbee: [tz.cover_position_tilt, tz.cover_state],
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(), e.battery_voltage(),
                 exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
