@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
