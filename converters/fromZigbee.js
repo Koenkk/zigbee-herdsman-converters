@@ -5998,29 +5998,6 @@ const converters = {
             }
         },
     },
-    xiaomi_curtain_acn003_motor_state: {
-        cluster: 'aqaraOpple',
-        type: ['readResponse', 'attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            let running = false;
-            const data = msg.data;
-            const lookup = {
-                0: 'closing',
-                1: 'opening',
-                2: 'stop',
-            };
-            if (data && data.hasOwnProperty(0x0421)) {
-                const value = [msg.data[0x0421]];
-                if (value < 2) {
-                    running = true;
-                }
-                return {
-                    motor_state: lookup[value],
-                    running: running,
-                };
-            }
-        },
-    },
     xiaomi_operation_mode_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
