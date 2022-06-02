@@ -164,4 +164,16 @@ module.exports = [
         description: 'Zigbee smart plug',
         extend: extend.switch(),
     },
+    {
+        zigbeeModel: ['S40LITE'],
+        model: 'S40ZBTPB',
+        vendor: 'SONOFF',
+        description: '15A Zigbee Smart Plug',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (devicePixelRatio, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+    },
+    },
 ];
