@@ -7406,9 +7406,9 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
             switch (dp) {
             case 2:
-                return {illuminance_lux: value.toFixed(0)};
+                return {illuminance_lux: value};
             case 4:
-                return {battery: value.toFixed(1)};
+                return {battery: value};
             case 1:
                 return {battery_low: value.toFixed(1)};
             default:
