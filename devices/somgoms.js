@@ -26,7 +26,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        zigbeeModel: ['sbordckq'],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sbordckq'}],
         model: 'SM-1CTW-EU',
         vendor: 'Somgoms',
         description: 'Curtain switch',
