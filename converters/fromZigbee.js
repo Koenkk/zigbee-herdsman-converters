@@ -8590,7 +8590,6 @@ const converters = {
             if (msg.data.hasOwnProperty('owonL3Energy')) {
                 payload.energy_l3 = msg.data['owonL3Energy'][1] / 1000.0;
             }
-            
             if (msg.data.hasOwnProperty('owonL1ReactiveEnergy')) {
                 payload.reactive_energy_l1 = msg.data['owonL1ReactiveEnergy'][1] / 1000.0;
             }
@@ -8600,7 +8599,6 @@ const converters = {
             if (msg.data.hasOwnProperty('owonL3ReactiveEnergy')) {
                 payload.reactive_energy_l3 = msg.data['owonL3ReactiveEnergy'][1] / 1000.0;
             }
-            
             if (msg.data.hasOwnProperty('owonL1PhasePower')) {
                 payload.power_l1 = msg.data['owonL1PhasePower'];
             }
@@ -8610,8 +8608,7 @@ const converters = {
             if (msg.data.hasOwnProperty('owonL3PhasePower')) {
                 payload.power_l3 = msg.data['owonL3PhasePower'];
             }
-            
-             if (msg.data.hasOwnProperty('owonL1PhaseReactivePower')) {
+            if (msg.data.hasOwnProperty('owonL1PhaseReactivePower')) {
                 payload.reactive_power_l1 = msg.data['owonL1PhaseReactivePower'];
             }
             if (msg.data.hasOwnProperty('owonL2PhaseReactivePower')) {
@@ -8620,7 +8617,6 @@ const converters = {
             if (msg.data.hasOwnProperty('owonL3PhaseReactivePower')) {
                 payload.reactive_power_l3 = msg.data['owonL3PhaseReactivePower'];
             }
-            
             if (msg.data.hasOwnProperty('owonL1PhaseVoltage')) {
                 payload.voltage_l1 = msg.data['owonL1PhaseVoltage'] / 10.0;
             }
@@ -8630,28 +8626,21 @@ const converters = {
             if (msg.data.hasOwnProperty('owonL3PhaseVoltage')) {
                 payload.voltage_l3 = msg.data['owonL3PhaseVoltage'] / 10.0;
             }
-            
             if (msg.data.hasOwnProperty('owonL1PhaseCurrent')) {
                 payload.current_l1 = msg.data['owonL1PhaseCurrent'] / 1000.0;
             }
-            
             if (msg.data.hasOwnProperty('owonL2PhaseCurrent')) {
                 payload.current_l2 = msg.data['owonL2PhaseCurrent'] / 1000.0;
             }
-            
             if (msg.data.hasOwnProperty('owonL3PhaseCurrent')) {
                 payload.current_l3 = msg.data['owonL3PhaseCurrent'] / 1000.0;
             }
-            
             if (msg.data.hasOwnProperty('owonFrequency')) {
                 payload.frequency = msg.data['owonFrequency'];
             }
-            
             if (msg.data.hasOwnProperty('owonReactiveEnergySum')) {
                 payload.reactive_energy_sum = msg.data['owonReactiveEnergySum'];
             }
-            
-            
             return payload;
         },
     },
