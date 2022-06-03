@@ -60,6 +60,18 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+	{
+        zigbeeModel: ['S40LITE'],
+        model: 'S40ZBTPB Lite',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart plug (US version)',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+		},
+	},
     {
         fingerprint: [
             // ModelID is from the temperature/humidity sensor (SNZB-02) but this is SNZB-04, wrong modelID in firmware?
