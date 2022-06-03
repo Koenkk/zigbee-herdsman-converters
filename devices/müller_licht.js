@@ -165,7 +165,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {
-        zigbeeModel: ['tint-ColorTemperature2'],
+        zigbeeModel: ['tint-ColorTemperature'],
         model: '404038',
         vendor: 'Müller Licht',
         description: 'Tint retro filament LED-bulb E27, Globe bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
