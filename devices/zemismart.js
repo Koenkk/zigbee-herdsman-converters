@@ -130,7 +130,7 @@ module.exports = [
             'button_6_hold', 'button_6_single', 'button_6_double'])],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_zigisuyh'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_zigisuyh'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_v4mevirn'}],
         model: 'ZIGBEE-B09-UK',
         vendor: 'Zemismart',
         description: 'Zigbee smart outlet universal socket with USB port',
