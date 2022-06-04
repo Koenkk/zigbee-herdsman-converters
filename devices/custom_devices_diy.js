@@ -302,7 +302,7 @@ module.exports = [
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
 			},
         exposes: [e.soil_moisture(), e.battery(),
-		exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 60 minutes(1 hour)')
+		exposes.numeric('report_delay', ea.ALL).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 60 minutes(1 hour)')
                 .withValueMin(1).withValueMax(180)],
     },
     {
