@@ -43,6 +43,73 @@ const tzLocal = {
             }
         },
     },
+    zb_sm_cover: {
+        key: ['state', 'position', 'reverse_direction', 'top_limit', 'bottom_limit', 'favorite_position', 'goto_positon', 'report'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'position': {
+                const invert = (meta.state) ? !meta.state.invert_cover : false;
+                value = invert ? 100 - value : value;
+                if (value >= 0 && value <= 100) {
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
+                } else {
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                }
+                break;
+            }
+            case 'state': {
+                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+
+                value = value.toLowerCase();
+                switch (value) {
+                case 'close':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
+                    break;
+                case 'open':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
+                    break;
+                case 'stop':
+                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
+                    break;
+                default:
+                    throw new Error('TuYa_cover_control: Invalid command received');
+                }
+                break;
+            }
+            case 'reverse_direction': {
+                meta.logger.info(`Motor direction ${(value) ? 'reverse' : 'forward'}`);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, (value) ? 1 : 0);
+                break;
+            }
+            case 'top_limit': {
+                await tuya.sendDataPointEnum(entity, 104, {'SET': 0, 'CLEAR': 1}[value]);
+                break;
+            }
+            case 'bottom_limit': {
+                await tuya.sendDataPointEnum(entity, 103, {'SET': 0, 'CLEAR': 1}[value]);
+                break;
+            }
+            case 'favorite_position': {
+                await tuya.sendDataPointValue(entity, 115, value);
+                break;
+            }
+            case 'goto_positon': {
+                if (value == 'FAVORITE') {
+                    value = (meta.state) ? meta.state.favorite_position : null;
+                } else {
+                    value = parseInt(value);
+                }
+                return tz.tuya_cover_control.convertSet(entity, 'position', value, meta);
+            }
+            case 'report': {
+                await tuya.sendDataPointBool(entity, 116, 0);
+                break;
+            }
+            }
+        },
+    },
 };
 
 const fzLocal = {
@@ -97,6 +164,71 @@ const fzLocal = {
             else {
                 meta.logger.warn(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
+        },
+    },
+    zb_sm_cover: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+
+                switch (dp) {
+                case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+                case tuya.dataPoints.coverArrived: { // Arrived at position
+                    const invert = (meta.state) ? !meta.state.invert_cover : false;
+                    const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
+                    if (position > 0 && position <= 100) {
+                        result.position = position;
+                        result.state = 'OPEN';
+                    } else if (position == 0) { // Report fully closed
+                        result.position = position;
+                        result.state = 'CLOSE';
+                    }
+                    break;
+                }
+                case 1: // report state
+                    result.state = {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value];
+                    break;
+                case tuya.dataPoints.motorDirection: // reverse direction
+                    result.reverse_direction = (value == 1);
+                    break;
+                case 10: // cycle time
+                    result.cycle_time = value;
+                    break;
+                case 101: // model
+                    result.motor_type = {0: '', 1: 'AM0/6-28R-Sm', 2: 'AM0/10-19R-Sm',
+                        3: 'AM1/10-13R-Sm', 4: 'AM1/20-13R-Sm', 5: 'AM1/30-13R-Sm'}[value];
+                    break;
+                case 102: // cycles
+                    result.cycle_count = value;
+                    break;
+                case 103: // set or clear bottom limit
+                    result.bottom_limit = {0: 'SET', 1: 'CLEAR'}[value];
+                    break;
+                case 104: // set or clear top limit
+                    result.top_limit = {0: 'SET', 1: 'CLEAR'}[value];
+                    break;
+                case 109: // active power
+                    result.active_power = value;
+                    break;
+                case 115: // favorite_position
+                    result.favorite_position = (value != 101) ? value : null;
+                    break;
+                case 116: // report confirmation
+                    break;
+                case 121: // running state
+                    result.running_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
+                    result.running = (value !== 1) ? true : false;
+                    break;
+                default: // Unknown code
+                    meta.logger.warn(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                    ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
         },
     },
 };
@@ -1128,7 +1260,6 @@ module.exports = [
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
         ],
         model: 'TS0601_cover',
@@ -2425,5 +2556,29 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'}],
+        model: 'ZB-Sm',
+        vendor: 'TuYa',
+        description: 'Tubular motor',
+        fromZigbee: [fzLocal.zb_sm_cover, fz.ignore_basic_report],
+        toZigbee: [tzLocal.zb_sm_cover],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.enum('goto_positon', ea.SET, ['25', '50', '75', 'FAVORITE']),
+            exposes.enum('running_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
+            exposes.numeric('active_power', ea.STATE).withDescription('Active power').withUnit('mWt'),
+            exposes.numeric('cycle_count', ea.STATE).withDescription('Cycle count'),
+            exposes.numeric('cycle_time', ea.STATE).withDescription('Cycle time').withUnit('ms'),
+            exposes.enum('top_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear top limit'),
+            exposes.enum('bottom_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear bottom limit'),
+            exposes.numeric('favorite_position', ea.STATE_SET).withValueMin(0).withValueMax(100)
+                .withDescription('Favorite position of this cover'),
+            exposes.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
+            exposes.text('motor_type', ea.STATE),
+            exposes.enum('report', ea.SET, ['REPORT']),
+        ],
     },
 ];
