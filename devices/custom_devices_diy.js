@@ -2,9 +2,47 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const constants = require('../lib/constants');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tz_custom = {
+	node_config: {
+        key: ['report_delay'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
+            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const payloads = {
+				report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
+            };
+            await entity.write(payloads[key][0], payloads[key][1]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+        convertGet: async (entity, key, meta) => {
+            const payloads = {
+				report_delay: ['genPowerCfg', 0x0201],
+            };
+            await entity.read(payloads[key][0], [payloads[key][1]]);
+        },
+    },
+};
+
+const fz_custom = {
+	node_config: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0201)) {
+                result.report_delay = msg.data[0x0201];
+            }
+            return result;
+        },
+    },
+};
 
 module.exports = [
     {
@@ -257,17 +295,15 @@ module.exports = [
         model: 'EFEKTA_miniPWS',
         vendor: 'Custom devices (DiY)',
         description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
-        fromZigbee: [fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        fromZigbee: [fz.soil_moisture, fz.battery, fz_custom.node_config],
+        toZigbee: [tz.factory_reset, tz_custom.node_config],
+		configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
-        },
-        exposes: [e.soil_moisture(), e.battery()],
+			},
+        exposes: [e.soil_moisture(), e.battery(),
+		exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 60 minutes(1 hour)')
+                .withValueMin(1).withValueMax(180)],
     },
     {
         zigbeeModel: ['EFEKTA_eON213wz'],
