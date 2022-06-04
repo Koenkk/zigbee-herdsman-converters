@@ -7,13 +7,13 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const tz_custom = {
-	node_config: {
+    node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
             const payloads = {
-				report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
+                report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
             return {
@@ -30,7 +30,7 @@ const tz_custom = {
 };
 
 const fz_custom = {
-	node_config: {
+    node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -296,12 +296,12 @@ module.exports = [
         description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
         fromZigbee: [fz.soil_moisture, fz.battery, fz_custom.node_config],
         toZigbee: [tz.factory_reset, tz_custom.node_config],
-		configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
-			},
+        },
         exposes: [e.soil_moisture(), e.battery(),
-		exposes.numeric('report_delay', ea.ALL).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 60 minutes(1 hour)')
+            exposes.numeric('report_delay', ea.ALL).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
                 .withValueMin(1).withValueMax(180)],
     },
     {
