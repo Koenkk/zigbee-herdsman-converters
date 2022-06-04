@@ -4947,42 +4947,25 @@ const converters = {
             }
             case 'upper_temp':
                 if (value >= 35 && value <= 95) {
-                    await tuya.sendDataPointValue(
-                        entity,
-                        tuya.dataPoints.x5hSetTempCeiling,
-                        value,
-                    );
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTempCeiling, value);
                 } else {
                     throw new Error('Supported values are in range [35, 95]');
                 }
                 break;
             case 'output_reverse':
-                await tuya.sendDataPointBool(
-                    entity,
-                    tuya.dataPoints.x5hOutputReverse,
-                    value === 'ON',
-                );
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hOutputReverse, value === 'ON');
                 break;
             case 'temp_diff':
                 if (value >= 1 && value <= 9.5) {
                     value = Math.round(value * 10);
-
-                    await tuya.sendDataPointValue(
-                        entity,
-                        tuya.dataPoints.x5hTempDiff,
-                        value,
-                    );
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempDiff, value);
                 } else {
                     throw new Error('Supported values are in range [1, 9.5]');
                 }
                 break;
             case 'protection_temp_limit':
                 if (value >= 5 && value <= 60) {
-                    await tuya.sendDataPointValue(
-                        entity,
-                        tuya.dataPoints.x5hProtectionTempLimit,
-                        value,
-                    );
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hProtectionTempLimit, value);
                 } else {
                     throw new Error('Supported values are in range [5, 60]');
                 }
@@ -4995,53 +4978,30 @@ const converters = {
                         value = 4096 + value;
                     }
 
-                    await tuya.sendDataPointValue(
-                        entity,
-                        tuya.dataPoints.x5hTempCorrection,
-                        value,
-                    );
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempCorrection, value);
                 } else {
                     throw new Error('Supported values are in range [-9.9, 9.9]');
                 }
                 break;
             case 'factory_reset':
-                await tuya.sendDataPointBool(
-                    entity,
-                    tuya.dataPoints.x5hFactoryReset,
-                    value === 'ON',
-                );
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFactoryReset, value === 'ON');
                 break;
             case 'week':
-                await tuya.sendDataPointEnum(
-                    entity,
-                    tuya.dataPoints.x5hWorkingDaySetting,
-                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number),
-                );
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hWorkingDaySetting,
+                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number));
                 break;
             case 'frost_protection':
-                await tuya.sendDataPointBool(
-                    entity,
-                    tuya.dataPoints.x5hFrostProtection,
-                    value === 'ON',
-                );
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFrostProtection, value === 'ON');
                 break;
             case 'sound':
-                await tuya.sendDataPointBool(
-                    entity,
-                    tuya.dataPoints.x5hSound,
-                    value === 'ON',
-                );
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hSound, value === 'ON');
                 break;
             case 'brightness_state': {
                 value = value.toLowerCase();
                 const lookup = {off: 0, low: 1, medium: 2, high: 3};
                 utils.validateValue(value, Object.keys(lookup));
                 value = lookup[value];
-                await tuya.sendDataPointEnum(
-                    entity,
-                    tuya.dataPoints.x5hBackplaneBrightness,
-                    value,
-                );
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hBackplaneBrightness, value);
                 break;
             }
             case 'sensor': {
@@ -5055,11 +5015,7 @@ const converters = {
             case 'current_heating_setpoint':
                 if (value >= 5 && value <= 60) {
                     value = Math.round(value * 10);
-                    await tuya.sendDataPointValue(
-                        entity,
-                        tuya.dataPoints.x5hSetTemp,
-                        value,
-                    );
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTemp, value);
                 } else {
                     throw new Error(`Unsupported value: ${value}`);
                 }
