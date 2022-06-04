@@ -1,8 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {
-    ...require('../converters/fromZigbee'),
-    legacy: require('../lib/legacy').fromZigbee,
-};
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
@@ -14,12 +11,7 @@ const tuya = require('../lib/tuya');
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
-        zigbeeModel: [
-            'CO_V15',
-            'CO_YDLV10',
-            'CO_V16',
-            '1ccaa94c49a84abaa9e38687913947ba',
-        ],
+        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
         vendor: 'HEIMAN',
@@ -34,12 +26,7 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: [
-            'PIRSensor-N',
-            'PIRSensor-EM',
-            'PIRSensor-EF-3.0',
-            'PIR_TPV13',
-        ],
+        zigbeeModel: ['PIRSensor-N', 'PIRSensor-EM', 'PIRSensor-EF-3.0', 'PIR_TPV13'],
         model: 'HS3MS',
         vendor: 'HEIMAN',
         description: 'Smart motion sensor',
@@ -56,10 +43,7 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'haElectricalMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint);
@@ -78,10 +62,7 @@ module.exports = [
         options: [exposes.options.measurement_poll_interval()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'haElectricalMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
@@ -89,19 +70,9 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: [
-            'SMOK_V16',
-            'SMOK_V15',
-            'b5db59bfd81e4f1f95dc57fdbba17931',
-            '98293058552c49f38ad0748541ee96ba',
-            'SMOK_YDLV10',
-            'FB56-SMF02HM1.4',
-            'SmokeSensor-N-3.0',
-            '319fa36e7384414a9ea62cba8f6e7626',
-            'c3442b4ac59b4ba1a83119d938f283ab',
-            'SmokeSensor-EF-3.0',
-            'SMOK_HV14',
-        ],
+        zigbeeModel: ['SMOK_V16', 'SMOK_V15', 'b5db59bfd81e4f1f95dc57fdbba17931', '98293058552c49f38ad0748541ee96ba', 'SMOK_YDLV10',
+            'FB56-SMF02HM1.4', 'SmokeSensor-N-3.0', '319fa36e7384414a9ea62cba8f6e7626', 'c3442b4ac59b4ba1a83119d938f283ab',
+            'SmokeSensor-EF-3.0', 'SMOK_HV14'],
         model: 'HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
@@ -204,12 +175,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: [
-            'WaterSensor-N',
-            'WaterSensor-EM',
-            'WaterSensor-N-3.0',
-            'WaterSensor-EF-3.0',
-        ],
+        zigbeeModel: ['WaterSensor-N', 'WaterSensor-EM', 'WaterSensor-N-3.0', 'WaterSensor-EF-3.0'],
         model: 'HS1WL/HS3WL',
         vendor: 'HEIMAN',
         description: 'Water leakage sensor',
@@ -228,16 +194,9 @@ module.exports = [
         model: 'HS1RC-N',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [
-            fz.battery,
-            fz.legacy.heiman_smart_controller_armmode,
-            fz.command_emergency,
-        ],
+        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
-        exposes: [
-            e.battery(),
-            e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones']),
-        ],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -252,10 +211,7 @@ module.exports = [
         description: 'Smart remote controller',
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
-        exposes: [
-            e.battery(),
-            e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones']),
-        ],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -266,12 +222,7 @@ module.exports = [
             // Since arm command has a response zigbee-herdsman doesn't send a default response.
             // This causes the remote to repeat the arm command, so send a default response here.
             if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
-                await data.endpoint.defaultResponse(
-                    0,
-                    0,
-                    1281,
-                    data.meta.zclTransactionSequenceNumber,
-                );
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
             }
         },
     },
@@ -280,16 +231,9 @@ module.exports = [
         model: 'HS1RC-EM',
         vendor: 'HEIMAN',
         description: 'Smart remote controller',
-        fromZigbee: [
-            fz.battery,
-            fz.legacy.heiman_smart_controller_armmode,
-            fz.command_emergency,
-        ],
+        fromZigbee: [fz.battery, fz.legacy.heiman_smart_controller_armmode, fz.command_emergency],
         toZigbee: [],
-        exposes: [
-            e.battery(),
-            e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones']),
-        ],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -352,13 +296,7 @@ module.exports = [
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [
-            e.occupancy(),
-            e.battery_low(),
-            e.battery(),
-            e.battery_voltage(),
-            e.tamper(),
-        ],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -380,14 +318,9 @@ module.exports = [
         whiteLabel: [{vendor: 'Ferguson', model: 'TH-T_V14'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, [
-                'msTemperatureMeasurement',
-            ]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [
-                'msRelativeHumidity',
-                'genPowerCfg',
-            ]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint2);
             await reporting.batteryVoltage(endpoint2);
@@ -403,18 +336,13 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, [
-                'msTemperatureMeasurement',
-                'genPowerCfg',
-            ]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
             await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
 
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [
-                'msRelativeHumidity',
-            ]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
             await reporting.humidity(endpoint2);
         },
         exposes: [e.temperature(), e.humidity(), e.battery()],
@@ -429,21 +357,15 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'haElectricalMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1,
-                acVoltageDivisor: 100,
-                acCurrentMultiplier: 1,
-                acCurrentDivisor: 100,
-                acPowerMultiplier: 1,
-                acPowerDivisor: 10,
+                acVoltageMultiplier: 1, acVoltageDivisor: 100,
+                acCurrentMultiplier: 1, acCurrentDivisor: 100,
+                acPowerMultiplier: 1, acPowerDivisor: 10,
             });
         },
     },
@@ -456,10 +378,7 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'haElectricalMeasurement',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint);
@@ -487,11 +406,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const bindClusters = [
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'genPowerCfg',
-            ];
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
@@ -500,18 +415,11 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'SOS-EM', manufacturerName: 'HEIMAN'},
-            {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'},
-        ],
+        fingerprint: [{modelID: 'SOS-EM', manufacturerName: 'HEIMAN'}, {modelID: 'SOS-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1EB/HS1EB-E',
         vendor: 'HEIMAN',
         description: 'Smart emergency button',
-        fromZigbee: [
-            fz.command_status_change_notification_action,
-            fz.legacy.st_button_state,
-            fz.battery,
-        ],
+        fromZigbee: [fz.command_status_change_notification_action, fz.legacy.st_button_state, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(['off', 'single', 'double', 'hold'])],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -527,17 +435,11 @@ module.exports = [
         vendor: 'HEIMAN',
         description: 'Smart scene switch',
         fromZigbee: [fz.battery, fz.heiman_scenes],
-        exposes: [
-            e.battery(),
-            e.action(['cinema', 'at_home', 'sleep', 'go_out', 'repast']),
-        ],
+        exposes: [e.battery(), e.action(['cinema', 'at_home', 'sleep', 'go_out', 'repast'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'heimanSpecificScenes',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
@@ -585,10 +487,7 @@ module.exports = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [
-            {modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'},
-            {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'},
-        ],
+        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}, {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-EF',
         vendor: 'HEIMAN',
         description: 'Vibration sensor',
@@ -607,109 +506,42 @@ module.exports = [
         model: 'HS2AQ-EM',
         vendor: 'HEIMAN',
         description: 'Air quality monitor',
-        fromZigbee: [
-            fz.battery,
-            fz.temperature,
-            fz.humidity,
-            fz.heiman_pm25,
-            fz.heiman_hcho,
-            fz.heiman_air_quality,
-        ],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'measuredValue',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificPM25Measurement',
-                            payload,
-                        );
+                        const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'measuredValue',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificFormaldehydeMeasurement',
-                            payload,
-                        );
+                        const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificFormaldehydeMeasurement', payload);
                     },
                     batteryState: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'batteryState',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificAirQuality',
-                            payload,
-                        );
+                        const payload = reporting.payload('batteryState', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     pm10measuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'pm10measuredValue',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificAirQuality',
-                            payload,
-                        );
+                        const payload = reporting.payload('pm10measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     tvocMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'tvocMeasuredValue',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificAirQuality',
-                            payload,
-                        );
+                        const payload = reporting.payload('tvocMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                     aqiMeasuredValue: async (endpoint, overrides) => {
-                        const payload = reporting.payload(
-                            'aqiMeasuredValue',
-                            0,
-                            constants.repInterval.HOUR,
-                            1,
-                            overrides,
-                        );
-                        await endpoint.configureReporting(
-                            'heimanSpecificAirQuality',
-                            payload,
-                        );
+                        const payload = reporting.payload('aqiMeasuredValue', 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting('heimanSpecificAirQuality', payload);
                     },
                 },
             };
 
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'genTime',
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'heimanSpecificPM25Measurement',
-                'heimanSpecificFormaldehydeMeasurement',
-                'heimanSpecificAirQuality',
-            ]);
+                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity', 'heimanSpecificPM25Measurement',
+                'heimanSpecificFormaldehydeMeasurement', 'heimanSpecificAirQuality']);
 
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
@@ -726,32 +558,13 @@ module.exports = [
 
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
-            const time = Math.round(
-                (new Date().getTime() - constants.OneJanuary2000) / 1000,
-            );
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
-            const values = {
-                timeStatus: 3,
-                time: time,
-                timeZone: new Date().getTimezoneOffset() * -1 * 60,
-            };
+            const values = {timeStatus: 3, time: time, timeZone: ((new Date()).getTimezoneOffset() * -1) * 60};
             endpoint.write('genTime', values);
         },
-        exposes: [
-            e.battery(),
-            e.temperature(),
-            e.humidity(),
-            e.pm25(),
-            e.hcho(),
-            e.voc(),
-            e.aqi(),
-            e.pm10(),
-            exposes.enum('battery_state', ea.STATE, [
-                'not_charging',
-                'charging',
-                'charged',
-            ]),
-        ],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.voc(), e.aqi(), e.pm10(),
+            exposes.enum('battery_state', ea.STATE, ['not_charging', 'charging', 'charged'])],
     },
     {
         fingerprint: [{modelID: 'IRControl-EM', manufacturerName: 'HEIMAN'}],
@@ -763,10 +576,7 @@ module.exports = [
         exposes: [e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg',
-                'heimanSpecificInfraRedRemote',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificInfraRedRemote']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
@@ -790,10 +600,7 @@ module.exports = [
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'genDeviceTempCfg',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
         },
@@ -815,20 +622,11 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, [
-                'genOnOff',
-                'genDeviceTempCfg',
-            ]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, [
-                'genOnOff',
-            ]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
-        exposes: [
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
-            e.device_temperature(),
-        ],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.device_temperature()],
     },
     {
         zigbeeModel: ['HS2SW3L-EF-3.0', 'HS2SW3L-EFR-3.0', 'HS2SW3A-N'],
@@ -846,24 +644,13 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, [
-                'genOnOff',
-                'genDeviceTempCfg',
-            ]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, [
-                'genOnOff',
-            ]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, [
-                'genOnOff',
-            ]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genDeviceTempCfg']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
-        exposes: [
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('center'),
-            e.switch().withEndpoint('right'),
-            e.device_temperature(),
-        ],
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            e.device_temperature()],
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
@@ -874,10 +661,7 @@ module.exports = [
         toZigbee: [tz.cover_via_brightness],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genLevelCtrl',
-                'genPowerCfg',
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
             await reporting.brightness(endpoint);
         },
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
