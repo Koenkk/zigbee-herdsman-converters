@@ -267,7 +267,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-001P'}],
+        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-001P'}, {vendor: 'Gledopto', model: 'GL-C-002P'}],
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], noConfigure: true}),
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
