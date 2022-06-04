@@ -4931,7 +4931,7 @@ const converters = {
     },
     x5h_thermostat: {
         key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
-            'local_temperature_calibration', 'protection_temp_limit', 'temp_diff', 'output_reverse', 'upper_temp', 'preset', 'child_lock'],
+            'local_temperature_calibration', 'protection_temp_limit', 'temp_diff', 'upper_temp', 'preset', 'child_lock'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
@@ -4951,9 +4951,6 @@ const converters = {
                 } else {
                     throw new Error('Supported values are in range [35, 95]');
                 }
-                break;
-            case 'output_reverse':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hOutputReverse, value === 'ON');
                 break;
             case 'temp_diff':
                 if (value >= 1 && value <= 9.5) {

@@ -4813,17 +4813,11 @@ const converters = {
 
                 return {factory_reset: value ? 'ON' : 'OFF'};
             }
-            case tuya.dataPoints.x5hFaultAlarm: {
-                return {fault_alarm: value};
-            }
             case tuya.dataPoints.x5hTempDiff: {
                 return {temp_diff: parseFloat((value / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hProtectionTempLimit: {
                 return {protection_temp_limit: value};
-            }
-            case tuya.dataPoints.x5hOutputReverse: {
-                return {output_reverse: value ? 'ON' : 'OFF'};
             }
             case tuya.dataPoints.x5hBackplaneBrightness: {
                 const lookup = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};

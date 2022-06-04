@@ -1957,8 +1957,6 @@ module.exports = [
                 .withValueMin(1).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('Difference between the current measured temperature on the device ' +
                     'and the setpoint temperature to start heating'),
-            exposes.binary('output_reverse', ea.STATE_SET, 'ON', 'OFF'),
-            exposes.numeric('fault_alarm', ea.STATE),
             exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
                 .withValueMin(35).withValueStep(0.5).withPreset('default', 60, 'Default value'),
         ],
