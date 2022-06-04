@@ -5702,7 +5702,10 @@ const converters = {
                     globalStore.putValue(msg.endpoint, 'occupancy_timer', timer);
                 }
 
-                const illuminance = msg.data['illuminance'] - 65536;
+                // Sometimes RTCGQ14LM reports high illuminance values in the dark
+                // https://github.com/Koenkk/zigbee2mqtt/issues/12596
+                const illuminance = msg.data['illuminance'] > 130536 ? 0 : msg.data['illuminance'] - 65536;
+
                 const payload = {occupancy: true, illuminance: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance')};
                 utils.noOccupancySince(msg.endpoint, options, publish, 'start');
                 return payload;
@@ -7301,9 +7304,9 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
             switch (dp) {
             case 2:
-                return {illuminance_lux: value.toFixed(0)};
+                return {illuminance_lux: value};
             case 4:
-                return {battery: value.toFixed(1)};
+                return {battery: value};
             case 1:
                 return {battery_low: value.toFixed(1)};
             default:

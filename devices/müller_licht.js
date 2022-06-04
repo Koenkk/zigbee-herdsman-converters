@@ -8,9 +8,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['tint-ExtendedColor'],
-        model: '404036',
+        model: '404036/45327/45317',
         vendor: 'Müller Licht',
-        description: 'Tint LED-globeform white+color',
+        description: 'Tint LED white+color',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
@@ -162,6 +162,14 @@ module.exports = [
         vendor: 'Müller Licht',
         description: 'Tint retro filament LED-bulb E27, Edison bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
         extend: extend.light_onoff_brightness_colortemp(),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        zigbeeModel: ['tint-ColorTemperature2'],
+        model: '404038',
+        vendor: 'Müller Licht',
+        description: 'Tint retro filament LED-bulb E27, Globe bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {

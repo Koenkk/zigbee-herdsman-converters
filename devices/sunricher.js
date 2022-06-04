@@ -281,7 +281,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/}],
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000001b.....$/}],
         model: 'SR-ZGP2801K2-DIM',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',

@@ -88,7 +88,7 @@ module.exports = [
                     'Valve Characteristic Lost'),
             exposes.binary('adaptation_run_settings', ea.ALL, true, false)
                 .withDescription('Automatic adaptation run enabled (the one during the night)'),
-            exposes.enum('adaptation_run_control', ea.ALL, ['initate_adaptation', 'cancel_adaptation'])
+            exposes.enum('adaptation_run_control', ea.ALL, ['none', 'initiate_adaptation', 'cancel_adaptation'])
                 .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
             exposes.numeric('regulation_setpoint_offset', ea.ALL)
                 .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
@@ -130,20 +130,23 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
-
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'danfossPreheatStatus',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 1,
-            }], options);
-
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'danfossAdaptionRunStatus',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], options);
+
+            try {
+                await endpoint.configureReporting('hvacThermostat', [{
+                    attribute: 'danfossPreheatStatus',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                }], options);
+            } catch (e) {
+                /* not supported by all */
+            }
 
             try {
                 await endpoint.read('hvacThermostat', [

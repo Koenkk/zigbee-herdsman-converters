@@ -88,7 +88,7 @@ module.exports = [
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
     },
     {
-        zigbeeModel: ['lumi.light.aqcn02', 'lumi.light.acn014'],
+        zigbeeModel: ['lumi.light.aqcn02'],
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
@@ -109,7 +109,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['lumi.light.cwac02'],
+        zigbeeModel: ['lumi.light.cwac02', 'lumi.light.acn014'],
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 smart LED bulb',
@@ -1188,7 +1188,7 @@ module.exports = [
         exposes: [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
-            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'),
+            exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'), e.device_temperature(),
         ],
     },
     {
@@ -1779,19 +1779,19 @@ module.exports = [
         vendor: 'Xiaomi',
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
-        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.battery(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.device_temperature(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg', 'genAnalogInput'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryVoltage(endpoint);
             await reporting.humidity(endpoint);
             await reporting.temperature(endpoint);
             const payload = reporting.payload('presentValue', 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting('genAnalogInput', payload);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         ota: ota.zigbeeOTA,
     },
