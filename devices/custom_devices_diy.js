@@ -22,7 +22,7 @@ const tz_custom = {
         },
         convertGet: async (entity, key, meta) => {
             const payloads = {
-				report_delay: ['genPowerCfg', 0x0201],
+                report_delay: ['genPowerCfg', 0x0201],
             };
             await entity.read(payloads[key][0], [payloads[key][1]]);
         },
