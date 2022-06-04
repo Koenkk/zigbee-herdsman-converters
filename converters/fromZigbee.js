@@ -4836,7 +4836,7 @@ const converters = {
                 // Sometimes, for example on thermostat restart, it sends message like:
                 // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
                 // It doesn't represent any brightness value and brightness remains the previous value
-                const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState');
+                const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState') || 1;
                 return {brightness_state: lookup[lastValue]};
             }
             case tuya.dataPoints.x5hWeeklyProcedure: {
