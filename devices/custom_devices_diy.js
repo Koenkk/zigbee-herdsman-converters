@@ -6,7 +6,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const tz_custom = {
+const tzCustom = {
     node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -29,7 +29,7 @@ const tz_custom = {
     },
 };
 
-const fz_custom = {
+const fzCustom = {
     node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -294,8 +294,8 @@ module.exports = [
         model: 'EFEKTA_miniPWS',
         vendor: 'Custom devices (DiY)',
         description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
-        fromZigbee: [fz.soil_moisture, fz.battery, fz_custom.node_config],
-        toZigbee: [tz.factory_reset, tz_custom.node_config],
+        fromZigbee: [fz.soil_moisture, fz.battery, fzCustom.node_config],
+        toZigbee: [tz.factory_reset, tzCustom.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
