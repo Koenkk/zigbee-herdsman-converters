@@ -1128,7 +1128,6 @@ module.exports = [
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
         ],
         model: 'TS0601_cover',
@@ -2425,5 +2424,28 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_zyrdrmno'}],
+        model: 'ZB-Sm',
+        vendor: 'TuYa',
+        description: 'Tubular motor',
+        fromZigbee: [fz.zb_sm_tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.zb_sm_cover_control],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.enum('goto_positon', ea.SET, ['25', '50', '75', 'FAVORITE']),
+            exposes.enum('running_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
+            exposes.numeric('active_power', ea.STATE).withDescription('Active power').withUnit('mWt'),
+            exposes.numeric('cycle_count', ea.STATE).withDescription('Cycle count'),
+            exposes.numeric('cycle_time', ea.STATE).withDescription('Cycle time').withUnit('ms'),
+            exposes.enum('top_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear top limit'),
+            exposes.enum('bottom_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear bottom limit'),
+            exposes.numeric('favorite_position', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Favorite position of this cover'),
+            exposes.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
+            exposes.text('motor_type', ea.STATE),
+            exposes.enum('report', ea.SET, ['REPORT']),
+        ],
     },
 ];
