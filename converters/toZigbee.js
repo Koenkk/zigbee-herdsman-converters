@@ -3842,7 +3842,7 @@ const converters = {
     tuya_switch_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4};
+            const lookup = {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6};
             const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');

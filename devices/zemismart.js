@@ -189,4 +189,33 @@ module.exports = [
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options, tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}],
+        model: 'TB26-6',
+        vendor: 'Zemismart',
+        description: '6-gang smart wall switch',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(4)) await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(5)) await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(6)) await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['genOnOff']);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
 ];
