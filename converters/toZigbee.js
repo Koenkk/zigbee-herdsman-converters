@@ -4939,7 +4939,7 @@ const converters = {
                 break;
             case 'preset': {
                 value = value.toLowerCase();
-                const lookup = {manual: 0, program: 1, temporary_pattern: 2};
+                const lookup = {manual: 0, program: 1};
                 utils.validateValue(value, Object.keys(lookup));
                 value = lookup[value];
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
