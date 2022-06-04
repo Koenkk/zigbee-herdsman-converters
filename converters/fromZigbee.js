@@ -8608,8 +8608,8 @@ const converters = {
                     result.cycle_time = value;
                     break;
                 case 101: // model
-                    result.motor_type = {0: '', 1: 'AM0/6-28R-Sm', 2: 'AM0/10-19R-Sm', 
-                    3: 'AM1/10-13R-Sm', 4: 'AM1/20-13R-Sm', 5: 'AM1/30-13R-Sm'}[value];
+                    result.motor_type = {0: '', 1: 'AM0/6-28R-Sm', 2: 'AM0/10-19R-Sm',
+                        3: 'AM1/10-13R-Sm', 4: 'AM1/20-13R-Sm', 5: 'AM1/30-13R-Sm'}[value];
                     break;
                 case 102: // cycles
                     result.cycle_count = value;
@@ -8631,7 +8631,7 @@ const converters = {
                 case 121: // running state
                     result.running_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
                     result.running = (value !== 1) ? true : false;
-                    break;    
+                    break;
                 default: // Unknown code
                     meta.logger.warn(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);

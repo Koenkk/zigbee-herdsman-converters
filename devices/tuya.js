@@ -2442,7 +2442,8 @@ module.exports = [
             exposes.numeric('cycle_time', ea.STATE).withDescription('Cycle time').withUnit('ms'),
             exposes.enum('top_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear top limit'),
             exposes.enum('bottom_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear bottom limit'),
-            exposes.numeric('favorite_position', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Favorite position of this cover'),
+            exposes.numeric('favorite_position', ea.STATE_SET).withValueMin(0).withValueMax(100)
+                .withDescription('Favorite position of this cover'),
             exposes.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
             exposes.text('motor_type', ea.STATE),
             exposes.enum('report', ea.SET, ['REPORT']),
