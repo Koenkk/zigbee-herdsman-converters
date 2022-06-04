@@ -1829,16 +1829,9 @@ module.exports = [
         description: 'Smart light switch - 4 gang with neutral wire',
         fromZigbee: [fz.on_off, fzLocal.power_on_behavior, fz.ignore_basic_report],
         toZigbee: [tz.on_off, tzLocal.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.power_on_behavior().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power_on_behavior().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'),
-            e.power_on_behavior().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'),
-            e.power_on_behavior().withEndpoint('l4'),
-        ],
+        exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
