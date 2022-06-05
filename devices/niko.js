@@ -225,7 +225,7 @@ module.exports = [
         vendor: 'Niko',
         description: 'Connectable dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config], 
+        toZigbee: [tz.light_onoff_brightness, tz.level_config],
         exposes: [e.light_brightness().withLevelConfig()],
     },
 ];
