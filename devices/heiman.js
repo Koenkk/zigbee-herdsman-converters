@@ -118,6 +118,15 @@ module.exports = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['RH3070'],
+        model: 'HS1CG',
+        vendor: 'Heiman',
+        description: 'Smart combustible gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['GAS_V15'],
         model: 'HS1CG_M',
         vendor: 'HEIMAN',
