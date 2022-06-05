@@ -190,6 +190,30 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}],
+        model: 'TB26-4',
+        vendor: 'Zemismart',
+        description: '4-Gang Smart Wall Switch',
+        exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        toZigbee: [tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(3)) await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(4)) await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}],
         model: 'TB26-6',
         vendor: 'Zemismart',
