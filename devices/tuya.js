@@ -43,6 +43,20 @@ const tzLocal = {
             }
         },
     },
+    power_on_behavior: {
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0, 'on': 1, 'previous': 2};
+            utils.validateValue(value, Object.keys(lookup));
+            const pState = lookup[value];
+            await entity.write('manuSpecificTuya_3', {'powerOnBehavior': pState}, {disableDefaultResponse: true});
+            return {state: {power_on_behavior: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
+        },
+    },
     zb_sm_cover: {
         key: ['state', 'position', 'reverse_direction', 'top_limit', 'bottom_limit', 'favorite_position', 'goto_positon', 'report'],
         convertSet: async (entity, key, value, meta) => {
@@ -163,6 +177,19 @@ const fzLocal = {
             if (dp === 4) return {battery: value};
             else {
                 meta.logger.warn(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
+    power_on_behavior: {
+        cluster: 'manuSpecificTuya_3',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const attribute = 'powerOnBehavior';
+            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
+
+            if (msg.data.hasOwnProperty(attribute)) {
+                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model);
+                return {[property]: lookup[msg.data[attribute]]};
             }
         },
     },
@@ -1931,9 +1958,11 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4')],
+        fromZigbee: [fz.on_off, fzLocal.power_on_behavior, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tzLocal.power_on_behavior],
+        exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
