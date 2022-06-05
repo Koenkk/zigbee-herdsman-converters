@@ -20,12 +20,6 @@ const tzCustom = {
                 state: {[key]: rawValue},
             };
         },
-        convertGet: async (entity, key, meta) => {
-            const payloads = {
-                report_delay: ['genPowerCfg', 0x0201],
-            };
-            await entity.read(payloads[key][0], [payloads[key][1]]);
-        },
     },
 };
 
@@ -301,7 +295,7 @@ module.exports = [
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
         },
         exposes: [e.soil_moisture(), e.battery(),
-            exposes.numeric('report_delay', ea.ALL).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
                 .withValueMin(1).withValueMax(180)],
     },
     {
