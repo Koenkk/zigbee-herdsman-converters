@@ -121,7 +121,7 @@ module.exports = [
         zigbeeModel: ['RH3070'],
         model: 'HS1CG',
         vendor: 'Heiman',
-        description: 'Smart Combustible Gas Sensor',
+        description: 'Smart combustible gas sensor',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
