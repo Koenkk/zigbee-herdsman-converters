@@ -1538,14 +1538,14 @@ module.exports = [
         model: 'GZCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance],
+        fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux()],
     },
