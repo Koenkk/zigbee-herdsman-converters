@@ -2496,7 +2496,7 @@ const converters = {
                 value = typeof value === 'string' ? value.toLowerCase() : value;
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
                 value = meta.options.invert_cover ? 100 - value : value;
-      
+
                 if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
                     await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: value},
                         utils.getOptions(meta.mapped, entity));
