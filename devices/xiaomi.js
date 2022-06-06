@@ -1394,8 +1394,8 @@ module.exports = [
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not')],
         configure: async (device, coordinatorEndpoint, logger) => {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
         ota: ota.zigbeeOTA,
     },
