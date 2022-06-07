@@ -237,7 +237,6 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         exposes: [e.switch(), e.power(), e.energy()],
-        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['E1E-G7F'],
