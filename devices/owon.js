@@ -132,7 +132,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             if (device.powerSource === 'Unknown') {
-    device.powerSource = 'Mains (single phase)';
+                device.powerSource = 'Mains (single phase)';
                 device.save();
             }
             // const payload = [{
