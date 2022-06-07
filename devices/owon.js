@@ -131,6 +131,10 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            if (device.powerSource === 'Unknown') {
+    device.powerSource = 'Mains (single phase)';
+                device.save();
+            }
             // const payload = [{
             //         attribute: 'owonL2Energy',
             //         minimumReportInterval: 5,
