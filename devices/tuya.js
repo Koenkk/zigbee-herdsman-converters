@@ -247,7 +247,7 @@ const fzLocal = {
                 case 116: // report confirmation
                     break;
                 case 121: // running state
-                    result.running_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
+                    result.motor_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
                     result.running = (value !== 1) ? true : false;
                     break;
                 default: // Unknown code
@@ -2598,7 +2598,7 @@ module.exports = [
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.enum('goto_positon', ea.SET, ['25', '50', '75', 'FAVORITE']),
-            exposes.enum('running_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
+            exposes.enum('motor_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
             exposes.numeric('active_power', ea.STATE).withDescription('Active power').withUnit('mWt'),
             exposes.numeric('cycle_count', ea.STATE).withDescription('Cycle count'),
             exposes.numeric('cycle_time', ea.STATE).withDescription('Cycle time').withUnit('ms'),
