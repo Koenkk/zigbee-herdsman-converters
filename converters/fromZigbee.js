@@ -8271,7 +8271,7 @@ const converters = {
             }
         },
     },
-    sunricher_SRZGP2801K45C: {
+    sunricher_SRZGP2801K45C:{
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
@@ -8291,7 +8291,7 @@ const converters = {
                 0x64: 'WW_inc/CW_dec',
                 0x41: 'R>G>B',
                 0x42: 'B<G<R',
-                0x40: 'RGB_release'
+                0x40: 'RGB_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
