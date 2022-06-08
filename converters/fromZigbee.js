@@ -7306,7 +7306,7 @@ const converters = {
             case 4:
                 return {battery: value};
             case 1:
-                return {battery_low: value.toFixed(1)};
+                return {battery_low: value === 1};
             default:
                 meta.logger.warn(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
