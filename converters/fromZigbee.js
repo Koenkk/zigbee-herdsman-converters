@@ -7645,7 +7645,6 @@ const converters = {
             }
         },
     },
-
     wiser_smart_setpoint_command_client: {
         cluster: 'hvacThermostat',
         type: ['command', 'commandWiserSmartSetSetpoint'],
@@ -8744,7 +8743,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => null,
     },
-
     // #endregion
 };
 
