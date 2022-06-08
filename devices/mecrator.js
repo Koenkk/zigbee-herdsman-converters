@@ -2,10 +2,18 @@ const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
 module.exports = [
+	{
+		zigbeeModel: ['TS0501B'], 
+		model: 'S9B15LED12-ZB', 
+		vendor: 'Mercator', 
+		description: 'B15 LED Globe 3000k 380lm 4w', 
+		extend: extend.light_onoff_brightness(),
+	},
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_7jnk7l3k'}],
         model: 'SPP02GIP',
