@@ -300,4 +300,13 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'release'])],
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000aaf.....$/}],
+        model: 'SR-ZGP2801K-5C', 
+        vendor: 'Sunricher', 
+        description: 'Pushbutton transmitter module', 
+        fromZigbee: [fz.sunricher_SRZGP2801K45C], 
+        toZigbee: [], 
+        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high/low_release','CW/WW_release','CW_dec/WW_inc','WW_inc/CW_dec','R>G>B','B<G<R','RGB_release'])], // Defines what this device exposes, used for e.g. Home Assistant discovery and in the frontend
+    },
 ];
