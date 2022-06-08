@@ -191,12 +191,12 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['PC321'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'PC321', // Vendor model number, look on the device for a model number
-        vendor: 'OWON', // Vendor of the device (only used for documentation and startup logging)
-        description: '3-Phase Clamp Power Meter', // Description of the device, copy from vendor site.
+        zigbeeModel: ['PC321'],
+        model: 'PC321',
+        vendor: 'OWON',
+        description: '3-Phase clamp power meter',
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
-        toZigbee: [], // Should be empty, unless device can be controlled (e.g. lights, switches).
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -207,24 +207,24 @@ module.exports = [
             }
         },
         exposes: [e.energy(),
-            exposes.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 Voltage'),
-            exposes.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 Voltage'),
-            exposes.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 Voltage'),
-            exposes.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 Current'),
-            exposes.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 Current'),
-            exposes.numeric('current_l3', ea.STATE).withUnit('A').withDescription('Phase 3 Current'),
-            exposes.numeric('energy_l1', ea.STATE).withUnit('kWh').withDescription('Phase 1 Energy'),
-            exposes.numeric('energy_l2', ea.STATE).withUnit('kWh').withDescription('Phase 2 Energy'),
-            exposes.numeric('energy_l3', ea.STATE).withUnit('kWh').withDescription('Phase 3 Energy'),
-            exposes.numeric('reactive_energy_l1', ea.STATE).withUnit('kVArh').withDescription('Phase 1 Reactive Energy'),
-            exposes.numeric('reactive_energy_l2', ea.STATE).withUnit('kVArh').withDescription('Phase 2 Reactive Energy'),
-            exposes.numeric('reactive_energy_l3', ea.STATE).withUnit('kVArh').withDescription('Phase 3 Reactive Energy'),
-            exposes.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 Power'),
-            exposes.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 Power'),
-            exposes.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Phase 3 Power'),
-            exposes.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 Reactive Power'),
-            exposes.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 Reactive Power'),
-            exposes.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 Reactive Power'),
+            exposes.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
+            exposes.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
+            exposes.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 voltage'),
+            exposes.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
+            exposes.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
+            exposes.numeric('current_l3', ea.STATE).withUnit('A').withDescription('Phase 3 current'),
+            exposes.numeric('energy_l1', ea.STATE).withUnit('kWh').withDescription('Phase 1 energy'),
+            exposes.numeric('energy_l2', ea.STATE).withUnit('kWh').withDescription('Phase 2 energy'),
+            exposes.numeric('energy_l3', ea.STATE).withUnit('kWh').withDescription('Phase 3 energy'),
+            exposes.numeric('reactive_energy_l1', ea.STATE).withUnit('kVArh').withDescription('Phase 1 reactive energy'),
+            exposes.numeric('reactive_energy_l2', ea.STATE).withUnit('kVArh').withDescription('Phase 2 reactive energy'),
+            exposes.numeric('reactive_energy_l3', ea.STATE).withUnit('kVArh').withDescription('Phase 3 reactive energy'),
+            exposes.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
+            exposes.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+            exposes.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Phase 3 power'),
+            exposes.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
+            exposes.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
+            exposes.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
         ],
     },
 ];
