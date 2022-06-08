@@ -3,7 +3,40 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
+
+const fzLocal = {
+    sunricher_SRZGP2801K45C: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {
+                0x21: 'press_on',
+                0x20: 'press_off',
+                0x37: 'press_high',
+                0x38: 'press_low',
+                0x35: 'hold_high',
+                0x36: 'hold_low',
+                0x34: 'high/low_release',
+                0x63: 'CW/WW_release',
+                0x62: 'CW_dec/WW_inc',
+                0x64: 'WW_inc/CW_dec',
+                0x41: 'R>G>B',
+                0x42: 'B<G<R',
+                0x40: 'RGB_release',
+            };
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -305,7 +338,7 @@ module.exports = [
         model: 'SR-ZGP2801K-5C',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',
-        fromZigbee: [fz.sunricher_SRZGP2801K45C],
+        fromZigbee: [fzLocal.sunricher_SRZGP2801K45C],
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high/low_release',
             'CW/WW_release', 'CW_dec/WW_inc', 'WW_inc/CW_dec', 'R>G>B', 'B<G<R', 'RGB_release'])],
