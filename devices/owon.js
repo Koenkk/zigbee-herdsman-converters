@@ -74,7 +74,7 @@ const fzLocal = {
             }
             return payload;
         },
-    };
+    },
 
 module.exports = [
     {
