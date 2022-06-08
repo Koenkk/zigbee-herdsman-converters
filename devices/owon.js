@@ -75,7 +75,7 @@ const fzLocal = {
             return payload;
         },
     },
-
+};
 module.exports = [
     {
         zigbeeModel: ['WSP404'],
