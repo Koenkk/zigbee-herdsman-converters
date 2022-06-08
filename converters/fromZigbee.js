@@ -8271,7 +8271,7 @@ const converters = {
             }
         },
     },
-    sunricher_SRZGP2801K45C:{
+    sunricher_SRZGP2801K45C: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
