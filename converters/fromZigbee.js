@@ -8286,12 +8286,12 @@ const converters = {
                 0x35: 'hold_high',
                 0x36: 'hold_low',
                 0x34: 'high/low_release',
-                0x63: 'CW/WW_release',
-                0x62: 'CW_dec/WW_inc',
-                0x64: 'WW_inc/CW_dec',
-                0x41: 'R>G>B',
-                0x42: 'B<G<R',
-                0x40: 'RGB_release',
+                0x63: 'cw/ww_release',
+                0x62: 'cw_dec/ww_inc',
+                0x64: 'ww_inc/cw_dec',
+                0x41: 'r_g_b',
+                0x42: 'b_g_r',
+                0x40: 'rgb_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
