@@ -1671,9 +1671,9 @@ module.exports = [
         zigbeeModel: ['929002376801'],
         model: '929002376801',
         vendor: 'Philips',
-        description: 'Hue Iris (generation 4)',
+        description: 'Hue Iris kobber limited edition (generation 4)',
         meta: {turnsOffAtBrightness1: true},
-        extend: hueExtend.light_onoff_brightness_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.zigbeeOTA,
     },
     {
