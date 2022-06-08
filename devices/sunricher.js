@@ -308,6 +308,6 @@ module.exports = [
         fromZigbee: [fz.sunricher_SRZGP2801K45C],
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high/low_release',
-                            'CW/WW_release','CW_dec/WW_inc','WW_inc/CW_dec','R>G>B','B<G<R','RGB_release'])], 
+            'CW/WW_release', 'CW_dec/WW_inc', 'WW_inc/CW_dec', 'R>G>B','B<G<R', 'RGB_release'])],
     },
 ];
