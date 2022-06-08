@@ -2257,9 +2257,7 @@ const converters = {
             const value = tuya.getDataValue(dpValue);
 
             switch (dp) {
-            case tuya.dataPoints.coverPosition: { // Started moving to position (triggered from Zigbee)
-                return {running: true};
-            }
+            case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const running = dp === tuya.dataPoints.coverArrived ? false : true;
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
