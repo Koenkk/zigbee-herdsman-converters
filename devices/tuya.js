@@ -716,13 +716,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: (device, options) => {
-            if (device && device.manufacturerName === '_TZE200_pisltm67') {
-                return [e.illuminance_lux(), e.linkquality()];
-            } else {
-                return [e.battery(), e.illuminance_lux(), e.battery_low(), e.linkquality()];
-            }
-        },
+        exposes: [e.battery(), e.illuminance_lux(), e.battery_low(), e.linkquality()],
     },
     {
         zigbeeModel: ['TS130F'],
