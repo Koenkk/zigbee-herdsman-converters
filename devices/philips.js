@@ -3042,7 +3042,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
         ota: ota.zigbeeOTA,
     },
-        {
+    {
         zigbeeModel: ['LWB016'],
         model: '9290018609',
         vendor: 'Philips',
