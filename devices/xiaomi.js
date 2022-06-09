@@ -1387,12 +1387,14 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara curtain driver E1',
         fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple],
-        toZigbee: [tz.xiaomi_curtain_position_state],
-        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(), e.battery_voltage(),
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(), 
+            e.battery_voltage().withAccess(ea.STATE_GET),
             exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
                 .withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false)
-                .withDescription('Whether the motor is moving or not')],
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('hooks_state', ea.STATE_GET, ['Loosened', 'Tightened', 'Tightening', 'Loosening'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
