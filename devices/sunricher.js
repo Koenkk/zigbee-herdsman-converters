@@ -21,13 +21,13 @@ const fzLocal = {
                 0x38: 'press_low',
                 0x35: 'hold_high',
                 0x36: 'hold_low',
-                0x34: 'high/low_release',
-                0x63: 'CW/WW_release',
-                0x62: 'CW_dec/WW_inc',
-                0x64: 'WW_inc/CW_dec',
-                0x41: 'R>G>B',
-                0x42: 'B<G<R',
-                0x40: 'RGB_release',
+                0x34: 'high_low_release',
+                0x63: 'cw_ww_release',
+                0x62: 'cw_dec_ww_inc',
+                0x64: 'ww_inc_cw_dec',
+                0x41: 'r_g_b',
+                0x42: 'b_g_r',
+                0x40: 'rgb_release',
             };
             if (!lookup.hasOwnProperty(commandID)) {
                 meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
@@ -340,7 +340,7 @@ module.exports = [
         description: 'Pushbutton transmitter module',
         fromZigbee: [fzLocal.sunricher_SRZGP2801K45C],
         toZigbee: [],
-        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high/low_release',
-            'cw/ww_release', 'cw_dec/ww_inc', 'ww_inc/cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
+        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high_low_release',
+            'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
     },
 ];
