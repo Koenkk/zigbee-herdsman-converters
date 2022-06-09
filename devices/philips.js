@@ -3048,7 +3048,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White E26 806 lumen',
         meta: {turnsOffAtBrightness1: true},
-        extend: extend.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
 ];
