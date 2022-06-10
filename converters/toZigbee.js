@@ -6541,14 +6541,16 @@ const converters = {
             }
         },
     },
-    ZNCLBL01LM: {
-        key: ['voltage', 'hooks_state'],
+    ZNCLBL01LM_battery_voltage: {
+        key: ['voltage'],
         convertGet: async (entity, key, meta) => {
-            if (key === 'voltage') {
-                await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
-            } else if (key === 'hooks_state') {
-                await entity.read('aqaraOpple', [0x0428], manufacturerOptions.xiaomi);
-            }
+            await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
+        },
+    },
+    ZNCLBL01LM_hooks_state: {
+        key: ['hooks_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0428], manufacturerOptions.xiaomi);
         },
     },
     wiser_vact_calibrate_valve: {
