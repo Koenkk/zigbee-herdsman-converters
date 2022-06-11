@@ -2,8 +2,97 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
+const herdsman = require('zigbee-herdsman');
+
+const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.PLUGWISE_BV};
+
+const plugwisePushForce = {
+    0: 'standard',
+    0x60000: 'high',
+    0x70000: 'very_high',
+};
+
+const plugwiseRadioStrength = {
+    0: 'normal',
+    1: 'high',
+};
+
+const fzLocal = {
+    plugwise_radiator_valve: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta);
+
+            // Reports pIHeatingDemand between 0 and 100 already
+            if (typeof msg.data['pIHeatingDemand'] == 'number') {
+                result.pi_heating_demand = utils.precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+
+            if (typeof msg.data[0x4003] == 'number') {
+                result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
+            }
+            if (typeof msg.data[0x4008] == 'number') {
+                result.plugwise_t_diff = msg.data[0x4008];
+            }
+            if (typeof msg.data[0x4002] == 'number') {
+                result.error_status = msg.data[0x4002];
+            }
+            if (typeof msg.data[0x4001] == 'number') {
+                result.valve_position = msg.data[0x4001];
+            }
+            return result;
+        },
+    },
+};
+
+const tzLocal = {
+    plugwise_calibrate_valve: {
+        key: ['calibrate_valve'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {},
+                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
+            return {state: {'calibrate_valve': value}};
+        },
+    },
+    plugwise_valve_position: {
+        key: ['plugwise_valve_position', 'valve_position'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x4001: {value, type: 0x20}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions);
+            // Tom does not automatically send back updated value so ask for it
+            await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
+        },
+    },
+    plugwise_push_force: {
+        key: ['plugwise_push_force', 'force'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(plugwisePushForce, value, value, Number);
+            const payload = {0x4012: {value: val, type: 0x23}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4012], manufacturerOptions);
+        },
+    },
+    plugwise_radio_strength: {
+        key: ['plugwise_radio_strength', 'radio_strength'],
+        convertSet: async (entity, key, value, meta) => {
+            const val = utils.getKey(plugwiseRadioStrength, value, value, Number);
+            const payload = {0x4014: {value: val, type: 0x10}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x4014], manufacturerOptions);
+        },
+    },
+};
 
 module.exports = [
     {
@@ -27,15 +116,15 @@ module.exports = [
         model: '106-03',
         vendor: 'Plugwise',
         description: 'Tom thermostatic radiator valve',
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fz.legacy.plugwise_radiator_valve],
+        fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
         toZigbee: [
             tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_pi_heating_demand,
-            tz.plugwise_valve_position,
-            tz.plugwise_push_force,
-            tz.plugwise_radio_strength,
-            tz.plugwise_calibrate_valve,
+            tzLocal.plugwise_valve_position,
+            tzLocal.plugwise_push_force,
+            tzLocal.plugwise_radio_strength,
+            tzLocal.plugwise_calibrate_valve,
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
