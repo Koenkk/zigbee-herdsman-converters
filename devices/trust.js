@@ -6,6 +6,20 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        fingerprint: [{modelID: 'SmokeSensor-EM', manufacturerName: 'Trust'}],
+        model: 'ZSDR-850',
+        vendor: 'Trust',
+        description: 'Smoke detector',
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery()],
+    },
+    {
         zigbeeModel: ['WATER_TPV14'],
         model: 'ZWLD-100',
         vendor: 'Trust',
