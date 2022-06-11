@@ -1394,7 +1394,8 @@ module.exports = [
                 .withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
-            exposes.enum('hooks_state', ea.STATE_GET, ['stopped', 'tightened', 'tightening', 'loosening'])],
+            exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking'])
+                .withDescription('Hooks state')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
