@@ -18,7 +18,6 @@ const manufacturerOptions = {
     develco: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DEVELCO},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
     ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    plugwise: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PLUGWISE_BV},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -3822,48 +3821,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
-        },
-    },
-    plugwise_calibrate_valve: {
-        key: ['calibrate_valve'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {},
-                {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
-            return {state: {'calibrate_valve': value}};
-        },
-    },
-    plugwise_valve_position: {
-        key: ['plugwise_valve_position', 'valve_position'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4001: {value, type: 0x20}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
-            // Tom does not automatically send back updated value so ask for it
-            await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4001], manufacturerOptions.plugwise);
-        },
-    },
-    plugwise_push_force: {
-        key: ['plugwise_push_force', 'force'],
-        convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(constants.plugwisePushForce, value, value, Number);
-            const payload = {0x4012: {value: val, type: 0x23}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4012], manufacturerOptions.plugwise);
-        },
-    },
-    plugwise_radio_strength: {
-        key: ['plugwise_radio_strength', 'radio_strength'],
-        convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(constants.plugwiseRadioStrength, value, value, Number);
-            const payload = {0x4014: {value: val, type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions.plugwise);
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4014], manufacturerOptions.plugwise);
         },
     },
     sinope_thermostat_occupancy: {
