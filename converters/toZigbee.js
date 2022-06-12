@@ -2476,7 +2476,7 @@ const converters = {
                 } else {
                     await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
                 }
-
+                
                 if (!['ZNCLDJ11LM', 'ZNJLBL01LM', 'ZNCLBL01LM'].includes(meta.mapped.model)) {
                     // The code below is originally added for ZNCLDJ11LM (Koenkk/zigbee2mqtt#4585).
                     // However, in Koenkk/zigbee-herdsman-converters#4039 it was replaced by reading
@@ -2490,6 +2490,8 @@ const converters = {
                     // Xiaomi curtain does not send position update on stop, request this.
                     await entity.read('genAnalogOutput', [0x0055]);
                 }
+                
+                return {state: {state: 'STOP'}};
             } else {
                 const lookup = {'open': 100, 'close': 0, 'on': 100, 'off': 0};
 
