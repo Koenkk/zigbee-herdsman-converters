@@ -2761,7 +2761,7 @@ const converters = {
                     6: 'emergency_mains_and_transfer_switch',
                 };
                 payload.power_source = lookup[value];
-                
+
                 if (['R7051'].includes(model.model)) {
                     payload.ac_connected = value === 2;
                 } else if (['ZNCLBL01LM'].includes(model.model)) {
