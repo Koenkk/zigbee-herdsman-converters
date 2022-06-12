@@ -1395,10 +1395,15 @@ module.exports = [
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
             exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking'])
-                .withDescription('Hooks state')],
+                .withDescription('Hooks state'),
+            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await endpoint.read('aqaraOpple', [0x040B], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
+            await endpoint.read('genBasic', ['powerSource']);
+            await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
         },
         ota: ota.zigbeeOTA,
     },
