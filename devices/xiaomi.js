@@ -1386,8 +1386,8 @@ module.exports = [
         model: 'ZNCLBL01LM',
         vendor: 'Xiaomi',
         description: 'Aqara curtain driver E1',
-        fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple],
-        toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM_battery_voltage, tz.ZNCLBL01LM_hooks_state],
+        fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple, fz.power_source],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM_battery_voltage, tz.ZNCLBL01LM_hooks_state, tz.power_source],
         exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery(),
             e.battery_voltage().withAccess(ea.STATE_GET),
             exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
@@ -1396,7 +1396,9 @@ module.exports = [
                 .withDescription('Whether the motor is moving or not'),
             exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking'])
                 .withDescription('Hooks state'),
-            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position')],
+            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
+            exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
+            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
