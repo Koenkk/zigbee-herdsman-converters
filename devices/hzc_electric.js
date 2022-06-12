@@ -6,7 +6,7 @@ module.exports = [
         zigbeeModel: ['DimmerSwitch-2Gang-ZB3.0'],
         model: 'D086-ZG',
         vendor: 'HZC Electric',
-        description: 'Zigbee Dual Dimmer',
+        description: 'Zigbee dual dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
