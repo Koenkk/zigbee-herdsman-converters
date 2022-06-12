@@ -2261,7 +2261,8 @@ const converters = {
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
-                const running = dp === tuya.dataPoints.coverPosition || (position == 0 || position == 100);
+                let running = position == 0 || position == 100;
+                if (dp === tuya.dataPoints.coverArrived) running = false;
 
                 if (position > 0 && position <= 100) {
                     return {running, position, state: 'OPEN'};
