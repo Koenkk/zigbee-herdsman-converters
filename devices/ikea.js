@@ -870,10 +870,10 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        description: 'TRADFRI LED bulb E12/E14 450/470 lumen, wireless dimmable white spectrum/chandelier opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
