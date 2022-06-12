@@ -2744,14 +2744,32 @@ const converters = {
             return result;
         },
     },
-    ts0219_power_source: {
+    power_source: {
         cluster: 'genBasic',
-        type: 'attributeReport',
+        type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const powerSource = msg.data.powerSource;
-            return {
-                ac_connected: powerSource === 2 ? true : false,
-            };
+            const payload = {};
+            if (msg.data.hasOwnProperty('powerSource')) {
+                const value = msg.data['powerSource'];
+                const lookup = {
+                    0: 'unknown',
+                    1: 'mains_single_phase',
+                    2: 'mains_three_phase',
+                    3: 'battery',
+                    4: 'dc_source',
+                    5: 'emergency_mains_constantly_powered',
+                    6: 'emergency_mains_and_transfer_switch',
+                };
+                payload.power_source = lookup[value];
+                
+                if (['R7051'].includes(model.model)) {
+                    payload.ac_connected = value === 2;
+                } else if (['ZNCLBL01LM'].includes(model.model)) {
+                    payload.charging = value === 4;
+                }
+            }
+
+            return payload;
         },
     },
     tuya_cover_options: {
