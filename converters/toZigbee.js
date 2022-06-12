@@ -5321,6 +5321,12 @@ const converters = {
             }
         },
     },
+    power_source: {
+        key: ['power_source', 'charging'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', ['powerSource']);
+        },
+    },
     ts0201_temperature_humidity_alarm: {
         key: ['alarm_humidity_max', 'alarm_humidity_min', 'alarm_temperature_max', 'alarm_temperature_min'],
         convertSet: async (entity, key, value, meta) => {
