@@ -91,6 +91,12 @@ const converters = {
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
+    battery_percentage_remaining: {
+        key: ['battery'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    },    
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
