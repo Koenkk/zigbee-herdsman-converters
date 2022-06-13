@@ -234,13 +234,17 @@ module.exports = [
         model: 'WISZB-120',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.temperature],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint);
+            const endpoint35 = device.getEndpoint(35);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.batteryVoltage(endpoint35);
+            await reporting.temperature(endpoint38);
         },
     },
     {
