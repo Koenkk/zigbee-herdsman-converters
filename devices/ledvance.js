@@ -150,5 +150,5 @@ module.exports = [
         description: 'Classic E26 Tunable White 9w 800 lumen',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
-    },    
+    },
 ];
