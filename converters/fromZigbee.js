@@ -5256,6 +5256,37 @@ const converters = {
             }
         },
     },
+    tuya_alecto_smoke: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_alecto_smoke');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            switch (dp) {
+            case tuya.dataPoints.alectoSmokeState:
+                return {smoke_state: {0: "alarm", 1: "normal"}[value]};
+            case tuya.dataPoints.alectoSmokeValue:
+                return {smoke_value: value};
+            case tuya.dataPoints.alectoSelfChecking:
+                return {self_checking: value};
+            case tuya.dataPoints.alectoCheckingResult:
+                return {checking_result: {0: "checking", 1: "check_success", 2: "check_failure", 3: "others"}[value]};
+            case tuya.dataPoints.alectoSmokeTest:
+                return {smoke_test: value};
+            case tuya.dataPoints.alectoLifecycle:
+                return {lifecycle: value};
+            case tuya.dataPoints.alectoBatteryPercentage:
+                return {battery: value};
+            case tuya.dataPoints.alectoBatteryState:
+                return {battery_state: {0: "low", 1: "middle", 2: "high"}[value]};
+            case tuya.dataPoints.alectoSilence:
+                return {silence: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_alecto_smoke: Unrecognized DP #${ dp} with data ${JSON.stringiy(msg.data)}`);
+            }
+        },
+    },
     tuya_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
