@@ -89,8 +89,8 @@ module.exports = [
             exposes.text('checking_result', ea.STATE, ['checking', 'check_success', 'check_failure', 'others']),
             exposes.numeric('smoke_value', ea.STATE),
             exposes.numeric('battery', ea.STATE),
-            exposes.binary('lifecycle', ea.STATE),
-            exposes.binary('self_checking', ea.STATE_SET),
-            exposes.binary('silence', ea.STATE_SET)],
+            exposes.binary('lifecycle', ea.STATE, true, false),
+            exposes.binary('self_checking', ea.STATE_SET, true, false),
+            exposes.binary('silence', ea.STATE_SET, true, false)],
     },
 ];
