@@ -3967,7 +3967,7 @@ const converters = {
                 return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                if (meta.device.manufacturerName !== '_TZE200_ye5jkfsb') {
+                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11980
                     temperature = temperature / 10;
                 }
