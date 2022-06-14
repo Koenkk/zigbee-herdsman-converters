@@ -929,11 +929,15 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
+                .withDescription('. Press pairing button right before changing this otherwise it will fail.'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'),
+                .withDescription('Time interval for detecting actions. ' +
+                    'Press pairing button right before changing this otherwise it will fail.'),
             exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
-                'blue LED will blink once when motion is detected'), e.device_temperature(), e.battery(), e.battery_voltage()],
+                'blue LED will blink once when motion is detected. ' +
+                'Press pairing button right before changing this otherwise it will fail.'),
+            e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
