@@ -91,6 +91,12 @@ const converters = {
             entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
+    battery_percentage_remaining: {
+        key: ['battery'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
+        },
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -2477,7 +2483,7 @@ const converters = {
                     await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
                 }
 
-                if (!['ZNCLDJ11LM', 'ZNJLBL01LM'].includes(meta.mapped.model)) {
+                if (!['ZNCLDJ11LM', 'ZNJLBL01LM', 'ZNCLBL01LM'].includes(meta.mapped.model)) {
                     // The code below is originally added for ZNCLDJ11LM (Koenkk/zigbee2mqtt#4585).
                     // However, in Koenkk/zigbee-herdsman-converters#4039 it was replaced by reading
                     // directly from currentPositionLiftPercentage, so that device is excluded.
@@ -2490,6 +2496,8 @@ const converters = {
                     // Xiaomi curtain does not send position update on stop, request this.
                     await entity.read('genAnalogOutput', [0x0055]);
                 }
+
+                return {state: {state: 'STOP'}};
             } else {
                 const lookup = {'open': 100, 'close': 0, 'on': 100, 'off': 0};
 
@@ -2497,12 +2505,21 @@ const converters = {
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
                 value = meta.options.invert_cover ? 100 - value : value;
 
-                const payload = {0x0055: {value, type: 0x39}};
-                await entity.write('genAnalogOutput', payload);
+                if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+                    await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: value},
+                        utils.getOptions(meta.mapped, entity));
+                } else {
+                    const payload = {0x0055: {value, type: 0x39}};
+                    await entity.write('genAnalogOutput', payload);
+                }
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genAnalogOutput', [0x0055]);
+            if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+                await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+            } else {
+                await entity.read('genAnalogOutput', [0x0055]);
+            }
         },
     },
     xiaomi_curtain_acn002_charging_status: {
@@ -5310,6 +5327,12 @@ const converters = {
             }
         },
     },
+    power_source: {
+        key: ['power_source', 'charging'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', ['powerSource']);
+        },
+    },
     ts0201_temperature_humidity_alarm: {
         key: ['alarm_humidity_max', 'alarm_humidity_min', 'alarm_temperature_max', 'alarm_temperature_min'],
         convertSet: async (entity, key, value, meta) => {
@@ -6530,6 +6553,18 @@ const converters = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
+        },
+    },
+    ZNCLBL01LM_battery_voltage: {
+        key: ['voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
+        },
+    },
+    ZNCLBL01LM_hooks_state: {
+        key: ['hooks_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0428], manufacturerOptions.xiaomi);
         },
     },
     wiser_vact_calibrate_valve: {

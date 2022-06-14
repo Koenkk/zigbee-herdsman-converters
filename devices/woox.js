@@ -138,7 +138,7 @@ module.exports = [
         model: 'R7051',
         vendor: 'Woox',
         description: 'Smart siren',
-        fromZigbee: [fz.battery, fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.ts0219_power_source],
+        fromZigbee: [fz.battery, fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
         toZigbee: [tz.warning, tz.ts0216_volume],
         exposes: [e.battery(), e.battery_voltage(), e.warning(), exposes.binary('alarm', ea.STATE, true, false),
             exposes.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'),

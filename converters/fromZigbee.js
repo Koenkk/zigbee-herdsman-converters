@@ -1667,6 +1667,34 @@ const converters = {
             return result;
         },
     },
+    power_source: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('powerSource')) {
+                const value = msg.data['powerSource'];
+                const lookup = {
+                    0: 'unknown',
+                    1: 'mains_single_phase',
+                    2: 'mains_three_phase',
+                    3: 'battery',
+                    4: 'dc_source',
+                    5: 'emergency_mains_constantly_powered',
+                    6: 'emergency_mains_and_transfer_switch',
+                };
+                payload.power_source = lookup[value];
+
+                if (['R7051'].includes(model.model)) {
+                    payload.ac_connected = value === 2;
+                } else if (['ZNCLBL01LM'].includes(model.model)) {
+                    payload.charging = value === 4;
+                }
+            }
+
+            return payload;
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
@@ -2741,16 +2769,6 @@ const converters = {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
             return result;
-        },
-    },
-    ts0219_power_source: {
-        cluster: 'genBasic',
-        type: 'attributeReport',
-        convert: (model, msg, publish, options, meta) => {
-            const powerSource = msg.data.powerSource;
-            return {
-                ac_connected: powerSource === 2 ? true : false,
-            };
         },
     },
     tuya_cover_options: {
@@ -5941,7 +5959,10 @@ const converters = {
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
-                result[postfixWithEndpointName('position', msg, model)] = invert ? 100 - value : value;
+                const position = invert ? 100 - value : value;
+                const state = invert ? (position > 0 ? 'CLOSE' : 'OPEN') : (position > 0 ? 'OPEN' : 'CLOSE');
+                result[postfixWithEndpointName('position', msg, model)] = position;
+                result[postfixWithEndpointName('state', msg, model)] = state;
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];

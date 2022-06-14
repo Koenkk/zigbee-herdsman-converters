@@ -1386,6 +1386,37 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.acn003'],
+        model: 'ZNCLBL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara curtain driver E1',
+        fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple, fz.power_source],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM_battery_voltage, tz.ZNCLBL01LM_hooks_state,
+            tz.power_source, tz.battery_percentage_remaining],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
+            e.battery_voltage().withAccess(ea.STATE_GET),
+            e.device_temperature(),
+            e.action(['manual_open', 'manual_close']),
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+                .withDescription('Motor state'),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking'])
+                .withDescription('Hooks state'),
+            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
+            exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
+            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await endpoint.read('aqaraOpple', [0x040B], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
+            await endpoint.read('genBasic', ['powerSource']);
+            await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Xiaomi',
