@@ -80,7 +80,7 @@ module.exports = [
         fingerprint: [{modelID: 'tbrwrfv\u0000', manufacturerName: '_TYST11_qtbrwrfv'}],
         model: 'SMART-SMOKE10',
         vendor: 'Alecto',
-        description: 'Alecto Smoke Detector SMART-SMOKE 10',
+        description: 'Smoke detector',
         fromZigbee: [fzLocal.tuya_alecto_smoke],
         toZigbee: [tzLocal.tuya_alecto_smoke],
         meta: {},
