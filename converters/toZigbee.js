@@ -859,6 +859,7 @@ const converters = {
                 state = meta.message.state = brightness === 0 ? 'off' : 'on';
             }
 
+            let publishBrightness = brightness !== undefined;
             const targetState = state === 'toggle' ? (meta.state.state === 'ON' ? 'off' : 'on') : state;
             if (targetState === 'off') {
                 // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
@@ -896,6 +897,8 @@ const converters = {
                     } catch (e) {
                         // OnLevel not supported
                     }
+                    // Published state might have gotten clobbered by reporting.
+                    publishBrightness = true;
                 }
             }
 
@@ -927,7 +930,7 @@ const converters = {
             );
 
             const result = {state: {}, readAfterWriteTime: transition.time * 100};
-            if (brightness !== 0) {
+            if (publishBrightness) {
                 result.state.brightness = Number(brightness);
             }
             if (state !== null) {
