@@ -2289,8 +2289,14 @@ const converters = {
             case tuya.dataPoints.coverArrived: { // Arrived at position
                 const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                 const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
-                let running = position == 0 || position == 100;
-                if (dp === tuya.dataPoints.coverArrived) running = false;
+                const running = dp !== tuya.dataPoints.coverArrived;
+
+                // Not all covers report coverArrived, so set running to false if device doesn't report position for a few seconds
+                clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
+                if (running) {
+                    const timer = setTimeout(() => publish({running: false}), 3 * 1000);
+                    globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                }
 
                 if (position > 0 && position <= 100) {
                     return {running, position, state: 'OPEN'};
