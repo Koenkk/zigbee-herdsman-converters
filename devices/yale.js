@@ -125,7 +125,7 @@ module.exports = [
         extend: lockExtend(),
     },
     {
-        zigbeeModel: ['c700000202'],
+        zigbeeModel: ['c700000202', '06ffff2029'],
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
