@@ -147,7 +147,7 @@ module.exports = [
         zigbeeModel: ['CLA60 TW Value'],
         model: 'AC23684',
         vendor: 'LEDVANCE',
-        description: 'Classic E26 Tunable White 9w 800 lumen',
+        description: 'Classic E26 tunable white 9w 800 lumen',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
