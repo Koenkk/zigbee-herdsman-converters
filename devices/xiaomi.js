@@ -466,7 +466,7 @@ module.exports = [
             fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic,
             fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(), e.energy(),
             e.action(['single', 'double', 'release', 'hold']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
@@ -522,7 +522,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            e.device_temperature(),
+            e.device_temperature(), e.energy(),
             e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
