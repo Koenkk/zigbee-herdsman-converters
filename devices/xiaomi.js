@@ -466,7 +466,7 @@ module.exports = [
             fz.legacy.QBKG04LM_QBKG11LM_click, fz.xiaomi_basic, fz.xiaomi_operation_mode_basic,
             fz.legacy.QBKG11LM_click, fz.ignore_multistate_report, fz.xiaomi_power],
         exposes: [
-            e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(),
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.device_temperature(), e.energy(),
             e.action(['single', 'double', 'release', 'hold']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode'),
@@ -522,7 +522,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            e.device_temperature(),
+            e.device_temperature(), e.energy(),
             e.power().withAccess(ea.STATE_GET),
             e.action(['single_left', 'single_right', 'single_both', 'double_left', 'double_right', 'double_both',
                 'hold_left', 'hold_right', 'hold_both', 'release_left', 'release_right', 'release_both']),
@@ -929,11 +929,15 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity, tz.RTCGQ14LM_trigger_indicator],
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
-            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
+            exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high'])
+                .withDescription('. Press pairing button right before changing this otherwise it will fail.'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'),
+                .withDescription('Time interval for detecting actions. ' +
+                    'Press pairing button right before changing this otherwise it will fail.'),
             exposes.binary('trigger_indicator', ea.ALL, true, false).withDescription('When this option is enabled then ' +
-                'blue LED will blink once when motion is detected'), e.device_temperature(), e.battery(), e.battery_voltage()],
+                'blue LED will blink once when motion is detected. ' +
+                'Press pairing button right before changing this otherwise it will fail.'),
+            e.device_temperature(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1382,6 +1386,37 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.acn003'],
+        model: 'ZNCLBL01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara curtain driver E1',
+        fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple, fz.power_source],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM_battery_voltage, tz.ZNCLBL01LM_hooks_state,
+            tz.power_source, tz.battery_percentage_remaining],
+        exposes: [e.cover_position().setAccess('state', ea.ALL), e.battery().withAccess(ea.STATE_GET),
+            e.battery_voltage().withAccess(ea.STATE_GET),
+            e.device_temperature(),
+            e.action(['manual_open', 'manual_close']),
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+                .withDescription('Motor state'),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking'])
+                .withDescription('Hooks state'),
+            exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
+            exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
+            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await endpoint.read('aqaraOpple', [0x040B], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x0428], {manufacturerCode: 0x115f});
+            await endpoint.read('genBasic', ['powerSource']);
+            await endpoint.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.relay.c2acn01'],
         model: 'LLKZMK11LM',
         vendor: 'Xiaomi',
@@ -1538,14 +1573,14 @@ module.exports = [
         model: 'GZCGQ01LM',
         vendor: 'Xiaomi',
         description: 'MiJia light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance],
+        fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msIlluminanceMeasurement']);
-            await reporting.batteryVoltage(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux()],
     },

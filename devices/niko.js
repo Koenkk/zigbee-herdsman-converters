@@ -219,4 +219,19 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
         ],
     },
+    {
+        zigbeeModel: ['Connectable dimmer,3-200W,2-wire'],
+        model: '552-72201',
+        vendor: 'Niko',
+        description: 'Connectable dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config],
+        exposes: [e.light_brightness().withLevelConfig()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
 ];

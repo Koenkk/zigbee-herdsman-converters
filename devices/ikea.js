@@ -36,10 +36,10 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 
         // NOTE: execute_if_off default is false
         //       we only restore if true, to save unneeded network writes
-        if (state.color_options !== undefined && state.color_options.execute_if_off === true) {
+        if (state !== undefined && state.color_options !== undefined && state.color_options.execute_if_off === true) {
             device.endpoints[0].write('lightingColorCtrl', {'options': 1});
         }
-        if (state.level_config !== undefined && state.level_config.execute_if_off === true) {
+        if (state !== undefined && state.level_config !== undefined && state.level_config.execute_if_off === true) {
             device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
     }
@@ -870,10 +870,10 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        description: 'TRADFRI LED bulb E12/E14 450/470 lumen, wireless dimmable white spectrum/chandelier opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {

@@ -3,7 +3,40 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
+
+const fzLocal = {
+    sunricher_SRZGP2801K45C: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {
+                0x21: 'press_on',
+                0x20: 'press_off',
+                0x37: 'press_high',
+                0x38: 'press_low',
+                0x35: 'hold_high',
+                0x36: 'hold_low',
+                0x34: 'high_low_release',
+                0x63: 'cw_ww_release',
+                0x62: 'cw_dec_ww_inc',
+                0x64: 'ww_inc_cw_dec',
+                0x41: 'r_g_b',
+                0x42: 'b_g_r',
+                0x40: 'rgb_release',
+            };
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -299,5 +332,15 @@ module.exports = [
         fromZigbee: [fz.sunricher_switch2801K4],
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'release'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000aaf.....$/}],
+        model: 'SR-ZGP2801K-5C',
+        vendor: 'Sunricher',
+        description: 'Pushbutton transmitter module',
+        fromZigbee: [fzLocal.sunricher_SRZGP2801K45C],
+        toZigbee: [],
+        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high_low_release',
+            'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
     },
 ];
