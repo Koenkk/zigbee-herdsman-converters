@@ -1667,6 +1667,34 @@ const converters = {
             return result;
         },
     },
+    power_source: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            if (msg.data.hasOwnProperty('powerSource')) {
+                const value = msg.data['powerSource'];
+                const lookup = {
+                    0: 'unknown',
+                    1: 'mains_single_phase',
+                    2: 'mains_three_phase',
+                    3: 'battery',
+                    4: 'dc_source',
+                    5: 'emergency_mains_constantly_powered',
+                    6: 'emergency_mains_and_transfer_switch',
+                };
+                payload.power_source = lookup[value];
+
+                if (['R7051'].includes(model.model)) {
+                    payload.ac_connected = value === 2;
+                } else if (['ZNCLBL01LM'].includes(model.model)) {
+                    payload.charging = value === 4;
+                }
+            }
+
+            return payload;
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
@@ -2742,34 +2770,6 @@ const converters = {
                 result['alarm'] = (msg.data['61440'] == 0) ? false : true;
             }
             return result;
-        },
-    },
-    power_source: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            if (msg.data.hasOwnProperty('powerSource')) {
-                const value = msg.data['powerSource'];
-                const lookup = {
-                    0: 'unknown',
-                    1: 'mains_single_phase',
-                    2: 'mains_three_phase',
-                    3: 'battery',
-                    4: 'dc_source',
-                    5: 'emergency_mains_constantly_powered',
-                    6: 'emergency_mains_and_transfer_switch',
-                };
-                payload.power_source = lookup[value];
-
-                if (['R7051'].includes(model.model)) {
-                    payload.ac_connected = value === 2;
-                } else if (['ZNCLBL01LM'].includes(model.model)) {
-                    payload.charging = value === 4;
-                }
-            }
-
-            return payload;
         },
     },
     tuya_cover_options: {
