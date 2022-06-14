@@ -91,6 +91,6 @@ module.exports = [
             exposes.numeric('battery', ea.STATE),
             exposes.binary('lifecycle', ea.STATE),
             exposes.binary('self_checking', ea.STATE_SET),
-            exposes.binary('silence', ea.STATE)],
+            exposes.binary('silence', ea.STATE_SET)],
     },
 ];
