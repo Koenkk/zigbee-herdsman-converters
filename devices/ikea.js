@@ -292,10 +292,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm'],
+        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E26/27 1100/1055 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED bulb E26/27 1100/1055/1160 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
