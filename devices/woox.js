@@ -101,10 +101,10 @@ module.exports = [
         model: 'R7060',
         vendor: 'Woox',
         description: 'Smart garden irrigation control',
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fzLocal.woox_R7060, fz.battery],
+        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fzLocal.woox_R7060],
         toZigbee: [tz.on_off],
         onEvent: tuya.onEventSetTime,
-        exposes: [e.switch(), e.battery(), e.battery_voltage()],
+        exposes: [e.switch(), e.battery()],
         meta: {disableDefaultResponse: true},
     },
     {
