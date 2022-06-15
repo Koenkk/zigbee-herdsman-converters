@@ -7474,23 +7474,6 @@ const converters = {
             }
         },
     },
-    woox_R7060: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'woox_R7060');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.wooxSwitch:
-                return {state: value === 2 ? 'OFF' : 'ON'};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:WooxR7060: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     idlock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
