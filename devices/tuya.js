@@ -2118,6 +2118,7 @@ module.exports = [
             fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.tuya_relay_din_led_indicator],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
