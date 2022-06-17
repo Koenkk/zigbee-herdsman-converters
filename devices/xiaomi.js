@@ -1324,9 +1324,10 @@ module.exports = [
     },
     {
         zigbeeModel: ['lumi.curtain.aq2'],
-        model: 'SRSC-M01',
+        model: 'ZNGZDJ11LM',
         description: 'Aqara roller shade motor',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'SRSC-M01'}],
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
         exposes: [e.cover_position().setAccess('state', ea.ALL),
@@ -1360,6 +1361,7 @@ module.exports = [
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'RSD-M01'}],
         fromZigbee: [fz.xiaomi_curtain_position, fz.xiaomi_curtain_acn002_status, fz.ignore_basic_report, fz.aqara_opple],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_acn002_battery, tz.xiaomi_curtain_acn002_charging_status],
         onEvent: async (type, data, device) => {
@@ -1386,9 +1388,11 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['lumi.curtain.acn003'],
+        // 'lumi.curtain.acn003' - CN version (ZNCLBL01LM), 'lumi.curtain.agl001' - global version (CM-M01)
+        zigbeeModel: ['lumi.curtain.acn003', 'lumi.curtain.agl001'],
         model: 'ZNCLBL01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'CM-M01'}],
         description: 'Aqara curtain driver E1',
         fromZigbee: [fz.battery, fz.xiaomi_curtain_position_tilt, fz.aqara_opple, fz.power_source],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.ZNCLBL01LM_battery_voltage, tz.ZNCLBL01LM_hooks_state,
@@ -1723,9 +1727,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['lumi.remote.b28ac1'],
-        model: 'WRS-R02',
+        model: 'WXKG15LM',
         vendor: 'Xiaomi',
-        whiteLabel: [{vendor: 'Xiaomi', model: 'WXKG15LM'}],
+        whiteLabel: [{vendor: 'Xiaomi', model: 'WRS-R02'}],
         description: 'Aqara wireless remote switch H1 (double rocker)',
         fromZigbee: [fz.battery, fz.xiaomi_multistate_action, fz.aqara_opple, fz.command_toggle],
         toZigbee: [tz.xiaomi_switch_click_mode, tz.aqara_opple_operation_mode],
