@@ -679,7 +679,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
             {vendor: 'Mercator Ikuü', model: 'SSWD01'},
-            {vendor: 'Moes', model: 'TS0601'},
+            {vendor: 'Moes', model: 'ZS-USD'},
         ],
     },
     {
