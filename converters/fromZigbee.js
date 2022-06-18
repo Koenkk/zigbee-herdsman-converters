@@ -348,9 +348,11 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-            const property = postfixWithEndpointName('temperature', msg, model);
-            return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            if (msg.data.hasOwnProperty('measuredValue')) {
+                const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+                const property = postfixWithEndpointName('temperature', msg, model);
+                return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+            }
         },
     },
     device_temperature: {
