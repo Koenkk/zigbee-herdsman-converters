@@ -946,6 +946,8 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
         ],
         model: 'WSD500A',
         vendor: 'TuYa',
