@@ -89,6 +89,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['ROB_200-030-0'],
+        model: 'ROB_200-030-0',
+        vendor: 'ROBB',
+        description: 'Zigbee AC in wall switch 400W (2-wire)',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['ROB_200-014-0'],
         model: 'ROB_200-014-0',
         vendor: 'ROBB',
