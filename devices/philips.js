@@ -2417,7 +2417,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['1746330P7', '1746347P7'],
+        zigbeeModel: ['1746330P7', '1746330V7', '1746347P7'],
         model: '1746330P7',
         vendor: 'Philips',
         description: 'Hue Appear outdoor wall light',
