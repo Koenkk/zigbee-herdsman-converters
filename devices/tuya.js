@@ -814,7 +814,7 @@ module.exports = [
         model: 'TS0601_switch_3_gang',
         vendor: 'TuYa',
         description: '3 gang switch',
-        whiteLabel: [{vendor: 'NOVADIGITAL', model: 'WS-US-ZB', description: 'Interruptor Touch Zigbee 3 Teclas'},],
+        whiteLabel: [{vendor: 'NOVADIGITAL', model: 'WS-US-ZB', description: 'Interruptor Touch Zigbee 3 Teclas'}],
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
