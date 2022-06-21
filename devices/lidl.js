@@ -548,6 +548,17 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_umi6vbsz'}],
+        model: 'HG08010',
+        vendor: 'Lidl',
+        description: 'Livarno Home outdoor spotlight',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
         model: 'HG08008',
         vendor: 'Lidl',
