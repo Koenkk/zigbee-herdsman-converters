@@ -194,8 +194,9 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
-        exposes: [e.cover_position()],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
+        exposes: [e.cover_position(), exposes.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+            .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
