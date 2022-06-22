@@ -7,6 +7,22 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['LDSENK09'],
+        model: 'LDSENK09',
+        vendor: 'ADEO',
+        description: 'Security system key fob',
+        fromZigbee: [fz.command_arm, fz.command_panic],
+        toZigbee: [],
+        exposes: [e.action(['panic', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-herdsman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
+    },
+    {
         zigbeeModel: ['ZBEK-4'],
         model: 'IM-CDZDGAAA0005KA_MAN',
         vendor: 'ADEO',
