@@ -487,10 +487,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufactureName: '_TZ3000_bwlvyjwk'}],
-        model: '100347334',
+        fingerprint: [{modelID: 'TS0505B', manufactureName: '_TZ3210_umi6vbsz'}],
+        model: '100341862',
         vendor: 'Lidl',
-        description: 'Livarno Home Outdoor LED Light Chain',
+        description: 'Livarno Home LED-Flooder',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
