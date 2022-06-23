@@ -8587,55 +8587,55 @@ const converters = {
             return result;
         },
     },
-	giex_water_valve: 
-	{
-		cluster: 'manuSpecificTuya',
-		type: ['commandDataResponse', 'commandDataReport'],
-		convert: (model, msg, publish, options, meta) => {
-			for (const dpValue of msg.data.dpValues) {
+    giex_water_valve: 
+    {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            for (const dpValue of msg.data.dpValues) {
                 const value = tuya.getDataValue(dpValue);
-				const dp = dpValue.dp		
-				switch (dp) {
-				case giExDataPoints.state: {
-					return {state: value ? 'ON': 'OFF'};
-				}
-				case giExDataPoints.mode: {
-					return {mode: value ? 'Capacity': 'Duration'};
-				}
-				case giExDataPoints.irrigation_target: {
-					return {irrigation_target: value };
-				}
-				case giExDataPoints.cycle_irrigation_num_times: {
-					return {cycle_irrigation_num_times: value };
-				}
-				case giExDataPoints.cycle_irrigation_interval: {
-					return {cycle_irrigation_interval: value };
-				}
-				case giExDataPoints.water_consumed: {
-					return {water_consumed: value};
-				}
-				case giExDataPoints.irrigation_start_time: {
-					return {irrigation_start_time: value};
-				}
-				case giExDataPoints.irrigation_end_time: {
-					return {irrigation_end_time: value};
-				}
-				case giExDataPoints.last_irrigation_duration: {
-					return {last_irrigation_duration: value };
-				}
-				case giExDataPoints.battery: {
-					return {battery: value};
-				}
-				case giExDataPoints.current_tempurature: {
-					return; //Do Nothing - value ignored because isn't a valid temp reading
-				}
-				default: {
-					meta.logger.warn(`from-zigbee:giex_water_valve: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)} VALUE = ${value}`);
-				}
-				}
-			}
-		},
-	},
+                const dp = dpValue.dp		
+                switch (dp) {
+                case giExDataPoints.state: {
+                    return {state: value ? 'ON': 'OFF'};
+                }
+                case giExDataPoints.mode: {
+                    return {mode: value ? 'Capacity': 'Duration'};
+                }
+                case giExDataPoints.irrigation_target: {
+                    return {irrigation_target: value };
+                }
+                case giExDataPoints.cycle_irrigation_num_times: {
+                    return {cycle_irrigation_num_times: value };
+                }
+                case giExDataPoints.cycle_irrigation_interval: {
+                    return {cycle_irrigation_interval: value };
+                }
+                case giExDataPoints.water_consumed: {
+                    return {water_consumed: value};
+                }
+                case giExDataPoints.irrigation_start_time: {
+                    return {irrigation_start_time: value};
+                }
+                case giExDataPoints.irrigation_end_time: {
+                    return {irrigation_end_time: value};
+                }
+                case giExDataPoints.last_irrigation_duration: {
+                    return {last_irrigation_duration: value };
+                }
+                case giExDataPoints.battery: {
+                    return {battery: value};
+                }
+                case giExDataPoints.current_tempurature: {
+                    return; //Do Nothing - value ignored because isn't a valid temp reading
+                }
+                default: {
+                    meta.logger.warn(`from-zigbee:giex_water_valve: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)} VALUE = ${value}`);
+                }
+                }
+            }
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).

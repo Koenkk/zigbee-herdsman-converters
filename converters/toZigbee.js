@@ -7156,36 +7156,36 @@ const converters = {
             }
         },
     },
-	GIEX_water_valve: 
-	{
-		key: ['mode', 'irrigation_target', 'state', 'cycle_irrigation_num_times', 'cycle_irrigation_interval'],
-		convertSet: async (entity, key, value, meta) => {
-			switch (key) {
+    GIEX_water_valve: 
+    {
+        key: ['mode', 'irrigation_target', 'state', 'cycle_irrigation_num_times', 'cycle_irrigation_interval'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
             case 'mode': {
-				let mode = 0;
-				if (value === 'Duration') mode = 0;
-				else if (value === 'Capacity') mode = 1;
-				await tuya.sendDataPointBool(entity, giExDataPoints.mode, mode);
-				return {state: {mode: value}};
-			}
-			case 'irrigation_target':
-				await tuya.sendDataPointValue(entity, giExDataPoints.irrigation_target, value);
-				return {state: {irrigation_target: value}};
-			case 'state':
-				await tuya.sendDataPointBool(entity, giExDataPoints.state, value === 'ON');
-				break;
-			case 'cycle_irrigation_num_times':
-				await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_num_times, value);
-				return {state: {cycle_irrigation_num_times: value}};
-			case 'cycle_irrigation_interval':
-				await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_interval, value);
-				return {state: {cycle_irrigation_interval: value}};
-			default: // Unknown key
+                let mode = 0;
+                if (value === 'Duration') mode = 0;
+                else if (value === 'Capacity') mode = 1;
+                await tuya.sendDataPointBool(entity, giExDataPoints.mode, mode);
+                return {state: {mode: value}};
+            }
+            case 'irrigation_target':
+                await tuya.sendDataPointValue(entity, giExDataPoints.irrigation_target, value);
+                return {state: {irrigation_target: value}};
+            case 'state':
+                await tuya.sendDataPointBool(entity, giExDataPoints.state, value === 'ON');
+                break;
+            case 'cycle_irrigation_num_times':
+                await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_num_times, value);
+                return {state: {cycle_irrigation_num_times: value}};
+            case 'cycle_irrigation_interval':
+                await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_interval, value);
+                return {state: {cycle_irrigation_interval: value}};
+            default: // Unknown key
                 meta.logger.warn(`tz.GIEX_water_valve: Unhandled key ${key}`);
             }
-		},
-	},
-	
+        },
+    },
+    
     // #endregion
 
     // #region Ignore converters
