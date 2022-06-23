@@ -7156,7 +7156,7 @@ const converters = {
             }
         },
     },
-    GIEX_water_valve: 
+    GIEX_water_valve:
     {
         key: ['mode', 'irrigation_target', 'state', 'cycle_irrigation_num_times', 'cycle_irrigation_interval'],
         convertSet: async (entity, key, value, meta) => {
@@ -7165,27 +7165,26 @@ const converters = {
                 let mode = 0;
                 if (value === 'Duration') mode = 0;
                 else if (value === 'Capacity') mode = 1;
-                await tuya.sendDataPointBool(entity, giExDataPoints.mode, mode);
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.giexWaterValveMode, mode);
                 return {state: {mode: value}};
             }
             case 'irrigation_target':
-                await tuya.sendDataPointValue(entity, giExDataPoints.irrigation_target, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.giexWaterValveIrrigationTarget, value);
                 return {state: {irrigation_target: value}};
             case 'state':
-                await tuya.sendDataPointBool(entity, giExDataPoints.state, value === 'ON');
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.giexWaterValveState, value === 'ON');
                 break;
             case 'cycle_irrigation_num_times':
-                await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_num_times, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.giexWaterValveCycleIrrigationNumTimes, value);
                 return {state: {cycle_irrigation_num_times: value}};
             case 'cycle_irrigation_interval':
-                await tuya.sendDataPointValue(entity, giExDataPoints.cycle_irrigation_interval, value);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.giexWaterValveCycleIrrigationInterval, value);
                 return {state: {cycle_irrigation_interval: value}};
-            default: // Unknown key
+            default: // Unknown key warning
                 meta.logger.warn(`tz.GIEX_water_valve: Unhandled key ${key}`);
             }
         },
     },
-    
     // #endregion
 
     // #region Ignore converters
