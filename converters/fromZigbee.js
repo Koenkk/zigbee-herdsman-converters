@@ -8594,7 +8594,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             for (const dpValue of msg.data.dpValues) {
                 const value = tuya.getDataValue(dpValue);
-                const dp = dpValue.dp		
+                const dp = dpValue.dp;
                 switch (dp) {
                 case tuya.dataPoints.giexWaterValveState: {
                     return {state: value ? 'ON': 'OFF'};
@@ -8630,7 +8630,7 @@ const converters = {
                     return; // Do Nothing - value ignored because isn't a valid tempurature reading.  Misdocumented and usage unclear
                 }
                 default: {
-                    meta.logger.warn(`from-zigbee:giex_water_valve: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(msg.data)} VALUE = ${value}`);
+                    meta.logger.warn(`fz:giex_water_valve: NOT RECOGNIZED DP #${dp} with VALUE = ${value}`);
                 }
                 }
             }
