@@ -8587,55 +8587,6 @@ const converters = {
             return result;
         },
     },
-    giex_water_valve:
-    {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            for (const dpValue of msg.data.dpValues) {
-                const value = tuya.getDataValue(dpValue);
-                const dp = dpValue.dp;
-                switch (dp) {
-                case tuya.dataPoints.giexWaterValveState: {
-                    return {state: value ? 'ON': 'OFF'};
-                }
-                case tuya.dataPoints.giexWaterValveMode: {
-                    return {mode: value ? 'Capacity': 'Duration'};
-                }
-                case tuya.dataPoints.giexWaterValveIrrigationTarget: {
-                    return {irrigation_target: value};
-                }
-                case tuya.dataPoints.giexWaterValveCycleIrrigationNumTimes: {
-                    return {cycle_irrigation_num_times: value};
-                }
-                case tuya.dataPoints.giexWaterValveCycleIrrigationInterval: {
-                    return {cycle_irrigation_interval: value};
-                }
-                case tuya.dataPoints.giexWaterValveWaterConsumed: {
-                    return {water_consumed: value};
-                }
-                case tuya.dataPoints.giexWaterValveIrrigationStartTime: {
-                    return {irrigation_start_time: value};
-                }
-                case tuya.dataPoints.giexWaterValveIrrigationEndTime: {
-                    return {irrigation_end_time: value};
-                }
-                case tuya.dataPoints.giexWaterValveLastIrrigationDuration: {
-                    return {last_irrigation_duration: value};
-                }
-                case tuya.dataPoints.giexWaterValveBattery: {
-                    return {battery: value};
-                }
-                case tuya.dataPoints.giexWaterValveCurrentTempurature: {
-                    return; // Do Nothing - value ignored because isn't a valid tempurature reading.  Misdocumented and usage unclear
-                }
-                default: {
-                    meta.logger.warn(`fz:giex_water_valve: NOT RECOGNIZED DP #${dp} with VALUE = ${value}`);
-                }
-                }
-            }
-        },
-    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
