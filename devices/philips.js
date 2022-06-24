@@ -407,7 +407,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['929003055901', '929003055901_01', '929003055901_02'],
+        zigbeeModel: ['929003055901', '929003055901_01', '929003055901_02', '929003055901_03'],
         model: '929003055901',
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
