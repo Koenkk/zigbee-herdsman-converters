@@ -64,10 +64,10 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
-        zigbeeModel: ['RGBW Controller'],
+        fingerprint: [{modelID: 'RGBW Controller', manufacturerName: 'Paulmann Licht'}],
         model: '94191',
         vendor: 'Paulmann',
-        description: 'Plug & Shine LED Strip',
+        description: 'Plug & shine LED strip',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
