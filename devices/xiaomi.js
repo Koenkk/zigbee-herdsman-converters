@@ -1577,8 +1577,8 @@ module.exports = [
             'button_5_hold', 'button_5_release', 'button_5_single', 'button_5_double', 'button_5_triple',
             'button_6_hold', 'button_6_release', 'button_6_single', 'button_6_double', 'button_6_triple',
         ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
-                .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
-            e.power_outage_count(false)],
+            .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
+        e.power_outage_count(false)],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
