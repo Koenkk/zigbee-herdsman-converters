@@ -615,15 +615,15 @@ module.exports = [
         },
     },
     {
-      fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_q50zhdsc'}],
-      model: 'HG08131C',
-      vendor: 'Lidl',
-      description: 'Livarno Home outdoor E27 bulb in set with flare',
-      ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
-      meta: {applyRedFix: true, enhancedHue: false},
-      configure: async (device, coordinatorEndpoint, logger) => {
-          device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-      },
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_q50zhdsc'}],
+        model: 'HG08131C',
+        vendor: 'Lidl',
+        description: 'Livarno Home outdoor E27 bulb in set with flare',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_kdpxju99'}],
