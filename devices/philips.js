@@ -1337,6 +1337,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929002376703'],
+        model: '929002376703',
+        vendor: 'Philips',
+        description: 'Hue Iris silver special edition (generation 4) ',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929002376401'],
         model: '929002376401',
         vendor: 'Philips',
