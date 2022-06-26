@@ -96,7 +96,7 @@ const local = {
 module.exports = [
     {
         zigbeeModel: ['Connected socket outlet'],
-        model: '170-33505',
+        model: '170-33505/170-34605',
         vendor: 'Niko',
         description: 'Connected socket outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
