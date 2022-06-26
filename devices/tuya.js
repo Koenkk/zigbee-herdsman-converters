@@ -13,8 +13,8 @@ const utils = require('../lib/utils');
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
-    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit',
-    '_TZ3000_cjrngdr3', '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy'];
+    '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
+    '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -833,7 +833,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'}],
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'}],
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -1592,7 +1593,8 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_v1pdxuqq'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_8a833yls'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_nzkqcvvs'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',

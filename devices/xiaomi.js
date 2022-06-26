@@ -165,10 +165,13 @@ module.exports = [
         zigbeeModel: ['lumi.sensor_switch'],
         model: 'WXKG01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4040GL'}, {vendor: 'Xiaomi', model: 'YTC4006CN'},
+            {vendor: 'Xiaomi', model: 'YTC4017CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
         description: 'MiJia wireless switch',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_WXKG01LM_action, fz.legacy.WXKG01LM_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'triple', 'quadruple', 'hold', 'release', 'many']), e.battery_voltage(),
+            e.power_outage_count(false)],
         toZigbee: [],
     },
     {
@@ -243,7 +246,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara double key wireless wall switch (2016 model)',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
-        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage()],
+        exposes: [e.battery(), e.action(['single_left', 'single_right', 'single_both']), e.battery_voltage(), e.power_outage_count(false)],
         fromZigbee: [fz.xiaomi_on_off_action, fz.xiaomi_basic, fz.legacy.WXKG02LM_click],
         toZigbee: [],
         onEvent: preventReset,
@@ -834,6 +837,8 @@ module.exports = [
         zigbeeModel: ['lumi.sens', 'lumi.sensor_ht'],
         model: 'WSDCGQ01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4042GL'}, {vendor: 'Xiaomi', model: 'YTC4007CN'},
+            {vendor: 'Xiaomi', model: 'YTC4018CN'}],
         description: 'MiJia temperature & humidity sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_temperature, fz.humidity],
@@ -861,7 +866,8 @@ module.exports = [
         description: 'Aqara T1 temperature, humidity and pressure sensor',
         fromZigbee: [fz.aqara_opple, fz.temperature, fz.humidity, fz.pressure, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(),
+            e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -875,11 +881,13 @@ module.exports = [
         zigbeeModel: ['lumi.sensor_motion'],
         model: 'RTCGQ01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4041GL'}, {vendor: 'Xiaomi', model: 'YTC4004CN'},
+            {vendor: 'Xiaomi', model: 'YTC4016CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
         description: 'MiJia human body movement sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.occupancy_with_timeout],
         toZigbee: [],
-        exposes: [e.battery(), e.occupancy(), e.battery_voltage()],
+        exposes: [e.battery(), e.occupancy(), e.battery_voltage(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.sensor_motion.aq2'],
@@ -890,7 +898,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.occupancy_with_timeout, fz.RTCGQ11LM_illuminance],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(), e.device_temperature(), e.battery_voltage(), e.illuminance_lux().withProperty('illuminance'),
-            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux')],
+            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.motion.agl02'],
@@ -902,7 +910,8 @@ module.exports = [
         exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
             e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.device_temperature(), e.battery(), e.battery_voltage()],
+                .withDescription('Time interval for detecting actions'),
+            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -920,7 +929,8 @@ module.exports = [
         toZigbee: [tz.aqara_detection_interval, tz.aqara_motion_sensitivity],
         exposes: [e.occupancy(), exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
-                .withDescription('Time interval for detecting actions'), e.device_temperature(), e.battery(), e.battery_voltage()],
+                .withDescription('Time interval for detecting actions'),
+            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -992,11 +1002,13 @@ module.exports = [
         zigbeeModel: ['lumi.sensor_magnet'],
         model: 'MCCGQ01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4039GL'}, {vendor: 'Xiaomi', model: 'YTC4005CN'},
+            {vendor: 'Xiaomi', model: 'YTC4015CN'}, {vendor: 'Xiaomi', model: 'ZHTZ02LM'}],
         description: 'MiJia door & window contact sensor',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.battery_voltage()],
+        exposes: [e.battery(), e.contact(), e.battery_voltage(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.sensor_magnet.aq2'],
@@ -1006,7 +1018,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_contact],
         toZigbee: [],
-        exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage()],
+        exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false)],
         configure: async (device) => {
             device.powerSource = 'Battery';
             device.save();
@@ -1020,7 +1032,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.ias_water_leak_alarm_1],
         toZigbee: [],
-        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count()],
+        exposes: [e.battery(), e.water_leak(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.flood.agl02'],
@@ -1040,7 +1052,7 @@ module.exports = [
         description: 'Mi/Aqara smart home cube',
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
-        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(),
+        exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(false),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'), e.cube_side('side'),
             e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
@@ -1197,6 +1209,7 @@ module.exports = [
         model: 'JTYJ-GD-01LM/BW',
         description: 'MiJia Honeywell smoke detector',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4020RT'}],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         fromZigbee: [fz.xiaomi_basic, fz.JTYJGD01LMBW_smoke],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
@@ -1204,12 +1217,14 @@ module.exports = [
             e.smoke(), e.battery_low(), e.tamper(), e.battery(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
             exposes.numeric('smoke_density', ea.STATE), exposes.enum('selftest', ea.SET, ['']), e.battery_voltage(),
             exposes.binary('test', ea.STATE, true, false).withDescription('Test mode activated'), e.device_temperature(),
+            e.power_outage_count(false),
         ],
     },
     {
         zigbeeModel: ['lumi.sensor_natgas'],
         model: 'JTQJ-BF-01LM/BW',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4019RT'}],
         description: 'MiJia gas leak detector ',
         fromZigbee: [fz.ias_gas_alarm_1, fz.JTQJBF01LMBW_sensitivity, fz.JTQJBF01LMBW_gas_density],
         toZigbee: [tz.JTQJBF01LMBW_JTYJGD01LMBW_sensitivity, tz.JTQJBF01LMBW_JTYJGD01LMBW_selfest],
@@ -1274,7 +1289,7 @@ module.exports = [
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
-            e.device_temperature(), e.battery(), e.battery_voltage()],
+            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1307,7 +1322,7 @@ module.exports = [
         exposes: [
             e.battery(), e.device_temperature(), e.vibration(), e.action(['vibration', 'tilt', 'drop']),
             exposes.numeric('strength', ea.STATE), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']),
-            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(),
+            e.angle_axis('angle_x'), e.angle_axis('angle_y'), e.angle_axis('angle_z'), e.battery_voltage(), e.power_outage_count(false),
         ],
     },
     {
@@ -1572,7 +1587,8 @@ module.exports = [
             'button_5_hold', 'button_5_release', 'button_5_single', 'button_5_double', 'button_5_triple',
             'button_6_hold', 'button_6_release', 'button_6_single', 'button_6_double', 'button_6_triple',
         ]), exposes.enum('operation_mode', ea.ALL, ['command', 'event'])
-            .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)')],
+            .withDescription('Operation mode, select "command" to enable bindings (wake up the device before changing modes!)'),
+        e.power_outage_count(false)],
         toZigbee: [tz.aqara_opple_operation_mode],
         meta: {battery: {voltageToPercentage: '3V_2850_3000_log'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1587,6 +1603,7 @@ module.exports = [
         zigbeeModel: ['lumi.sen_ill.mgl01'],
         model: 'GZCGQ01LM',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4043GL'}],
         description: 'MiJia light intensity sensor',
         fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple],
         toZigbee: [],
@@ -1597,7 +1614,7 @@ module.exports = [
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux()],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
