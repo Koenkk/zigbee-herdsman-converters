@@ -336,7 +336,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['929003055901'],
+        zigbeeModel: ['929003055901', '929003055901_01', '929003055901_02', '929003055901_03'],
         model: '929003055901',
         vendor: 'Philips',
         description: 'Hue white ambiance bathroom ceiling light Adore with Bluetooth',
