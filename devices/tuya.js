@@ -9,6 +9,10 @@ const e = exposes.presets;
 const ea = exposes.access;
 const libColor = require('../lib/color');
 const utils = require('../lib/utils');
+const zosung = require('../lib/zosung');
+const fzZosung = zosung.fzZosung;
+const tzZosung = zosung.tzZosung;
+const ez = zosung.presetsZosung;
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
@@ -2618,5 +2622,17 @@ module.exports = [
             exposes.text('motor_type', ea.STATE),
             exposes.enum('report', ea.SET, ['REPORT']),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_7v1k4vufotpowp9z'}],
+        model: 'ZS06',
+        vendor: 'TuYa',
+        description: 'Universal smart IR remote control',
+        fromZigbee: [
+            fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
+            fzZosung.zosung_send_ir_code_03, fzZosung.zosung_send_ir_code_04, fzZosung.zosung_send_ir_code_05,
+        ],
+        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
 ];
