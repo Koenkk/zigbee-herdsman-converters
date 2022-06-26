@@ -1149,7 +1149,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['3418131P6'],
+        zigbeeModel: ['3418131P6', '929003056401'],
         model: '3418131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
