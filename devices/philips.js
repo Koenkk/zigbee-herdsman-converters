@@ -917,7 +917,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['3418131P6'],
+        zigbeeModel: ['3418131P6', '929003056401'],
         model: '3418131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
