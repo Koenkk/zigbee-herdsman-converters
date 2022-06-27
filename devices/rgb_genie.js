@@ -41,7 +41,7 @@ module.exports = [
         model: 'ZB-5001',
         vendor: 'RGB Genie',
         description: 'Zigbee 3.0 remote control',
-        fromZigbee: [fz.command_recall, fzLocal.ZB1026_command_on, fzLocal.ZB1026_command_off, 
+        fromZigbee: [fz.command_recall, fzLocal.ZB1026_command_on, fzLocal.ZB1026_command_off,
             fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
