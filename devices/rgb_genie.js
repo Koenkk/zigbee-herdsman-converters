@@ -3,6 +3,30 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const utils = require('../lib/utils');
+
+const fzLocal = {
+    // ZB-1026 requires separate on/off converters since it re-uses the transaction number
+    // https://github.com/Koenkk/zigbee2mqtt/issues/12957
+    ZB1026_command_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: utils.postfixWithEndpointName('on', msg, model)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    ZB1026_command_off: {
+        cluster: 'genOnOff',
+        type: 'commandOff',
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: utils.postfixWithEndpointName('off', msg, model)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+};
 
 module.exports = [
     {
@@ -17,7 +41,8 @@ module.exports = [
         model: 'ZB-5001',
         vendor: 'RGB Genie',
         description: 'Zigbee 3.0 remote control',
-        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_recall, fzLocal.ZB1026_command_on, fzLocal.ZB1026_command_off, 
+            fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action(['recall_*', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
         toZigbee: [],
     },

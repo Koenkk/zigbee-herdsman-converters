@@ -46,7 +46,7 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 };
 
 const configureRemote = async (device, coordinatorEndpoint, logger) => {
-    // Firmware 2.3.75 >= only supports binding to endpoint, before only to group
+    // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
     // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
     // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
     const endpoint = device.getEndpoint(1);
