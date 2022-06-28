@@ -299,7 +299,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
         model: 'ZLD-RCW',
         vendor: 'Moes',
         description: 'RGB+CCT Zigbee LED Controller',
