@@ -221,16 +221,24 @@ module.exports = [
         model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
+        fromZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).fromZigbee.concat([
+            fz.moes_power_on_behavior,
             fz.TS110E_switch_type,
         ]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([
+        toZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).toZigbee.concat([
+            tz.moes_power_on_behavior,
             tz.TS110E_switch_type,
         ]),
         meta: {multiEndpoint: true},
         exposes: [
             e.light_brightness().withEndpoint('l1'), 
             e.light_brightness().withEndpoint('l2'),
+            exposes.enum(
+                    'power_on_behavior',
+                    ea.STATE_SET, 
+                    ['off', 'previous', 'on']
+                ).withDescription('Recover state after power outage')
+                .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l2')
         ],
