@@ -3580,6 +3580,9 @@ const converters = {
             await entity.write('genOnOff', {moesStartUpOnOff: payload});
             return {state: {power_outage_memory: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['moesStartUpOnOff']);
+        },
     },
     moes_power_on_behavior: {
         key: ['power_on_behavior'],
