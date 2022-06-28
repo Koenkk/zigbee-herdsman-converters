@@ -71,7 +71,8 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
-        zigbeeModel: ['CCT Light', 'CCT light', 'CCT_light', 'CCT light '],
+        fingerprint: [{modelID: 'CCT Light', manufacturerName: 'Paulmann lamp'}],
+        zigbeeModel: ['CCT light', 'CCT_light', 'CCT light '],
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
