@@ -248,6 +248,22 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['LXX60-CS27LX1.0'],
+        model: 'LXX60-CS27LX1.0',
+        vendor: '3A Smart Home DE',
+        description: 'ZigBee Smart Curtain Switch',
+        extend: extend.switch(),
+        whiteLabel: [{vendor: '3A Smart Home DE', model: 'LXX60-CS27LX1.0', description: 'ZigBee Smart Curtain Switch'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.onOff(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.3'],
         model: 'HGZB-20-UK',
         vendor: 'Nue / 3A',

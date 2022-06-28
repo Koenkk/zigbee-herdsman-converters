@@ -741,6 +741,26 @@ module.exports = [
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
+        zigbeeModel: ['LXN59-CS27LX1.0'],
+        model: 'LXN59-CS27LX1.0',
+        vendor: '3A Smart Home DE',
+        description: 'ZigBee Smart Curtain Switch',
+        fromZigbee: [fz.cover_position_tilt, fz.LXN59_cover_state_via_onoff, fz.LXN59_tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        whiteLabel: [{vendor: '3A Smart Home DE', model: 'LXN59-CS27LX1.0', description: 'ZigBee Smart Curtain Switch'}],
+        meta: {disableDefaultResponse: true},
+        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['qnazj70', 'kjintbl'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wunufsil'},
