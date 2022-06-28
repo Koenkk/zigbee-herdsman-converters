@@ -1535,7 +1535,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'CLOSED' : 'OPEN'};
+                return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
             }
         },
     },

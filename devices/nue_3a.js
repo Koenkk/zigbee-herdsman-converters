@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -246,6 +247,26 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['LXN59-CS27LX1.0'],
+        model: 'LXN59-CS27LX1.0',
+        vendor: '3A Smart Home DE',
+        description: 'ZigBee Smart Curtain Switch',
+        fromZigbee: [fz.cover_position_tilt, fz.LXN59_cover_state_via_onoff, fz.LXN59_tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        whiteLabel: [{vendor: '3A Smart Home DE', model: 'LXN59-CS27LX1.0', description: 'ZigBee Smart Curtain Switch'}],
+        meta: {disableDefaultResponse: true},
+        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['LXX60-CS27LX1.0'],
