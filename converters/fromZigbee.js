@@ -4891,6 +4891,27 @@ const converters = {
             }
         },
     },
+    TS110E_switch_type: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 0xfc02;
+
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                const lookup = {
+                    0: 'momentary', 
+                    1: 'toggle', 
+                    2: 'state'
+                };              
+
+                if (lookup.hasOwnProperty(value)) {
+                    const propertyName = postfixWithEndpointName('switch_type', msg, model)
+                    return {[propertyName]: lookup[value]};
+                }
+            }
+        },
+    },
     tuya_min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],

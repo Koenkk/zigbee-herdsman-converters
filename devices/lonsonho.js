@@ -221,9 +221,19 @@ module.exports = [
         model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([
+            fz.TS110E_switch_type,
+        ]),
+        toZigbee: extend.light_onoff_brightness().toZigbee.concat([
+            tz.TS110E_switch_type,
+        ]),
         meta: {multiEndpoint: true},
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        exposes: [
+            e.light_brightness().withEndpoint('l1'), 
+            e.light_brightness().withEndpoint('l2'),
+            exposes.presets.switch_type_2().withEndpoint('l1'),
+            exposes.presets.switch_type_2().withEndpoint('l2')
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
