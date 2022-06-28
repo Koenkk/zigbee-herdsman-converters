@@ -73,7 +73,7 @@ const converters = {
             }
 
             if (isNotification) {
-                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+                await entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
 
                 // Do not update PanelStatus after confirming transaction.
                 // Instead the server should send an arm_mode command with the necessary state.
@@ -88,7 +88,7 @@ const converters = {
 
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
-            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+            await entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
         },
     },
     battery_percentage_remaining: {
@@ -2577,17 +2577,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
-    tuya_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
-            return {state: {power_outage_memory: value}};
-        },
-    },
+
     tuya_relay_din_led_indicator: {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3578,6 +3568,17 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'cool');
+        },
+    },
+    tuya_switch_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
+            return {state: {power_outage_memory: value}};
         },
     },
     moes_power_on_behavior: {
