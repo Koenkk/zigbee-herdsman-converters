@@ -25,6 +25,7 @@ module.exports = [
         vendor: 'Jasco',
         description: 'Zigbee smart outlet',
         extend: extend.switch(),
+        fromZigbee: [...extend.switch().fromZigbee, fz.metering],
         exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -32,6 +33,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
     {
