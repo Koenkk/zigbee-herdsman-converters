@@ -1517,28 +1517,6 @@ const converters = {
             return {action: postfixWithEndpointName(`identify`, msg, model)};
         },
     },
-    LXN59_tuya_cover_options: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('tuyaMovingState')) {
-                const value = msg.data['tuyaMovingState'];
-                const movingLookup = {0: 'DOWN', 1: 'UP', 2: 'STOP'};
-                result.moving = movingLookup[value];
-            }
-            return result;
-        },
-    },
-    LXN59_cover_state_via_onoff: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('onOff')) {
-                return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
-            }
-        },
-    },
     cover_position_tilt: {
         cluster: 'closuresWindowCovering',
         type: ['attributeReport', 'readResponse'],
