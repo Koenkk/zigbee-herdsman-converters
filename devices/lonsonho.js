@@ -246,7 +246,6 @@ module.exports = [
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await device.getEndpoint(1).read('genOnOff', ['moesStartUpOnOff']);
         },
         endpoint: (device) => {
             return {l1: 1, l2: 2};
