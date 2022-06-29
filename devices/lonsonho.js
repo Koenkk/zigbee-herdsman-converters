@@ -221,26 +221,26 @@ module.exports = [
         model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
-        fromZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).fromZigbee.concat([
+        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).fromZigbee.concat([
             fz.tuya_switch_power_outage_memory,
             fz.TS110E_switch_type,
         ]),
-        toZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).toZigbee.concat([
+        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).toZigbee.concat([
             tz.tuya_switch_power_outage_memory,
             tz.TS110E_switch_type,
         ]),
         meta: {multiEndpoint: true},
         exposes: [
-            e.light_brightness().withEndpoint('l1'), 
+            e.light_brightness().withEndpoint('l1'),
             e.light_brightness().withEndpoint('l2'),
             exposes.enum(
-                    'power_outage_memory',
-                    ea.STATE_SET, 
-                    ['on', 'off', 'restore']
-                ).withDescription('Recover state after power outage')
+                'power_outage_memory',
+                ea.STATE_SET,
+                ['on', 'off', 'restore'],
+            ).withDescription('Recover state after power outage')
                 .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
-            exposes.presets.switch_type_2().withEndpoint('l2')
+            exposes.presets.switch_type_2().withEndpoint('l2'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);

@@ -3888,7 +3888,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             value = value.toLowerCase();
             const lookup = {'momentary': 0, 'toggle': 1, 'state': 2};
-            
+
             utils.validateValue(value, Object.keys(lookup));
             const payload = lookup[value];
 

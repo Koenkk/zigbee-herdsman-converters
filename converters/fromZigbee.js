@@ -4900,13 +4900,13 @@ const converters = {
             if (msg.data.hasOwnProperty(property)) {
                 const value = msg.data[property];
                 const lookup = {
-                    0: 'momentary', 
-                    1: 'toggle', 
-                    2: 'state'
-                };              
+                    0: 'momentary',
+                    1: 'toggle',
+                    2: 'state',
+                };
 
                 if (lookup.hasOwnProperty(value)) {
-                    const propertyName = postfixWithEndpointName('switch_type', msg, model)
+                    const propertyName = postfixWithEndpointName('switch_type', msg, model);
                     return {[propertyName]: lookup[value]};
                 }
             }
