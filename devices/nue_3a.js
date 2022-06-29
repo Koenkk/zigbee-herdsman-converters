@@ -275,7 +275,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['LXN59-CS27LX1.0'],
-        model: 'LXN59-CS27LX1.0',
+        model: 'ZW-EU-4C',
         vendor: 'Nue / 3A',
         description: 'ZigBee smart curtain switch',
         fromZigbee: [fz.cover_position_tilt, fzLocal.LXN59_cover_state_via_onoff, fzLocal.LXN59_cover_options],
@@ -294,7 +294,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['LXX60-CS27LX1.0'],
-        model: 'LXX60-CS27LX1.0',
+        model: 'ZW-EU-02',
         vendor: 'Nue / 3A',
         description: 'ZigBee smart curtain switch',
         extend: extend.switch(),
