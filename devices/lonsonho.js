@@ -222,11 +222,11 @@ module.exports = [
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
         fromZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).fromZigbee.concat([
-            fz.moes_power_on_behavior,
+            fz.tuya_switch_power_outage_memory,
             fz.TS110E_switch_type,
         ]),
         toZigbee: extend.light_onoff_brightness({ disablePowerOnBehavior: true }).toZigbee.concat([
-            tz.moes_power_on_behavior,
+            tz.tuya_switch_power_outage_memory,
             tz.TS110E_switch_type,
         ]),
         meta: {multiEndpoint: true},
@@ -234,9 +234,9 @@ module.exports = [
             e.light_brightness().withEndpoint('l1'), 
             e.light_brightness().withEndpoint('l2'),
             exposes.enum(
-                    'power_on_behavior',
+                    'power_outage_memory',
                     ea.STATE_SET, 
-                    ['off', 'previous', 'on']
+                    ['on', 'off', 'restore']
                 ).withDescription('Recover state after power outage')
                 .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
@@ -246,6 +246,7 @@ module.exports = [
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await device.getEndpoint(1).read('genOnOff', ['moesStartUpOnOff']);
         },
         endpoint: (device) => {
             return {l1: 1, l2: 2};
