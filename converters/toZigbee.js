@@ -3577,7 +3577,7 @@ const converters = {
             const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
             utils.validateValue(value, Object.keys(lookup));
             const payload = lookup[value];
-            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
+            await entity.write('genOnOff', {moesStartUpOnOff: payload});
             return {state: {power_outage_memory: value}};
         },
     },

@@ -33,7 +33,7 @@ module.exports = [
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
-        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_j1xl73iw'}],
+        fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_j1xl73iw'}, {modelID: 'TS130F', manufacturerName: '_TZ3000_kmsbwdol'}],
         model: 'TS130F_dual',
         vendor: 'Lonsonho',
         description: 'Dual curtain/blind module',
