@@ -108,5 +108,5 @@ module.exports = [
             device.powerSource = 'Battery';
             device.save();
         },  
-    },
+     },
 ];
