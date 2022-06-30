@@ -20,9 +20,10 @@ module.exports = [
         model: '3RSS008Z',
         vendor: 'Third Reality',
         description: 'RealitySwitch Plus',
-        fromZigbee: [fz.on_off],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch()],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.switch(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['3RSS007Z'],
@@ -72,8 +73,11 @@ module.exports = [
         description: 'Wireless motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RDS17BZ'],
@@ -84,6 +88,10 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RSP019BZ'],
@@ -96,19 +104,6 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
-    },
-    {
-        zigbeeModel: ['3RSB22BZ'],
-        model: '3RSB22BZ',
-        vendor: 'Third Reality',
-        description: 'Smart Button',
-        fromZigbee: [fz.battery, fz.itcmdr_clicks],
-        toZigbee: [],
-        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.powerSource = 'Battery';
-            device.save();
-        },  
     },
     {
         zigbeeModel: ['3RSB015BZ'],
@@ -126,4 +121,18 @@ module.exports = [
         },
         exposes: [e.cover_position(), e.battery()],
     },
+    {
+        zigbeeModel: ['3RSB22BZ'],
+        model: '3RSB22BZ',
+        vendor: 'Third Reality',
+        description: 'Smart Button',
+        fromZigbee: [fz.battery, fz.itcmdr_clicks],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },  
+    },
 ];
+
