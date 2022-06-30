@@ -95,6 +95,18 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
-        },
+      },
+      {
+        zigbeeModel: ['3RSB22BZ'],
+        model: '3RSB22BZ',
+        vendor: 'Third Reality',
+        description: 'Smart Button',
+        fromZigbee: [fz.battery, fz.itcmdr_clicks],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },  
     },
 ];
