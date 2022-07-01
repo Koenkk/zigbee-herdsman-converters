@@ -341,4 +341,26 @@ module.exports = [
             }]);
         },
     },
+    {
+        zigbeeModel: ['DLM-300Z'],
+        model: 'DLM-300Z',
+        vendor: 'ShinaSystem',
+        description: 'Sihas door lock',
+        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response],
+        toZigbee: [tz.lock, tz.pincode_lock],
+        meta: {pinCodeCount: 4},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.lockState(endpoint, {min: 0, max: 3600, change: 0});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 600, max: 21600, change: 1});
+            await reporting.doorState(endpoint);
+        },
+        exposes: [e.battery(), e.lock(), exposes.enum('door_state', ea.STATE, ['open', 'closed']).withDescription('Door status'),
+            e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user(),
+            exposes.composite('pin_code', 'pin_code')
+                .withFeature(exposes.numeric('user', ea.SET).withDescription('User ID can only number 1'))
+                .withFeature(exposes.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
+        ],
+    },
 ];

@@ -6,6 +6,37 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const tzLocal = {
+    node_config: {
+        key: ['report_delay'],
+        convertSet: async (entity, key, rawValue, meta) => {
+            const lookup = {'OFF': 0x00, 'ON': 0x01};
+            const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
+            const payloads = {
+                report_delay: ['genPowerCfg', {0x0201: {value, type: 0x21}}],
+            };
+            await entity.write(payloads[key][0], payloads[key][1]);
+            return {
+                state: {[key]: rawValue},
+            };
+        },
+    },
+};
+
+const fzLocal = {
+    node_config: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x0201)) {
+                result.report_delay = msg.data[0x0201];
+            }
+            return result;
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['ti.router'],
@@ -257,17 +288,15 @@ module.exports = [
         model: 'EFEKTA_miniPWS',
         vendor: 'Custom devices (DiY)',
         description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
-        fromZigbee: [fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        fromZigbee: [fz.soil_moisture, fz.battery, fzLocal.node_config],
+        toZigbee: [tz.factory_reset, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
-            const overides = {min: 0, max: 21600, change: 0};
-            await reporting.batteryVoltage(firstEndpoint, overides);
-            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
-            await reporting.soil_moisture(firstEndpoint, overides);
         },
-        exposes: [e.soil_moisture(), e.battery()],
+        exposes: [e.soil_moisture(), e.battery(),
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withDescription('Adjust Report Delay, by default 60 minutes')
+                .withValueMin(1).withValueMax(180)],
     },
     {
         zigbeeModel: ['EFEKTA_eON213wz'],
@@ -374,5 +403,45 @@ module.exports = [
             await endpoint.read('msPressureMeasurement', ['scale']);
         },
         exposes: [e.battery(), e.illuminance(), e.temperature(), e.humidity(), e.pressure()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_eFlower_Pro'],
+        model: 'EFEKTA_eFlower_Pro',
+        vendor: 'Custom devices (DiY)',
+        description: '[Plant Wattering Sensor with e-ink display 2.13](https://efektalab.com/eFlowerPro)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msSoilMoisture']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overides);
+            await reporting.temperature(firstEndpoint, overides);
+            await reporting.humidity(firstEndpoint, overides);
+            await reporting.illuminance(firstEndpoint, overides);
+            await reporting.soil_moisture(firstEndpoint, overides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.illuminance(), e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ['EFEKTA_eTH102'],
+        model: 'EFEKTA_eTH102',
+        vendor: 'Custom devices (DiY)',
+        description: '[Mini digital thermometer & hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [tz.factory_reset],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+            await reporting.temperature(endpoint, overides);
+            await reporting.humidity(endpoint, overides);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
     },
 ];

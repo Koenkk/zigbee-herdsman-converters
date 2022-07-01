@@ -7,6 +7,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ADUROLIGHT_CSC'],
+        model: '15090054',
+        vendor: 'AduroSmart',
+        description: 'Remote scene controller',
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_recall],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['toggle', 'recall_253', 'recall_254', 'recall_255'])],
+    },
+    {
         zigbeeModel: ['AD-SmartPlug3001'],
         model: '81848',
         vendor: 'AduroSmart',
@@ -25,7 +34,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor', 'AD-RGBW3001'],
+        zigbeeModel: ['ZLL-ExtendedColo', 'ZLL-ExtendedColor'],
         model: '81809/81813',
         vendor: 'AduroSmart',
         description: 'ERIA colors and white shades smart light bulb A19/BR30',
@@ -34,6 +43,21 @@ module.exports = [
         endpoint: (device) => {
             return {'default': 2};
         },
+    },
+    {
+        zigbeeModel: ['AD-RGBW3001'],
+        model: '81809FBA',
+        vendor: 'AduroSmart',
+        description: 'ERIA colors and white shades smart light bulb A19/BR30',
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true},
+    },
+    {
+        zigbeeModel: ['AD-E14RGBW3001'],
+        model: '81895',
+        vendor: 'AduroSmart',
+        description: 'ERIA E14 Candle Color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['Adurolight_NCC'],

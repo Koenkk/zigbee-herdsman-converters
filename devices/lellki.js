@@ -9,9 +9,10 @@ const tuya = require('../lib/tuya');
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_air9m6af'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_9djocypn'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
         zigbeeModel: ['JZ-ZB-005'],
-        model: 'WP33-EU',
+        model: 'WP33-EU/WP34-EU',
         vendor: 'LELLKI',
         description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
         extend: extend.switch(),
@@ -22,11 +23,12 @@ module.exports = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+            await device.getEndpoint(1).read('genBasic', [
+                'manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+
+            for (const ID of [1, 2, 3, 4, 5]) {
+                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
         },
     },
     {
@@ -99,28 +101,10 @@ module.exports = [
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
-        exposes: [e.switch().withEndpoint('l1'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
         onEvent: tuya.onEventMeasurementPoll,
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_bppxj3sf'}],
-        model: 'WP34-EU',
-        vendor: 'LELLKI',
-        description: 'Outlet power cord with 4 sockets and 2 USB',
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        extend: extend.switch(),
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            for (const ID of [1, 2, 3, 4, 5]) {
-                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
-            }
-        },
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_0yxeawjt'}],

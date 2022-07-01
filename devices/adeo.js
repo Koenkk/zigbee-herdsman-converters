@@ -7,6 +7,57 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['LDSENK09'],
+        model: 'LDSENK09',
+        vendor: 'ADEO',
+        description: 'Security system key fob',
+        fromZigbee: [fz.command_arm, fz.command_panic],
+        toZigbee: [],
+        exposes: [e.action(['panic', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        onEvent: async (type, data, device) => {
+            // Since arm command has a response zigbee-herdsman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            if (data.type === 'commandArm' && data.cluster === 'ssIasAce') {
+                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
+            }
+        },
+    },
+    {
+        zigbeeModel: ['ZBEK-4'],
+        model: 'IM-CDZDGAAA0005KA_MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN RGBTW GU10 Bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-12'],
+        model: 'IA-CDZFB2AA007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-13'],
+        model: 'IG-CDZFB2AG010RA-MNZ',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-5'],
+        model: 'IST-CDZFB2AS007NA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-3'],
+        model: 'IP-CDZOTAAP005JA-MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['LDSENK01F'],
         model: 'LDSENK01F',
         vendor: 'ADEO',
@@ -19,7 +70,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['LXEK-5'],
+        zigbeeModel: ['LXEK-5', 'ZBEK-26'],
         model: 'HR-C99C-Z-C045',
         vendor: 'ADEO',
         description: 'RGB CTT LEXMAN ENKI remote control',
@@ -63,6 +114,20 @@ module.exports = [
         vendor: 'ADEO',
         description: 'ENKI Lexman E27 14W to 100W LED RGBW',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['ZBEK-2'],
+        model: 'IG-CDZOTAAG014RA-MAN',
+        vendor: 'ADEO',
+        description: 'ENKI Lexman E27 14W to 100W LED RGBW v2',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-1'],
+        model: 'IA-CDZOTAAA007MA-MAN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 7.2 to 60W LED RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['LXEK-7'],

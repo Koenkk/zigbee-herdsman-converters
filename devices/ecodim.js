@@ -40,7 +40,7 @@ module.exports = [
             ]},
         ],
         zigbeeModel: ['Dimmer-Switch-ZB3.0'],
-        model: 'Eco-Dim.07',
+        model: 'Eco-Dim.07/Eco-Dim.10',
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
@@ -125,5 +125,13 @@ module.exports = [
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
         extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137},
+            {modelID: 'CCT Light', manufacturerName: 'Astuta/ZB-CCT', manufacturerID: 4137}],
+        model: 'ED-10041',
+        vendor: 'EcoDim',
+        description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];

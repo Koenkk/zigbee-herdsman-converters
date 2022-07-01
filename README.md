@@ -4,7 +4,7 @@
 Collection of device converters to be used with zigbee-herdsman.
 
 ## Contributing
-See [Zigbee2MQTT how to support new devices](http://www.zigbee2mqtt.io/how_tos/how_to_support_new_devices.html).
+See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html).
 
 ## Submitting a pull request
 If you'd like to submit a pull request, you should run the following commands to ensure your changes will pass the tests:

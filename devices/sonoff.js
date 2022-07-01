@@ -1,9 +1,11 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -13,6 +15,26 @@ module.exports = [
         description: 'Zigbee smart switch',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
+    },
+    {
+        zigbeeModel: ['ZBMINI-L'],
+        model: 'ZBMINI-L',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch (no neutral)',
+        ota: ota.zigbeeOTA,
+        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Unbind genPollCtrl to prevent device from sending checkin message.
+            // Zigbee-herdsmans responds to the checkin message which causes the device
+            // to poll slower.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['01MINIZB'],
@@ -67,7 +89,7 @@ module.exports = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK07'}],
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long'])],
+        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -133,7 +155,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ['S26R2ZB'],
@@ -141,5 +163,17 @@ module.exports = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
         extend: extend.switch(),
+    },
+    {
+        zigbeeModel: ['S40LITE'],
+        model: 'S40ZBTPB',
+        vendor: 'SONOFF',
+        description: '15A Zigbee smart plug',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
     },
 ];

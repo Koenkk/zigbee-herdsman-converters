@@ -3,9 +3,62 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 
+const fzLocal = {
+    sunricher_SRZGP2801K45C: {
+        cluster: 'greenPower',
+        type: ['commandNotification', 'commandCommisioningNotification'],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID === 224) return;
+            const lookup = {
+                0x21: 'press_on',
+                0x20: 'press_off',
+                0x37: 'press_high',
+                0x38: 'press_low',
+                0x35: 'hold_high',
+                0x36: 'hold_low',
+                0x34: 'high_low_release',
+                0x63: 'cw_ww_release',
+                0x62: 'cw_dec_ww_inc',
+                0x64: 'ww_inc_cw_dec',
+                0x41: 'r_g_b',
+                0x42: 'b_g_r',
+                0x40: 'rgb_release',
+            };
+            if (!lookup.hasOwnProperty(commandID)) {
+                meta.logger.error(`Sunricher: missing command '0x${commandID.toString(16)}'`);
+            } else {
+                return {action: lookup[commandID]};
+            }
+        },
+    },
+};
+
 module.exports = [
+    {
+        zigbeeModel: ['SR-ZG9023A-EU'],
+        model: 'SR-ZG9023A-EU',
+        vendor: 'Sunricher',
+        description: '4 ports switch with 2 usb ports (no metering)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
     {
         zigbeeModel: ['ON/OFF(2CH)'],
         model: 'UP-SA-9127D',
@@ -28,6 +81,16 @@ module.exports = [
         vendor: 'Sunricher',
         description: '50W Zigbee CCT LED driver (constant current)',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
+        zigbeeModel: ['ZGRC-KEY-004'],
+        model: 'SR-ZG9001K2-DIM',
+        vendor: 'Sunricher',
+        description: 'Zigbee wall remote control for single color, 1 zone',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['on', 'off',
+            'brightness_move_up', 'brightness_move_down', 'brightness_move_stop'])],
     },
     {
         zigbeeModel: ['ZGRC-KEY-007'],
@@ -103,7 +166,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ON/OFF', 'ZIGBEE-SWITCH'],
+        zigbeeModel: ['ON/OFF -M', 'ON/OFF', 'ZIGBEE-SWITCH'],
         model: 'ZG9101SAC-HP-Switch',
         vendor: 'Sunricher',
         description: 'Zigbee AC in wall switch',
@@ -251,7 +314,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/}],
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000010.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000001b.....$/}],
         model: 'SR-ZGP2801K2-DIM',
         vendor: 'Sunricher',
         description: 'Pushbutton transmitter module',
@@ -268,5 +332,15 @@ module.exports = [
         fromZigbee: [fz.sunricher_switch2801K4],
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'release'])],
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000aaf.....$/}],
+        model: 'SR-ZGP2801K-5C',
+        vendor: 'Sunricher',
+        description: 'Pushbutton transmitter module',
+        fromZigbee: [fzLocal.sunricher_SRZGP2801K45C],
+        toZigbee: [],
+        exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high_low_release',
+            'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
     },
 ];

@@ -2,8 +2,27 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
 const e = exposes.presets;
+const fz = require('../converters/fromZigbee');
 
 module.exports = [
+    {
+        zigbeeModel: ['ZG50CC-CCT-DRIVER'],
+        model: 'ZG50CC-CCT-DRIVER',
+        vendor: 'Envilar',
+        description: 'Zigbee CCT LED driver',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
+        zigbeeModel: ['ZGR904-S'],
+        model: 'ZGR904-S',
+        vendor: 'Envilar',
+        description: 'Touchlink remote',
+        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(),
+            e.action(['recall_1', 'recall_2', 'on', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
+    },
     {
         zigbeeModel: ['ZG102-BOX-UNIDIM'],
         model: 'ZG102-BOX-UNIDIM',
