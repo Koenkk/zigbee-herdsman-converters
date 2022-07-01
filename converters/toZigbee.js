@@ -3883,22 +3883,6 @@ const converters = {
             await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
-    TS110E_switch_type: {
-        key: ['switch_type'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'momentary': 0, 'toggle': 1, 'state': 2};
-
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-
-            await entity.write('genLevelCtrl', {0xfc02: {value: payload, type: 0x20}});
-            return {state: {switch_type: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', [0xfc02]);
-        },
-    },
     tuya_min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
