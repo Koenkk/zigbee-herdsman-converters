@@ -125,7 +125,7 @@ module.exports = [
         zigbeeModel: ['3RSB22BZ'],
         model: '3RSB22BZ',
         vendor: 'Third Reality',
-        description: 'Smart Button',
+        description: 'Smart button',
         fromZigbee: [fz.battery, fz.itcmdr_clicks],
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
@@ -135,4 +135,3 @@ module.exports = [
         },  
     },
 ];
-
