@@ -3,7 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const utils = require('../utils');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
