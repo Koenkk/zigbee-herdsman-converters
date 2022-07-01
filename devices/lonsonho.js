@@ -3,8 +3,46 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../utils');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    TS110E_switch_type: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 0xfc02;
+            if (msg.data.hasOwnProperty(property)) {
+                const value = msg.data[property];
+                const lookup = {0: 'momentary', 1: 'toggle', 2: 'state'};
+                if (lookup.hasOwnProperty(value)) {
+                    const propertyName = utils.postfixWithEndpointName('switch_type', msg, model);
+                    return {[propertyName]: lookup[value]};
+                }
+            }
+        },
+    },
+};
+
+const tzLocal = {
+    TS110E_switch_type: {
+        key: ['switch_type'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'momentary': 0, 'toggle': 1, 'state': 2};
+
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+
+            await entity.write('genLevelCtrl', {0xfc02: {value: payload, type: 0x20}});
+            return {state: {switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', [0xfc02]);
+        },
+    },
+};
 
 module.exports = [
     {
@@ -222,22 +260,14 @@ module.exports = [
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
         fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).fromZigbee.concat([
-            fz.tuya_switch_power_outage_memory,
-            fz.TS110E_switch_type,
-        ]),
+            fz.tuya_switch_power_outage_memory, fzLocal.TS110E_switch_type]),
         toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).toZigbee.concat([
-            tz.tuya_switch_power_outage_memory,
-            tz.TS110E_switch_type,
-        ]),
+            tz.tuya_switch_power_outage_memory, tzLocal.TS110E_switch_type]),
         meta: {multiEndpoint: true},
         exposes: [
             e.light_brightness().withEndpoint('l1'),
             e.light_brightness().withEndpoint('l2'),
-            exposes.enum(
-                'power_outage_memory',
-                ea.STATE_SET,
-                ['on', 'off', 'restore'],
-            ).withDescription('Recover state after power outage')
+            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
                 .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l2'),
