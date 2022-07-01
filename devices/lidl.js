@@ -857,4 +857,12 @@ module.exports = [
             }),
         ],
     },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_taspddvq'}],
+        model: 'HG08383B',
+        vendor: 'Lidl',
+        description: 'Livarno outdoor LED light chain',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
+    },
 ];
