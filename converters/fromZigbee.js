@@ -3236,7 +3236,7 @@ const converters = {
                         };
 
                         let nameAlt = '';
-                        if (unit === 'A') {
+                        if (unit === 'A' || unit === 'pf') {
                             if (valRaw < 1) {
                                 val = precisionRound(valRaw, 3);
                             }
