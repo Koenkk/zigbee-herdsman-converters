@@ -2641,4 +2641,16 @@ module.exports = [
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'}],
+        model: 'TS0601_temperature_humidity_sensor_1',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fz.tuya_temperature_humidity_sensor],
+        toZigbee: [],
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(), e.battery_low(),
+            exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
+        ],
+    },
 ];
