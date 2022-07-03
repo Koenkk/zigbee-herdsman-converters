@@ -24,13 +24,13 @@ module.exports = [
                 .withDescription('On/off state of the switch'),
             e.child_lock(),
             e.window_detection(),
+            e.away_mode(),
             exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(['heat', 'auto'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
-                .withAwayMode()
                 .withSensor(['internal', 'external', 'both']),
             exposes.numeric('external_temperature', ea.STATE)
                 .withUnit('°C')

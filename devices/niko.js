@@ -96,7 +96,7 @@ const local = {
 module.exports = [
     {
         zigbeeModel: ['Connected socket outlet'],
-        model: '170-33505',
+        model: '170-33505/170-34605',
         vendor: 'Niko',
         description: 'Connected socket outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
@@ -233,5 +233,19 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['Connectable motor control,3A'],
+        model: '552-72301',
+        vendor: 'Niko',
+        description: 'Connectable motor control',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
     },
 ];

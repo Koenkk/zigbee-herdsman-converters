@@ -26,7 +26,7 @@ module.exports = [
     },
     {
         zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
-        model: 'L441C/N4411C/NT4411C',
+        model: 'L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),

@@ -52,6 +52,25 @@ const fzLocal = {
             return result;
         },
     },
+    woox_R7060: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandActiveStatusReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'woox_R7060');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.wooxSwitch:
+                return {state: value === 2 ? 'OFF' : 'ON'};
+            case 101:
+                return {battery: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:WooxR7060: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
 };
 
 const tzLocal = {
@@ -82,10 +101,10 @@ module.exports = [
         model: 'R7060',
         vendor: 'Woox',
         description: 'Smart garden irrigation control',
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.woox_R7060, fz.battery],
+        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, fzLocal.woox_R7060],
         toZigbee: [tz.on_off],
         onEvent: tuya.onEventSetTime,
-        exposes: [e.switch(), e.battery(), e.battery_voltage()],
+        exposes: [e.switch(), e.battery()],
         meta: {disableDefaultResponse: true},
     },
     {
