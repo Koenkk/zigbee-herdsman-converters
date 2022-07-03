@@ -74,6 +74,24 @@ const ubisys = {
                 }
             },
         },
+        configure_device_setup: {
+            cluster: 'manuSpecificPhilips', // XXX: why does manuSpecificUbisysDeviceSetup not match?
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                // XXX: why does inputConfigurations not exist, because we're not matching as manuSpecificUbisysDeviceSetup?
+                if (msg.data.hasOwnProperty(0x0000)) {
+                    result['input_configurations'] = msg.data[0x0000];
+                }
+                // XXX: why does inputActions not exist, because we're not matching as manuSpecificUbisysDeviceSetup?
+                if (msg.data.hasOwnProperty(0x0001)) {
+                    result['input_actions'] = msg.data[0x0001].map(function(el) {
+                        return Object.values(el);
+                    });
+                }
+                return {configure_device_setup: result};
+            },
+        },
     },
     tz: {
         configure_j1: {
@@ -482,13 +500,9 @@ const ubisys = {
             },
 
             convertGet: async (entity, key, meta) => {
-                const log = (dataRead) => {
-                    meta.logger.warn(
-                        `ubisys: Device setup read for '${meta.options.friendly_name}': ${JSON.stringify(utils.toSnakeCase(dataRead))}`);
-                };
                 const devMgmtEp = meta.device.getEndpoint(232);
-                log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'], manufacturerOptions.ubisysNull));
-                log(await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'], manufacturerOptions.ubisysNull));
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations', 'inputActions'],
+                    manufacturerOptions.ubisysNull);
             },
         },
     },
@@ -507,7 +521,7 @@ module.exports = [
             ]),
             e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop, fz.power_on_behavior],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
@@ -549,7 +563,7 @@ module.exports = [
             ]),
             e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop, fz.power_on_behavior],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
@@ -592,7 +606,7 @@ module.exports = [
                 'brightness_stop_s2']),
             e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop, fz.power_on_behavior],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
@@ -638,7 +652,7 @@ module.exports = [
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
             fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,
-            ubisys.fz.dimmer_setup_genLevelCtrl],
+            ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
             tz.light_brightness_step],
@@ -702,7 +716,7 @@ module.exports = [
         model: 'J1',
         vendor: 'Ubisys',
         description: 'Shutter control J1',
-        fromZigbee: [fz.cover_position_tilt, fz.metering],
+        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
             ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
         exposes: [e.cover_position_tilt(),
@@ -739,7 +753,8 @@ module.exports = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover],
+        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover,
+            ubisys.fz.configure_device_setup],
         toZigbee: [ubisys.tz.configure_device_setup],
         exposes: [e.action([
             '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
