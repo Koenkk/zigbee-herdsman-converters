@@ -1947,10 +1947,10 @@ const converters = {
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tthHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
-            case tuya.dataPoints.tthBatteryLevel: 
+            case tuya.dataPoints.tthBatteryLevel:
                 return {
                     battery_level: {0: 'low', 1: 'middle', 2: 'high'}[value],
-                    battery_low: value === 0 ? true : false
+                    battery_low: value === 0 ? true : false,
                 };
             case tuya.dataPoints.tthBattery:
                 return {battery: value};
