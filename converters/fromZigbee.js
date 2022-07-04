@@ -1946,7 +1946,9 @@ const converters = {
             case 1:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case 2:
-                return {humidity: calibrateAndPrecisionRoundOptions(value, options, 'humidity')};
+                return {humidity: calibrateAndPrecisionRoundOptions(
+                    (value / (meta.device.manufacturerName === '_TZE200_bjawzodf' ? 10 : 1)),
+                    options, 'humidity')};
             case 4:
                 return {battery: value};
             default:
