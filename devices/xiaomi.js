@@ -264,15 +264,15 @@ module.exports = [
         toZigbee: [],
         onEvent: preventReset,
     },
-      {  
+    {
         zigbeeModel: ['lumi.switch.b1laus01'],
         model: 'WS-USC01',
-        vendor: 'Xiaomi',                           
+        vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple,
             tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
-        exposes: [e.switch(), e.action(['single', 'double']),  e.flip_indicator_light(),
+        exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
@@ -280,10 +280,10 @@ module.exports = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            // set "event" mode 
+            // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
-        },         
-    }, 
+        },
+    },
     {
         zigbeeModel: ['lumi.switch.b2laus01'],
         model: 'WS-USC02',
