@@ -63,7 +63,7 @@ module.exports = [
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
         },
     },
-    	{
+    {
         zigbeeModel: ['TAFFETAS2 D1.00P1.02Z1.00'],
         model: 'TAFFETAS2',
         vendor: 'Acova',
