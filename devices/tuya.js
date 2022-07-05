@@ -442,6 +442,14 @@ module.exports = [
         whiteLabel: [{vendor: 'Mumubiz', model: 'ZJSB9-80Z'}],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8fdayfch'}],
+        model: 'TS011F_relay_switch',
+        vendor: 'TuYa',
+        description: 'Dry contact relay switch',
+        extend: extend.switch(),
+        whiteLabel: [{vendor: 'KTNNKG', model: 'ZB1248-10A'}],
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_ezlg0pht'},
