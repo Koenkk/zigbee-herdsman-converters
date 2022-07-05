@@ -10,6 +10,13 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['FWGU10Bulb02UK'],
+        model: 'FWGU10Bulb02UK',
+        vendor: 'Hive',
+        description: 'GU10 warm white',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['MOT003'],
         model: 'MOT003',
         vendor: 'Hive',
