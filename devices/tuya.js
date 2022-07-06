@@ -320,14 +320,13 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'}],
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.tuya_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.tuya_temperature_humidity_sensor],
         toZigbee: [],
-        onEvent: tuya.onEventSetLocalTime,
         exposes: (device, options) => {
             const exps = [e.temperature(), e.humidity(), e.battery()];
             if (!device || device.manufacturerName === '_TZE200_qyflbnbj') {
