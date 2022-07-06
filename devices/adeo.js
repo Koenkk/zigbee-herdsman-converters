@@ -112,14 +112,28 @@ module.exports = [
         zigbeeModel: ['LXEK-2'],
         model: '9CZA-G1521-Q1A',
         vendor: 'ADEO',
-        description: 'ENKI Lexman E27 14W to 100W LED RGBW',
+        description: 'ENKI LEXMAN E27 14W to 100W LED RGBW',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['LDSENK07'],
+        model: 'LDSENK07',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN wireless smart outdoor siren',
+        fromZigbee: [fz.battery, fz.ias_siren],
+        toZigbee: [tz.warning],
+        exposes: [e.warning(), e.battery(), e.battery_low(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.defaultSendRequestWhen = 'immediate';
+            device.save();
+            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+        },
     },
     {
         zigbeeModel: ['ZBEK-2'],
         model: 'IG-CDZOTAAG014RA-MAN',
         vendor: 'ADEO',
-        description: 'ENKI Lexman E27 14W to 100W LED RGBW v2',
+        description: 'ENKI LEXMAN E27 14W to 100W LED RGBW v2',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
@@ -133,7 +147,7 @@ module.exports = [
         zigbeeModel: ['LXEK-7'],
         model: '9CZA-A806ST-Q1Z',
         vendor: 'ADEO',
-        description: 'ENKI Lexman E27 LED white',
+        description: 'ENKI LEXMAN E27 LED white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
@@ -157,7 +171,7 @@ module.exports = [
         zigbeeModel: ['LDSENK10'],
         model: 'LDSENK10',
         vendor: 'ADEO',
-        description: 'LEXMAN motion sensor',
+        description: 'ENKI LEXMAN motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],

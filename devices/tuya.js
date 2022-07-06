@@ -9,12 +9,16 @@ const e = exposes.presets;
 const ea = exposes.access;
 const libColor = require('../lib/color');
 const utils = require('../lib/utils');
+const zosung = require('../lib/zosung');
+const fzZosung = zosung.fzZosung;
+const tzZosung = zosung.tzZosung;
+const ez = zosung.presetsZosung;
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
-    '_TZ3000_nzkqcvvs', '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit',
-    '_TZ3000_cjrngdr3', '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy'];
+    '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
+    '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -317,13 +321,22 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.tuya_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [],
         onEvent: tuya.onEventSetLocalTime,
-        exposes: [e.temperature(), e.humidity(), e.battery()],
+        exposes: (device, options) => {
+            const exps = [e.temperature(), e.humidity(), e.battery()];
+            if (!device || device.manufacturerName === '_TZE200_qyflbnbj') {
+                exps.push(e.battery_low());
+                exps.push(exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
+            }
+            exps.push(e.linkquality());
+            return exps;
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
@@ -336,7 +349,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'TuYa',
         description: 'Air quality sensor',
@@ -438,6 +453,14 @@ module.exports = [
         whiteLabel: [{vendor: 'Mumubiz', model: 'ZJSB9-80Z'}],
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8fdayfch'}],
+        model: 'TS011F_relay_switch',
+        vendor: 'TuYa',
+        description: 'Dry contact relay switch',
+        extend: extend.switch(),
+        whiteLabel: [{vendor: 'KTNNKG', model: 'ZB1248-10A'}],
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_jtmhndw2'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_ezlg0pht'},
@@ -468,9 +491,10 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_iwbaamgh'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_s6zec0of'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_y5fjkn7x'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_y5fjkn7x'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_cuqkfz2q'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_6amjviba'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -499,6 +523,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3000_ukuvyhaa'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_bfvybixd'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_i2i0bsnv'},
+            {modelID: 'TS0504B', manufacturerName: '_TZ3210_elzv6aia'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'}],
         model: 'TS0504B',
         vendor: 'TuYa',
@@ -835,7 +860,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'}],
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'}],
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -902,6 +928,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_armwcncd'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_2p6wbry3'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_qamcypen'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_zdrhqmo0'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -957,9 +984,13 @@ module.exports = [
         model: 'WSD500A',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
     },
     {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
@@ -1594,7 +1625,8 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_v1pdxuqq'},
             {modelID: 'TS011F', manufacturerName: '_TZ3000_8a833yls'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'},
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_nzkqcvvs'}],
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',
@@ -2617,5 +2649,17 @@ module.exports = [
             exposes.text('motor_type', ea.STATE),
             exposes.enum('report', ea.SET, ['REPORT']),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_7v1k4vufotpowp9z'}],
+        model: 'ZS06',
+        vendor: 'TuYa',
+        description: 'Universal smart IR remote control',
+        fromZigbee: [
+            fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
+            fzZosung.zosung_send_ir_code_03, fzZosung.zosung_send_ir_code_04, fzZosung.zosung_send_ir_code_05,
+        ],
+        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
     },
 ];

@@ -53,7 +53,7 @@ module.exports = [
                 {ID: 242, profileID: 41440, deviceID: 97},
             ]},
         ],
-        zigbeeModel: ['57005000'],
+        zigbeeModel: ['NEXENTRO Switching Actuator', '57005000'],
         model: '57005000',
         vendor: 'Insta',
         description: 'Switching Actuator Mini with input for wall switch',

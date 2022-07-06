@@ -7,6 +7,10 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const zosung = require('../lib/zosung');
+const fzZosung = zosung.fzZosung;
+const tzZosung = zosung.tzZosung;
+const ez = zosung.presetsZosung;
 
 module.exports = [
     {
@@ -299,7 +303,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
         model: 'ZLD-RCW',
         vendor: 'Moes',
         description: 'RGB+CCT Zigbee LED Controller',
@@ -308,7 +313,7 @@ module.exports = [
         ]),
         meta: {applyRedFix: true, enhancedHue: false},
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes.concat([
+        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}).exposes.concat([
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
             exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
@@ -335,5 +340,25 @@ module.exports = [
         toZigbee: [tz.moes_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
+    },
+    {
+        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'}],
+        model: 'UFO-R11',
+        vendor: 'Moes',
+        description: 'Universal smart IR remote control',
+        fromZigbee: [
+            fzZosung.zosung_send_ir_code_00, fzZosung.zosung_send_ir_code_01, fzZosung.zosung_send_ir_code_02,
+            fzZosung.zosung_send_ir_code_03, fzZosung.zosung_send_ir_code_04, fzZosung.zosung_send_ir_code_05,
+            fz.battery,
+        ],
+        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
 ];

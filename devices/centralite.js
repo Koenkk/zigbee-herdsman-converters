@@ -73,6 +73,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['4256050-RZHAC'],
+        model: '4256050-RZHAC',
+        vendor: 'Centralite',
+        description: '3-Series smart outlet appliance module',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            // 4256050-RZHAC doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
+            await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
+            await reporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
+        },
+    },
+    {
         zigbeeModel: ['4257050-ZHAC'],
         model: '4257050-ZHAC',
         vendor: 'Centralite',

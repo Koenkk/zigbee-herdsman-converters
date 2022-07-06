@@ -46,7 +46,7 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 };
 
 const configureRemote = async (device, coordinatorEndpoint, logger) => {
-    // Firmware 2.3.75 >= only supports binding to endpoint, before only to group
+    // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
     // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
     // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
     const endpoint = device.getEndpoint(1);
@@ -292,7 +292,8 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm'],
+        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm',
+            'TRADFRIbulbE26WSglobeopal1055lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/27 1100/1055/1160 lumen, dimmable, white spectrum, opal white',
