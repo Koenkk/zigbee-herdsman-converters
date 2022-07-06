@@ -139,7 +139,7 @@ module.exports = [
         zigbeeModel: ['Tibea TW Z3'],
         model: '4058075168572',
         vendor: 'LEDVANCE',
-        description: 'SMART+ lamp E27 turntable white',
+        description: 'SMART+ lamp E27 tuneable white',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
@@ -149,6 +149,14 @@ module.exports = [
         vendor: 'LEDVANCE',
         description: 'Classic E26 tunable white 9w 800 lumen',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['CLA60 RGBW JP'],
+        model: 'SMARTZBA60RGBW',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E26 RGBW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
 ];
