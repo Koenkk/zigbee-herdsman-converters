@@ -64,7 +64,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TAFFETAS2 D1.00P1.02Z1.00','TAFFETAS2 D1.00P1.01Z1.00'],
+        zigbeeModel: ['TAFFETAS2 D1.00P1.02Z1.00', 'TAFFETAS2 D1.00P1.01Z1.00'],
         model: 'TAFFETAS2',
         vendor: 'Acova',
         description: 'Taffetas 2 heater',
