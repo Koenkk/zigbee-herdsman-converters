@@ -124,45 +124,6 @@ const tzLocal = {
             }
         },
     },
-    ts0601_lcd_temperature_humidity_sensor: {
-        key: [
-            'min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert',
-            'min_humidity', 'max_humidity', 'report_interval', 'humidity_report_interval', 'humidity_sensitivity',
-        ],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'temperature_unit_convert':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.nousTempUnitConvert, ['celsius', 'fahrenheit'].indexOf(value));
-                break;
-            case 'min_temperature':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinTemp, Math.round(value * 10));
-                break;
-            case 'max_temperature':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxTemp, Math.round(value * 10));
-                break;
-            case 'temperature_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousTempSensitivity, Math.round(value * 10));
-                break;
-            case 'min_humidity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinHumi, value);
-                break;
-            case 'max_humidity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxHumi, value * 10);
-                break;
-            case 'report_interval':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousReportInterval, value);
-                break;
-            case 'humidity_report_interval':
-                await tuya.sendDataPointValue(entity, '18', value);
-                break;
-            case 'humidity_sensitivity':
-                await tuya.sendDataPointValue(entity, '20', value );
-                break;
-            default: // Unknown key
-                meta.logger.warn(`Unhandled key ${key}`);
-            }
-        },
-    },
 };
 
 const fzLocal = {
@@ -297,67 +258,6 @@ const fzLocal = {
             return result;
         },
     },
-    ts0601_lcd_temperature_humidity_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case tuya.dataPoints.nousTemperature:
-                    result.temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
-                    break;
-                case tuya.dataPoints.nousHumidity:
-                    result.humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
-                    break;
-                case tuya.dataPoints.nousBattery:
-                    result.battery = value;
-                    break;
-                case tuya.dataPoints.nousTempUnitConvert:
-                    result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
-                    break;
-                case tuya.dataPoints.nousMaxTemp:
-                    result.max_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
-                    break;
-                case tuya.dataPoints.nousMinTemp:
-                    result.min_temperature = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
-                    break;
-                case tuya.dataPoints.nousMaxHumi:
-                    result.max_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
-                    break;
-                case tuya.dataPoints.nousMinHumi:
-                    result.min_humidity = utils.calibrateAndPrecisionRoundOptions(value, options, 'humidity');
-                    break;
-                case tuya.dataPoints.nousTempAlarm:
-                    result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
-                    break;
-                case tuya.dataPoints.nousHumiAlarm:
-                    result.humidity_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
-                    break;
-                case tuya.dataPoints.nousReportInterval:
-                    result.report_interval = value;
-                    break;
-                case 18:
-                    result.humidity_report_interval = value;
-                    break;
-                case tuya.dataPoints.nousTempSensitivity:
-                    result.temperature_sensitivity = utils.calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
-                    break;
-                case 20:
-                    result.humidity_sensitivity = value;
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:ts0601_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
-                        `DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
 };
 
 module.exports = [
@@ -415,12 +315,14 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.tuya_temperature_humidity_sensor],
+        fromZigbee: [fz.tuya_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [],
+        onEvent: tuya.onEventSetLocalTime,
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
@@ -2657,43 +2559,6 @@ module.exports = [
                 .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
             exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120'])
                 .withDescription('PIR keep time in seconds (refresh and update only while active)'),
-        ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_locansqn'}],
-        model: 'TS0601_temp_humidity_sensor',
-        vendor: 'TuYa',
-        description: 'Temperature & humidity sensor with clock',
-        fromZigbee: [fzLocal.ts0601_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [tzLocal.ts0601_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [
-            e.temperature(), e.humidity(), e.battery(),
-            exposes.numeric('report_interval', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(120)
-                .withDescription('Temperature report interval'),
-            exposes.numeric('humidity_report_interval', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(120)
-                .withDescription('Humidity report interval'),
-            exposes.numeric('temperature_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(0.3).withValueMax(1).withValueStep(0.1)
-                .withDescription('Temperature sensitivity'),
-            exposes.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(3).withValueMax(10)
-                .withDescription('Humidity sensitivity'),
-            exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
-            exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
-                .withDescription('Temperature alarm status'),
-            exposes.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
-                .withDescription('Humidity alarm status'),
-            exposes.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
-                .withDescription('Alarm temperature max'),
-            exposes.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
-                .withDescription('Alarm temperature min'),
-            exposes.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
-                .withDescription('Alarm humidity max'),
-            exposes.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
-                .withDescription('Alarm humidity min'),
         ],
     },
     {
