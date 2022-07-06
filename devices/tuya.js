@@ -346,7 +346,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_8ygsuhe1'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_yvx5lh6k'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ryfmq5rl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_c2fmom5z'}],
         model: 'TS0601_air_quality_sensor',
         vendor: 'TuYa',
         description: 'Air quality sensor',
@@ -446,6 +448,14 @@ module.exports = [
         description: 'Circuit breaker',
         extend: extend.switch(),
         whiteLabel: [{vendor: 'Mumubiz', model: 'ZJSB9-80Z'}],
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8fdayfch'}],
+        model: 'TS011F_relay_switch',
+        vendor: 'TuYa',
+        description: 'Dry contact relay switch',
+        extend: extend.switch(),
+        whiteLabel: [{vendor: 'KTNNKG', model: 'ZB1248-10A'}],
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qqjaziws'},
