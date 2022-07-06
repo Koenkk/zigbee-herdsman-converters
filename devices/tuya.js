@@ -332,6 +332,7 @@ module.exports = [
                 exps.push(e.battery_low());
                 exps.push(exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
+            exps.push(e.linkquality());
             return exps;
         },
     },
