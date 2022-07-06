@@ -1943,13 +1943,18 @@ const converters = {
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
             switch (dp) {
-            case 1:
+            case tuya.dataPoints.tthTemperature:
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
-            case 2:
+            case tuya.dataPoints.tthHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(
                     (value / (meta.device.manufacturerName === '_TZE200_bjawzodf' ? 10 : 1)),
                     options, 'humidity')};
-            case 4:
+            case tuya.dataPoints.tthBatteryLevel:
+                return {
+                    battery_level: {0: 'low', 1: 'middle', 2: 'high'}[value],
+                    battery_low: value === 0 ? true : false,
+                };
+            case tuya.dataPoints.tthBattery:
                 return {battery: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:maa_tuya_temp_sensor: NOT RECOGNIZED ` +
