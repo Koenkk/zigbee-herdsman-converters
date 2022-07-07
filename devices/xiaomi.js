@@ -113,7 +113,21 @@ module.exports = [
         model: 'ZNLDP13LM',
         vendor: 'Xiaomi',
         description: 'Aqara T1 smart LED bulb',
-        extend: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, colorTempRange: [153, 370]}),
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disablePowerOnBehavior: true}).toZigbee.concat([
+            tz.xiaomi_switch_power_outage_memory,
+        ]),
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({disableEffect: true, disablePowerOnBehavior: true}).fromZigbee.concat([
+            fz.aqara_opple,
+        ]),
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp({
+            disableEffect: true,
+            disablePowerOnBehavior: true,
+            colorTempRange: [153, 370],
+        }).exposes.concat([
+            e.power_outage_memory(),
+            e.device_temperature(),
+            e.power_outage_count(),
+        ]),
         ota: ota.zigbeeOTA,
     },
     {
