@@ -434,6 +434,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003098601'],
+        model: '929003098601',
+        vendor: 'Philips',
+        description: 'Hue Calla outdoor Pedestal',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['1742330P7'],
         model: '1742330P7',
         vendor: 'Philips',
