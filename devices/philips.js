@@ -59,7 +59,7 @@ module.exports = [
         zigbeeModel: ['929003045201_01', '929003045201_02', '929003045201_03'],
         model: '929003045201',
         vendor: 'Philips',
-        description: 'Hue White and Color Ambiance GU10 (Centura Round White)',
+        description: 'Hue White and Color Ambiance GU10 (Centura round white)',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
