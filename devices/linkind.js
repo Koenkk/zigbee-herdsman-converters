@@ -68,11 +68,18 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
-        zigbeeModel: ['ZBT-CCTLight-C4700107', 'ZBT-CCTLight-M3500107'],
+        zigbeeModel: ['ZBT-CCTLight-C4700107'],
         model: 'ZL1000400-CCT-EU-2-V1A02',
         vendor: 'Linkind',
         description: 'Zigbee LED 5.4W C35 bulb E14, dimmable & tunable',
         extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['ZBT-CCTLight-M3500107'],
+        model: 'ZL00030014',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 4.8W GU10 bulb, dimmable & tunable',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['ZBT-CCTLight-BR300107'],
