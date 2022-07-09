@@ -23,6 +23,9 @@ module.exports = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genBasic', [
+                'manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+
             for (const ID of [1, 2, 3, 4, 5]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }

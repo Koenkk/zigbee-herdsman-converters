@@ -15,7 +15,8 @@ module.exports = [
             tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_running_state,
             tz.thermostat_remote_sensing, tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_relay_status_log],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5).withLocalTemperature()
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5)
+            .withSetpoint('occupied_cooling_setpoint', 10, 31, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
             .withLocalTemperatureCalibration(-30, 30, 0.1).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {

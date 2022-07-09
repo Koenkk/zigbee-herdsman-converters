@@ -493,13 +493,4 @@ describe('index.js', () => {
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
     });
-
-    it('Test to percentage', () => {
-        expect(utils.toPercentage(3000, 2850, 3200, true)).toBe(79);
-        expect(utils.toPercentage(3200, 2850, 3200, true)).toBe(100);
-        expect(utils.toPercentage(4000, 2850, 3200, true)).toBe(100);
-        expect(utils.toPercentage(2000, 2850, 3200, true)).toBe(0);
-        expect(utils.toPercentage(2850, 2850, 3200, true)).toBe(0);
-        expect(utils.toPercentage(2851, 2850, 3200, true)).toBe(2);
-    });
 });

@@ -42,13 +42,12 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery_low(), e.window_detection(), e.child_lock(),
+        exposes: [e.battery_low(), e.window_detection(), e.child_lock(), e.away_mode(),
             exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
             exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
                 .withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
                 // Range is -6 - 6 and step 1: https://github.com/Koenkk/zigbee2mqtt/issues/11777
-                .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET)
-                .withAwayMode()],
+                .withLocalTemperatureCalibration(-6, 6, 1, ea.STATE_SET)],
     },
 ];

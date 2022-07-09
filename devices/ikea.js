@@ -36,17 +36,17 @@ const bulbOnEvent = async (type, data, device, options, state) => {
 
         // NOTE: execute_if_off default is false
         //       we only restore if true, to save unneeded network writes
-        if (state.color_options !== undefined && state.color_options.execute_if_off === true) {
+        if (state !== undefined && state.color_options !== undefined && state.color_options.execute_if_off === true) {
             device.endpoints[0].write('lightingColorCtrl', {'options': 1});
         }
-        if (state.level_config !== undefined && state.level_config.execute_if_off === true) {
+        if (state !== undefined && state.level_config !== undefined && state.level_config.execute_if_off === true) {
             device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
     }
 };
 
 const configureRemote = async (device, coordinatorEndpoint, logger) => {
-    // Firmware 2.3.75 >= only supports binding to endpoint, before only to group
+    // Firmware 2.3.075 >= only supports binding to endpoint, before only to group
     // - https://github.com/Koenkk/zigbee2mqtt/issues/2772#issuecomment-577389281
     // - https://github.com/Koenkk/zigbee2mqtt/issues/7716
     const endpoint = device.getEndpoint(1);
@@ -292,10 +292,11 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm'],
+        zigbeeModel: ['TRADFRIbulbE27WSglobeopal1055lm', 'TRADFRIbulbE26WSglobeopal1100lm', 'TRADFRIbulbE26WSglobeopal1160lm',
+            'TRADFRIbulbE26WSglobeopal1055lm'],
         model: 'LED2003G10',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E26/27 1100/1055 lumen, dimmable, white spectrum, opal white',
+        description: 'TRADFRI LED bulb E26/27 1100/1055/1160 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -374,6 +375,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E27 WW clear 250 lumen, dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['TRADFRIbulbE26WWclear250lm'],
@@ -411,6 +413,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27 CWS 800/806 lumen, dimmable, color, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm', 'TRADFRI bulb E17 W op/ch 400lm'],
@@ -432,6 +435,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 806 lumen, dimmable, warm white',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['TRADFRI bulb E27 WS clear 806lm', 'TRADFRI bulb E26 WS clear 806lm'],
@@ -498,6 +502,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x30 cm)',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['FLOALT panel WS 60x60'],
@@ -505,6 +510,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (60x60 cm)',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['JORMLIEN door WS 40x80'],
@@ -519,6 +525,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'FLOALT LED light panel, dimmable, white spectrum (30x90 cm)',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SURTE door WS 38x64'],
@@ -870,10 +877,10 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm'],
+        zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
         model: 'LED1949C5',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white',
+        description: 'TRADFRI LED bulb E12/E14 450/470 lumen, wireless dimmable white spectrum/chandelier opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {

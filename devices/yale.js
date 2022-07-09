@@ -10,7 +10,8 @@ const lockExtend = (meta) => {
             fz.lock_user_status_response],
         toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 250, ...meta},
-        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user()],
+        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user(),
+            e.lock_action_user()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
@@ -125,7 +126,7 @@ module.exports = [
         extend: lockExtend(),
     },
     {
-        zigbeeModel: ['c700000202'],
+        zigbeeModel: ['c700000202', '06ffff2029'],
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',

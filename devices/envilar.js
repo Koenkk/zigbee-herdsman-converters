@@ -6,11 +6,18 @@ const fz = require('../converters/fromZigbee');
 
 module.exports = [
     {
+        zigbeeModel: ['ZG_LED_DRIVER42CC'],
+        model: 'ZG_LED_DRIVER42CC',
+        vendor: 'ENVILAR',
+        description: 'Zigbee LED driver',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['ZG50CC-CCT-DRIVER'],
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
-        description: 'Zigbee LED driver',
-        extend: extend.light_onoff_brightness(),
+        description: 'Zigbee CCT LED driver',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
     },
     {
         zigbeeModel: ['ZGR904-S'],

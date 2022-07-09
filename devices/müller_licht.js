@@ -155,6 +155,10 @@ module.exports = [
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'color_temperature_move'])],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['tint-ColorTemperature', 'tint-ColorTemperature2'],

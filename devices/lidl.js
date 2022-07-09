@@ -540,6 +540,17 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_umi6vbsz'}],
+        model: 'HG08010',
+        vendor: 'Lidl',
+        description: 'Livarno Home outdoor spotlight',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
         model: 'HG08008',
         vendor: 'Lidl',
@@ -589,6 +600,17 @@ module.exports = [
         model: 'HG07834B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        meta: {applyRedFix: true, enhancedHue: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_q50zhdsc'}],
+        model: 'HG08131C',
+        vendor: 'Lidl',
+        description: 'Livarno Home outdoor E27 bulb in set with flare',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -773,6 +795,14 @@ module.exports = [
         meta: {enhancedHue: false},
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_bwlvyjwk'}],
+        model: 'HG08383B',
+        vendor: 'Lidl',
+        description: 'Livarno outdoor LED light chain',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
         model: '368308_2010',
         vendor: 'Lidl',
@@ -826,5 +856,13 @@ module.exports = [
                 return expose;
             }),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_taspddvq'}],
+        model: 'HG08383A',
+        vendor: 'Lidl',
+        description: 'Livarno outdoor LED light chain',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
     },
 ];

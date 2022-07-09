@@ -348,7 +348,7 @@ module.exports = [
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb 30deg RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disableColorTempStartup: false, colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-S-005Z'],
@@ -537,6 +537,7 @@ module.exports = [
         zigbeeModel: ['GL-D-006P'],
         model: 'GL-D-006P',
         vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
         description: 'Zigbee 6W anti-glare downlight RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },

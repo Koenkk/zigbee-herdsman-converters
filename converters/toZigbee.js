@@ -73,7 +73,7 @@ const converters = {
             }
 
             if (isNotification) {
-                entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
+                await entity.commandResponse('ssIasAce', 'armRsp', {armnotification: mode}, {}, value.transaction);
 
                 // Do not update PanelStatus after confirming transaction.
                 // Instead the server should send an arm_mode command with the necessary state.
@@ -88,7 +88,13 @@ const converters = {
 
             globalStore.putValue(entity, 'panelStatus', panelStatus);
             const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
-            entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+            await entity.commandResponse('ssIasAce', 'panelStatusChanged', payload);
+        },
+    },
+    battery_percentage_remaining: {
+        key: ['battery'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     power_on_behavior: {
@@ -853,6 +859,7 @@ const converters = {
                 state = meta.message.state = brightness === 0 ? 'off' : 'on';
             }
 
+            let publishBrightness = brightness !== undefined;
             const targetState = state === 'toggle' ? (meta.state.state === 'ON' ? 'off' : 'on') : state;
             if (targetState === 'off') {
                 // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
@@ -890,6 +897,8 @@ const converters = {
                     } catch (e) {
                         // OnLevel not supported
                     }
+                    // Published state might have gotten clobbered by reporting.
+                    publishBrightness = true;
                 }
             }
 
@@ -921,7 +930,7 @@ const converters = {
             );
 
             const result = {state: {}, readAfterWriteTime: transition.time * 100};
-            if (brightness !== 0) {
+            if (publishBrightness) {
                 result.state.brightness = Number(brightness);
             }
             if (state !== null) {
@@ -2158,7 +2167,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
+            ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2181,7 +2191,8 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
+            ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0xFFF0]);
@@ -2291,7 +2302,8 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'WS-EUK03', 'WS-EUK04'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
                 const payload = value ?
@@ -2306,7 +2318,8 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01'].includes(meta.mapped.model)) {
+                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'WS-EUK03', 'WS-EUK04'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
@@ -2477,7 +2490,7 @@ const converters = {
                     await entity.command('closuresWindowCovering', 'stop', {}, utils.getOptions(meta.mapped, entity));
                 }
 
-                if (!['ZNCLDJ11LM', 'ZNJLBL01LM'].includes(meta.mapped.model)) {
+                if (!['ZNCLDJ11LM', 'ZNJLBL01LM', 'ZNCLBL01LM'].includes(meta.mapped.model)) {
                     // The code below is originally added for ZNCLDJ11LM (Koenkk/zigbee2mqtt#4585).
                     // However, in Koenkk/zigbee-herdsman-converters#4039 it was replaced by reading
                     // directly from currentPositionLiftPercentage, so that device is excluded.
@@ -2490,6 +2503,8 @@ const converters = {
                     // Xiaomi curtain does not send position update on stop, request this.
                     await entity.read('genAnalogOutput', [0x0055]);
                 }
+
+                return {state: {state: 'STOP'}};
             } else {
                 const lookup = {'open': 100, 'close': 0, 'on': 100, 'off': 0};
 
@@ -2497,12 +2512,21 @@ const converters = {
                 value = lookup.hasOwnProperty(value) ? lookup[value] : value;
                 value = meta.options.invert_cover ? 100 - value : value;
 
-                const payload = {0x0055: {value, type: 0x39}};
-                await entity.write('genAnalogOutput', payload);
+                if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+                    await entity.command('closuresWindowCovering', 'goToLiftPercentage', {percentageliftvalue: value},
+                        utils.getOptions(meta.mapped, entity));
+                } else {
+                    const payload = {0x0055: {value, type: 0x39}};
+                    await entity.write('genAnalogOutput', payload);
+                }
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genAnalogOutput', [0x0055]);
+            if (['ZNCLBL01LM'].includes(meta.mapped.model)) {
+                await entity.read('closuresWindowCovering', ['currentPositionLiftPercentage']);
+            } else {
+                await entity.read('genAnalogOutput', [0x0055]);
+            }
         },
     },
     xiaomi_curtain_acn002_charging_status: {
@@ -2557,17 +2581,7 @@ const converters = {
             return {state: {power_outage_memory: value}};
         },
     },
-    tuya_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-            await entity.write('genOnOff', {0x8002: {value: payload, type: 0x30}});
-            return {state: {power_outage_memory: value}};
-        },
-    },
+
     tuya_relay_din_led_indicator: {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3558,6 +3572,17 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'cool');
+        },
+    },
+    tuya_switch_power_outage_memory: {
+        key: ['power_outage_memory'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
+            utils.validateValue(value, Object.keys(lookup));
+            const payload = lookup[value];
+            await entity.write('genOnOff', {moesStartUpOnOff: payload});
+            return {state: {power_outage_memory: value}};
         },
     },
     moes_power_on_behavior: {
@@ -5310,6 +5335,12 @@ const converters = {
             }
         },
     },
+    power_source: {
+        key: ['power_source', 'charging'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', ['powerSource']);
+        },
+    },
     ts0201_temperature_humidity_alarm: {
         key: ['alarm_humidity_max', 'alarm_humidity_min', 'alarm_temperature_max', 'alarm_temperature_min'],
         convertSet: async (entity, key, value, meta) => {
@@ -6530,6 +6561,18 @@ const converters = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
+        },
+    },
+    ZNCLBL01LM_battery_voltage: {
+        key: ['voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
+        },
+    },
+    ZNCLBL01LM_hooks_state: {
+        key: ['hooks_state'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0428], manufacturerOptions.xiaomi);
         },
     },
     wiser_vact_calibrate_valve: {

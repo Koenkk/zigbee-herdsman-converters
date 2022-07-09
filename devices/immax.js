@@ -97,10 +97,10 @@ module.exports = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.battery_low(), e.child_lock(), exposes.climate()
+        exposes: [e.battery_low(), e.child_lock(), e.away_mode(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
             .withLocalTemperature(ea.STATE).withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
+            .withRunningState(['idle', 'heat'], ea.STATE)],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],
