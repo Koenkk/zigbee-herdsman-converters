@@ -55,17 +55,6 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-        convertGet: async (entity, key, meta) => {
-            const payloads = {
-                auto_brightness: ['msCO2', 0x0203],
-                forced_recalibration: ['msCO2', 0x0202],
-                factory_reset_co2: ['msCO2', 0x0206],
-				long_chart_period: ['msCO2', 0x0204],
-                set_altitude: ['msCO2', 0x0205],
-                manual_forced_recalibration: ['msCO2', 0x0207],
-            };
-            await entity.read(payloads[key][0], [payloads[key][1]]);
-        },
     },
 	temperature_config: {
         key: ['temperature_offset'],
@@ -79,12 +68,6 @@ const tzLocal = {
                 state: {[key]: rawValue},
             };
         },
-        convertGet: async (entity, key, meta) => {
-            const payloads = {
-                temperature_offset: ['msTemperatureMeasurement', 0x0210],
-            };
-            await entity.read(payloads[key][0], [payloads[key][1]]);
-        },
     },
 	humidity_config: {
         key: ['humidity_offset'],
@@ -97,12 +80,6 @@ const tzLocal = {
             return {
                 state: {[key]: rawValue},
             };
-        },
-        convertGet: async (entity, key, meta) => {
-            const payloads = {
-                humidity_offset: ['msRelativeHumidity', 0x0210],
-            };
-            await entity.read(payloads[key][0], [payloads[key][1]]);
         },
     },
 };
