@@ -596,28 +596,29 @@ module.exports = [
             const payload6 = [{attribute: {ID: 0x0207, type: 0x21},
                 minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload6);
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
+												  .getTimezoneOffset() * -1) * 60);
             const values = {time: time};
             endpoint.write('genTime', values);
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.illuminance(),
             exposes.binary('auto_brightness', ea.STATE_SET, 'ON', 'OFF')
-			    .withDescription('Enable or Disable Auto Brightness of the Display'),
-			exposes.binary('long_chart_period', ea.STATE_SET, 'ON', 'OFF')
-			    .withDescription('The period of plotting the CO2 level(OFF - 1H | ON - 24H)'),
-			exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
-			    .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
-                .withValueMin(0).withValueMax(3000),
-			exposes.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
-			exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
+                .withDescription('Enable or Disable Auto Brightness of the Display'),
+            exposes.binary('long_chart_period', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('The period of plotting the CO2 level(OFF - 1H | ON - 24H)'),
+            exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
+                .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
+		  .withValueMin(0).withValueMax(3000),
+            exposes.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
+            exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
                 .withValueMin(-30).withValueMax(60),
             exposes.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
                 .withValueMin(0).withValueMax(99),
-			exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
-			    .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-			exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
+            exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
+            exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
             exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm')
-			    .withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
-                .withValueMin(0).withValueMax(5000)],
+                .withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
+		  .withValueMin(0).withValueMax(5000)],
     },
 ];
