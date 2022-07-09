@@ -7345,7 +7345,7 @@ const converters = {
             case 4:
                 return {battery: value};
             case 1:
-                return {brightness_state: brightnesStateLookup[value]};
+                return {brightness_level: brightnesStateLookup[value]};
             default:
                 meta.logger.warn(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
