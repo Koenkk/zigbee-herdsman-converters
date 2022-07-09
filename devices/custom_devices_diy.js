@@ -44,7 +44,7 @@ const tzLocal = {
                 auto_brightness: ['msCO2', {0x0203: {value, type: 0x10}}],
                 forced_recalibration: ['msCO2', {0x0202: {value, type: 0x10}}],
                 factory_reset_co2: ['msCO2', {0x0206: {value, type: 0x10}}],
-				long_chart_period: ['msCO2', {0x0204: {value, type: 0x10}}],
+                long_chart_period: ['msCO2', {0x0204: {value, type: 0x10}}],
                 set_altitude: ['msCO2', {0x0205: {value, type: 0x21}}],
                 manual_forced_recalibration: ['msCO2', {0x0207: {value, type: 0x21}}],
             };
@@ -54,10 +54,10 @@ const tzLocal = {
             };
         },
     },
-	temperature_config: {
+    temperature_config: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
-            const value = parseInt(rawValue, 10)
+            const value = parseInt(rawValue, 10);
             const payloads = {
                 temperature_offset: ['msTemperatureMeasurement', {0x0210: {value, type: 0x29}}],
             };
@@ -70,7 +70,7 @@ const tzLocal = {
 	humidity_config: {
         key: ['humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
-            const value = parseInt(rawValue, 10)
+            const value = parseInt(rawValue, 10);
             const payloads = {
                 humidity_offset: ['msRelativeHumidity', {0x0210: {value, type: 0x29}}],
             };
