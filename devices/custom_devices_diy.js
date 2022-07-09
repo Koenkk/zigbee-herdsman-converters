@@ -67,7 +67,7 @@ const tzLocal = {
             };
         },
     },
-	humidity_config: {
+    humidity_config: {
         key: ['humidity_offset'],
         convertSet: async (entity, key, rawValue, meta) => {
             const value = parseInt(rawValue, 10);
@@ -98,13 +98,13 @@ const fzLocal = {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-			if (msg.data.hasOwnProperty('measuredValue')) {
-				const co2 = msg.data['measuredValue'];
-				return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
-			}
+            if (msg.data.hasOwnProperty('measuredValue')) {
+                const co2 = msg.data['measuredValue'];
+                return {co2: calibrateAndPrecisionRoundOptions(co2, options, 'co2')};
+            }
         },
     },
-	co2_config: {
+    co2_config: {
         cluster: 'msCO2',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -118,7 +118,7 @@ const fzLocal = {
             if (msg.data.hasOwnProperty(0x0206)) {
                 result.factory_reset_co2 = ['OFF', 'ON'][msg.data[0x0206]];
             }
-			if (msg.data.hasOwnProperty(0x0204)) {
+            if (msg.data.hasOwnProperty(0x0204)) {
                 result.long_chart_period = ['OFF', 'ON'][msg.data[0x0204]];
             }
             if (msg.data.hasOwnProperty(0x0205)) {
@@ -130,7 +130,7 @@ const fzLocal = {
             return result;
         },
     },
-	temperature_config: {
+    temperature_config: {
         cluster: 'msTemperatureMeasurement',
         type: 'readResponse',
         convert: (model, msg, publish, options, meta) => {
@@ -578,26 +578,26 @@ module.exports = [
                     {attribute: 'measuredValue', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
                 ]);
             }
-			const payload1 = [{attribute: {ID: 0x0203, type: 0x10},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload1 = [{attribute: {ID: 0x0203, type: 0x10},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload1);
-			const payload2 = [{attribute: {ID: 0x0202, type: 0x10},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload2 = [{attribute: {ID: 0x0202, type: 0x10},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload2);
-			const payload3 = [{attribute: {ID: 0x0204, type: 0x10},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload3 = [{attribute: {ID: 0x0204, type: 0x10},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload3);
-			const payload4 = [{attribute: {ID: 0x0205, type: 0x21},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload4 = [{attribute: {ID: 0x0205, type: 0x21},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload4);
-			const payload5 = [{attribute: {ID: 0x0206, type: 0x10},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-			await endpoint.configureReporting('msCO2', payload5);
-			const payload6 = [{attribute: {ID: 0x0207, type: 0x21},
-            minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
-			await endpoint.configureReporting('msCO2', payload6);
-			const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
-			const values = {time: time};
+            const payload5 = [{attribute: {ID: 0x0206, type: 0x10},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await endpoint.configureReporting('msCO2', payload5);
+            const payload6 = [{attribute: {ID: 0x0207, type: 0x21},
+                minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await endpoint.configureReporting('msCO2', payload6);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
+            const values = {time: time};
             endpoint.write('genTime', values);
         },
         exposes: [e.co2(), e.temperature(), e.humidity(), e.illuminance(),
