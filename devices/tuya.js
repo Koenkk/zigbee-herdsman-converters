@@ -751,7 +751,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery(), e.illuminance_lux(), e.battery_low(), e.linkquality()],
+        exposes: [e.battery(), e.illuminance_lux(), e.linkquality(),
+            exposes.enum('brightness_state', ea.STATE, ['LOW', 'Medium', 'HIGH'],
     },
     {
         zigbeeModel: ['TS130F'],
