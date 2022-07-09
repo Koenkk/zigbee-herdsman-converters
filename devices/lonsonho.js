@@ -267,7 +267,7 @@ module.exports = [
         exposes: [
             e.light_brightness().withEndpoint('l1'),
             e.light_brightness().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
                 .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l2'),
