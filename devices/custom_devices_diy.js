@@ -32,10 +32,6 @@ const tzLocal = {
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
-        convertGet: async (entity, key, meta) => {
-            const firstEndpoint = meta.device.getEndpoint(1);
-            await firstEndpoint.read('genTime', ['time']);
-        },
     },
     co2_config: {
         key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude', 'manual_forced_recalibration'],
