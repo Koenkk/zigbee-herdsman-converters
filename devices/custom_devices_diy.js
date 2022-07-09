@@ -28,8 +28,8 @@ const tzLocal = {
         key: ['local_time'],
         convertSet: async (entity, key, value, meta) => {
             const firstEndpoint = meta.device.getEndpoint(1);
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 
-				    + ((new Date()).getTimezoneOffset() * -1) * 60);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
+												  .getTimezoneOffset() * -1) * 60);
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
