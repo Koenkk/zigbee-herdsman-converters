@@ -597,7 +597,7 @@ module.exports = [
                 minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await endpoint.configureReporting('msCO2', payload6);
             const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
-												  .getTimezoneOffset() * -1) * 60);
+                .getTimezoneOffset() * -1) * 60);
             const values = {time: time};
             endpoint.write('genTime', values);
         },
@@ -608,7 +608,7 @@ module.exports = [
                 .withDescription('The period of plotting the CO2 level(OFF - 1H | ON - 24H)'),
             exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
                 .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
-		  .withValueMin(0).withValueMax(3000),
+                .withValueMin(0).withValueMax(3000),
             exposes.enum('local_time', ea.STATE_SET, ['set']).withDescription('Set date and time'),
             exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
                 .withValueMin(-30).withValueMax(60),
@@ -619,6 +619,6 @@ module.exports = [
             exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
             exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm')
                 .withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
-		  .withValueMin(0).withValueMax(5000)],
+                .withValueMin(0).withValueMax(5000)],
     },
 ];
