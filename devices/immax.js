@@ -9,6 +9,16 @@ const ea = exposes.access;
 
 module.exports = [
     {
+
+        zigbeeModel: ['Motion-Sensor-ZB3.0'],
+        model: '07043M',
+        vendor: 'Immax',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         zigbeeModel: ['ZBT-CCTfilament-D0000'],
         model: '07089L',
         vendor: 'Immax',

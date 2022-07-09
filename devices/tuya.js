@@ -1630,7 +1630,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -1651,7 +1651,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
-        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
             .withDescription('Recover state after power outage'),
         exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
             .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -1682,7 +1682,7 @@ module.exports = [
         },
         options: [exposes.options.measurement_poll_interval()],
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -2188,7 +2188,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
@@ -2206,7 +2206,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
