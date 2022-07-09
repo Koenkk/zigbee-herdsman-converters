@@ -29,14 +29,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const firstEndpoint = meta.device.getEndpoint(1);
             const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
-												  .getTimezoneOffset() * -1) * 60);
+                .getTimezoneOffset() * -1) * 60);
             await firstEndpoint.write('genTime', {time: time});
             return {state: {local_time: time}};
         },
     },
     co2_config: {
-        key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude', 
-	      'manual_forced_recalibration'],
+        key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
+            'manual_forced_recalibration'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
