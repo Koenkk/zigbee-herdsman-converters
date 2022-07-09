@@ -565,7 +565,7 @@ module.exports = [
         zigbeeModel: ['EFEKTA_iAQ'],
         model: 'EFEKTA_iAQ',
         vendor: 'Custom devices (DiY)',
-        description: '[CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time.](http://efektalab.com/iAQ)',
+        description: '[CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time](http://efektalab.com/iAQ)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fzLocal.co2, fzLocal.co2_config,
             fzLocal.temperature_config, fzLocal.humidity_config],
         toZigbee: [tz.factory_reset, tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config, tzLocal.local_time],
