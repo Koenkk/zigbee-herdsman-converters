@@ -507,7 +507,7 @@ module.exports = [
             {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator Ikuü', model: 'S9E27LED9W-RGB-Z'},
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
-            {vendor: 'Mercator Ikuü', model: 'SMD4109W-RGB-ZB'},     
+            {vendor: 'Mercator Ikuü', model: 'SMD4109W-RGB-ZB'},
         ],
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
         meta: {applyRedFix: true, enhancedHue: false},
