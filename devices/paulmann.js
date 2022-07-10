@@ -22,7 +22,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['Switch Controller '],
+        zigbeeModel: ['Switch Controller'],
         model: '50043',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Cephei Switch Controller',
@@ -36,7 +36,7 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        zigbeeModel: ['Dimmablelight '],
+        zigbeeModel: ['Dimmablelight'],
         model: '50044/50045',
         vendor: 'Paulmann',
         description: 'SmartHome Zigbee Dimmer or LED-stripe',
@@ -50,7 +50,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['RGBW light', '500.49'],
+        zigbeeModel: ['RGBW light', '500.49', 'RGBW_light'],
         model: '50049/500.63',
         vendor: 'Paulmann',
         description: 'Smart Home Zigbee YourLED RGB Controller max. 60W / Smart Home Zigbee LED Reflektor 3,5W GU10 RGBW dimmbar',
@@ -64,7 +64,15 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
-        zigbeeModel: ['CCT light'],
+        fingerprint: [{modelID: 'RGBW Controller', manufacturerName: 'Paulmann Licht'}],
+        model: '94191',
+        vendor: 'Paulmann',
+        description: 'Plug & shine LED strip',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        fingerprint: [{modelID: 'CCT Light', manufacturerName: 'Paulmann lamp'}],
+        zigbeeModel: ['CCT light', 'CCT_light', 'CCT light '],
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
@@ -127,7 +135,7 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['RemoteControl '],
+        zigbeeModel: ['RemoteControl'],
         model: '500.67',
         vendor: 'Paulmann',
         description: 'RGB remote control',

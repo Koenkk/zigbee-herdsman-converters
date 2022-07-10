@@ -5,6 +5,15 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['MP-840'],
+        model: 'MP-840',
+        vendor: 'Visonic',
+        description: 'Long range pet immune PIR motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.temperature],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery_voltage(), e.linkquality()],
+    },
+    {
         zigbeeModel: ['MP-841'],
         model: 'MP-841',
         vendor: 'Visonic',

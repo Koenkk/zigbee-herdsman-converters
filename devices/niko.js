@@ -96,7 +96,7 @@ const local = {
 module.exports = [
     {
         zigbeeModel: ['Connected socket outlet'],
-        model: '170-33505',
+        model: '170-33505/170-34605',
         vendor: 'Niko',
         description: 'Connected socket outlet',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, local.fz.outlet],
@@ -218,5 +218,34 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
         ],
+    },
+    {
+        zigbeeModel: ['Connectable dimmer,3-200W,2-wire'],
+        model: '552-72201',
+        vendor: 'Niko',
+        description: 'Connectable dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config],
+        exposes: [e.light_brightness().withLevelConfig()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Connectable motor control,3A'],
+        model: '552-72301',
+        vendor: 'Niko',
+        description: 'Connectable motor control',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
     },
 ];

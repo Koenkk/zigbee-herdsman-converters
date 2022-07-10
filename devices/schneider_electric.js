@@ -194,8 +194,9 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Roller shutter',
         fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state],
-        exposes: [e.cover_position()],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
+        exposes: [e.cover_position(), exposes.numeric('lift_duration', ea.STATE_SET).withUnit('seconds')
+            .withValueMin(0).withValueMax(300).withDescription('Duration of lift')],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
@@ -349,6 +350,18 @@ module.exports = [
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2A',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['CH10AX/SWITCH/1'],
+        model: '41E10PBSWMZ-VW',
+        vendor: 'Schneider Electric',
+        description: 'Wiser 40/300-Series module switch 10A with ControlLink',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
