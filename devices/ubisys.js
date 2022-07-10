@@ -75,17 +75,15 @@ const ubisys = {
             },
         },
         configure_device_setup: {
-            cluster: 'manuSpecificPhilips', // XXX: why does manuSpecificUbisysDeviceSetup not match?
+            cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result = {};
-                // XXX: why does inputConfigurations not exist, because we're not matching as manuSpecificUbisysDeviceSetup?
-                if (msg.data.hasOwnProperty(0x0000)) {
-                    result['input_configurations'] = msg.data[0x0000];
+                if (msg.data.hasOwnProperty('input_configurations')) {
+                    result['input_configurations'] = msg.data['input_configurations'];
                 }
-                // XXX: why does inputActions not exist, because we're not matching as manuSpecificUbisysDeviceSetup?
-                if (msg.data.hasOwnProperty(0x0001)) {
-                    result['input_actions'] = msg.data[0x0001].map(function(el) {
+                if (msg.data.hasOwnProperty('inputActions')) {
+                    result['input_actions'] = msg.data['inputActions'].map(function(el) {
                         return Object.values(el);
                     });
                 }
