@@ -13,6 +13,7 @@ const zosung = require('../lib/zosung');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
+const globalStore = require('../lib/store');
 
 const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
@@ -125,6 +126,102 @@ const tzLocal = {
                 await tuya.sendDataPointBool(entity, 116, 0);
                 break;
             }
+            }
+        },
+    },
+    x5h_thermostat: {
+        key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
+            'local_temperature_calibration', 'protection_temp_limit', 'temp_diff', 'upper_temp', 'preset', 'child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'system_mode':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hState, value === 'heat');
+                break;
+            case 'preset': {
+                value = value.toLowerCase();
+                const lookup = {manual: 0, program: 1};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
+                break;
+            }
+            case 'upper_temp':
+                if (value >= 35 && value <= 95) {
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTempCeiling, value);
+                } else {
+                    throw new Error('Supported values are in range [35, 95]');
+                }
+                break;
+            case 'temp_diff':
+                if (value >= 1 && value <= 9.5) {
+                    value = Math.round(value * 10);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempDiff, value);
+                } else {
+                    throw new Error('Supported values are in range [1, 9.5]');
+                }
+                break;
+            case 'protection_temp_limit':
+                if (value >= 5 && value <= 60) {
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hProtectionTempLimit, value);
+                } else {
+                    throw new Error('Supported values are in range [5, 60]');
+                }
+                break;
+            case 'local_temperature_calibration':
+                if (value >= -9.9 && value <= 9.9) {
+                    value = Math.round(value * 10);
+
+                    if (value < 0) {
+                        value = 4096 + value;
+                    }
+
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempCorrection, value);
+                } else {
+                    throw new Error('Supported values are in range [-9.9, 9.9]');
+                }
+                break;
+            case 'factory_reset':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFactoryReset, value === 'ON');
+                break;
+            case 'week':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hWorkingDaySetting,
+                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number));
+                break;
+            case 'frost_protection':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFrostProtection, value === 'ON');
+                break;
+            case 'sound':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hSound, value === 'ON');
+                break;
+            case 'brightness_state': {
+                value = value.toLowerCase();
+                const lookup = {off: 0, low: 1, medium: 2, high: 3};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hBackplaneBrightness, value);
+                break;
+            }
+            case 'sensor': {
+                value = value.toLowerCase();
+                const lookup = {'internal': 0, 'external': 1, 'both': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
+                break;
+            }
+            case 'current_heating_setpoint':
+                if (value >= 5 && value <= 60) {
+                    value = Math.round(value * 10);
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTemp, value);
+                } else {
+                    throw new Error(`Unsupported value: ${value}`);
+                }
+                break;
+            case 'child_lock':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hChildLock, value === 'LOCK');
+                break;
+            default:
+                break;
             }
         },
     },
@@ -260,6 +357,100 @@ const fzLocal = {
                 }
             }
             return result;
+        },
+    },
+    x5h_thermostat: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'x5h_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.x5hState: {
+                return {system_mode: value ? 'heat' : 'off'};
+            }
+            case tuya.dataPoints.x5hWorkingStatus: {
+                return {running_state: value ? 'heat' : 'idle'};
+            }
+            case tuya.dataPoints.x5hSound: {
+                return {sound: value ? 'ON' : 'OFF'};
+            }
+            case tuya.dataPoints.x5hFrostProtection: {
+                return {frost_protection: value ? 'ON' : 'OFF'};
+            }
+            case tuya.dataPoints.x5hWorkingDaySetting: {
+                return {week: tuya.thermostatWeekFormat[value]};
+            }
+            case tuya.dataPoints.x5hFactoryReset: {
+                if (value) {
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'factoryResetTimer'));
+                    const timer = setTimeout(() => publish({factory_reset: 'OFF'}), 60 * 1000);
+                    globalStore.putValue(msg.endpoint, 'factoryResetTimer', timer);
+                    meta.logger.info('The thermostat is resetting now. It will be available in 1 minute.');
+                }
+
+                return {factory_reset: value ? 'ON' : 'OFF'};
+            }
+            case tuya.dataPoints.x5hTempDiff: {
+                return {temp_diff: parseFloat((value / 10).toFixed(1))};
+            }
+            case tuya.dataPoints.x5hProtectionTempLimit: {
+                return {protection_temp_limit: value};
+            }
+            case tuya.dataPoints.x5hBackplaneBrightness: {
+                const lookup = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};
+
+                if (value >= 0 && value <= 3) {
+                    globalStore.putValue(msg.endpoint, 'brightnessState', value);
+                    return {brightness_state: lookup[value]};
+                }
+
+                // Sometimes, for example on thermostat restart, it sends message like:
+                // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
+                // It doesn't represent any brightness value and brightness remains the previous value
+                const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState') || 1;
+                return {brightness_state: lookup[lastValue]};
+            }
+            case tuya.dataPoints.x5hWeeklyProcedure: {
+                return;
+            }
+            case tuya.dataPoints.x5hChildLock: {
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            }
+            case tuya.dataPoints.x5hSetTemp: {
+                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+            }
+            case tuya.dataPoints.x5hSetTempCeiling: {
+                // It overwrites heating setpoint
+                return {upper_temp: value / 10};
+            }
+            case tuya.dataPoints.x5hCurrentTemp: {
+                const temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
+                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
+            }
+            case tuya.dataPoints.x5hTempCorrection: {
+                let temperature = value;
+
+                if (temperature > 4000) {
+                    temperature = temperature - 4096;
+                }
+
+                return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
+            }
+            case tuya.dataPoints.x5hMode: {
+                const lookup = {0: 'manual', 1: 'program'};
+                return {preset: lookup[value]};
+            }
+            case tuya.dataPoints.x5hSensorSelection: {
+                const lookup = {0: 'internal', 1: 'external', 2: 'both'};
+                return {sensor: lookup[value]};
+            }
+            default: {
+                meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            }
         },
     },
 };
@@ -2150,8 +2341,8 @@ module.exports = [
         model: 'X5H-GB-B',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.ignore_basic_report, fz.x5h_thermostat],
-        toZigbee: [tz.x5h_thermostat],
+        fromZigbee: [fz.ignore_basic_report, fzLocal.x5h_thermostat],
+        toZigbee: [tzLocal.x5h_thermostat],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
