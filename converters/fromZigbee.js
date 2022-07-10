@@ -7338,13 +7338,14 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'SLUXZB');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            const brightnesStateLookup = {'0': 'LOW', '1': 'MEDIUM', '2': 'HIGH'};
             switch (dp) {
             case 2:
                 return {illuminance_lux: value};
             case 4:
                 return {battery: value};
             case 1:
-                return {battery_low: value === 1};
+                return {brightness_level: brightnesStateLookup[value]};
             default:
                 meta.logger.warn(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
