@@ -606,7 +606,7 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.battery, fz.command_recall, fz.command_on, fz.command_off, fz.command_toggle,
                         fz.command_move, fz.command_stop, fzLocal.ctm_group_config],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}, sendWhen: 'active'},
+        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
@@ -754,7 +754,6 @@ module.exports = [
         description: 'mKomfy, stove guard',
         fromZigbee: [fz.temperature, fz.battery, fzLocal.ctm_sove_guard],
         toZigbee: [],
-        meta: {sendWhen: 'active'},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 0xFFC9]);
@@ -881,7 +880,7 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.battery, fz.command_on, fz.command_off, fz.ias_enroll, fz.ias_smoke_alarm_1,
                         fzLocal.ctm_group_config],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}, sendWhen: 'active'},
+        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'msTemperatureMeasurement']);
