@@ -4807,6 +4807,17 @@ const converters = {
             }
         },
     },
+    tuya_thermostat_bac_fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(tuya.fanModes, value, null, Number);
+            if (modeId !== null) {
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.bacFanMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV fan mode ${value} is not recognized.`);
+            }
+        },
+    },
     tuya_thermostat_auto_lock: {
         key: ['auto_lock'],
         convertSet: async (entity, key, value, meta) => {
