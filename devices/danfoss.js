@@ -228,7 +228,7 @@ module.exports = [
                 if (i!=16) {
                     features.push(e.battery().withEndpoint(epName));
                     features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
-                        .withLocalTemperature().withRunningState(['off', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
+                        .withLocalTemperature().withSystemMode(['heat', 'off']).withEndpoint(epName));
                     features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute min temperature allowed on the device'));

@@ -3605,10 +3605,10 @@ const converters = {
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
                 if (msg.data['danfossOutputStatus'] === 1) {
                     result[postfixWithEndpointName('output_status', msg, model)] = true;
-                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
+                    result[postfixWithEndpointName('system_off', msg, model)] = 'heat';
                 } else {
                     result[postfixWithEndpointName('output_status', msg, model)] = false;
-                    result[postfixWithEndpointName('running_state', msg, model)] = 'off';
+                    result[postfixWithEndpointName('system_off', msg, model)] = 'off';
                 }
             }
             return result;
