@@ -329,9 +329,8 @@ const tzLocal = {
         },
     },
     ctm_thermostat: {
-        key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode',
-            'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'regulator_setpoint',
-            'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
+        key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'night_switching', 'frost_guard',
+            'max_floor_temp', 'regulator_setpoint', 'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -364,9 +363,6 @@ const tzLocal = {
                 break;
             case 'frost_guard':
                 await entity.write('hvacThermostat', {0x0412: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
-                break;
-            case 'child_lock':
-                await entity.write('hvacThermostat', {0x0413: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: dataType.boolean}});
                 break;
             case 'max_floor_temp':
                 await entity.write('hvacThermostat', {0x0414: {value: value, type: dataType.uint8}});
@@ -416,9 +412,6 @@ const tzLocal = {
             case 'frost_guard':
                 await entity.read('hvacThermostat', [0x0412]);
                 break;
-            case 'child_lock':
-                await entity.read('hvacThermostat', [0x0413]);
-                break;
             case 'max_floor_temp':
                 await entity.read('hvacThermostat', [0x0414]);
                 break;
@@ -451,6 +444,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
             await entity.write('hvacThermostat', {0x0422: {value: presetLookup[value], type: dataType.uint8}});
+        },
+    },
+    ctm_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('hvacThermostat', {0x0413: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: dataType.boolean}});
         },
     },
     ctm_thermostat_gets: {
@@ -642,7 +641,7 @@ module.exports = [
         description: 'mTouch One OP, touch thermostat',
         fromZigbee: [fz.thermostat, fzLocal.ctm_thermostat],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tzLocal.ctm_thermostat,
-            tzLocal.ctm_thermostat_preset, tzLocal.ctm_thermostat_gets],
+            tzLocal.ctm_thermostat_preset, tzLocal.ctm_thermostat_child_lock, tzLocal.ctm_thermostat_gets],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
