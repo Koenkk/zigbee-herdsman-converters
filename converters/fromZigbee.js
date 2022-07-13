@@ -3603,12 +3603,12 @@ const converters = {
             //             msg.data['danfossOutputStatus'];
             // }
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
-                if (msg.data['danfossOutputStatus'] === 1) {
+                if (msg.data['danfossOutputStatus'] === true) {
                     result[postfixWithEndpointName('output_status', msg, model)] = true;
-                    result[postfixWithEndpointName('system_off', msg, model)] = 'heat';
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
                 } else {
                     result[postfixWithEndpointName('output_status', msg, model)] = false;
-                    result[postfixWithEndpointName('system_off', msg, model)] = 'off';
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
                 }
             }
             return result;
