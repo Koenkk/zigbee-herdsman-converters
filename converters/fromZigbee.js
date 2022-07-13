@@ -3602,6 +3602,15 @@ const converters = {
                         constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
                         msg.data['danfossOutputStatus'];
             }
+            if (msg.data.hasOwnProperty('danfossHeatRequired')) {
+                if (msg.data['danfossOutputStatus'] === 1) {
+                    result[postfixWithEndpointName('danfossOutputStatus', msg, model)] = true;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
+                } else {
+                    result[postfixWithEndpointName('danfossOutputStatus', msg, model)] = false;
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'off';
+                }
+            }
             return result;
         },
     },

@@ -227,8 +227,8 @@ module.exports = [
                 const epName = `l${i}`;
                 if (i!=16) {
                     features.push(e.battery().withEndpoint(epName));
-                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
-                        .withLocalTemperature().withSystemMode(['heat']).withEndpoint(epName));
+                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                        .withLocalTemperature().withPiHeatingDemand().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
                     features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute min temperature allowed on the device'));
@@ -236,10 +236,10 @@ module.exports = [
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute max temperature allowed on the device'));
                     features.push(exposes.numeric('min_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
                     features.push(exposes.numeric('max_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
                     features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                         .withEndpoint(epName));
