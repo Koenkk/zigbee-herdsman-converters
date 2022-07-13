@@ -10,14 +10,14 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const dataType = {
-	boolean: 16,
-	uint8: 32,
-	uint16: 33,
+    boolean: 16,
+    uint8: 32,
+    uint16: 33,
     int8: 40,
-	int16: 41,
-	enum8: 48,
-	charStr: 66,
-	ieeeAddr: 240,
+    int16: 41,
+    enum8: 48,
+    charStr: 66,
+    ieeeAddr: 240,
 };
 
 const fzLocal = {
@@ -145,28 +145,28 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x0423)) { // Maximum floor temp guard
                 result.max_floor_guard = data[0x0423] ? 'on' : 'off';
-			}
+            }
             if (data.hasOwnProperty(0x0424)) { // Weekly timer enabled
                 result.weekly_timer = data[0x0424] ? 'on' : 'off';
-			}
+            }
             if (data.hasOwnProperty(0x0425)) { // Frost guard setpoint
                 result.frost_guard_setpoint = data[0x0425];
-			}
+            }
             if (data.hasOwnProperty(0x0426)) { // External temperature
                 result.external_temp = utils.precisionRound(data[0x0426], 2) /100;
             }
             if (data.hasOwnProperty(0x0428)) { // Exteral sensor source
                 result.exteral_sensor_source = data[0x0428];
-			}
+            }
             if (data.hasOwnProperty(0x0429)) { // Current air temperature
                 result.air_temp = utils.precisionRound(data[0x0429], 2) /100;
             }
             if (data.hasOwnProperty(0x0424)) { // Floor Sensor Error
                 result.floor_sensor_error = data[0x042B] ? 'error' : 'ok';
-			}
+            }
             if (data.hasOwnProperty(0x0424)) { // External Air Sensor Error
                 result.exteral_sensor_error = data[0x042C] ? 'error' : 'ok';
-			}
+            }
 
             return result;
         },
@@ -196,64 +196,64 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x0002)) { // Change battery
                 result.battery_low = data[0x0002] ? true : false;;
-			}
+            }
             if (data.hasOwnProperty(0x0003)) { // Stove temperature
                 result.stove_temperature = data[0x0003];
-			}
+            }
             if (data.hasOwnProperty(0x0004)) { // Ambient temperature
                 result.ambient_temperature = data[0x0004];
-			}
+            }
             if (data.hasOwnProperty(0x0005)) { // Active
                 result.active = data[0x0005] ? 'active' : 'inactive';
-			}
+            }
             if (data.hasOwnProperty(0x0006)) { // Runtime
                 result.runtime = data[0x0006];
-			}
+            }
             if (data.hasOwnProperty(0x0007)) { // Runtime timeout
                 result.runtime_timeout = data[0x0007];
-			}
+            }
             if (data.hasOwnProperty(0x0008)) { // Reset reason
                 const resetReasonLookup = {0: 'unknown', 1: 'power_on', 2: 'external', 3: 'brown_out', 4: 'watchdog', 5: 'program_interface', 6: 'software', 0xFF: 'unknown'};
                 result.reset_reason = resetReasonLookup[data[0x0008]];
-			}
+            }
             if (data.hasOwnProperty(0x0009)) { // Dip switch
                 result.dip_switch = data[0x0009];
-			}
+            }
             if (data.hasOwnProperty(0x000A)) { // Software version
                 result.sw_version = data[0x000A];
-			}
+            }
             if (data.hasOwnProperty(0x000B)) { // Hardware version
                 result.hw_version = data[0x000B];
-			}
+            }
             if (data.hasOwnProperty(0x000C)) { // Bootloader version
                 result.bootloader_version = data[0x000C];
-			}
+            }
             if (data.hasOwnProperty(0x000D)) { // Model
                 const modelLookup = {0: 'unknown', 1: '1_8', 2: 'infinity', 3: 'hybrid', 4: 'tak', 0xFF: 'unknown'};
                 result.model = modelLookup[data[0x000D]];
-			}
+            }
             if (data.hasOwnProperty(0x0010)) { // Relay address
                 result.relay_address = data[0x0010];
-			}
+            }
             if (data.hasOwnProperty(0x0100)) { // Relay current flag
                 const currentFlagLookup = {0: 'false', 1: 'true', 0xFF: 'unknown'};
                 result.current_flag = currentFlagLookup[data[0x0100]];
-			}
+            }
             if (data.hasOwnProperty(0x0101)) { // Relay current
                 result.relay_current = data[0x0101];
-			}
+            }
             if (data.hasOwnProperty(0x0102)) { // Relay status
                 const relayStatusLookup = {0: 'off', 1: 'on', 2: 'not_present', 0xFF: 'unknown'};
                 result.relay_status = relayStatusLookup[data[0x0102]];
-			}
+            }
             if (data.hasOwnProperty(0x0103)) { // Relay external button
                 const relayStatusLookup = {0: 'not_clicked', 1: 'clicked', 0xFF: 'unknown'};
                 result.external_button = relayStatusLookup[data[0x0103]];
-			}
+            }
             if (data.hasOwnProperty(0x0104)) { // Relay alarm
                 const relayAlarmLookup = {0: 'ok', 1: 'no_communication', 2: 'over_current', 3: 'over_temperature', 0xFF: 'unknown'};
                 result.relay_alarm = relayAlarmLookup[data[0x0104]];
-			}
+            }
             if (data.hasOwnProperty(0x0105)) { // Alarm status (from relay)
                 const relayAlarmStatusLookup = {0: 'ok', 1: 'tamper', 2: 'high_temperatur', 3: 'timer', 4: 'battery_alarm', 5: 'error', 0xFF: 'unknown'};
                 result.relay_alarm_status = relayAlarmStatusLookup[data[0x0105]];
@@ -324,13 +324,12 @@ const tzLocal = {
             await entity.read('msTemperatureMeasurement', ['measuredValue'], {sendWhen: 'active'});
         },
     },
-	ctm_thermostat: {
-        key: [
-			'load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'mean_power', 'floor_temp',
-			'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'heating', 'regulator_setpoint',
-			'regulation_mode', 'preset', 'max_floor_guard', 'weekly_timer', 'frost_guard_setpoint',
-			'external_temp', 'exteral_sensor_source', 'air_temp', 'floor_sensor_error', 'exteral_sensor_error'
-		],
+    ctm_thermostat: {
+        key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'mean_power', 'floor_temp',
+            'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'heating', 'regulator_setpoint',
+            'regulation_mode', 'preset', 'max_floor_guard', 'weekly_timer', 'frost_guard_setpoint',
+            'external_temp', 'exteral_sensor_source', 'air_temp', 'floor_sensor_error', 'exteral_sensor_error'
+        ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'load':
@@ -340,7 +339,7 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x0402: {value: value, type: dataType.charStr}});
                 break;
             case 'sensor':
-				const sensorModeLookup = {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6};
+                const sensorModeLookup = {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6};
                 await entity.write('hvacThermostat', {0x0403: {value: sensorModeLookup[value], type: dataType.enum8}});
                 break;
             case 'regulator_mode':
@@ -372,11 +371,11 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x0420: {value: value, type: dataType.uint8}});
                 break;
             case 'regulation_mode':
-				const regulationModeLookup = {'thermostat': 0, 'regulator': 1, 'zzilent': 2};
+                const regulationModeLookup = {'thermostat': 0, 'regulator': 1, 'zzilent': 2};
                 await entity.write('hvacThermostat', {0x0421: {value: regulationModeLookup[value], type: dataType.uint8}});
                 break;
             case 'preset':
-				const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
+                const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
                 await entity.write('hvacThermostat', {0x0422: {value: presetLookup[value], type: dataType.uint8}});
                 break;
             case 'max_floor_guard':
@@ -482,12 +481,12 @@ const tzLocal = {
             await entity.read(0xFEA7, [0x0000], {manufacturerCode: 0x1337, sendWhen: 'active'});
         },
     },
-	ctm_sove_guard: {
+    ctm_sove_guard: {
         key: [
-			'alarm_status', 'change_battery', 'stove_temperature', 'ambient_temperature', 'active', 'runtime', 'runtime_timeout',
-			'reset_reason', 'dip_switch', 'sw_version', 'hw_version', 'bootloader_version', 'model', 'relay_address',
+            'alarm_status', 'change_battery', 'stove_temperature', 'ambient_temperature', 'active', 'runtime', 'runtime_timeout',
+            'reset_reason', 'dip_switch', 'sw_version', 'hw_version', 'bootloader_version', 'model', 'relay_address',
             'current_flag', 'relay_current', 'relay_status', 'external_button', 'relay_alarm', 'relay_alarm_status'
-		],
+        ],
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'alarm_status':
@@ -560,20 +559,20 @@ const tzLocal = {
 
 module.exports = [
     {
-		zigbeeModel: ['mTouch Dim'],
-		model: 'mTouch_Dim',
-		vendor: 'CTM Lyng',
-		description: 'mTouch Dim OP, touch dimmer',
+        zigbeeModel: ['mTouch Dim'],
+        model: 'mTouch_Dim',
+        vendor: 'CTM Lyng',
+        description: 'mTouch Dim OP, touch dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config, tzLocal.ballast_power_on_level],
-		meta: {disableDefaultResponse: true},
-		configure: async (device, coordinatorEndpoint, logger) => {
-			const endpoint = device.getEndpoint(1);
-			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await endpoint.read('genOnOff', ['onOff']);
-			await reporting.onOff(endpoint);
+            await reporting.onOff(endpoint);
             await endpoint.read('genLevelCtrl', ['currentLevel']);
-			await reporting.brightness(endpoint);
+            await reporting.brightness(endpoint);
             await endpoint.read('lightingBallastCfg', ['minLevel', 'maxLevel', 'powerOnLevel']);
             await endpoint.configureReporting('lightingBallastCfg', [{
                 attribute: 'minLevel',
@@ -590,14 +589,14 @@ module.exports = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,}]);
-		},
-		exposes:[e.light_brightness(),
-			exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(99)
-				.withDescription('Specifies the minimum brightness value'),
-			exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(99)
-				.withDescription('Specifies the maximum brightness value'),
-			exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
-				.withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
+        },
+        exposes:[e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(99)
+                .withDescription('Specifies the minimum brightness value'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(99)
+                .withDescription('Specifies the maximum brightness value'),
+            exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(99)
+                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
     },
     {
         zigbeeModel: ['mTouch Bryter'],
@@ -620,7 +619,7 @@ module.exports = [
             e.action(['recall_1', 'recall_2', 'recall_3', 'on', 'off', 'toggle',
                 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
             exposes.numeric('group_id', ea.STATE)
-			    .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.')],
+                .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.')],
     },
     {
         zigbeeModel: ['mTouch One'],
@@ -665,7 +664,7 @@ module.exports = [
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: null}]);
-			// Child lock active/inactive
+            // Child lock active/inactive
             await endpoint.read('hvacThermostat', [0x0413]);
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x0413, type: dataType.boolean},
@@ -695,35 +694,35 @@ module.exports = [
                 reportableChange: 10}]);
         },
         exposes: [
-			exposes.climate()
-			.withSetpoint('occupied_heating_setpoint', 5, 40, 1)
-			.withLocalTemperature()
-			.withSystemMode(['off', 'heat'])
+            exposes.climate()
+            .withSetpoint('occupied_heating_setpoint', 5, 40, 1)
+            .withLocalTemperature()
+            .withSystemMode(['off', 'heat'])
             .withPreset(['off', 'away', 'sleep', 'home']),
             exposes.numeric('load', ea.ALL).withUnit('W')
                 .withDescription('Load in W when heating is on (between 0-3600 W). The thermostat uses the value as input to the ' +
                 'mean_power calculation.')
                 .withValueMin(0).withValueMax(3600),
-			exposes.text('display_text', ea.ALL)
-				.withDescription('Displayed text on thermostat display (zone). Max 19 characters'),
-			exposes.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
+            exposes.text('display_text', ea.ALL)
+                .withDescription('Displayed text on thermostat display (zone). Max 19 characters'),
+            exposes.binary('regulator_mode', ea.ALL, 'regulator', 'thermostat')
                 .withDescription('Device in regulator or thermostat mode.'),
-			exposes.numeric('mean_power', ea.STATE_GET).withUnit('W')
+            exposes.numeric('mean_power', ea.STATE_GET).withUnit('W')
                 .withDescription('Reports average power usage last 10 minutes'),
-			exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
-			.withDescription('Current temperature measured from the floor sensor'),
-			exposes.binary('frost_guard', ea.ALL, 'on', 'off')
+            exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
+            .withDescription('Current temperature measured from the floor sensor'),
+            exposes.binary('frost_guard', ea.ALL, 'on', 'off')
                 .withDescription('When frost guard is ON, it is activated when the thermostat is switched OFF with the ON/OFF button.' +
                 'At the same time, the display will fade and the text "Frostsikring x °C" appears in the display and remains until the ' +
                 'thermostat is switched on again.'),
-			exposes.binary('child_lock', ea.ALL, 'lock', 'unlock')
+            exposes.binary('child_lock', ea.ALL, 'lock', 'unlock')
                 .withDescription('Enables/disables physical input on the device'),
             exposes.numeric('regulator_setpoint', ea.ALL).withUnit('%')
                 .withDescription('Setpoint in %, use only when the thermostat is in regulator mode.')
                 .withValueMin(1).withValueMax(99),
-			exposes.numeric('air_temp', ea.STATE_GET).withUnit('°C')
-			    .withDescription('Current temperature measured from the air sensor')
-		],
+            exposes.numeric('air_temp', ea.STATE_GET).withUnit('°C')
+                .withDescription('Current temperature measured from the air sensor')
+        ],
     },
     {
         zigbeeModel: ['mStikk Outlet'],
@@ -788,7 +787,7 @@ module.exports = [
             exposes.enum('alarm_status', ea.STATE, ['ok', 'tamper', 'high_temperatur', 'timer', 'battery_alarm', 'error', 'unknown'])
                 .withDescription('Alarm status.'),
             exposes.binary('active', ea.STATE, 'active', 'inactive')
-			    .withDescription('Stove guard active/inactive (Stove in use)')],
+                .withDescription('Stove guard active/inactive (Stove in use)')],
     },
     {
         zigbeeModel: ['mTouch Astro'],
@@ -832,7 +831,7 @@ module.exports = [
             exposes.binary('child_lock', ea.STATE, 'locked', 'unlocked')
                 .withDescription('Enables/disables physical input on the device'),
             exposes.numeric('group_id', ea.STATE)
-			    .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.'),
+                .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.'),
         ],
     },
     {
