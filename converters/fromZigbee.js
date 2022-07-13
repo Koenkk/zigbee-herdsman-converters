@@ -3596,12 +3596,12 @@ const converters = {
                         constants.danfossRoomStatusCode[msg.data['danfossRoomStatusCode']] :
                         msg.data['danfossRoomStatusCode'];
             }
-            if (msg.data.hasOwnProperty('danfossOutputStatus')) {
-                result[postfixWithEndpointName('output_status', msg, model)] =
-                    constants.danfossOutputStatus.hasOwnProperty(msg.data['danfossOutputStatus']) ?
-                        constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
-                        msg.data['danfossOutputStatus'];
-            }
+            // if (msg.data.hasOwnProperty('danfossOutputStatus')) {
+            //     result[postfixWithEndpointName('output_status', msg, model)] =
+            //         constants.danfossOutputStatus.hasOwnProperty(msg.data['danfossOutputStatus']) ?
+            //             constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
+            //             msg.data['danfossOutputStatus'];
+            // }
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
                 if (msg.data['danfossOutputStatus'] === 1) {
                     result[postfixWithEndpointName('output_status', msg, model)] = true;
