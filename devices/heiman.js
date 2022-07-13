@@ -257,7 +257,6 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
-            {modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
             {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'}],
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
         model: 'HS2WD-E',
