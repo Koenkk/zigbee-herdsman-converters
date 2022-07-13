@@ -1,9 +1,9 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const constants = require('../lib/constants');
-const utils = require('../lib/utils');
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const constants = require('zigbee-herdsman-converters/lib/constants');
+const utils = require('zigbee-herdsman-converters/lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -214,7 +214,7 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x0008)) { // Reset reason
                 const resetReasonLookup = {
-                    0: 'unknown', 1: 'power_on', 2: 'external', 3: 'brown_out', 4: 'watchdog', 5: 'program_interface', 
+                    0: 'unknown', 1: 'power_on', 2: 'external', 3: 'brown_out', 4: 'watchdog', 5: 'program_interface',
                     6: 'software', 0xFF: 'unknown'};
                 result.reset_reason = resetReasonLookup[data[0x0008]];
             }
@@ -320,8 +320,8 @@ const tzLocal = {
     ctm_temperature_offset: {
         key: ['temperature_offset'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('msTemperatureMeasurement', 
-            {0x0400: {value: value, type: dataType.int8}}, {manufacturerCode: 0x1337, sendWhen: 'active'});
+            await entity.write('msTemperatureMeasurement',
+                {0x0400: {value: value, type: dataType.int8}}, {manufacturerCode: 0x1337, sendWhen: 'active'});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('msTemperatureMeasurement', [0x0400], {manufacturerCode: 0x1337, sendWhen: 'active'});
@@ -331,7 +331,7 @@ const tzLocal = {
     ctm_thermostat: {
         key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode',
             'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'regulator_setpoint',
-            'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source'
+            'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -342,9 +342,9 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x0402: {value: value, type: dataType.charStr}});
                 break;
             case 'sensor':
-                const sensorModeLookup = {
-                    'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6};
-                await entity.write('hvacThermostat', {0x0403: {value: sensorModeLookup[value], type: dataType.enum8}});
+                await entity.write('hvacThermostat', {0x0403: {
+                    value: {'air': 0, 'floor': 1, 'external': 2, 'regulator': 3, 'mv_air': 4, 'mv_external': 5, 'mv_regulator': 6}[value],
+                    type: dataType.enum8}});
                 break;
             case 'regulator_mode':
                 await entity.write('hvacThermostat', {0x0405: {value: {'thermostat': 0, 'regulator': 1}[value], type: dataType.boolean}});
@@ -375,8 +375,9 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x0420: {value: value, type: dataType.uint8}});
                 break;
             case 'regulation_mode':
-                const regulationModeLookup = {'thermostat': 0, 'regulator': 1, 'zzilent': 2};
-                await entity.write('hvacThermostat', {0x0421: {value: regulationModeLookup[value], type: dataType.uint8}});
+                await entity.write('hvacThermostat', {0x0421: {
+                    value: {'thermostat': 0, 'regulator': 1, 'zzilent': 2}[value],
+                    type: dataType.uint8}});
                 break;
             case 'max_floor_guard':
                 await entity.write('hvacThermostat', {0x0423: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
@@ -454,7 +455,7 @@ const tzLocal = {
     },
     ctm_thermostat_gets: {
         key: ['mean_power', 'floor_temp', 'heating', 'frost_guard_setpoint', 'external_temp',
-            'air_temp', 'floor_sensor_error', 'exteral_sensor_error'
+            'air_temp', 'floor_sensor_error', 'exteral_sensor_error',
         ],
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -498,7 +499,7 @@ const tzLocal = {
         key: [
             'alarm_status', 'change_battery', 'stove_temperature', 'ambient_temperature', 'active', 'runtime', 'runtime_timeout',
             'reset_reason', 'dip_switch', 'sw_version', 'hw_version', 'bootloader_version', 'model', 'relay_address',
-            'current_flag', 'relay_current', 'relay_status', 'external_button', 'relay_alarm', 'relay_alarm_status'
+            'current_flag', 'relay_current', 'relay_status', 'external_button', 'relay_alarm', 'relay_alarm_status',
         ],
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -735,7 +736,7 @@ module.exports = [
                 .withDescription('Setpoint in %, use only when the thermostat is in regulator mode.')
                 .withValueMin(1).withValueMax(99),
             exposes.numeric('air_temp', ea.STATE_GET).withUnit('°C')
-                .withDescription('Current temperature measured from the air sensor')
+                .withDescription('Current temperature measured from the air sensor'),
         ],
     },
     {
@@ -807,7 +808,7 @@ module.exports = [
         model: 'mTouch_Astro',
         vendor: 'CTM Lyng',
         description: 'mTouch Astro OP, astro clock',
-        fromZigbee: [fz.on_off, fz.command_on, fz.command_off, fzLocal.ctm_device_mode, fzLocal.ctm_device_enabled, 
+        fromZigbee: [fz.on_off, fz.command_on, fz.command_off, fzLocal.ctm_device_mode, fzLocal.ctm_device_enabled,
             fzLocal.ctm_child_lock, fzLocal.ctm_group_config],
         toZigbee: [tz.on_off, tzLocal.ctm_device_enabled],
         meta: {disableDefaultResponse: true},
@@ -957,7 +958,7 @@ module.exports = [
         },
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
             exposes.binary('device_enabled', ea.ALL, 'on', 'off')
-                .withDescription('Turn the device on or off')
+                .withDescription('Turn the device on or off'),
         ],
     },
 ];
