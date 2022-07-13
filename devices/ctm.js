@@ -1,11 +1,11 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
-const ota = require('../lib/ota');
-const constants = require('../lib/constants');
-const utils = require('../lib/utils');
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const extend = require('zigbee-herdsman-converters/lib/extend');
+const ota = require('zigbee-herdsman-converters/lib/ota');
+const constants = require('zigbee-herdsman-converters/lib/constants');
+const utils = require('zigbee-herdsman-converters/lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -325,10 +325,9 @@ const tzLocal = {
         },
     },
     ctm_thermostat: {
-        key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 'mean_power', 'floor_temp',
-            'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'heating', 'regulator_setpoint',
-            'regulation_mode', 'max_floor_guard', 'weekly_timer', 'frost_guard_setpoint',
-            'external_temp', 'exteral_sensor_source', 'air_temp', 'floor_sensor_error', 'exteral_sensor_error'
+        key: ['load', 'display_text', 'sensor', 'regulator_mode', 'power_status', 'system_mode', 
+            'night_switching', 'frost_guard', 'child_lock', 'max_floor_temp', 'regulator_setpoint',
+            'regulation_mode', 'max_floor_guard', 'weekly_timer', 'exteral_sensor_source'
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -408,12 +407,6 @@ const tzLocal = {
             case 'power_status':
                 await entity.read('hvacThermostat', [0x0406]);
                 break;
-            case 'mean_power':
-                await entity.read('hvacThermostat', [0x0408]);
-                break;
-            case 'floor_temp':
-                await entity.read('hvacThermostat', [0x0409]);
-                break;
             case 'night_switching':
                 await entity.read('hvacThermostat', [0x0411]);
                 break;
@@ -425,9 +418,6 @@ const tzLocal = {
                 break;
             case 'max_floor_temp':
                 await entity.read('hvacThermostat', [0x0414]);
-                break;
-            case 'heating':
-                await entity.read('hvacThermostat', [0x0415]);
                 break;
             case 'regulator_setpoint':
                 await entity.read('hvacThermostat', [0x0420]);
@@ -444,14 +434,42 @@ const tzLocal = {
             case 'weekly_timer':
                 await entity.read('hvacThermostat', [0x0424]);
                 break;
+            case 'exteral_sensor_source':
+                await entity.read('hvacThermostat', [0x0428]);
+                break;
+
+            default: // Unknown key
+                throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
+            }
+        },
+    },
+    ctm_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
+            await entity.write('hvacThermostat', {0x0422: {value: presetLookup[value], type: dataType.uint8}});
+        },
+    },
+    ctm_thermostat_gets: {
+        key: ['mean_power', 'floor_temp', 'heating', 'frost_guard_setpoint', 'external_temp',
+            'air_temp', 'floor_sensor_error', 'exteral_sensor_error'
+        ],
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'mean_power':
+                await entity.read('hvacThermostat', [0x0408]);
+                break;
+            case 'floor_temp':
+                await entity.read('hvacThermostat', [0x0409]);
+                break;
+            case 'heating':
+                await entity.read('hvacThermostat', [0x0415]);
+                break;
             case 'frost_guard_setpoint':
                 await entity.read('hvacThermostat', [0x0425]);
                 break;
             case 'external_temp':
                 await entity.read('hvacThermostat', [0x0426]);
-                break;
-            case 'exteral_sensor_source':
-                await entity.read('hvacThermostat', [0x0428]);
                 break;
             case 'air_temp':
                 await entity.read('hvacThermostat', [0x0429]);
@@ -466,13 +484,6 @@ const tzLocal = {
             default: // Unknown key
                 throw new Error(`Unhandled key tzLocal.ctm_thermostat.convertGet ${key}`);
             }
-        },
-    },
-    ctm_thermostat_preset: {
-        key: ['preset'],
-        convertSet: async (entity, key, value, meta) => {
-            const presetLookup = {'off': 0, 'away': 1, 'sleep': 2, 'home': 3};
-            await entity.write('hvacThermostat', {0x0422: {value: presetLookup[value], type: dataType.uint8}});
         },
     },
     ctm_group_config: {
@@ -627,7 +638,8 @@ module.exports = [
         vendor: 'CTM Lyng',
         description: 'mTouch One OP, touch thermostat',
         fromZigbee: [fz.thermostat, fzLocal.ctm_thermostat],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tzLocal.ctm_thermostat, tzLocal.ctm_thermostat_preset],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tzLocal.ctm_thermostat,
+                     tzLocal.ctm_thermostat_preset, tzLocal.ctm_thermostat_gets],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
