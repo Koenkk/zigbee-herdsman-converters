@@ -3602,7 +3602,7 @@ const converters = {
                         constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
                         msg.data['danfossOutputStatus'];
             }
-            if (msg.data.hasOwnProperty('danfossHeatRequired')) {
+            if (msg.data.hasOwnProperty('danfossOutputStatus')) {
                 if (msg.data['danfossOutputStatus'] === 1) {
                     result[postfixWithEndpointName('danfossOutputStatus', msg, model)] = true;
                     result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
