@@ -243,8 +243,8 @@ module.exports = [
                         .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
                     features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                         .withEndpoint(epName));
-                    // features.push(exposes.enum('output_status', ea.STATE_GET, ['inactive', 'active'])
-                    //     .withEndpoint(epName).withDescription('Danfoss Output Status [Active vs Inactive])'));
+                    features.push(exposes.enum('output_status', ea.STATE_GET, ['inactive', 'active'])
+                        .withEndpoint(epName).withDescription('Danfoss Output Status [Active vs Inactive])'));
                     features.push(exposes.enum('room_status_code', ea.STATE_GET, ['no_error', 'missing_rt',
                         'rt_touch_error', 'floor_sensor_short_circuit', 'floor_sensor_disconnected'])
                         .withEndpoint(epName).withDescription('Thermostat status'));
@@ -286,7 +286,7 @@ module.exports = [
 
                     // Danfoss Icon Thermostat Specific
                     await endpoint.read('hvacThermostat', [
-                        // 'danfossOutputStatus',
+                        'danfossOutputStatus',
                         'danfossRoomStatusCode'], options);
 
                     // Standard Thermostat
