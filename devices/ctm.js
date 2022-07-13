@@ -439,9 +439,6 @@ const tzLocal = {
             case 'regulation_mode':
                 await entity.read('hvacThermostat', [0x0421]);
                 break;
-            case 'preset':
-                await entity.read('hvacThermostat', [0x0422]);
-                break;
             case 'system_mode':
                 await entity.read('hvacThermostat', [0x0422]);
                 break;
