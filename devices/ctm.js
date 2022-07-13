@@ -40,7 +40,7 @@ const fzLocal = {
             const result = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x2201)) {
-                result.device_enabled = data[0x2201] ? 'on' : 'off';
+                result.device_enabled = data[0x2201] ? 'ON' : 'OFF';
             }
 
             return result;
@@ -106,7 +106,7 @@ const fzLocal = {
                 result.regulator_mode = data[0x0405] ? 'regulator' : 'thermostat';
             }
             if (data.hasOwnProperty(0x0406)) { // Power status
-                result.power_status = data[0x0406] ? 'on' : 'off';
+                result.power_status = data[0x0406] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0408)) { // Mean power
                 result.mean_power = data[0x0408];
@@ -115,13 +115,13 @@ const fzLocal = {
                 result.floor_temp = utils.precisionRound(data[0x0409], 2) /100;
             }
             if (data.hasOwnProperty(0x0411)) { // Night switching
-                result.night_switching = data[0x0411] ? 'on' : 'off';
+                result.night_switching = data[0x0411] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0412)) { // Frost guard
-                result.frost_guard = data[0x0412] ? 'on' : 'off';
+                result.frost_guard = data[0x0412] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0413)) { // Child lock
-                result.child_lock = data[0x0413] ? 'lock' : 'unlock';
+                result.child_lock = data[0x0413] ? 'LOCK' : 'UNLOCK';
             }
             if (data.hasOwnProperty(0x0414)) { // Max floor temp
                 result.max_floor_temp = data[0x0414];
@@ -143,10 +143,10 @@ const fzLocal = {
                 result.system_mode = systemModeLookup[data[0x0422]];
             }
             if (data.hasOwnProperty(0x0423)) { // Maximum floor temp guard
-                result.max_floor_guard = data[0x0423] ? 'on' : 'off';
+                result.max_floor_guard = data[0x0423] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0424)) { // Weekly timer enabled
-                result.weekly_timer = data[0x0424] ? 'on' : 'off';
+                result.weekly_timer = data[0x0424] ? 'ON' : 'OFF';
             }
             if (data.hasOwnProperty(0x0425)) { // Frost guard setpoint
                 result.frost_guard_setpoint = data[0x0425];
@@ -204,7 +204,7 @@ const fzLocal = {
                 result.ambient_temperature = data[0x0004];
             }
             if (data.hasOwnProperty(0x0005)) { // Active
-                result.active = data[0x0005] ? 'active' : 'inactive';
+                result.active = data[0x0005] ? true : false;
             }
             if (data.hasOwnProperty(0x0006)) { // Runtime
                 result.runtime = data[0x0006];
@@ -299,7 +299,7 @@ const tzLocal = {
     ctm_device_enabled: {
         key: ['device_enabled'],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x2201: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+            await entity.write('genOnOff', {0x2201: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x2201]);
@@ -350,7 +350,7 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x0405: {value: {'thermostat': 0, 'regulator': 1}[value], type: dataType.boolean}});
                 break;
             case 'power_status':
-                await entity.write('hvacThermostat', {0x0406: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0406: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
                 break;
             case 'system_mode':
                 if (value === 'off') {
@@ -360,13 +360,13 @@ const tzLocal = {
                 }
                 break;
             case 'night_switching':
-                await entity.write('hvacThermostat', {0x0411: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0411: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
                 break;
             case 'frost_guard':
-                await entity.write('hvacThermostat', {0x0412: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0412: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
                 break;
             case 'child_lock':
-                await entity.write('hvacThermostat', {0x0413: {value: {'unlock': 0, 'lock': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0413: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: dataType.boolean}});
                 break;
             case 'max_floor_temp':
                 await entity.write('hvacThermostat', {0x0414: {value: value, type: dataType.uint8}});
@@ -380,10 +380,10 @@ const tzLocal = {
                     type: dataType.uint8}});
                 break;
             case 'max_floor_guard':
-                await entity.write('hvacThermostat', {0x0423: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0423: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
                 break;
             case 'weekly_timer':
-                await entity.write('hvacThermostat', {0x0424: {value: {'off': 0, 'on': 1}[value], type: dataType.boolean}});
+                await entity.write('hvacThermostat', {0x0424: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}});
                 break;
             case 'exteral_sensor_source':
                 await entity.write('hvacThermostat', {0x0428: {value: value, type: dataType.uint16}});
@@ -708,7 +708,7 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 10}]);
         },
-        exposes: [
+        exposes: [e.child_lock(),
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 40, 1)
                 .withLocalTemperature()
@@ -726,12 +726,10 @@ module.exports = [
                 .withDescription('Reports average power usage last 10 minutes'),
             exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
-            exposes.binary('frost_guard', ea.ALL, 'on', 'off')
+            exposes.binary('frost_guard', ea.ALL, 'ON', 'OFF')
                 .withDescription('When frost guard is ON, it is activated when the thermostat is switched OFF with the ON/OFF button.' +
                 'At the same time, the display will fade and the text "Frostsikring x °C" appears in the display and remains until the ' +
                 'thermostat is switched on again.'),
-            exposes.binary('child_lock', ea.ALL, 'lock', 'unlock')
-                .withDescription('Enables/disables physical input on the device'),
             exposes.numeric('regulator_setpoint', ea.ALL).withUnit('%')
                 .withDescription('Setpoint in %, use only when the thermostat is in regulator mode.')
                 .withValueMin(1).withValueMax(99),
@@ -800,7 +798,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_low(), e.temperature(),
             exposes.enum('alarm_status', ea.STATE, ['ok', 'tamper', 'high_temperatur', 'timer', 'battery_alarm', 'error', 'unknown'])
                 .withDescription('Alarm status.'),
-            exposes.binary('active', ea.STATE, 'active', 'inactive')
+            exposes.binary('active', ea.STATE, true, false)
                 .withDescription('Stove guard active/inactive (Stove in use)')],
     },
     {
@@ -841,10 +839,10 @@ module.exports = [
         exposes: [e.switch(), e.action(['on', 'off']),
             exposes.enum('device_mode', ea.STATE, ['astro_clock', 'timer', 'daily_timer', 'weekly_timer'])
                 .withDescription('Device mode.'),
-            exposes.binary('device_enabled', ea.ALL, 'on', 'off')
+            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
                 .withDescription('Turn the device on or off'),
             exposes.binary('child_lock', ea.STATE, 'locked', 'unlocked')
-                .withDescription('Enables/disables physical input on the device'),
+                .withDescription('Physical input on the device enabled/disabled'),
             exposes.numeric('group_id', ea.STATE)
                 .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.'),
         ],
@@ -957,7 +955,7 @@ module.exports = [
                 reportableChange: null}]);
         },
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
-            exposes.binary('device_enabled', ea.ALL, 'on', 'off')
+            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
                 .withDescription('Turn the device on or off'),
         ],
     },
