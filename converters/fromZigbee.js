@@ -3603,11 +3603,11 @@ const converters = {
             //             msg.data['danfossOutputStatus'];
             // }
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
-                if (msg.data['danfossOutputStatus'] === active) {
-                    // result[postfixWithEndpointName('output_status', msg, model)] = true;
+                if (msg.data['danfossOutputStatus'] === "active") {
+                    result[postfixWithEndpointName('output_status', msg, model)] = "active";
                     result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
                 } else {
-                    // result[postfixWithEndpointName('output_status', msg, model)] = false;
+                    result[postfixWithEndpointName('output_status', msg, model)] = "inactive";
                     result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
                 }
             }
