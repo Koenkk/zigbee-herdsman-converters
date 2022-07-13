@@ -41,7 +41,7 @@ module.exports = [
                 //.withRunningState(['off','on'], ea.STATE)
                 .withPreset(['hold', 'program'])
                 .withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)
-                .withFanMode(['off', 'low', 'medium', 'high', 'auto']),
+                .withFanMode(['off', 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
             exposes.composite('programming_mode')
               .withDescription(
                     'Schedule MODE ⏱ - In this mode, ' +
