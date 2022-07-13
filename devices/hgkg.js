@@ -15,7 +15,6 @@ module.exports = [
             fz.moes_thermostat,
             fz.ignore_basic_report,
             fz.ignore_tuya_set_time,
-            fz.fan,
         ],
         onEvent: tuya.onEventSetLocalTime,
         toZigbee: [
@@ -37,9 +36,9 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(5, 45, 0.1, ea.STATE_SET)
-                .withSystemMode(['off', 'heat', 'cool', 'auto', 'fan_only'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat', 'cool', 'fan_only'], ea.STATE)
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)
+                .withSystemMode(['off', 'cool'], ea.STATE_SET)
+                //.withRunningState(['off','on'], ea.STATE)
                 .withPreset(['hold', 'program'])
                 .withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto']),
