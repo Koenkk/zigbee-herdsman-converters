@@ -47,8 +47,8 @@ const tzLocal = {
                 long_chart_period: ['msCO2', {0x0204: {value, type: 0x10}}],
                 set_altitude: ['msCO2', {0x0205: {value, type: 0x21}}],
                 manual_forced_recalibration: ['msCO2', {0x0207: {value, type: 0x21}}],
-				light_indicator: ['msCO2', {0x0211: {value, type: 0x10}}],
-				light_ind_level: ['msCO2', {0x0209: {value, type: 0x20}}],
+                light_indicator: ['msCO2', {0x0211: {value, type: 0x10}}],
+                light_ind_level: ['msCO2', {0x0209: {value, type: 0x20}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
             return {
@@ -90,7 +90,7 @@ const tzLocal = {
             const payloads = {
                 high_temp: ['msTemperatureMeasurement', {0x0221: {value, type: 0x29}}],
                 low_temp: ['msTemperatureMeasurement', {0x0222: {value, type: 0x29}}],
-				enable_temp: ['msTemperatureMeasurement', {0x0220: {value, type: 0x10}}],
+                enable_temp: ['msTemperatureMeasurement', {0x0220: {value, type: 0x10}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
             return {
@@ -210,7 +210,7 @@ const fzLocal = {
             if (msg.data.hasOwnProperty(0x0221)) {
                 result.high_temp = msg.data[0x0221];
             }
-			if (msg.data.hasOwnProperty(0x0222)) {
+            if (msg.data.hasOwnProperty(0x0222)) {
                 result.low_temp = msg.data[0x0222];
             }
             if (msg.data.hasOwnProperty(0x0220)) {
@@ -726,11 +726,11 @@ module.exports = [
         zigbeeModel: ['EFEKTA_CO2_Smart_Monitor'],
         model: 'EFEKTA_CO2_Smart_Monitor',
         vendor: 'Custom devices (DiY)',
-        description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding on some other devices](https://efektalab.com/CO2_Monitor)',
+        description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding](https://efektalab.com/CO2_Monitor)',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.co2, fzLocal.co2_config, fzLocal.temperature_config,
-		    fzLocal.humidity_config, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
+            fzLocal.humidity_config, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
         toZigbee: [tz.factory_reset, tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
-		    tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
+            tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msCO2'];
@@ -745,14 +745,17 @@ module.exports = [
             exposes.binary('light_indicator', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or Disable light_indicator'),
             exposes.numeric('light_ind_level', ea.STATE_SET).withUnit('%').withDescription('light_indicator_level')
                 .withValueMin(0).withValueMax(100),
-            exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters').withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
+            exposes.numeric('set_altitude', ea.STATE_SET).withUnit('meters')
+                .withDescription('Setting the altitude above sea level (for high accuracy of the CO2 sensor)')
                 .withValueMin(0).withValueMax(3000),
             exposes.numeric('temperature_offset', ea.STATE_SET).withUnit('°C').withDescription('Adjust temperature')
                 .withValueMin(-30).withValueMax(60),
             exposes.numeric('humidity_offset', ea.STATE_SET).withUnit('%').withDescription('Adjust humidity')
                 .withValueMin(0).withValueMax(99),
-            exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF').withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
-            exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
+            exposes.binary('forced_recalibration', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Start FRC (Perform Forced Recalibration of the CO2 Sensor)'),
+            exposes.numeric('manual_forced_recalibration', ea.STATE_SET)
+                .withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
                 .withValueMin(0).withValueMax(5000),
             exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
             exposes.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
