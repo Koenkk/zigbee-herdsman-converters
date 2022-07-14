@@ -111,7 +111,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['PIR313-E'],
+        zigbeeModel: ['PIR313-E', 'PIR313'],
         model: 'PIR313-E',
         vendor: 'OWON',
         description: 'Motion sensor',

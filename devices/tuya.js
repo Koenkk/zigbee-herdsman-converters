@@ -406,6 +406,7 @@ module.exports = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'}],
         model: 'WHD02',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'TuYa', model: 'iHSW02'}],
         description: 'Wall switch module',
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
@@ -498,7 +499,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_s6zec0of'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_y5fjkn7x'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_cuqkfz2q'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_6amjviba'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_6amjviba'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -751,7 +753,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
-        exposes: [e.battery(), e.illuminance_lux(), e.battery_low(), e.linkquality()],
+        exposes: [e.battery(), e.illuminance_lux(), e.linkquality(),
+            exposes.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -1563,8 +1566,9 @@ module.exports = [
         description: '10A UK or 16A EU smart plug',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-SHP13'}],
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
+            fz.ts011f_plug_indicator_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -1576,13 +1580,15 @@ module.exports = [
             try {
                 await reporting.currentSummDelivered(endpoint);
             } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
+            await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff', 'tuyaBacklightMode']);
         },
         options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off']).withDescription('LED indicator mode')],
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
@@ -1627,7 +1633,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -1648,7 +1654,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
-        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
             .withDescription('Recover state after power outage'),
         exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
             .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -1679,7 +1685,7 @@ module.exports = [
         },
         options: [exposes.options.measurement_poll_interval()],
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
@@ -1861,7 +1867,9 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'}, {modelID: 'TS0012', manufacturerName: '_TZ3000_nPGIPl5D'}],
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_jl7qyupf'},
+            {modelID: 'TS0012', manufacturerName: '_TZ3000_nPGIPl5D'},
+            {modelID: 'TS0012', manufacturerName: '_TZ3000_4zf0crgo'}],
         model: 'TS0012_switch_module',
         vendor: 'TuYa',
         description: '2 gang switch module - (without neutral)',
@@ -2185,7 +2193,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
@@ -2203,7 +2211,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],

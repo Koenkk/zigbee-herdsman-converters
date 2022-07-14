@@ -137,7 +137,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage')],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
