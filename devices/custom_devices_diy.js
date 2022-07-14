@@ -36,7 +36,7 @@ const tzLocal = {
     },
     co2_config: {
         key: ['auto_brightness', 'forced_recalibration', 'factory_reset_co2', 'long_chart_period', 'set_altitude',
-            'manual_forced_recalibration'],
+            'manual_forced_recalibration', 'light_indicator', 'light_ind_level'],
         convertSet: async (entity, key, rawValue, meta) => {
             const lookup = {'OFF': 0x00, 'ON': 0x01};
             const value = lookup.hasOwnProperty(rawValue) ? lookup[rawValue] : parseInt(rawValue, 10);
@@ -47,6 +47,8 @@ const tzLocal = {
                 long_chart_period: ['msCO2', {0x0204: {value, type: 0x10}}],
                 set_altitude: ['msCO2', {0x0205: {value, type: 0x21}}],
                 manual_forced_recalibration: ['msCO2', {0x0207: {value, type: 0x21}}],
+				light_indicator: ['msCO2', {0x0211: {value, type: 0x10}}],
+				light_ind_level: ['msCO2', {0x0209: {value, type: 0x20}}],
             };
             await entity.write(payloads[key][0], payloads[key][1]);
             return {
@@ -753,20 +755,20 @@ module.exports = [
             exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
                 .withValueMin(0).withValueMax(5000),
             exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            exposes.binary('enable_gas', ea.ALL, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
-            exposes.numeric('high_gas', ea.ALL).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
+            exposes.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
+            exposes.numeric('high_gas',ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_gas', ea.ALL).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
+            exposes.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.binary('enable_temp', ea.ALL, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            exposes.numeric('high_temp', ea.ALL).withUnit('C').withDescription('Setting High Temperature Border')
+            exposes.binary('enable_temp',ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+            exposes.numeric('high_temp', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.numeric('low_temp', ea.ALL).withUnit('C').withDescription('Setting Low Temperature Border')
+            exposes.numeric('low_temp', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.binary('enable_hum', ea.ALL, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            exposes.numeric('high_hum', ea.ALL).withUnit('C').withDescription('Setting High Humidity Border')
+            exposes.binary('enable_hum', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+            exposes.numeric('high_hum', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_hum', ea.ALL).withUnit('C').withDescription('Setting Low Humidity Border')
+            exposes.numeric('low_hum', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
     },
 ];
