@@ -406,6 +406,7 @@ module.exports = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'}],
         model: 'WHD02',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'TuYa', model: 'iHSW02'}],
         description: 'Wall switch module',
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
