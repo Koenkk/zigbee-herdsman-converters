@@ -753,20 +753,20 @@ module.exports = [
             exposes.numeric('manual_forced_recalibration', ea.STATE_SET).withUnit('ppm').withDescription('Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)')
                 .withValueMin(0).withValueMax(5000),
             exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
-            exposes.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
-            exposes.numeric('high_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
+            exposes.binary('enable_gas', ea.ALL, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
+            exposes.numeric('high_gas', ea.ALL).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
+            exposes.numeric('low_gas', ea.ALL).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.binary('enable_temp', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-            exposes.numeric('high_temp', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
+            exposes.binary('enable_temp', ea.ALL, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+            exposes.numeric('high_temp', ea.ALL).withUnit('C').withDescription('Setting High Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.numeric('low_temp', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
+            exposes.numeric('low_temp', ea.ALL).withUnit('C').withDescription('Setting Low Temperature Border')
                 .withValueMin(-5).withValueMax(50),
-            exposes.binary('enable_hum', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-            exposes.numeric('high_hum', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
+            exposes.binary('enable_hum', ea.ALL, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+            exposes.numeric('high_hum', ea.ALL).withUnit('C').withDescription('Setting High Humidity Border')
                 .withValueMin(0).withValueMax(99),
-            exposes.numeric('low_hum', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
+            exposes.numeric('low_hum', ea.ALL).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
     },
 ];
