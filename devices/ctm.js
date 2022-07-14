@@ -829,7 +829,7 @@ module.exports = [
                 reportableChange: null}]);
             await endpoint.read('genOnOff', [0x2202]);
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x2201, type: dataType.boolean},
+                attribute: {ID: 0x2202, type: dataType.boolean},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null}]);
