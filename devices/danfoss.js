@@ -204,6 +204,7 @@ module.exports = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
+            tz.thermostat_running_state,
             tz.thermostat_min_heat_setpoint_limit,
             tz.thermostat_max_heat_setpoint_limit,
             tz.danfoss_output_status,
