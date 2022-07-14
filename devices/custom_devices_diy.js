@@ -180,7 +180,7 @@ const fzLocal = {
             if (msg.data.hasOwnProperty(0x0211)) {
                 result.light_indicator = ['OFF', 'ON'][msg.data[0x0211]];
             }
-                if (msg.data.hasOwnProperty(0x0209)) {
+            if (msg.data.hasOwnProperty(0x0209)) {
                 result.light_indicator_level = msg.data[0x0209];
             }
             return result;
