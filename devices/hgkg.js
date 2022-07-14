@@ -30,26 +30,26 @@ module.exports = [
             tz.tuya_thermostat_bac_fan_mode,
         ],
         exposes: [
-            //e.switch(),
+            // e.switch(),
             e.child_lock(),
-            //e.deadzone_temperature(),
+            // e.deadzone_temperature(),
             exposes.climate()
                 .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'cool'], ea.STATE_SET)
-                //.withRunningState(['off','on'], ea.STATE)
+                // .withRunningState(['off','on'], ea.STATE)
                 .withPreset(['hold', 'program'])
                 .withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
             exposes.composite('programming_mode')
-              .withDescription(
+                .withDescription(
                     'Schedule MODE ⏱ - In this mode, ' +
-                     'the device executes a preset week programming temperature time and temperature.'
-             )
-             .withFeature(e.week())
-             .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
-             .withFeature(exposes.text('holidays_schedule', ea.STATE_SET)),
+                    'the device executes a preset week programming temperature time and temperature.'
+                )
+                .withFeature(e.week())
+                .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
+                .withFeature(exposes.text('holidays_schedule', ea.STATE_SET)),
         ],
         onEvent: tuya.onEventSetLocalTime,
     },
