@@ -30,7 +30,7 @@ module.exports = [
             tz.tuya_thermostat_bac_fan_mode,
         ],
         exposes: [
-            e.switch(),
+            //e.switch(),
             e.child_lock(),
             //e.deadzone_temperature(),
             exposes.climate()
