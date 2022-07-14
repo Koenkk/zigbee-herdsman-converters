@@ -44,7 +44,7 @@ module.exports = [
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
             exposes.composite('programming_mode')
                 .withDescription(
-                    'Schedule MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature.'
+                    'Schedule MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature.',
                 )
                 .withFeature(e.week())
                 .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
