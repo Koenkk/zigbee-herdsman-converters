@@ -128,6 +128,19 @@ const tzLocal = {
             }
         },
     },
+    temperature_unit: {
+        key: ['temperature_unit'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_unit': {
+                await entity.write('manuSpecificTuya_2', {'57355': {value: {'celsius': 0, 'fahrenheit': 1}[value], type: 48}});
+                break;
+            }
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
 };
 
 const fzLocal = {
@@ -258,6 +271,28 @@ const fzLocal = {
                     meta.logger.warn(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
                 }
+            }
+            return result;
+        },
+    },
+    humidity10: {
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = parseFloat(msg.data['measuredValue']) / 10.0;
+            if (humidity >= 0 && humidity <= 100) {
+                return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            }
+        },
+    },
+    temperature_unit: {
+        cluster: 'manuSpecificTuya_2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('57355')) {
+                result.temperature_unit = {'0': 'celsius', '1': 'fahrenheit'}[msg.data['57355']];
             }
             return result;
         },
@@ -2681,5 +2716,22 @@ module.exports = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_itnrsufe'}],
+        model: 'KCTW1Z',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor with LCD',
+        fromZigbee: [fz.temperature, fzLocal.humidity10, fzLocal.temperature_unit, fz.battery, fz.ignore_tuya_set_time],
+        toZigbee: [tzLocal.temperature_unit],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(), e.battery_voltage(),
+            exposes.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+        },
     },
 ];
