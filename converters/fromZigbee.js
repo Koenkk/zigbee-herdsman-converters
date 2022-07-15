@@ -3597,10 +3597,13 @@ const converters = {
                         msg.data['danfossRoomStatusCode'];
             }
             if (msg.data.hasOwnProperty('danfossOutputStatus')) {
-                result[postfixWithEndpointName('output_status', msg, model)] =
-                    constants.danfossOutputStatus.hasOwnProperty(msg.data['danfossOutputStatus']) ?
-                        constants.danfossOutputStatus[msg.data['danfossOutputStatus']] :
-                        msg.data['danfossOutputStatus'];
+                if (msg.data['danfossOutputStatus'] === 1) {
+                    result[postfixWithEndpointName('output_status', msg, model)] = 'active';
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'heat';
+                } else {
+                    result[postfixWithEndpointName('output_status', msg, model)] = 'inactive';
+                    result[postfixWithEndpointName('running_state', msg, model)] = 'idle';
+                }
             }
             return result;
         },
