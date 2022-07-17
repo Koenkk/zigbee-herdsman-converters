@@ -37,4 +37,21 @@ module.exports = [
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    
+    {
+        zigbeeModel: ['LXN-2S27LX1.0'],
+        model: 'JZ-ZB-002',
+        vendor: '3A Smart Home',
+        description: 'Intelligent Curtain Shutter Switch to Upgrade Normal Blinds',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('button_aus'), e.switch().withEndpoint('button_ein')],
+        endpoint: (device) => {
+            return {'button_aus': 2, 'button_ein': 1};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
