@@ -1127,6 +1127,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE)],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
