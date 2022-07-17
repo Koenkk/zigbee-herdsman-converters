@@ -5193,26 +5193,6 @@ const converters = {
             return {action: `${button}_${action}`};
         },
     },
-    ZG2819S_command_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            // The device sends this command for all four group IDs.
-            // Only forward for the first group.
-            if (msg.groupID !== 46337) return null;
-            return {action: postfixWithEndpointName('on', msg, model)};
-        },
-    },
-    ZG2819S_command_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            // The device sends this command for all four group IDs.
-            // Only forward for the first group.
-            if (msg.groupID !== 46337) return null;
-            return {action: postfixWithEndpointName('off', msg, model)};
-        },
-    },
     kmpcil_res005_occupancy: {
         cluster: 'genBinaryInput',
         type: ['attributeReport', 'readResponse'],
