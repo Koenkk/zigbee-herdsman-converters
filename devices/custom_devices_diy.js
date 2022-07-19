@@ -435,19 +435,25 @@ module.exports = [
         zigbeeModel: ['EFEKTA_PWS'],
         model: 'EFEKTA_PWS',
         vendor: 'Custom devices (DiY)',
-        description: '[Plant Wattering Sensor]',
-        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        description: '[Plant Wattering Sensor, CR2450, CR2477 batteries, temperature ]',
+        fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery, fzLocal.node_config],
+        toZigbee: [tz.factory_reset, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
-            await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
             const overides = {min: 0, max: 21600, change: 0};
             await reporting.batteryVoltage(firstEndpoint, overides);
             await reporting.batteryPercentageRemaining(firstEndpoint, overides);
             await reporting.temperature(firstEndpoint, overides);
             await reporting.soil_moisture(firstEndpoint, overides);
+			const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
+            minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
+            await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
-        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+        exposes: [e.soil_moisture(), e.battery(), e.temperature(),
+        exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 30 minutes')
+                .withValueMin(1).withValueMax(240)],
     },
     {
         zigbeeModel: ['EFEKTA_THP_LR'],
