@@ -452,8 +452,8 @@ module.exports = [
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-        exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')
-            .withValueMin(1).withValueMax(240)],
+        exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withValueMin(1).withValueMax(240)
+            .withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')],
     },
     {
         zigbeeModel: ['EFEKTA_THP_LR'],
