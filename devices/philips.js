@@ -1964,6 +1964,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['1744830P7'],
+        model: '8718696170656',
+        vendor: 'Philips',
+        description: 'Hue White Fuzo outdoor floor light',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
         model: '8718696170625',
         vendor: 'Philips',
