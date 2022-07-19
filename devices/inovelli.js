@@ -1216,8 +1216,8 @@ module.exports = [
                 'manuSpecificInovelliVZM31SN',
             ]);
 
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
             await reporting.currentSummDelivered(endpoint);
         },
