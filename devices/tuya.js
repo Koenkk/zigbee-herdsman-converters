@@ -205,7 +205,7 @@ const fzLocal = {
             const lookup = {0: 'off', 1: 'on', 2: 'previous'};
 
             if (msg.data.hasOwnProperty(attribute)) {
-                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model);
+                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },

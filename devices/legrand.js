@@ -21,7 +21,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            const payload = {action: utils.postfixWithEndpointName('off', msg, model)};
+            const payload = {action: utils.postfixWithEndpointName('off', msg, model, meta)};
             utils.addActionGroup(payload, msg, model);
             return payload;
         },

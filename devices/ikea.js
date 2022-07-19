@@ -97,14 +97,14 @@ const ikea = {
                 const state = {};
 
                 if (msg.data.hasOwnProperty('particulateMatter25Measurement')) {
-                    const pm25Property = postfixWithEndpointName('pm25', msg, model);
+                    const pm25Property = postfixWithEndpointName('pm25', msg, model, meta);
                     let pm25 = parseFloat(msg.data['particulateMatter25Measurement']);
 
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
                     // Using German IAQ labels to match the Develco Air Quality Sensor
                     let airQuality;
-                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model);
+                    const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
                     if (pm25 <= 10) {
                         airQuality = 'excellent';
                     } else if (pm25 <= 20) {
