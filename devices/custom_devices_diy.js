@@ -447,13 +447,13 @@ module.exports = [
             await reporting.batteryPercentageRemaining(firstEndpoint, overides);
             await reporting.temperature(firstEndpoint, overides);
             await reporting.soil_moisture(firstEndpoint, overides);
-			const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
+            const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
             minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-        exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 30 minutes')
-                .withValueMin(1).withValueMax(240)],
+        exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')
+            .withValueMin(1).withValueMax(240)],
     },
     {
         zigbeeModel: ['EFEKTA_THP_LR'],
