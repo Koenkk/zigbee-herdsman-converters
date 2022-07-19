@@ -448,7 +448,7 @@ module.exports = [
             await reporting.temperature(firstEndpoint, overides);
             await reporting.soil_moisture(firstEndpoint, overides);
             const payload1 = [{attribute: {ID: 0x0201, type: 0x21},
-            minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
+                minimumReportInterval: 0, maximumReportInterval: 21600, reportableChange: 0}];
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
