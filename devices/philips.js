@@ -952,6 +952,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003056001'],
+        model: '929003056001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore bathroom mirror light with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
