@@ -186,7 +186,7 @@ module.exports = [
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
         fromZigbee: [fz.legacy.bitron_thermostat_att_report, fz.battery, fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
+        toZigbee: [tz.thermostat_control_sequence_of_operation,tz.thermostat_occupied_heating_setpoint,tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat', 'cool'])
@@ -201,6 +201,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
