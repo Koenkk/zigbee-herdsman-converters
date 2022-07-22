@@ -365,7 +365,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
-        }
+        },
+    },
     {
         zigbeeModel: ['CH2AX/SWITCH/1'],
         model: '41E2PBSWMZ/356PB2MBTZ',
