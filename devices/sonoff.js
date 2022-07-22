@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -20,6 +21,7 @@ module.exports = [
         model: 'ZBMINI-L',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch (no neutral)',
+        ota: ota.zigbeeOTA,
         extend: extend.switch(),
         toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
@@ -161,5 +163,17 @@ module.exports = [
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
         extend: extend.switch(),
+    },
+    {
+        zigbeeModel: ['S40LITE'],
+        model: 'S40ZBTPB',
+        vendor: 'SONOFF',
+        description: '15A Zigbee smart plug',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
     },
 ];

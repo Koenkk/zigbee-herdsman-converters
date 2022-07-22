@@ -73,8 +73,11 @@ module.exports = [
         description: 'Wireless motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RDS17BZ'],
@@ -85,6 +88,10 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RSP019BZ'],
@@ -96,6 +103,35 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['3RSB015BZ'],
+        model: '3RSB015BZ',
+        vendor: 'Third Reality',
+        description: 'Roller shade',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {battery: {dontDividePercentage: false}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position(), e.battery()],
+    },
+    {
+        zigbeeModel: ['3RSB22BZ'],
+        model: '3RSB22BZ',
+        vendor: 'Third Reality',
+        description: 'Smart button',
+        fromZigbee: [fz.battery, fz.itcmdr_clicks],
+        toZigbee: [],
+        exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
         },
     },
 ];

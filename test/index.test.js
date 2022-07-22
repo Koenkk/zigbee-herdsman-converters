@@ -480,8 +480,8 @@ describe('index.js', () => {
     });
 
     it('Verify options filter', () => {
-        const ZNJLBL01LM = index.definitions.find((d) => d.model == 'ZNJLBL01LM');
-        expect(ZNJLBL01LM.options.length).toBe(1);
+        const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
+        expect(ZNCLDJ12LM.options.length).toBe(1);
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
         expect(ZNCZ04LM.options.length).toBe(2);
     });
@@ -492,14 +492,5 @@ describe('index.js', () => {
             const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
-    });
-
-    it('Test to percentage', () => {
-        expect(utils.toPercentage(3000, 2850, 3200, true)).toBe(79);
-        expect(utils.toPercentage(3200, 2850, 3200, true)).toBe(100);
-        expect(utils.toPercentage(4000, 2850, 3200, true)).toBe(100);
-        expect(utils.toPercentage(2000, 2850, 3200, true)).toBe(0);
-        expect(utils.toPercentage(2850, 2850, 3200, true)).toBe(0);
-        expect(utils.toPercentage(2851, 2850, 3200, true)).toBe(2);
     });
 });

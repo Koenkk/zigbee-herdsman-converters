@@ -45,7 +45,7 @@ module.exports = [
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                 .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
@@ -79,7 +79,8 @@ module.exports = [
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator'),
+                .withDescription('Load estimate on this radiator')
+                .withValueMin(-8000).withValueMax(3600),
             exposes.binary('preheat_status', ea.STATE_GET, true, false)
                 .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
             exposes.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
@@ -87,7 +88,7 @@ module.exports = [
                     'Valve Characteristic Lost'),
             exposes.binary('adaptation_run_settings', ea.ALL, true, false)
                 .withDescription('Automatic adaptation run enabled (the one during the night)'),
-            exposes.enum('adaptation_run_control', ea.ALL, ['initate_adaptation', 'cancel_adaptation'])
+            exposes.enum('adaptation_run_control', ea.ALL, ['none', 'initiate_adaptation', 'cancel_adaptation'])
                 .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
             exposes.numeric('regulation_setpoint_offset', ea.ALL)
                 .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
@@ -129,20 +130,23 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
-
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'danfossPreheatStatus',
-                minimumReportInterval: constants.repInterval.MINUTE,
-                maximumReportInterval: constants.repInterval.MAX,
-                reportableChange: 1,
-            }], options);
-
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'danfossAdaptionRunStatus',
                 minimumReportInterval: constants.repInterval.MINUTE,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], options);
+
+            try {
+                await endpoint.configureReporting('hvacThermostat', [{
+                    attribute: 'danfossPreheatStatus',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                }], options);
+            } catch (e) {
+                /* not supported by all */
+            }
 
             try {
                 await endpoint.read('hvacThermostat', [
@@ -200,6 +204,7 @@ module.exports = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
+            tz.thermostat_running_state,
             tz.thermostat_min_heat_setpoint_limit,
             tz.thermostat_max_heat_setpoint_limit,
             tz.danfoss_output_status,
@@ -223,8 +228,8 @@ module.exports = [
                 const epName = `l${i}`;
                 if (i!=16) {
                     features.push(e.battery().withEndpoint(epName));
-                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
-                        .withLocalTemperature().withSystemMode(['heat']).withEndpoint(epName));
+                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                        .withLocalTemperature().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
                     features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute min temperature allowed on the device'));
@@ -232,10 +237,10 @@ module.exports = [
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute max temperature allowed on the device'));
                     features.push(exposes.numeric('min_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
                     features.push(exposes.numeric('max_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
                     features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                         .withEndpoint(epName));

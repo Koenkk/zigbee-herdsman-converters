@@ -18,7 +18,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('state', ea.ALL)],
     },
     {
-        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC', 'SCM-6-OTA_00.00.03.17TC'],
+        zigbeeModel: ['SCM-3-OTA_00.00.03.16TC', 'SCM-6-OTA_00.00.03.17TC', 'SCM-6-OTA_00.00.03.18TC'],
         model: 'LS12128',
         vendor: 'Lupus',
         description: 'Roller shutter',
@@ -28,7 +28,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['PSMP5_00.00.03.11TC'],
+        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC'],
         model: '12050',
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',

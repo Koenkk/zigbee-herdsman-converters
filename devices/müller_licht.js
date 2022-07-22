@@ -8,9 +8,9 @@ const e = exposes.presets;
 module.exports = [
     {
         zigbeeModel: ['tint-ExtendedColor'],
-        model: '404036',
+        model: '404036/45327/45317',
         vendor: 'Müller Licht',
-        description: 'Tint LED-globeform white+color',
+        description: 'Tint LED white+color',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 556]}),
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
@@ -110,7 +110,7 @@ module.exports = [
     {
         fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],
         zigbeeModel: ['ZBT-Remote-ALL-RGBW', 'TS1001'],
-        model: 'MLI-404011',
+        model: 'MLI-404011/MLI-404049',
         description: 'Tint remote control',
         vendor: 'Müller Licht',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
@@ -155,13 +155,17 @@ module.exports = [
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'color_temperature_move'])],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
-        zigbeeModel: ['tint-ColorTemperature'],
-        model: '404037',
+        zigbeeModel: ['tint-ColorTemperature', 'tint-ColorTemperature2'],
+        model: '404037/404038',
         vendor: 'Müller Licht',
-        description: 'Tint retro filament LED-bulb E27, Edison bulb gold, white+ambiance (1800-6500K), dimmable, 5,5W',
-        extend: extend.light_onoff_brightness_colortemp(),
+        description: 'CCT LED-bulb',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
     {

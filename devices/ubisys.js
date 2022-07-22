@@ -2,9 +2,509 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 const reporting = require('../lib/reporting');
+const herdsman = require('zigbee-herdsman');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const manufacturerOptions = {
+    /*
+     * Ubisys doesn't accept a manufacturerCode on some commands
+     * This bug has been reported, but it has not been fixed:
+     * https://github.com/Koenkk/zigbee-herdsman/issues/52
+     */
+    ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
+    ubisysNull: {manufacturerCode: null},
+    tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
+};
+
+const ubisys = {
+    fz: {
+        dimmer_setup: {
+            cluster: 'manuSpecificUbisysDimmerSetup',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('capabilities')) {
+                    const capabilities = msg.data.capabilities;
+                    const forwardPhaseControl = capabilities & 1;
+                    const reversePhaseControl = (capabilities & 2) >>> 1;
+                    const reactanceDiscriminator = (capabilities & 0x20) >>> 5;
+                    const configurableCurve = (capabilities & 0x40) >>> 6;
+                    const overloadDetection = (capabilities & 0x80) >>> 7;
+                    return {
+                        capabilities_forward_phase_control: forwardPhaseControl ? true : false,
+                        capabilities_reverse_phase_control: reversePhaseControl ? true : false,
+                        capabilities_reactance_discriminator: reactanceDiscriminator ? true : false,
+                        capabilities_configurable_curve: configurableCurve ? true : false,
+                        capabilities_overload_detection: overloadDetection ? true : false,
+                    };
+                }
+                if (msg.data.hasOwnProperty('status')) {
+                    const status = msg.data.status;
+                    const forwardPhaseControl = status & 1;
+                    const reversePhaseControl = (status & 2) >>> 1;
+                    const overload = (status & 8) >>> 3;
+                    const capacitiveLoad = (status & 0x40) >>> 6;
+                    const inductiveLoad = (status & 0x80) >>> 7;
+                    return {
+                        status_forward_phase_control: forwardPhaseControl ? true : false,
+                        status_reverse_phase_control: reversePhaseControl ? true : false,
+                        status_overload: overload ? true : false,
+                        status_capacitive_load: capacitiveLoad ? true : false,
+                        status_inductive_load: inductiveLoad ? true : false,
+                    };
+                }
+                if (msg.data.hasOwnProperty('mode')) {
+                    const mode = msg.data.mode;
+                    const phaseControl = mode & 3;
+                    const phaseControlValues = {0: 'automatic', 1: 'forward', 2: 'reverse'};
+                    return {
+                        mode_phase_control: phaseControlValues[phaseControl],
+                    };
+                }
+            },
+        },
+        dimmer_setup_genLevelCtrl: {
+            cluster: 'genLevelCtrl',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('ubisysMinimumOnLevel')) {
+                    return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
+                }
+            },
+        },
+        configure_device_setup: {
+            cluster: 'manuSpecificUbisysDeviceSetup',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (msg.data.hasOwnProperty('input_configurations')) {
+                    result['input_configurations'] = msg.data['input_configurations'];
+                }
+                if (msg.data.hasOwnProperty('inputActions')) {
+                    result['input_actions'] = msg.data['inputActions'].map(function(el) {
+                        return Object.values(el);
+                    });
+                }
+                return {configure_device_setup: result};
+            },
+        },
+    },
+    tz: {
+        configure_j1: {
+            key: ['configure_j1'],
+            convertSet: async (entity, key, value, meta) => {
+                const log = (message) => {
+                    meta.logger.warn(`ubisys: ${message}`);
+                };
+                const sleepSeconds = async (s) => {
+                    return new Promise((resolve) => setTimeout(resolve, s * 1000));
+                };
+                const waitUntilStopped = async () => {
+                    let operationalStatus = 0;
+                    do {
+                        await sleepSeconds(2);
+                        operationalStatus = (await entity.read('closuresWindowCovering',
+                            ['operationalStatus'])).operationalStatus;
+                    } while (operationalStatus != 0);
+                    await sleepSeconds(2);
+                };
+                const writeAttrFromJson = async (attr, jsonAttr = attr, converterFunc, delaySecondsAfter) => {
+                    if (jsonAttr.startsWith('ubisys')) {
+                        jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
+                    }
+                    if (value.hasOwnProperty(jsonAttr)) {
+                        let attrValue = value[jsonAttr];
+                        if (converterFunc) {
+                            attrValue = converterFunc(attrValue);
+                        }
+                        const attributes = {};
+                        attributes[attr] = attrValue;
+                        await entity.write('closuresWindowCovering', attributes, manufacturerOptions.ubisys);
+                        if (delaySecondsAfter) {
+                            await sleepSeconds(delaySecondsAfter);
+                        }
+                    }
+                };
+                const stepsPerSecond = value.steps_per_second || 50;
+                const hasCalibrate = value.hasOwnProperty('calibrate');
+                // cancel any running calibration
+                let mode = (await entity.read('closuresWindowCovering', ['windowCoveringMode'])).windowCoveringMode;
+                const modeCalibrationBitMask = 0x02;
+                if (mode & modeCalibrationBitMask) {
+                    await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                    await sleepSeconds(2);
+                }
+                // delay a bit if reconfiguring basic configuration attributes
+                await writeAttrFromJson('windowCoveringType', undefined, undefined, 2);
+                await writeAttrFromJson('configStatus', undefined, undefined, 2);
+                if (await writeAttrFromJson('windowCoveringMode', undefined, undefined, 2)) {
+                    mode = value['windowCoveringMode'];
+                }
+                if (hasCalibrate) {
+                    log('Cover calibration starting...');
+                    // first of all, move to top position to not confuse calibration later
+                    log('  Moving cover to top position to get a good starting point...');
+                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await waitUntilStopped();
+                    log('  Settings some attributes...');
+                    // reset attributes
+                    await entity.write('closuresWindowCovering', {
+                        installedOpenLimitLiftCm: 0,
+                        installedClosedLimitLiftCm: 240,
+                        installedOpenLimitTiltDdegree: 0,
+                        installedClosedLimitTiltDdegree: 900,
+                        ubisysLiftToTiltTransitionSteps: 0xffff,
+                        ubisysTotalSteps: 0xffff,
+                        ubisysLiftToTiltTransitionSteps2: 0xffff,
+                        ubisysTotalSteps2: 0xffff,
+                    }, manufacturerOptions.ubisys);
+                    // enable calibration mode
+                    await sleepSeconds(2);
+                    await entity.write('closuresWindowCovering', {windowCoveringMode: mode | modeCalibrationBitMask});
+                    await sleepSeconds(2);
+                    // move down a bit and back up to detect upper limit
+                    log('  Moving cover down a bit...');
+                    await entity.command('closuresWindowCovering', 'downClose');
+                    await sleepSeconds(5);
+                    await entity.command('closuresWindowCovering', 'stop');
+                    await sleepSeconds(2);
+                    log('  Moving up again to detect upper limit...');
+                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await waitUntilStopped();
+                    log('  Moving down to count steps from open to closed...');
+                    await entity.command('closuresWindowCovering', 'downClose');
+                    await waitUntilStopped();
+                    log('  Moving up to count steps from closed to open...');
+                    await entity.command('closuresWindowCovering', 'upOpen');
+                    await waitUntilStopped();
+                }
+                // now write any attribute values present in JSON
+                await writeAttrFromJson('installedOpenLimitLiftCm');
+                await writeAttrFromJson('installedClosedLimitLiftCm');
+                await writeAttrFromJson('installedOpenLimitTiltDdegree');
+                await writeAttrFromJson('installedClosedLimitTiltDdegree');
+                await writeAttrFromJson('ubisysTurnaroundGuardTime');
+                await writeAttrFromJson('ubisysLiftToTiltTransitionSteps');
+                await writeAttrFromJson('ubisysTotalSteps');
+                await writeAttrFromJson('ubisysLiftToTiltTransitionSteps2');
+                await writeAttrFromJson('ubisysTotalSteps2');
+                await writeAttrFromJson('ubisysAdditionalSteps');
+                await writeAttrFromJson('ubisysInactivePowerThreshold');
+                await writeAttrFromJson('ubisysStartupSteps');
+                // some convenience functions to not have to calculate
+                await writeAttrFromJson('ubisysTotalSteps', 'open_to_closed_s', (s) => s * stepsPerSecond);
+                await writeAttrFromJson('ubisysTotalSteps2', 'closed_to_open_s', (s) => s * stepsPerSecond);
+                await writeAttrFromJson('ubisysLiftToTiltTransitionSteps', 'lift_to_tilt_transition_ms',
+                    (s) => s * stepsPerSecond / 1000);
+                await writeAttrFromJson('ubisysLiftToTiltTransitionSteps2', 'lift_to_tilt_transition_ms',
+                    (s) => s * stepsPerSecond / 1000);
+                if (hasCalibrate) {
+                    log('  Finalizing calibration...');
+                    // disable calibration mode again
+                    await sleepSeconds(2);
+                    await entity.write('closuresWindowCovering', {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                    await sleepSeconds(2);
+                    // re-read and dump all relevant attributes
+                    log('  Done - will now read back the results.');
+                    ubisys.tz.configure_j1.convertGet(entity, key, meta);
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                const log = (json) => {
+                    meta.logger.warn(`ubisys: Cover configuration read: ${JSON.stringify(json)}`);
+                };
+                log(await entity.read('closuresWindowCovering', [
+                    'windowCoveringType',
+                    'physicalClosedLimitLiftCm',
+                    'physicalClosedLimitTiltDdegree',
+                    'installedOpenLimitLiftCm',
+                    'installedClosedLimitLiftCm',
+                    'installedOpenLimitTiltDdegree',
+                    'installedClosedLimitTiltDdegree',
+                ]));
+                log(await entity.read('closuresWindowCovering', [
+                    'configStatus',
+                    'windowCoveringMode',
+                    'currentPositionLiftPercentage',
+                    'currentPositionLiftCm',
+                    'currentPositionTiltPercentage',
+                    'currentPositionTiltDdegree',
+                    'operationalStatus',
+                ]));
+                log(await entity.read('closuresWindowCovering', [
+                    'ubisysTurnaroundGuardTime',
+                    'ubisysLiftToTiltTransitionSteps',
+                    'ubisysTotalSteps',
+                    'ubisysLiftToTiltTransitionSteps2',
+                    'ubisysTotalSteps2',
+                    'ubisysAdditionalSteps',
+                    'ubisysInactivePowerThreshold',
+                    'ubisysStartupSteps',
+                ], manufacturerOptions.ubisys));
+            },
+        },
+        dimmer_setup: {
+            key: ['capabilities_forward_phase_control',
+                'capabilities_reverse_phase_control',
+                'capabilities_reactance_discriminator',
+                'capabilities_configurable_curve',
+                'capabilities_overload_detection',
+                'status_forward_phase_control',
+                'status_reverse_phase_control',
+                'status_overload',
+                'status_capacitive_load',
+                'status_inductive_load',
+                'mode_phase_control'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'mode_phase_control') {
+                    const phaseControl = value.toLowerCase();
+                    const phaseControlValues = {'automatic': 0, 'forward': 1, 'reverse': 2};
+                    utils.validateValue(phaseControl, Object.keys(phaseControlValues));
+                    await entity.write('manuSpecificUbisysDimmerSetup',
+                        {'mode': phaseControlValues[phaseControl]}, manufacturerOptions.ubisysNull);
+                }
+                ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificUbisysDimmerSetup', ['capabilities'], manufacturerOptions.ubisysNull);
+                await entity.read('manuSpecificUbisysDimmerSetup', ['status'], manufacturerOptions.ubisysNull);
+                await entity.read('manuSpecificUbisysDimmerSetup', ['mode'], manufacturerOptions.ubisysNull);
+            },
+        },
+        dimmer_setup_genLevelCtrl: {
+            key: ['minimum_on_level'],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === 'minimum_on_level') {
+                    await entity.write('genLevelCtrl', {'ubisysMinimumOnLevel': value}, manufacturerOptions.ubisys);
+                }
+                ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genLevelCtrl', ['ubisysMinimumOnLevel'], manufacturerOptions.ubisys);
+            },
+        },
+        configure_device_setup: {
+            key: ['configure_device_setup'],
+            convertSet: async (entity, key, value, meta) => {
+                const devMgmtEp = meta.device.getEndpoint(232);
+
+                if (value.hasOwnProperty('input_configurations')) {
+                    // example: [0, 0, 0, 0]
+                    await devMgmtEp.write(
+                        'manuSpecificUbisysDeviceSetup',
+                        {'inputConfigurations': {elementType: 'data8', elements: value.input_configurations}},
+                        manufacturerOptions.ubisysNull,
+                    );
+                }
+
+                if (value.hasOwnProperty('input_actions')) {
+                    // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
+                    await devMgmtEp.write(
+                        'manuSpecificUbisysDeviceSetup',
+                        {'inputActions': {elementType: 'octetStr', elements: value.input_actions}},
+                        manufacturerOptions.ubisysNull,
+                    );
+                }
+
+                if (value.hasOwnProperty('input_action_templates')) {
+                    const templateTypes = {
+                        // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
+                        // (can be obtained directly from ubisys upon request)
+                        'toggle': {
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
+                            ],
+                        },
+                        'toggle_switch': {
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x06, 0x00, 0x02],
+                                [input, 0x03, endpoint, 0x06, 0x00, 0x02],
+                            ],
+                        },
+                        'on_off_switch': {
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
+                                [input, 0x03, endpoint, 0x06, 0x00, 0x00],
+                            ],
+                        },
+                        'on': {
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x06, 0x00, 0x01],
+                            ],
+                        },
+                        'off': {
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x06, 0x00, 0x00],
+                            ],
+                        },
+                        'dimmer_single': {
+                            getInputActions: (input, endpoint, template) => {
+                                const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
+                                const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
+                                const moveRate = template.rate || 50;
+                                return [
+                                    [input, 0x07, endpoint, 0x06, 0x00, 0x02],
+                                    [input, 0x86, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
+                                    [input, 0xC6, endpoint, 0x08, 0x00, moveDownCmd, 0x01, moveRate],
+                                    [input, 0x0B, endpoint, 0x08, 0x00, 0x03],
+                                ];
+                            },
+                        },
+                        'dimmer_double': {
+                            doubleInputs: true,
+                            getInputActions: (inputs, endpoint, template) => {
+                                const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
+                                const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
+                                const moveRate = template.rate || 50;
+                                return [
+                                    [inputs[0], 0x07, endpoint, 0x06, 0x00, 0x01],
+                                    [inputs[0], 0x06, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
+                                    [inputs[0], 0x0B, endpoint, 0x08, 0x00, 0x03],
+                                    [inputs[1], 0x07, endpoint, 0x06, 0x00, 0x00],
+                                    [inputs[1], 0x06, endpoint, 0x08, 0x00, moveDownCmd, 0x01, moveRate],
+                                    [inputs[1], 0x0B, endpoint, 0x08, 0x00, 0x03],
+                                ];
+                            },
+                        },
+                        'cover': {
+                            cover: true,
+                            doubleInputs: true,
+                            getInputActions: (inputs, endpoint) => [
+                                [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
+                                [inputs[0], 0x07, endpoint, 0x02, 0x01, 0x02],
+                                [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
+                                [inputs[1], 0x07, endpoint, 0x02, 0x01, 0x02],
+                            ],
+                        },
+                        'cover_switch': {
+                            cover: true,
+                            doubleInputs: true,
+                            getInputActions: (inputs, endpoint) => [
+                                [inputs[0], 0x0D, endpoint, 0x02, 0x01, 0x00],
+                                [inputs[0], 0x03, endpoint, 0x02, 0x01, 0x02],
+                                [inputs[1], 0x0D, endpoint, 0x02, 0x01, 0x01],
+                                [inputs[1], 0x03, endpoint, 0x02, 0x01, 0x02],
+                            ],
+                        },
+                        'cover_up': {
+                            cover: true,
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x02, 0x01, 0x00],
+                            ],
+                        },
+                        'cover_down': {
+                            cover: true,
+                            getInputActions: (input, endpoint) => [
+                                [input, 0x0D, endpoint, 0x02, 0x01, 0x01],
+                            ],
+                        },
+                        'scene': {
+                            scene: true,
+                            getInputActions: (input, endpoint, groupId, sceneId) => [
+                                [input, 0x07, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                            ],
+                            getInputActions2: (input, endpoint, groupId, sceneId) => [
+                                [input, 0x06, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                            ],
+                        },
+                        'scene_switch': {
+                            scene: true,
+                            getInputActions: (input, endpoint, groupId, sceneId) => [
+                                [input, 0x0D, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                            ],
+                            getInputActions2: (input, endpoint, groupId, sceneId) => [
+                                [input, 0x03, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
+                            ],
+                        },
+                    };
+
+                    // first input
+                    let input = 0;
+                    // first client endpoint - depends on actual device
+                    let endpoint = {'S1': 2, 'S2': 3, 'D1': 2, 'J1': 2, 'C4': 1}[meta.mapped.model];
+                    // default group id
+                    let groupId = 0;
+
+                    const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates :
+                        [value.input_action_templates];
+                    let resultingInputActions = [];
+                    for (const template of templates) {
+                        const templateType = templateTypes[template.type];
+                        if (!templateType) {
+                            throw new Error(`input_action_templates: Template type '${template.type}' is not valid ` +
+                                `(valid types: ${Object.keys(templateTypes)})`);
+                        }
+
+                        if (template.hasOwnProperty('input')) {
+                            input = template.input;
+                        }
+                        if (template.hasOwnProperty('endpoint')) {
+                            endpoint = template.endpoint;
+                        }
+                        // C4 cover endpoints only start at 5
+                        if (templateType.cover && meta.mapped.model === 'C4' && endpoint < 5) {
+                            endpoint += 4;
+                        }
+
+                        let inputActions;
+                        if (!templateType.doubleInputs) {
+                            if (!templateType.scene) {
+                                // single input, no scene(s)
+                                inputActions = templateType.getInputActions(input, endpoint, template);
+                            } else {
+                                // scene(s) (always single input)
+                                if (!template.hasOwnProperty('scene_id')) {
+                                    throw new Error(`input_action_templates: Need an attribute 'scene_id' for '${template.type}'`);
+                                }
+                                if (template.hasOwnProperty('group_id')) {
+                                    groupId = template.group_id;
+                                }
+                                inputActions = templateType.getInputActions(input, endpoint, groupId, template.scene_id);
+
+                                if (template.hasOwnProperty('scene_id_2')) {
+                                    if (template.hasOwnProperty('group_id_2')) {
+                                        groupId = template.group_id_2;
+                                    }
+                                    inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId,
+                                        template.scene_id_2));
+                                }
+                            }
+                        } else {
+                            // double inputs
+                            input = template.hasOwnProperty('inputs') ? template.inputs : [input, input + 1];
+                            inputActions = templateType.getInputActions(input, endpoint, template);
+                        }
+                        resultingInputActions = resultingInputActions.concat(inputActions);
+
+                        meta.logger.warn(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`);
+                        // input might by now be an array (in case of double inputs)
+                        input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
+                        endpoint += 1;
+                    }
+
+                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
+                        JSON.stringify(resultingInputActions));
+                    await devMgmtEp.write(
+                        'manuSpecificUbisysDeviceSetup',
+                        {'inputActions': {elementType: 'octetStr', elements: resultingInputActions}},
+                        manufacturerOptions.ubisysNull,
+                    );
+                }
+
+                // re-read effective settings and dump them to the log
+                ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
+            },
+
+            convertGet: async (entity, key, meta) => {
+                const devMgmtEp = meta.device.getEndpoint(232);
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations', 'inputActions'],
+                    manufacturerOptions.ubisysNull);
+            },
+        },
+    },
+};
 
 module.exports = [
     {
@@ -16,10 +516,11 @@ module.exports = [
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            ])],
+            ]),
+            e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
@@ -57,10 +558,11 @@ module.exports = [
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
-            ])],
+            ]),
+            e.power_on_behavior()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
@@ -99,10 +601,11 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
-                'brightness_stop_s2'])],
+                'brightness_stop_s2']),
+            e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
-            fz.command_stop],
-        toZigbee: [tz.on_off, tz.metering_power, tz.ubisys_device_setup],
+            fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
@@ -146,10 +649,11 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, fz.ubisys_dimmer_setup,
-            fz.ubisys_dimmer_setup_genLevelCtrl],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, tz.ubisys_dimmer_setup,
-            tz.ubisys_dimmer_setup_genLevelCtrl, tz.ubisys_device_setup, tz.ignore_transition],
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,
+            ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
+            ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
+            tz.light_brightness_step],
         exposes: [e.light_brightness().withLevelConfig(), e.power(),
             exposes.numeric('ballast_physical_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output the ballast can achieve.'),
@@ -210,9 +714,9 @@ module.exports = [
         model: 'J1',
         vendor: 'Ubisys',
         description: 'Shutter control J1',
-        fromZigbee: [fz.cover_position_tilt, fz.metering],
+        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
-            tz.ubisys_configure_j1, tz.ubisys_device_setup],
+            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
         exposes: [e.cover_position_tilt(),
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -247,8 +751,9 @@ module.exports = [
         model: 'C4',
         vendor: 'Ubisys',
         description: 'Control unit C4',
-        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover],
-        toZigbee: [tz.ubisys_device_setup],
+        fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover,
+            ubisys.fz.configure_device_setup],
+        toZigbee: [ubisys.tz.configure_device_setup],
         exposes: [e.action([
             '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
             '2_scene_*', '2_on', '2_off', '2_toggle', '2_level_move_down', '2_level_move_up',

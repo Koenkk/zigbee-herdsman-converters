@@ -118,6 +118,15 @@ module.exports = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['RH3070'],
+        model: 'HS1CG',
+        vendor: 'Heiman',
+        description: 'Smart combustible gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['GAS_V15'],
         model: 'HS1CG_M',
         vendor: 'HEIMAN',
@@ -247,7 +256,8 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'}],
+        fingerprint: [{modelID: 'TS0216', manufacturerName: '_TYZB01_8scntis1'},
+            {modelID: 'TS0216', manufacturerName: '_TYZB01_4obovpbi'}],
         zigbeeModel: ['WarningDevice', 'WarningDevice-EF-3.0', 'SRHMP-I1'],
         model: 'HS2WD-E',
         vendor: 'HEIMAN',
@@ -287,7 +297,7 @@ module.exports = [
         description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -454,6 +464,15 @@ module.exports = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ['SGPHM-I1'],
+        model: 'SGPHM-I1',
+        vendor: 'HEIMAN',
+        description: 'Propane gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         fingerprint: [{modelID: 'Vibration-N', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-N',
         vendor: 'HEIMAN',
@@ -469,7 +488,7 @@ module.exports = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}],
+        fingerprint: [{modelID: 'Vibration-EF_3.0', manufacturerName: 'HEIMAN'}, {modelID: 'Vibration-EF-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS1VS-EF',
         vendor: 'HEIMAN',
         description: 'Vibration sensor',

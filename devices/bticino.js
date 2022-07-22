@@ -16,7 +16,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
             e.switch(), e.action(['identify', 'on', 'off']),
-            exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
+            exposes.binary('led_when_off', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is off'),
             exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -26,7 +26,7 @@ module.exports = [
     },
     {
         zigbeeModel: [' Dimmer switch with neutral\u0000\u0000\u0000\u0000'],
-        model: 'L441C/N4411C/NT4411C',
+        model: 'L4411C/N4411C/NT4411C',
         vendor: 'BTicino',
         description: 'Dimmer switch with neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
@@ -39,7 +39,7 @@ module.exports = [
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
             exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('permanent_led', ea.ALL, 'ON', 'OFF').withDescription('Enable or disable the permanent blue LED'),
+            exposes.binary('led_when_off', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is off'),
             exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);

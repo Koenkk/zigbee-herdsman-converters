@@ -133,6 +133,14 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['GL-G-003P'],
+        model: 'GL-G-003P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: '7W garden light pro',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
                 {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
@@ -267,7 +275,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller RGB+CCT (pro)',
-        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-001P'}],
+        whiteLabel: [{vendor: 'Gledopto', model: 'GL-C-001P'}, {vendor: 'Gledopto', model: 'GL-C-002P'}],
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], noConfigure: true}),
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -316,6 +324,13 @@ module.exports = [
         meta: {disableDefaultResponse: true},
     },
     {
+        zigbeeModel: ['GL-B-002P'],
+        model: 'GL-B-002P',
+        vendor: 'Gledopto',
+        description: 'Zigbee smart filament LED bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-MC-001P'],
         model: 'GL-MC-001P',
         vendor: 'Gledopto',
@@ -341,7 +356,7 @@ module.exports = [
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb 30deg RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disableColorTempStartup: false, colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-S-005Z'],
@@ -530,6 +545,7 @@ module.exports = [
         zigbeeModel: ['GL-D-006P'],
         model: 'GL-D-006P',
         vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
         description: 'Zigbee 6W anti-glare downlight RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
