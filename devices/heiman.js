@@ -719,8 +719,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.temperature(endpoint, { min:1, max: constants.repInterval.MINUTES_5, change: 10 }); // 0.1 degree change
-            await reporting.humidity(endpoint, { min:1, max: constants.repInterval.MINUTES_5, change: 10 }); // 0.1 % change
+            await reporting.temperature(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 degree change
+            await reporting.humidity(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 % change
             await heiman.configureReporting.msCO2(endpoint);
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
