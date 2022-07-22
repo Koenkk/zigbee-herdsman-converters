@@ -5548,6 +5548,21 @@ const converters = {
             }
         },
     },
+    lytko_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const ep_name = getKey(model.endpoint(msg.device), msg.endpoint.ID);
+            const result = {};
+     
+            // Sensor type
+            if(msg.data.hasOwnProperty('1024')) {
+                result[`sensor_type_${ep_name}`] = sensorTypeValues[msg.data['1024']];
+            }
+     
+            return result;
+        },
+    },
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],

@@ -22,6 +22,7 @@ const manufacturerOptions = {
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
     legrand: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true},
+    lytko: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
     viessmann: {manufacturerCode: herdsman.Zcl.ManufacturerCode.VIESSMAN_ELEKTRO},
 };
 
@@ -4598,6 +4599,22 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             await entity.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
         },
+    },
+    lytko_sensorType: {
+        key: ['sensor_type'],     
+        convertSet: async (entity, key, value, meta) => {            
+            const sensorTypes = [
+                '3.3kOhm', '5kOhm', '6.8kOhm', '10kOhm', '12kOhm', '14.8kOhm', '15kOhm', '20kOhm', '33kOhm', 'Binded'
+            ];
+
+            let newValue = sensorTypes.indexOf(value);
+            let payload = {1024: {value: newValue, type: 0x30}};
+            await entity.write('hvacThermostat', payload, manufacturerOptions.lytko);
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0x1024], manufacturerOptions.lytko);
+       },
     },
     etop_thermostat_system_mode: {
         key: ['system_mode'],
