@@ -97,6 +97,7 @@ module.exports = [
         model: '9125',
         vendor: 'LED Trading',
         description: 'FOH Smart Switch',
+        whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZGP2801K4-FOH-E'}],        
         fromZigbee: [fzLocal.led_trading_9125],
         toZigbee: [],
         exposes: [e.action(['press_1', 'release_1', 'press_2', 'release_2', 'press_3', 'release_3', 'press_4', 'release_4',
