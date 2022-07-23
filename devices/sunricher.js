@@ -2,9 +2,11 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const constants = require('../lib/constants');
 const extend = require('../lib/extend');
 const utils = require('../lib/utils');
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     sunricher_SRZGP2801K45C: {
@@ -343,5 +345,191 @@ module.exports = [
         toZigbee: [],
         exposes: [e.action(['press_on', 'press_off', 'press_high', 'press_low', 'hold_high', 'hold_low', 'high_low_release',
             'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
+    },
+    {
+        zigbeeModel: ['ZG9092'],
+        model: 'SR-ZG9092A',
+        vendor: 'Sunricher',
+        description: 'Touch termostat',
+        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,
+            tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_outdoor_temperature,
+            tz.thermostat_system_mode, tz.thermostat_control_sequence_of_operation, tz.thermostat_running_state,
+            tz.namron_thermostat],
+        exposes: [
+            e.local_temperature(),
+            exposes.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
+                .withDescription('Current temperature measured from the floor sensor'),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
+                .withSetpoint('unoccupied_heating_setpoint', 0, 40, 0.1)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-3, 3, 0.1)
+                .withSystemMode(['off', 'auto', 'heat'])
+                .withRunningState(['idle', 'heat']),
+            exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
+                .withDescription('Enable/disable away mode'),
+            e.power(), e.current(), e.voltage(), e.energy(),
+            exposes.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
+                .withDescription('Key beep volume and vibration level.  Default: Low.'),
+            exposes.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
+                .withDescription('Type of the external floor sensor.  Default: NTC 10K/25.'),
+            exposes.enum('sensor', ea.ALL, ['air', 'floor', 'both'])
+                .withDescription('The sensor used for heat control.  Default: Room Sensor.'),
+            exposes.enum('powerup_status', ea.ALL, ['default', 'last_status'])
+                .withDescription('The mode after a power reset.  Default: Previous Mode.'),
+            exposes.numeric('floor_sensor_calibration', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(-3).withValueMax(3).withValueStep(0.1)
+                .withDescription('The tempearatue calibration for the exernal floor sensor, between -3 and 3 in 0.1°C.  Default: 0.'),
+            exposes.numeric('dry_time', ea.ALL)
+                .withUnit('min')
+                .withValueMin(5).withValueMax(100)
+                .withDescription('The duration of Dry Mode, between 5 and 100 minutes.  Default: 5.'),
+            exposes.enum('mode_after_dry', ea.ALL, ['off', 'manual', 'auto', 'away'])
+                .withDescription('The mode after Dry Mode.  Default: Auto.'),
+            exposes.enum('temperature_display', ea.ALL, ['room', 'floor'])
+                .withDescription('The temperature on the display.  Default: Room Temperature.'),
+            exposes.numeric('window_open_check', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(0).withValueMax(8).withValueStep(0.5)
+                .withDescription('The threshold to detect window open, between 0.0 and 8.0 in 0.5 °C.  Default: 0 (disabled).'),
+            exposes.numeric('hysterersis', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
+                .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
+            exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(20).withValueMax(60)
+                .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
+                'msOccupancySensing', 'genTime', 'hvacUserInterfaceCfg',
+            ];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            // standard ZCL attributes
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'ocupancy',
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null,
+            }]);
+
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);
+
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.currentSummDelivered(endpoint);
+
+            // Custom attributes
+            const options = {manufacturerCode: 0x1224}; // Sunricher Manufacturer Code
+
+            // OperateDisplayLcdBrightnesss - removed as it has no effect
+            // ButtonVibrationLevel
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1001, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // FloorSensorType
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1002, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // ControlType
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1003, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // PowerUpStatus
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1004, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // FloorSensorCalibration
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1005, type: 0x28},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // DryTime
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1006, type: 0x20},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // ModeAfterDry
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1007, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // TemperatureDisplay
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1008, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // WindowOpenCheck
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1009, type: 0x20},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+
+            // Hysterersis
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x100A, type: 0x20},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+
+            // AlarmAirTempOverValue
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x2001, type: 0x20},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // Away Mode Set
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x2002, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+
+            // Device does not asks for the time with binding, we need to write time during configure
+
+            // Trigger initial read
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
+            await endpoint.read('hvacThermostat', [0x1001, 0x1002, 0x1003], options);
+            await endpoint.read('hvacThermostat', [0x1004, 0x1005, 0x1006, 0x1007], options);
+            await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A], options);
+            await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
+        },
     },
 ];
