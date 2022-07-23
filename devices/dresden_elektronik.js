@@ -23,4 +23,12 @@ module.exports = [
         description: 'ZigBee Light Link wireless electronic ballast color temperature',
         extend: extend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['Kobold'],
+        model: 'BN-600110',
+        vendor: 'Dresden Elektronik',
+        description: 'Zigbee 3.0 Dimm Actuator',
+        extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
 ];
