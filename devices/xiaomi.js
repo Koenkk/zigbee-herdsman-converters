@@ -1313,7 +1313,7 @@ module.exports = [
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
-            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
+            e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
