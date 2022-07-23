@@ -30,4 +30,11 @@ module.exports = [
         description: 'Smart Zigbee pro 12W A60 RGBCW bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['ZB-CCT_Filament'],
+        model: 'ZB-CCT_Filament',
+        vendor: 'Ajax Online',
+        description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
+        extend: extend.light_onoff_brightness_colortemp_colorextend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
