@@ -908,7 +908,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'}],
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'}],
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -918,7 +919,6 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'},
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'}],
         model: 'TS0215A_remote',
         vendor: 'TuYa',
