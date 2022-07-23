@@ -95,7 +95,7 @@ module.exports = [
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000017.....$/, manufId: null}],
         model: '9125',
         vendor: 'LED Trading',
-        description: 'FOH Smart Switch',
+        description: 'FOH smart switch',
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZGP2801K4-FOH-E'}],
         fromZigbee: [fzLocal.led_trading_9125],
         toZigbee: [],
