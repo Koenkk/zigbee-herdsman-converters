@@ -908,8 +908,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'}],
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'}],
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
@@ -919,6 +918,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'},
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'}],
         model: 'TS0215A_remote',
         vendor: 'TuYa',
@@ -1026,11 +1026,25 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
         ],
         model: 'WSD500A',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
+        ],
+        model: 'IH-K009',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],

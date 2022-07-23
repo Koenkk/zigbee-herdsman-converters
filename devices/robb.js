@@ -195,7 +195,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG2835'}],
     },
     {
-        zigbeeModel: ['ROB_200-017-0'],
+        zigbeeModel: ['ROB_200-017-0', 'HK-PLUG-A'],
         model: 'ROB_200-017-0',
         vendor: 'ROBB',
         description: 'Zigbee smart plug',
