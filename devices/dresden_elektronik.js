@@ -27,7 +27,7 @@ module.exports = [
         zigbeeModel: ['Kobold'],
         model: 'BN-600110',
         vendor: 'Dresden Elektronik',
-        description: 'Zigbee 3.0 Dimm Actuator',
+        description: 'Zigbee 3.0 dimm actuator',
         extend: extend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
