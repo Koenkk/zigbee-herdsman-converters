@@ -11,7 +11,7 @@ module.exports = [
         zigbeeModel: ['ZB-CL01'],
         model: 'ZB-CL01',
         vendor: 'KURVIA',
-        description: 'GU10 GRBWC Built from Aliexpress',
+        description: 'GU10 GRBWC built from AliExpress',
         exposes: extendData.exposes.concat(e.power_on_behavior()),
         toZigbee: [tz.on_off].concat(extendData.toZigbee),
         fromZigbee: extendData.fromZigbee,
