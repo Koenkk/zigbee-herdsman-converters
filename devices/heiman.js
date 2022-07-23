@@ -699,4 +699,21 @@ module.exports = [
         },
         exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['HS3AQ-EFA-3.0'],
+        model: 'HS3AQ',
+        vendor: 'HEIMAN',
+        description: 'Smart air quality monitor',
+        fromZigbee: [fz.co2, fz.humidity, fz.battery, fz.temperature],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msRelativeHumidity', 'genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.temperature(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 degree change
+            await reporting.humidity(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 % change
+            await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
+        },
+        exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
+    },
 ];
