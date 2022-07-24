@@ -7338,7 +7338,7 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'SLUXZB');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
-            const brightnesStateLookup = {'0': 'LOW', '1': 'MEDIUM', '2': 'HIGH'};
+            const brightnesStateLookup = {'0': 'low', '1': 'middle', '2': 'high'};
             switch (dp) {
             case 2:
                 return {illuminance_lux: value};
