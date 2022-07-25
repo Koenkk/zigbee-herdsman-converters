@@ -136,7 +136,11 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
-            await reporting.currentSummReceived(endpoint);
+            try {
+                await reporting.currentSummReceived(endpoint);
+            } catch (error) {
+                /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/13258 */
+            }
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
         },
     },
