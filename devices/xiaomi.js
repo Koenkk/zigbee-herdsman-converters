@@ -41,6 +41,21 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.flood.acn001'],
+        model: 'SJCGQ13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.aqara_opple, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false)],
+        meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.magnet.acn001'],
         model: 'MCCGQ14LM',
         vendor: 'Xiaomi',
