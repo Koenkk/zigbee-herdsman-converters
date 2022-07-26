@@ -172,7 +172,7 @@ const tzLocal = {
                     value = Math.round(value * 10);
 
                     if (value < 0) {
-                        value = 4096 + value;
+                        value = 0xFFFFFFFF + value + 1;
                     }
 
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempCorrection, value);
@@ -444,13 +444,7 @@ const fzLocal = {
                 return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hTempCorrection: {
-                let temperature = value;
-
-                if (temperature > 4000) {
-                    temperature = temperature - 4096;
-                }
-
-                return {local_temperature_calibration: parseFloat((temperature / 10).toFixed(1))};
+                return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hMode: {
                 const lookup = {0: 'manual', 1: 'program'};
