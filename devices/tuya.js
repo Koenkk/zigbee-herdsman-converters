@@ -441,7 +441,7 @@ const fzLocal = {
             }
             case tuya.dataPoints.x5hSetTempCeiling: {
                 // It overwrites heating setpoint
-                return {upper_temp: value / 10};
+                return {upper_temp: value};
             }
             case tuya.dataPoints.x5hCurrentTemp: {
                 const temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
