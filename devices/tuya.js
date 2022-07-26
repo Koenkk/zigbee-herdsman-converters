@@ -2432,7 +2432,7 @@ module.exports = [
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
             exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
-                .withValueMin(35).withValueStep(0.5).withPreset('default', 60, 'Default value'),
+                .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
         ],
         onEvent: tuya.onEventSetTime,
     },
