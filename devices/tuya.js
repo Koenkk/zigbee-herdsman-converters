@@ -131,7 +131,7 @@ const tzLocal = {
     },
     x5h_thermostat: {
         key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
-            'local_temperature_calibration', 'protection_temp_limit', 'temp_diff', 'upper_temp', 'preset', 'child_lock'],
+            'local_temperature_calibration', 'protection_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
@@ -152,12 +152,12 @@ const tzLocal = {
                     throw new Error('Supported values are in range [35, 95]');
                 }
                 break;
-            case 'temp_diff':
-                if (value >= 1 && value <= 9.5) {
+            case 'deadzone_temperature':
+                if (value >= 0.5 && value <= 9.5) {
                     value = Math.round(value * 10);
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempDiff, value);
                 } else {
-                    throw new Error('Supported values are in range [1, 9.5]');
+                    throw new Error('Supported values are in range [0.5, 9.5]');
                 }
                 break;
             case 'protection_temp_limit':
@@ -407,7 +407,7 @@ const fzLocal = {
                 return {factory_reset: value ? 'ON' : 'OFF'};
             }
             case tuya.dataPoints.x5hTempDiff: {
-                return {temp_diff: parseFloat((value / 10).toFixed(1))};
+                return {deadzone_temperature: parseFloat((value / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hProtectionTempLimit: {
                 return {protection_temp_limit: value};
@@ -2427,10 +2427,9 @@ module.exports = [
             exposes.numeric('protection_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
                 .withValueMin(5).withValueStep(1).withPreset('default', 35, 'Default value')
                 .withDescription('Temperature limit'),
-            exposes.numeric('temp_diff', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
-                .withValueMin(1).withValueStep(0.5).withPreset('default', 1, 'Default value')
-                .withDescription('Difference between the current measured temperature on the device ' +
-                    'and the setpoint temperature to start heating'),
+            exposes.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
+                .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
+                .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
             exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
                 .withValueMin(35).withValueStep(0.5).withPreset('default', 60, 'Default value'),
         ],
