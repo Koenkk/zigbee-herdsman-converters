@@ -266,6 +266,24 @@ module.exports = [
             // Read configuration values that are not sent periodically as well as current power (activePower).
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
+        onEvent: async (type, data, device, options, state) => {
+            /**
+             * The DIN power consumption module loses the configure reporting
+             * after device restart/powerloss.
+             *
+             * We reconfigure the reporting at deviceAnnounce.
+             */
+            if (type === 'deviceAnnounce') {
+                for (const endpoint of device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [{
+                            attribute: c.attribute.name, minimumReportInterval: c.minimumReportInterval,
+                            maximumReportInterval: c.maximumReportInterval, reportableChange: c.reportableChange,
+                        }]);
+                    }
+                }
+            }
+        },
     },
     {
         zigbeeModel: ['Remote switch Wake up / Sleep'],
