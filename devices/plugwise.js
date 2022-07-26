@@ -149,4 +149,27 @@ module.exports = [
                 .withDescription('Calibrates valve on next wakeup'),
         ],
     },
+    {
+        zigbeeModel: ['158-01'],
+        model: '158-01',
+        vendor: 'Plugwise',
+        description: 'Lisa zone thermostat',
+        fromZigbee: [fz.thermostat, fz.temperature, fz.battery],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+        },
+        exposes: [e.battery(),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'auto'], ea.ALL),
+        ],
+    },
 ];
