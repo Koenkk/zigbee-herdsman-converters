@@ -2410,6 +2410,7 @@ module.exports = [
         description: 'Wall-mount thermostat',
         fromZigbee: [fz.ignore_basic_report, fzLocal.x5h_thermostat],
         toZigbee: [tzLocal.x5h_thermostat],
+        whiteLabel: [{vendor: 'Beok', model: 'TGR85-ZB'}],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
