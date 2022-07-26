@@ -131,7 +131,7 @@ const tzLocal = {
     },
     x5h_thermostat: {
         key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
-            'local_temperature_calibration', 'protection_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock'],
+            'local_temperature_calibration', 'heating_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
@@ -160,7 +160,7 @@ const tzLocal = {
                     throw new Error('Supported values are in range [0.5, 9.5]');
                 }
                 break;
-            case 'protection_temp_limit':
+            case 'heating_temp_limit':
                 if (value >= 5 && value <= 60) {
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hProtectionTempLimit, value);
                 } else {
@@ -410,7 +410,7 @@ const fzLocal = {
                 return {deadzone_temperature: parseFloat((value / 10).toFixed(1))};
             }
             case tuya.dataPoints.x5hProtectionTempLimit: {
-                return {protection_temp_limit: value};
+                return {heating_temp_limit: value};
             }
             case tuya.dataPoints.x5hBackplaneBrightness: {
                 const lookup = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};
@@ -2424,9 +2424,9 @@ module.exports = [
                 .withDescription('Antifreeze function'),
             exposes.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Resets all settings to default. Doesn\'t unpair device.'),
-            exposes.numeric('protection_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
+            exposes.numeric('heating_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
                 .withValueMin(5).withValueStep(1).withPreset('default', 35, 'Default value')
-                .withDescription('Temperature limit'),
+                .withDescription('Heating temperature limit'),
             exposes.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
