@@ -1,4 +1,4 @@
-const extend = require('zigbee-herdsman-converters/lib/extend');
+const extend = require('../lib/extend');
 
 module.exports = [
     {
@@ -25,6 +25,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['ZB_A60_RGBCW'],
+        model: ZB_A60_RGBCW,
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro 12W A60 RGBCW bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
