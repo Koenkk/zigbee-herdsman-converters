@@ -131,7 +131,8 @@ const tzLocal = {
     },
     x5h_thermostat: {
         key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
-            'local_temperature_calibration', 'heating_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock'],
+            'local_temperature_calibration', 'heating_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock',
+            'schedule'],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'system_mode':
@@ -220,6 +221,9 @@ const tzLocal = {
             case 'child_lock':
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hChildLock, value === 'LOCK');
                 break;
+            case 'schedule': {
+                break;
+            }
             default:
                 break;
             }
