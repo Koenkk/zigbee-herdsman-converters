@@ -458,6 +458,9 @@ const fzLocal = {
                 const lookup = {0: 'internal', 1: 'external', 2: 'both'};
                 return {sensor: lookup[value]};
             }
+            case tuya.dataPoints.x5hOutputReverse: {
+                return {output_reverse: value};
+            }
             default: {
                 meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
