@@ -406,7 +406,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
