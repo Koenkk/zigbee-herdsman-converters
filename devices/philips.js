@@ -952,6 +952,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003056001'],
+        model: '929003056001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore bathroom mirror light with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
@@ -1964,6 +1971,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['1744830P7'],
+        model: '8718696170656',
+        vendor: 'Philips',
+        description: 'Hue White Fuzo outdoor floor light',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
         model: '8718696170625',
         vendor: 'Philips',
@@ -2437,6 +2451,13 @@ module.exports = [
     {
         zigbeeModel: ['LCD003'],
         model: '8719514344723',
+        vendor: 'Philips',
+        description: 'Akari downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LCD004'],
+        model: '8719514382350',
         vendor: 'Philips',
         description: 'Akari downlight',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),

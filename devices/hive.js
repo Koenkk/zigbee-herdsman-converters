@@ -91,7 +91,7 @@ module.exports = [
         model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',
-        fromZigbee: [fz.on_off, fz.metering, fz.temperature],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
@@ -99,8 +99,9 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature()],
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['TWBulb01US'],

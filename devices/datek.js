@@ -148,7 +148,7 @@ module.exports = [
             }
         },
         exposes: [e.lock(), e.battery(), e.pincode(),
-            e.lock_action(), e.lock_action_source_name(), e.lock_action_source_user(),
+            e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
             exposes.enum('sound_volume', ea.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
             exposes.binary('master_pin_mode', ea.ALL, true, false).withDescription('Allow Master PIN Unlock'),
             exposes.binary('rfid_enable', ea.ALL, true, false).withDescription('Allow RFID to Unlock'),

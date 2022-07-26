@@ -19,7 +19,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
     '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
-    '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy'];
+    '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_dd8wwzcy', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx'];
 
 const tzLocal = {
     TS0504B_color: {
@@ -225,6 +225,19 @@ const tzLocal = {
             }
         },
     },
+    temperature_unit: {
+        key: ['temperature_unit'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_unit': {
+                await entity.write('manuSpecificTuya_2', {'57355': {value: {'celsius': 0, 'fahrenheit': 1}[value], type: 48}});
+                break;
+            }
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
 };
 
 const fzLocal = {
@@ -289,7 +302,7 @@ const fzLocal = {
             const lookup = {0: 'off', 1: 'on', 2: 'previous'};
 
             if (msg.data.hasOwnProperty(attribute)) {
-                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model);
+                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
@@ -453,6 +466,28 @@ const fzLocal = {
             }
         },
     },
+    humidity10: {
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = parseFloat(msg.data['measuredValue']) / 10.0;
+            if (humidity >= 0 && humidity <= 100) {
+                return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            }
+        },
+    },
+    temperature_unit: {
+        cluster: 'manuSpecificTuya_2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('57355')) {
+                result.temperature_unit = {'0': 'celsius', '1': 'fahrenheit'}[msg.data['57355']];
+            }
+            return result;
+        },
+    },
 };
 
 module.exports = [
@@ -597,6 +632,7 @@ module.exports = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'}],
         model: 'WHD02',
         vendor: 'TuYa',
+        whiteLabel: [{vendor: 'TuYa', model: 'iHSW02'}],
         description: 'Wall switch module',
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
@@ -622,6 +658,10 @@ module.exports = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
@@ -690,7 +730,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_y5fjkn7x'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_cuqkfz2q'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_6amjviba'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_bf175wi4'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -698,6 +739,7 @@ module.exports = [
             {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator Ikuü', model: 'S9E27LED9W-RGB-Z'},
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
+            {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
         ],
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
         meta: {applyRedFix: true, enhancedHue: false},
@@ -1065,6 +1107,10 @@ module.exports = [
         fromZigbee: [fz.command_emergency, fz.battery],
         exposes: [e.battery(), e.action(['emergency'])],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'},
@@ -1126,6 +1172,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_2p6wbry3'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_qamcypen'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_zdrhqmo0'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_2cjfbpy0'},
         ],
         model: 'TS0502B',
         vendor: 'TuYa',
@@ -1175,10 +1222,25 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_bguser20'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_fllyghyj'},
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
         ],
         model: 'WSD500A',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
+        ],
+        model: 'IH-K009',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
@@ -1851,7 +1913,7 @@ module.exports = [
     },
     {
         fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [69, 68, 65, 64].map((applicationVersion) => {
+            return [160, 69, 68, 65, 64].map((applicationVersion) => {
                 return {modelID: 'TS011F', manufacturerName, applicationVersion};
             });
         })),
@@ -1868,7 +1930,11 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             // Enables reporting of physical state changes
             // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            try {
+                await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            } catch (e) {
+                // Sometimes can fail: https://github.com/Koenkk/zigbee2mqtt/issues/12760#issuecomment-1165435220
+            }
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
@@ -2757,6 +2823,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presense_sensor',
         vendor: 'TuYa',
@@ -2905,5 +2972,22 @@ module.exports = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_itnrsufe'}],
+        model: 'KCTW1Z',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor with LCD',
+        fromZigbee: [fz.temperature, fzLocal.humidity10, fzLocal.temperature_unit, fz.battery, fz.ignore_tuya_set_time],
+        toZigbee: [tzLocal.temperature_unit],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [
+            e.temperature(), e.humidity(), e.battery(), e.battery_voltage(),
+            exposes.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+        },
     },
 ];

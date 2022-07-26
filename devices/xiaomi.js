@@ -41,6 +41,21 @@ const preventReset = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: ['lumi.flood.acn001'],
+        model: 'SJCGQ13LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 water leak sensor',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.aqara_opple, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery(), e.battery_low(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false)],
+        meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.magnet.acn001'],
         model: 'MCCGQ14LM',
         vendor: 'Xiaomi',
@@ -1127,6 +1142,7 @@ module.exports = [
         toZigbee: [tz.on_off, tz.xiaomi_power],
         exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage().withAccess(ea.STATE)],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.maeu01'],
@@ -1312,7 +1328,7 @@ module.exports = [
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
                 'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
-            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
+            e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

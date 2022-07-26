@@ -133,6 +133,14 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['GL-G-003P'],
+        model: 'GL-G-003P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: '7W garden light pro',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
                 {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
