@@ -1473,7 +1473,7 @@ module.exports = [
         zigbeeModel: ['915005987001'],
         model: '915005987001',
         vendor: 'Philips',
-        description: 'Hue White and color ambiance Gradient Signe table lamp (black)', 
+        description: 'Hue White and color ambiance Gradient Signe table lamp (black)',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
