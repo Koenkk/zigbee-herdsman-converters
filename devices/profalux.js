@@ -31,4 +31,20 @@ module.exports = [
             await reporting.brightness(endpoint);
         },
     },
+    {
+        fingerprint: [
+            {modelID: 'MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'},
+        ],
+        model: 'NSAV061',
+        vendor: 'Profalux',
+        description: 'Cover',
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_via_brightness],
+        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.brightness(endpoint);
+        },
+    },
 ];
