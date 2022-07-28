@@ -8,6 +8,18 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const tzLocal = {
+    develco_alarm_auto_cancel_delay: {
+        key: ['alarm_auto_cancel_delay'],
+        convertSet: async (entity, key, value, meta) => {
+            // When alarm is active: The time before the alarm is automatically cancelled. 0xFFF = no auto cancelling
+            const payload = {0x8004: {value: 0xFFF, type: 33}};
+            await entity.write('ssIasZone', payload, {manufacturerCode: 0x1015});
+            return {readAfterWriteTime: 200, state: {'sos': value}};
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['SPLZB-131'],
@@ -255,6 +267,30 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low()],
+    },
+    {
+        zigbeeModel: ['PBTZB-110'],
+        model: 'PBTZB-110',
+        vendor: 'Develco',
+        description: 'Panic button',
+        fromZigbee: [fz.ias_sos_alarm_2, fz.ias_wd, fz.develco_fw, fz.ias_enroll, fz.battery],
+        toZigbee: [tzLocal.develco_alarm_auto_cancel_delay],
+        exposes: [e.sos()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(35);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'genBasic', 'genPowerCfg']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+        endpoint: (device) => {
+            return {default: 35};
+        },
+        onEvent: async (type, data, device) => {
+            if (data.type === 'commandStatusChangeNotification' && data.cluster === 'ssIasZone') {
+                device.skipDefaultResponse = true;
+                await data.endpoint.defaultResponse(0, 0, 1280, data.meta.zclTransactionSequenceNumber, {
+                    disableDefaultResponse: true, direction: 0});
+            }
+        },
     },
     {
         zigbeeModel: ['MOSZB-140'],
