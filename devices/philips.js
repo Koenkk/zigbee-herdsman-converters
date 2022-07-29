@@ -1866,7 +1866,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LOM002', 'LOM004'],
+        zigbeeModel: ['LOM002', 'LOM004', 'LOM010'],
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
