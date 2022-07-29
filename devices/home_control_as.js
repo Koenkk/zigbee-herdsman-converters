@@ -20,9 +20,6 @@ module.exports = [
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [
-            e.lock(),
-            e.battery(),
-            e.auto_relock_time().withValueMin(0).withValueMax(3600), 
-            e.sound_volume()],
+            e.lock(), e.battery(), e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()],
     },
 ];
