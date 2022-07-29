@@ -14,10 +14,10 @@ module.exports = [
         toZigbee: [tz.lock, tz.lock_auto_relock_time, tz.lock_sound_volume],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            console.log(endpoint.clusters)
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
         },
         exposes: [e.lock(), e.battery(), e.auto_relock_time(), e.sound_volume()],
     },
