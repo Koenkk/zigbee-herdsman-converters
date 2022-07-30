@@ -252,7 +252,7 @@ module.exports = [
         zigbeeModel: ['ROB_200-026-0'],
         model: 'ROB_200-026-0',
         vendor: 'ROBB',
-        description: '2-Gang In-wall Switch',
+        description: '2-gang in-wall switch',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.energy()],
