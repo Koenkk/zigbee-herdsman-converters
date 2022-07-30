@@ -1094,9 +1094,9 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandStore',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
-            const payload = {action: utils.postfixWithEndpointName(`store_${msg.data.sceneid}`, msg, model, meta)};
-            utils.addActionGroup(payload, msg, model);
+            if (hasAlreadyProcessedMessage(msg)) return;
+            const payload = {action: postfixWithEndpointName(`store_${msg.data.sceneid}`, msg, model, meta)};
+            addActionGroup(payload, msg, model);
             return payload;
         },
     },
