@@ -248,4 +248,30 @@ module.exports = [
             'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
             'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
     },
+    {
+        zigbeeModel: ['ROB_200-026-0'],
+        model: 'ROB_200-026-0',
+        vendor: 'ROBB',
+        description: '2-gang in-wall switch',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.energy()],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.onOff(endpoint2);
+            await endpoint1.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.activePower(endpoint1);
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
+            await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
+        },
+    },
 ];
