@@ -1866,7 +1866,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LOM002', 'LOM004'],
+        zigbeeModel: ['LOM002', 'LOM004', 'LOM010'],
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
@@ -2101,6 +2101,20 @@ module.exports = [
         model: '9290024785',
         vendor: 'Philips',
         description: 'Hue White Ambinance G25 E26 Edison Filament Globe',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
+        zigbeeModel: ['LWE005'],
+        model: '9290024796',
+        vendor: 'Philips',
+        description: 'Hue Filament White E12',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LTA007'],
+        model: '9290024783',
+        vendor: 'Philips',
+        description: 'Hue Filament White Ambiance A60/E27 Bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
