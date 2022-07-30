@@ -149,6 +149,10 @@ const tzLocal = {
             case 'upper_temp':
                 if (value >= 35 && value <= 95) {
                     await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTempCeiling, value);
+                    const setpoint = globalStore.getValue(entity, 'currentHeatingSetpoint', 20);
+                    const setpointRaw = Math.round(setpoint * 10);
+                    await new Promise((r) => setTimeout(r, 500));
+                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTemp, setpointRaw);
                 } else {
                     throw new Error('Supported values are in range [35, 95]');
                 }
@@ -437,7 +441,9 @@ const fzLocal = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
             case tuya.dataPoints.x5hSetTemp: {
-                return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+                const setpoint = parseFloat((value / 10).toFixed(1));
+                globalStore.putValue(msg.endpoint, 'currentHeatingSetpoint', setpoint);
+                return {current_heating_setpoint: setpoint};
             }
             case tuya.dataPoints.x5hSetTempCeiling: {
                 // It overwrites heating setpoint
