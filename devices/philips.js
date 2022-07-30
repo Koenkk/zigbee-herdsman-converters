@@ -2114,7 +2114,7 @@ module.exports = [
         zigbeeModel: ['LTA007'],
         model: '9290024783',
         vendor: 'Philips',
-        description: 'Hue Filament White Ambiance A60/E27 bluetooth',
+        description: 'Hue Filament White Ambiance A60/E27 Bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
