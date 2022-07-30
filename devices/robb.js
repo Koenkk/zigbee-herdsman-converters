@@ -272,7 +272,6 @@ module.exports = [
             await reporting.activePower(endpoint1);
             await reporting.readMeteringMultiplierDivisor(endpoint1);
             await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
-
         },
     },
 ];
