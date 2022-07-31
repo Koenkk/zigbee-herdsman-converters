@@ -2462,9 +2462,7 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['manual', 'program']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
-            exposes.text('schedule', ea.STATE_SET),
-            e.child_lock(),
-            e.week(),
+            exposes.text('schedule', ea.STATE_SET), e.child_lock(), e.week(),
             exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
                 .withDescription('Screen brightness'),
             exposes.binary('sound', ea.STATE_SET, 'ON', 'OFF')
