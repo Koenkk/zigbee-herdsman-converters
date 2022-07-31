@@ -226,6 +226,27 @@ const tzLocal = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hChildLock, value === 'LOCK');
                 break;
             case 'schedule': {
+                const periods = value.split(' ');
+                const periodsNumber = 8;
+                const payload = [];
+
+                for (let i = 0; i < periodsNumber; i++) {
+                    const timeTemp = periods[i].split('/');
+                    const hm = timeTemp[0].split(':', 2);
+                    const h = parseInt(hm[0]);
+                    const m = parseInt(hm[1]);
+                    const temp = parseFloat(timeTemp[1]);
+
+                    if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp > 60) {
+                        throw new Error('Invalid hour, minute or temperature of: ' + periods[i]);
+                    }
+
+                    const tempHexArray = tuya.convertDecimalValueTo2ByteHexArray(Math.round(temp * 10));
+                    // 1 byte for hour, 1 byte for minutes, 2 bytes for temperature
+                    payload.push(h, m, ...tempHexArray);
+                }
+
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.x5hWeeklyProcedure, payload);
                 break;
             }
             default:
@@ -435,7 +456,23 @@ const fzLocal = {
                 return {brightness_state: lookup[lastValue]};
             }
             case tuya.dataPoints.x5hWeeklyProcedure: {
-                return;
+                const periods = [];
+                const periodSize = 4;
+                const periodsNumber = 8;
+
+                for (let i = 0; i < periodsNumber; i++) {
+                    const hours = value[i * periodSize];
+                    const minutes = value[i * periodSize + 1];
+                    const tempHexArray = [value[i * periodSize + 2], value[i * periodSize + 3]];
+                    const tempRaw = Buffer.from(tempHexArray).readUIntBE(0, tempHexArray.length);
+                    const strHours = hours.toString().padStart(2, '0');
+                    const strMinutes = minutes.toString().padStart(2, '0');
+                    const temp = parseFloat((tempRaw / 10).toFixed(1));
+                    periods.push(`${strHours}:${strMinutes}/${temp}`);
+                }
+
+                const schedule = periods.join(' ');
+                return {schedule};
             }
             case tuya.dataPoints.x5hChildLock: {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
@@ -2425,6 +2462,7 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['manual', 'program']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
+            exposes.text('schedule', ea.STATE_SET),
             e.child_lock(),
             e.week(),
             exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
