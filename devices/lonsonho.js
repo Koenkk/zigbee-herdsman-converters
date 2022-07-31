@@ -82,7 +82,8 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [
-            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
             e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
