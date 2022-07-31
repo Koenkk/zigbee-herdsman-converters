@@ -3,10 +3,18 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
 module.exports = [
+    {
+        zigbeeModel: ['DL001'],
+        model: 'DL001',
+        vendor: 'TERNCY',
+        description: 'Two color temperature intelligent downlight',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [156, 476]}),
+    },
     {
         zigbeeModel: ['TERNCY-DC01'],
         model: 'TERNCY-DC01',

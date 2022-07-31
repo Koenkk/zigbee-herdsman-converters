@@ -17,7 +17,7 @@ const fzLocal = {
                 const value = msg.data[property];
                 const lookup = {0: 'momentary', 1: 'toggle', 2: 'state'};
                 if (lookup.hasOwnProperty(value)) {
-                    const propertyName = utils.postfixWithEndpointName('switch_type', msg, model);
+                    const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
                     return {[propertyName]: lookup[value]};
                 }
             }
@@ -82,7 +82,8 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [
-            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
             e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
@@ -267,7 +268,7 @@ module.exports = [
         exposes: [
             e.light_brightness().withEndpoint('l1'),
             e.light_brightness().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
                 .withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l1'),
             exposes.presets.switch_type_2().withEndpoint('l2'),

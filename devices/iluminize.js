@@ -157,7 +157,7 @@ module.exports = [
         vendor: 'Iluminize',
         description: 'Zigbee handheld remote RGBW 4 channels',
         fromZigbee: [fz.battery, fz.command_move_to_color, fz.command_move_to_color_temp, fz.command_move_hue,
-            fz.command_step, fz.command_recall, fz.ZG2819S_command_on, fz.ZG2819S_command_off],
+            fz.command_step, fz.command_recall, fz.command_on, fz.command_off],
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'hue_stop', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off'])],

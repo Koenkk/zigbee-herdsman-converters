@@ -7,6 +7,17 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['On_Off_Switch_Module_v1.0'],
+        model: '03981',
+        vendor: 'Vimar',
+        description: 'IoT connected relay module',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['2_Way_Switch_v1.0', 'On_Off_Switch_v1.0'],
         model: '14592.0',
         vendor: 'Vimar',

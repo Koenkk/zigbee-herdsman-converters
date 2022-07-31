@@ -5,7 +5,32 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const tzLocal = {
+    DD10Z_brightness: {
+        key: ['brightness'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            // Device doesn't support moveToLevelWithOnOff therefore this converter is needed.
+            await entity.command('genLevelCtrl', 'moveToLevel', {level: Number(value), transtime: 0}, {disableDefaultResponse: true});
+            return {state: {brightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    },
+};
+
 module.exports = [
+    {
+        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
+        model: 'DD10Z',
+        vendor: 'ORVIBO',
+        description: 'Smart spotlight',
+        // https://github.com/Koenkk/zigbee2mqtt/issues/13123#issuecomment-1198793749
+        meta: {disableDefaultResponse: true},
+        toZigbee: [tz.on_off, tzLocal.DD10Z_brightness, tz.light_colortemp, tz.effect],
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disableColorTempStartup: true}),
+    },
     {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
         model: 'DS20Z07B',

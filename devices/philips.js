@@ -56,6 +56,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003045201_01', '929003045201_02', '929003045201_03'],
+        model: '929003045201',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Centura round white)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003047401'],
         model: '929003047401',
         vendor: 'Philips',
@@ -399,7 +406,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -424,6 +431,13 @@ module.exports = [
         model: '1742030P7',
         vendor: 'Philips',
         description: 'Hue Calla outdoor',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003098601'],
+        model: '929003098601',
+        vendor: 'Philips',
+        description: 'Hue Calla outdoor Pedestal',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
@@ -938,6 +952,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003056001'],
+        model: '929003056001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore bathroom mirror light with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LTW015'],
         model: '9290011998B',
         vendor: 'Philips',
@@ -1449,6 +1470,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005987001'],
+        model: '915005987001',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Gradient Signe table lamp (black)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5060730P7_01', '5060730P7_02', '5060730P7_03', '5060730P7_04', '5060730P7_05'],
         model: '5060730P7',
         vendor: 'Philips',
@@ -1838,7 +1866,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['LOM002', 'LOM004'],
+        zigbeeModel: ['LOM002', 'LOM004', 'LOM010'],
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
@@ -1948,6 +1976,13 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Aurelle rectangle panel light',
         extend: hueExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['1744830P7'],
+        model: '8718696170656',
+        vendor: 'Philips',
+        description: 'Hue White Fuzo outdoor floor light',
+        extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
@@ -2069,6 +2104,20 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LWE005'],
+        model: '9290024796',
+        vendor: 'Philips',
+        description: 'Hue Filament White E12',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LTA007'],
+        model: '9290024783',
+        vendor: 'Philips',
+        description: 'Hue Filament White Ambiance A60/E27 Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LWV002'],
         model: '046677551780',
         vendor: 'Philips',
@@ -2111,7 +2160,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['929003047101', '929003045101_03'],
+        zigbeeModel: ['929003047101', '929003045101_03', '929003045101_01', '929003045101_02'],
         model: '929003047101',
         vendor: 'Philips',
         description: 'Hue White ambiance Milliskin (round)',
@@ -2425,6 +2474,20 @@ module.exports = [
         model: '8719514344723',
         vendor: 'Philips',
         description: 'Akari downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LCD004'],
+        model: '8719514382350',
+        vendor: 'Philips',
+        description: 'Akari downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LCD006'],
+        model: '9290031346',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance 5/6" retrofit recessed downlight',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {

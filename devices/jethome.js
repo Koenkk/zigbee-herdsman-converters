@@ -13,7 +13,7 @@ const jetHome = {
                 const actionLookup = {0: 'release', 1: 'single', 2: 'double', 3: 'triple', 4: 'hold'};
                 const value = msg.data['presentValue'];
                 const action = actionLookup[value];
-                return {action: utils.postfixWithEndpointName(action, msg, model)};
+                return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
         },
     },

@@ -22,7 +22,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_child_mode],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.STATE_SET, ['on', 'off', 'restore'])
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'), e.child_lock()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -247,7 +247,7 @@ module.exports = [
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
             tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
+            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
             e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
