@@ -2203,7 +2203,7 @@ module.exports = [
         description: 'Smart light switch - 3 gang without neutral wire',
         extend: extend.switch(),
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_backlight_mode]),
-        fromZigbee: extend.switch().fromZigbee.concat([tz.moes_power_on_behavior, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_backlight_mode]),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             exposes.enum('power_on_behavior', ea.ALL, Object.values(tuya.moesSwitch.powerOnBehavior)),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
