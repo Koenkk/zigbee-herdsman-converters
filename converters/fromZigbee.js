@@ -1545,7 +1545,7 @@ const converters = {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
                 result[postfixWithEndpointName('state', msg, model, meta)] =
-                    invert ? (value > 0 ? 'CLOSE' : 'OPEN') : (value > 0 ? 'OPEN' : 'CLOSE');
+                    invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
