@@ -31,8 +31,8 @@ module.exports = [
     {
         zigbeeModel: ['4512708'],
         model: '4512708',
-        vendor: 'Namron AS',
-        description: 'ZigBee LED dimmer',
+        vendor: 'Namron',
+        description: 'Zigbee LED dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
