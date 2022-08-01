@@ -791,7 +791,7 @@ module.exports = [
         zigbeeModel: ['H1'],
         model: 'H1',
         vendor: 'Ubisys',
-        description: 'Heating Regulator H1',
+        description: 'Heating regulator',
         fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, ubisys.fz.thermostat_vacation_mode],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
