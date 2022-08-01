@@ -1544,7 +1544,8 @@ const converters = {
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
-                result[postfixWithEndpointName('state', msg, model, meta)] = invert ? (value > 0 ? 'CLOSE' : 'OPEN') : (value > 0 ? 'OPEN' : 'CLOSE');
+                result[postfixWithEndpointName('state', msg, model, meta)] =
+                    invert ? (value > 0 ? 'CLOSE' : 'OPEN') : (value > 0 ? 'OPEN' : 'CLOSE');
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
