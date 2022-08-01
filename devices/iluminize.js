@@ -115,7 +115,7 @@ module.exports = [
         model: '5128.10',
         vendor: 'Iluminize',
         description: 'Zigbee 3.0 switch shutter SW with level control',
-        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_via_brightness],
         exposes: [e.cover_position()],
         ota: ota.zigbeeOTA,
