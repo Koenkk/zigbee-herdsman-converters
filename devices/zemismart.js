@@ -245,4 +245,17 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['owvfni3\u0000', 'owvfni3', 'u1rkty3', 'aabybja', 'mcdj3aq', 'mcdj3aq\u0000'],
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2' }],           
+        model: 'M515EGBZTN',
+        vendor: 'Zemismart',
+        description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
+        fromZigbee: [fz.ZMAM02_cover],
+        toZigbee: [tz.ZMAM02_cover,],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
+        ],
+    };
 ];
