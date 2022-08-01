@@ -2359,7 +2359,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['RDM002'],
-        model: '8719514440937',
+        model: '8719514440937/8719514440999',
         vendor: 'Philips',
         description: 'Hue Tap dial switch',
         fromZigbee: [fz.ignore_command_step, fzLocal.hue_tap_dial, fz.battery],
