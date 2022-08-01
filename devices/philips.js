@@ -3,6 +3,8 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -38,6 +40,48 @@ const hueExtend = {
         toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
             .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
     }),
+};
+
+const fzLocal = {
+    hue_tap_dial: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        options: [exposes.options.simulated_brightness()],
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
+            const button = buttonLookup[msg.data['button']];
+            const typeLookup = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+            const type = typeLookup[msg.data['type']];
+            const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
+            const time = msg.data['time'];
+            const payload = {};
+
+            if (button === 'dial') {
+                const adjustedTime = direction === 'right' ? time : 256 - time;
+                const dialType = 'rotate';
+                const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
+                payload.action = `${button}_${dialType}_${direction}_${speed}`;
+
+                // simulated brightness
+                if (options.simulated_brightness) {
+                    const opts = options.simulated_brightness;
+                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
+                    const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
+                    const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
+                    payload.brightness = utils.numberWithinRange(brightness, 0, 255);
+                    globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
+                }
+            } else {
+                payload.action = `${button}_${type}`;
+                // duration
+                if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
+                else if (type === 'hold' || type === 'hold_release') {
+                    payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, 'press_start')) / 1000;
+                }
+            }
+            return payload;
+        },
+    },
 };
 
 module.exports = [
@@ -2312,6 +2356,29 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance A19 1100 lumen',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['RDM002'],
+        model: '8719514440937',
+        vendor: 'Philips',
+        description: 'Hue Tap dial switch',
+        fromZigbee: [fz.ignore_command_step, fzLocal.hue_tap_dial, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.action(['button_1_press', 'button_1_press_release', 'button_1_hold', 'button_1_hold_release',
+            'button_2_press', 'button_2_press_release', 'button_2_hold', 'button_2_hold_release',
+            'button_3_press', 'button_3_press_release', 'button_3_hold', 'button_3_hold_release',
+            'button_4_press', 'button_4_press_release', 'button_4_hold', 'button_4_hold_release',
+            'dial_rotate_left_step', 'dial_rotate_left_slow', 'dial_rotate_left_fast',
+            'dial_rotate_right_step', 'dial_rotate_right_slow', 'dial_rotate_right_fast']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificPhilips', 'genPowerCfg']);
+            const options = {manufacturerCode: 0x100B, disableDefaultResponse: true};
+            await endpoint.write('genBasic', {0x0031: {value: 0x000B, type: 0x19}}, options);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        ota: ota.zigbeeOTA,
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000004.....$/}],
