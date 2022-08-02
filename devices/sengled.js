@@ -146,11 +146,11 @@ module.exports = [
         model: 'E11-N1EA',
         vendor: 'Sengled',
         description: 'Element plus color (A19)',
-        fromZigbee: sengledExtend.light_onoff_brightness().fromZigbee.concat([fz.metering]),
-        toZigbee: sengledExtend.light_onoff_brightness().toZigbee,
+        fromZigbee: sengledExtend.light_onoff_brightness_colortemp_color().fromZigbee.concat([fz.metering]),
+        toZigbee: sengledExtend.light_onoff_brightness_colortemp_color().toZigbee,
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await sengledExtend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await sengledExtend.light_onoff_brightness_colortemp_color().configure(device, coordinatorEndpoint, logger);
             device.powerSource = 'Mains (single phase)';
             device.save();
 
@@ -160,7 +160,7 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        exposes: sengledExtend.light_onoff_brightness().exposes.concat([e.power(), e.energy()]),
+        exposes: sengledExtend.light_onoff_brightness_colortemp_color().exposes.concat([e.power(), e.energy()]),
     },
     {
         zigbeeModel: ['E11-U2E'],
