@@ -16,6 +16,8 @@ module.exports = [
             {vendor: 'Niko', description: 'Dimmer switch for Hue system', model: '91004'},
             {vendor: 'NodOn', description: 'Smart switch for Philips Hue', model: 'CWS-4-1-01_HUE'},
             {vendor: 'Vimar', description: 'Zigbee Friends of Hue RF switch', model: '03906'},
+            {vendor: 'Sunricher', model: 'SR-ZGP2801K4-FOH-E'},
+            {vendor: 'LED Trading', model: '9125'},
         ],
     },
     {
