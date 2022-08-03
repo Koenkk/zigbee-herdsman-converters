@@ -173,7 +173,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['WallDimmerMaster'],
+        zigbeeModel: ['WallDimmerMaster', 'WallDimmerSlave'],
         model: 'AU-A1ZB2WDM',
         vendor: 'Aurora Lighting',
         description: 'AOne 250W smart rotary dimmer module',
