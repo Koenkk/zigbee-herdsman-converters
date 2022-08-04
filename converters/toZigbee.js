@@ -2562,15 +2562,15 @@ const converters = {
     },
     lidl_watering_timer: {
         key: ['timer'],
-        convertSet: (entity, key, value, meta) => {
-            tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
         },
     },
     matsee_garage_door_opener: {
         key: ['trigger'],
-        convertSet: (entity, key, value, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
-            tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, state);
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
         },
     },
@@ -4927,7 +4927,7 @@ const converters = {
                         payload[i * 3 + 2] = value[prob][i].temperature;
                     }
                 }
-                tuya.sendDataPointRaw(entity, dpId, payload);
+                await tuya.sendDataPointRaw(entity, dpId, payload);
             }
         },
     },
@@ -4956,7 +4956,7 @@ const converters = {
                 payload[i*3+1] = minute;
                 payload[i*3+2] = temperature;
             }
-            tuya.sendDataPointRaw(entity, dpId, payload);
+            await tuya.sendDataPointRaw(entity, dpId, payload);
         },
     },
     tuya_thermostat_week: {
@@ -6613,7 +6613,7 @@ const converters = {
     },
     wiser_sed_thermostat_local_temperature_calibration: {
         key: ['local_temperature_calibration'],
-        convertSet: (entity, key, value, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             entity.write('hvacThermostat', {localTemperatureCalibration: Math.round(value * 10)},
                 {srcEndpoint: 11, disableDefaultResponse: true, sendWhen: 'active'});
             return {state: {local_temperature_calibration: value}};
@@ -6762,7 +6762,7 @@ const converters = {
                     await tuya.sendDataPointRaw(entity, 102, [value]);
                     break;
                 } else {
-                    tuya.sendDataPointRaw(entity, 105, [value]);
+                    await tuya.sendDataPointRaw(entity, 105, [value]);
                     break;
                 }
             case 'led_enable':// OK (value true/false or 1/0)
