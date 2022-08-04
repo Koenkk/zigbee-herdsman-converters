@@ -101,7 +101,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'},
-			{modelID: 'TS0505B', manufacturerName: '_TZ3210_r0vzq1oj'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_r0vzq1oj'}],
         model: '404062',
         vendor: 'Müller Licht',
         description: 'Kea RGB+CCT',
