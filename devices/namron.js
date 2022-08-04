@@ -9,6 +9,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['3308431'],
+        model: '3308431',
+        vendor: 'Namron',
+        description: 'Luna ceiling light',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['3802967'],
         model: '3802967',
         vendor: 'Namron',
