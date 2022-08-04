@@ -100,7 +100,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'}],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_mntza0sw'}, {modelID: 'TS0505B', manufacturerName: '_TZ3210_r0vzq1oj'}],
         model: '404062',
         vendor: 'Müller Licht',
         description: 'Kea RGB+CCT',
