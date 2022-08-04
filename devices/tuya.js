@@ -794,7 +794,9 @@ module.exports = [
             {modelID: 'TS0503B', manufacturerName: '_TZ3210_778drfdt'},
             {modelID: 'TS0503B', manufacturerName: '_TZ3000_g5xawfcq'},
             {modelID: 'TS0503B', manufacturerName: '_TZ3210_trm3l2aw'},
-            {modelID: 'TS0503B', manufacturerName: '_TZ3210_odlghna1'}],
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_95txyzbx'},
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_odlghna1'},
+            {modelID: 'TS0503B', manufacturerName: '_TZ3220_wp1k8xws'}],
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
@@ -1477,7 +1479,11 @@ module.exports = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep1 = device.getEndpoint(1);
-            await ep1.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            try {
+                await ep1.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/discussions/13368
+            }
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -2202,13 +2208,20 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Smart light switch - 3 gang without neutral wire',
         extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_backlight_mode]),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            exposes.enum('power_on_behavior', ea.ALL, Object.values(tuya.moesSwitch.powerOnBehavior)),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
+                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted')],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genBasic',
+                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             try {
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);

@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const utils = require('../lib/utils');
 const reporting = require('../lib/reporting');
+const constants = require('../lib/constants');
 const herdsman = require('zigbee-herdsman');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -88,6 +89,15 @@ const ubisys = {
                     });
                 }
                 return {configure_device_setup: result};
+            },
+        },
+        thermostat_vacation_mode: {
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('ocupancy')) {
+                    return {vacation_mode: msg.data.ocupancy === 0};
+                }
             },
         },
     },
@@ -503,6 +513,12 @@ const ubisys = {
                     manufacturerOptions.ubisysNull);
             },
         },
+        thermostat_vacation_mode: {
+            key: ['vacation_mode'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['ocupancy']);
+            },
+        },
     },
 };
 
@@ -768,6 +784,67 @@ module.exports = [
             for (const ep of [5, 6]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'closuresWindowCovering']);
             }
+        },
+        ota: ota.ubisys,
+    },
+    {
+        zigbeeModel: ['H1'],
+        model: 'H1',
+        vendor: 'Ubisys',
+        description: 'Heating regulator',
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, ubisys.fz.thermostat_vacation_mode],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_local_temperature, tz.thermostat_system_mode,
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_running_mode, ubisys.tz.thermostat_vacation_mode,
+            tz.thermostat_pi_heating_demand,
+        ],
+        exposes: [
+            e.battery(),
+            exposes.climate()
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withRunningMode(['off', 'heat'])
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withPiHeatingDemand(ea.STATE_GET),
+            exposes.binary('vacation_mode', ea.STATE_GET, true, false)
+                .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genBasic', 'genPowerCfg', 'genTime', 'hvacThermostat'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            // reporting
+            // NOTE: temperature is 0.5 deg steps
+            // NOTE: unoccupied_heating_setpoint cannot be set via the device itself
+            //       so we do not need to setup reporting for this, as reporting slots
+            //       seem to be limited.
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningMode(endpoint);
+            await reporting.thermostatTemperature(endpoint,
+                {min: 0, max: constants.repInterval.HOUR, change: 50});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint,
+                {min: 0, max: constants.repInterval.HOUR, change: 50});
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOcupancy(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint,
+                {min: constants.repInterval.HOUR, max: 43200, change: 1});
+
+
+            // read attributes
+            // NOTE: configuring reporting on hvacThermostat seems to trigger an imediat
+            //       report, so the values are available after configure has run.
+            //       this does not seem to be the case for genPowerCfg, so we read
+            //       the battery percentage
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+
+            // write attributes
+            // NOTE: device checks in every 1h once the device has entered deepsleep
+            //       this might be a bit long if you want to set the temperature remotely
+            //       update this to every 15 minutes. (value is in 1/4th of a second)
+            await endpoint.write('genPollCtrl', {'checkinInterval': (4 * 60 * 15)});
         },
         ota: ota.ubisys,
     },
