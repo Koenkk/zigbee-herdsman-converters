@@ -5,7 +5,9 @@ const ota = require('../lib/ota');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const {repInterval} = require('../lib/constants');
+const utils = require('../lib/utils');
 const extend = require('../lib/extend');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 const herdsman = require('zigbee-herdsman');
@@ -56,6 +58,39 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
     await endpoint.bind('genOnOff', bindTarget);
     await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
     await reporting.batteryPercentageRemaining(endpoint);
+};
+
+const fzLocal = {
+    // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13335
+    STYRBAR_on: {
+        cluster: 'genOnOff',
+        type: 'commandOn',
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
+            if (arrowReleaseAgo > 700) {
+                return {action: 'on'};
+            }
+        },
+    },
+    STYRBAR_arrow_release: {
+        cluster: 'genScenes',
+        type: 'commandTradfriArrowRelease',
+        options: [exposes.options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
+            const direction = globalStore.getValue(msg.endpoint, 'direction');
+            if (direction) {
+                globalStore.clearValue(msg.endpoint, 'direction');
+                const duration = msg.data.value / 1000;
+                const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                if (!utils.isLegacyEnabled(options)) delete result.duration;
+                return result;
+            }
+        },
+    },
 };
 
 const tradfriExtend = {
@@ -571,9 +606,9 @@ module.exports = [
         zigbeeModel: ['Remote Control N2'],
         model: 'E2001/E2002',
         vendor: 'IKEA',
-        description: 'STYRBAR remote control N2',
-        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
-            fz.ikea_arrow_hold, fz.ikea_arrow_release],
+        description: 'STYRBAR remote control',
+        fromZigbee: [fz.battery, fzLocal.STYRBAR_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+            fz.ikea_arrow_hold, fzLocal.STYRBAR_arrow_release],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
