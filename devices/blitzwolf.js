@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['5j6ifxj'],
+        zigbeeModel: ['5j6ifxj', '5j6ifxj\u0000'],
         model: 'BW-IS3',
         vendor: 'BlitzWolf',
         description: 'Rechargeable Zigbee PIR motion sensor',
