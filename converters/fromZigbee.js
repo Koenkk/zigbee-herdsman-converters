@@ -8445,6 +8445,9 @@ const converters = {
                     break;
                 }
                 break;
+            case tuya.dataPoints.AM02AddRemoter: // DP 101: Ignore until need is defined
+            case tuya.dataPoints.AM02TimeTotal: // DP 10: Ignore until need is defined
+                break;
             default: // Unknown code
                 meta.logger.warn(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
