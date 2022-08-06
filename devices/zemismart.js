@@ -154,10 +154,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'},
-        ],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
@@ -181,6 +178,18 @@ module.exports = [
         // exposes.numeric('countdown_left', ea.STATE).withUnit('s'),
         // exposes.numeric('time_total', ea.STATE).withUnit('ms'),
         // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
+        ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_gubdgai2'}],
+        model: 'M515EGBZTN',
+        vendor: 'Zemismart',
+        description: 'Roller shade driver',
+        fromZigbee: [fz.ZMAM02_cover],
+        toZigbee: [tz.ZMAM02_cover],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
         ],
     },
     {
