@@ -3505,11 +3505,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // Danfoss sends pi_heating_demand as raw %
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
-                    precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
             if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
                 result[postfixWithEndpointName('window_open_feature', msg, model, meta)] =
                     (msg.data['danfossWindowOpenFeatureEnable'] === 1);
