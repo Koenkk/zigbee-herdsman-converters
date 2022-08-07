@@ -331,7 +331,8 @@ module.exports = [
             fz.legacy.osram_lightify_switch_cmdOff, fz.legacy.osram_lightify_switch_cmdMove, fz.battery,
             fz.legacy.osram_lightify_switch_cmdMoveToLevelWithOnOff],
         exposes: [e.battery(), e.action([
-            'up', 'up_hold', 'up_release', 'down_release', 'circle_release', 'circle_hold', 'down', 'down_hold', 'circle_click'])],
+            'on', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'color_temperature_move', 'hue_move', 'hue_stop',
+            'move_to_saturation', 'off', 'brightness_move_to_level'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         ota: ota.ledvance,
