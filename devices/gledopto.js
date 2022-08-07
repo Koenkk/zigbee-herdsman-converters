@@ -331,6 +331,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
+        zigbeeModel: ['GL-S-006P'],
+        model: 'GL-S-006P',
+        vendor: 'Gledopto',
+        description: 'Zigbee GU10 LED lamp',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-MC-001P'],
         model: 'GL-MC-001P',
         vendor: 'Gledopto',
