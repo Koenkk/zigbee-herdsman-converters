@@ -37,6 +37,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
+            const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
                 result[postfixWithEndpointName('local_temperature', msg, model, meta)] = precisionRound(msg.data['localTemp'], 2) / 100;
             }
@@ -110,7 +111,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('pIHeatingDemand')) {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
-                    mapNumberRange(msg.data['pIHeatingDemand'], 0, 255, 0, 100);
+                    mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
@@ -2488,18 +2489,6 @@ const converters = {
             }
         },
     },
-    sinope_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = converters.thermostat.convert(model, msg, publish, options, meta);
-            // Sinope seems to report pIHeatingDemand between 0 and 100 already
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
-                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
-            return result;
-        },
-    },
     stelpro_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -3516,11 +3505,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // Danfoss sends pi_heating_demand as raw %
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
-                    precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
             if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
                 result[postfixWithEndpointName('window_open_feature', msg, model, meta)] =
                     (msg.data['danfossWindowOpenFeatureEnable'] === 1);
