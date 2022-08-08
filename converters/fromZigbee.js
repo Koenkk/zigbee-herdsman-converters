@@ -6849,7 +6849,7 @@ const converters = {
                     cycle_timer_1: '',
                     cycle_timer_2: '',
                     cycle_timer_3: '',
-                    cycle_timer_4: ''
+                    cycle_timer_4: '',
                 };
                 for (let index = 0; index < 40; index += 12) {
                     const timer = tuya.convertRawToCycleTimer(value.slice(index));
@@ -6859,7 +6859,7 @@ const converters = {
                             timer.irrigationDuration + ' / ' +
                             timer.pauseDuration + ' / ' +
                             timer.weekdays + ' / ' + timer.active;
-                  }
+                    }
                 }
                 return tresult;
             }
@@ -6868,7 +6868,7 @@ const converters = {
                     normal_schedule_timer_1: '',
                     normal_schedule_timer_2: '',
                     normal_schedule_timer_3: '',
-                    normal_schedule_timer_4: ''
+                    normal_schedule_timer_4: '',
                 };
                 for (let index = 0; index < 40; index += 13) {
                     const timer = tuya.convertRawToTimer(value.slice(index));

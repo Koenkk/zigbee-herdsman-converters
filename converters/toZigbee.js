@@ -4042,7 +4042,7 @@ const converters = {
             const active = parseInt(tarray[5]);
 
             if (!(active == 0 || active == 1)) {
-                throw new Error('Active value only 0 or 1 allowed')
+                throw new Error('Active value only 0 or 1 allowed');
             }
             data.push(active);
 
@@ -4057,7 +4057,7 @@ const converters = {
 
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 16, data);
-            const ret = { state: {} };
+            const ret = {state: {}};
             ret['state'][key] = value;
             return ret;
         },
@@ -4066,7 +4066,7 @@ const converters = {
         key: ['normal_schedule_timer_1', 'normal_schedule_timer_2', 'normal_schedule_timer_3', 'normal_schedule_timer_4'],
         convertSet: async (entity, key, value, meta) => {
             let data = [0];
-            let footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
+            const footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
             if (value == '') {
                 // delete
                 data.push(0x04);
@@ -4105,12 +4105,12 @@ const converters = {
                 throw new Error('Active value only 0 or 1 allowed');
             }
 
-            data = data.concat(convertTimeTo2ByteHexArray(time));
+            data = data.concat(tuya.convertTimeTo2ByteHexArray(time));
 
             const duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
             data = data.concat(duration_part);
 
-            const weekdays_part = convertWeekdaysTo1ByteHexArray(weekdays);
+            const weekdays_part = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
             data = data.concat(weekdays_part);
             data = data.concat([64, active]);
             data = data.concat(footer);
