@@ -15,7 +15,7 @@ module.exports = [
         vendor: 'RTX',
         description: 'Zigbee smart water valve',
         fromZigbee: [fz.ZVG1, fz.ignore_tuya_set_time, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_switch_state, tz.ZVG1_timer, tz.ZVG1_cycle_timer, tz.ZVG1_normal_schedule_timer],
+        toZigbee: [tz.tuya_switch_state, tz.ZVG1_weather_delay, tz.ZVG1_timer, tz.ZVG1_cycle_timer, tz.ZVG1_normal_schedule_timer],
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.battery(),
             exposes.enum('weather_delay', ea.STATE_SET, ['disabled', '24h', '48h', '72h']),
             exposes.enum('timer_state', ea.STATE, ['disabled', 'active', 'enabled']),
