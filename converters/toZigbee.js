@@ -3995,7 +3995,7 @@ const converters = {
     ZVG1_weather_delay: {
         key: ['weather_delay'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = { 'disabled': 0, '24h': 1, '48h': 2, '72h': 3 };
+            const lookup = {'disabled': 0, '24h': 1, '48h': 2, '72h': 3};
             await tuya.sendDataPointEnum(entity, 10, lookup[value]);
         }
     },
@@ -4003,13 +4003,13 @@ const converters = {
         key: ['cycle_timer_1', 'cycle_timer_2', 'cycle_timer_3', 'cycle_timer_4'],
         convertSet: async (entity, key, value, meta) => {
             let data = [0];
-            let footer = [0x64];
+            const footer = [0x64];
             if (value == '') {
                 // delete
                 data.push(0x04);
-                data.push(getTimerValue(key));
+                data.push(parseInt(key.substr(-1)));
                 await tuya.sendDataPointRaw(entity, 16, data);
-                let ret = { state: {} };
+                const ret = { state: {} };
                 ret['state'][key] = value;
                 return ret;
             } else {
@@ -4018,11 +4018,11 @@ const converters = {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
-                    data.push(getTimerValue(key));
+                    data.push(parseInt(key.substr(-1)));
                 }
             }
 
-            let tarray = value.replace(/ /g, '').split('/');
+            const tarray = value.replace(/ /g, '').split('/');
             if (tarray.length < 4) {
                 throw Exception('Please check the format of the timer string');
             }
@@ -4034,12 +4034,12 @@ const converters = {
                 tarray.push('1');
             }
 
-            let starttime = tarray[0];
-            let endtime = tarray[1];
-            let irrigation_duration = tarray[2];
-            let pause_duration = tarray[3];
-            let weekdays = tarray[4];
-            let active = parseInt(tarray[5]);
+            const starttime = tarray[0];
+            const endtime = tarray[1];
+            const irrigationDuration = tarray[2];
+            const pauseDuration = tarray[3];
+            const weekdays = tarray[4];
+            const active = parseInt(tarray[5]);
 
             if (!(active == 0 || active == 1)) {
                 throw Exception('Active value only 0 or 1 allowed')
@@ -4052,8 +4052,8 @@ const converters = {
             data = data.concat(tuya.convertTimeTo2ByteHexArray(starttime));
             data = data.concat(tuya.convertTimeTo2ByteHexArray(endtime));
 
-            data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(irrigation_duration));
-            data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(pause_duration));
+            data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(irrigationDuration));
+            data = data.concat(tuya.convertDecimalValueTo2ByteHexArray(pauseDuration));
 
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 16, data);
@@ -4070,7 +4070,7 @@ const converters = {
             if (value == '') {
                 // delete
                 data.push(0x04);
-                data.push(getTimerValue(key));
+                data.push(parseInt(key.substr(-1)));
                 await tuya.sendDataPointRaw(entity, 17, data);
                 let ret = { state: {} };
                 ret['state'][key] = value;
@@ -4080,7 +4080,7 @@ const converters = {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
-                    data.push(getTimerValue(key));
+                    data.push(parseInt(key.substr(-1)));
                 }
             }
 
@@ -4096,10 +4096,10 @@ const converters = {
                 tarray.push('1');
             }
 
-            let time = tarray[0];
-            let duration = tarray[1];
-            let weekdays = tarray[2];
-            let active = parseInt(tarray[3]);
+            const time = tarray[0];
+            const duration = tarray[1];
+            const weekdays = tarray[2];
+            const active = parseInt(tarray[3]);
 
             if (!(active == 0 || active == 1)) {
                 throw Exception('Active value only 0 or 1 allowed')
@@ -4107,15 +4107,15 @@ const converters = {
 
             data = data.concat(convertTimeTo2ByteHexArray(time));
 
-            let duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
+            const duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
             data = data.concat(duration_part);
 
-            let weekdays_part = convertWeekdaysTo1ByteHexArray(weekdays);
+            const weekdays_part = convertWeekdaysTo1ByteHexArray(weekdays);
             data = data.concat(weekdays_part);
             data = data.concat([64, active]);
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 17, data);
-            let ret = { state: {} };
+            const ret = { state: {} };
             ret['state'][key] = value;
             return ret;
         }  

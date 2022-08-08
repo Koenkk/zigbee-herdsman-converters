@@ -6829,7 +6829,7 @@ const converters = {
                 } else if (value == 3) {
                     data = '72h';
                 }
-                return { weather_delay: data };
+                return {weather_delay: data};
             }
             case 11: {
                 // value reported in seconds
@@ -6845,33 +6845,23 @@ const converters = {
                 return {last_valve_open_duration: value / 60};
             }
             case 16: {
-                let tresult = {
-                    cycle_timer_1: '',
-                    cycle_timer_2: '', 
-                    cycle_timer_3: '',
-                    cycle_timer_4: '',
-                }
+                const tresult = {cycle_timer_1: '',cycle_timer_2: '',cycle_timer_3: '',cycle_timer_4: ''};
                 for (let index = 0; index < 40; index += 12) {
                     let timer = tuya.convertRawToCycleTimer(value.slice(index));
-                    if (timer.irrigation_duration > 0) {
+                    if (timer.irrigationDuration > 0) {
                         tresult['cycle_timer_' + (index / 13 + 1)] = timer.starttime + 
                             ' / ' + timer.endtime + ' / ' + 
-                            timer.irrigation_duration + ' / ' + 
-                            timer.pause_duration + ' / ' + 
+                            timer.irrigationDuration + ' / ' + 
+                            timer.pauseDuration + ' / ' + 
                             timer.weekdays + ' / ' + timer.active;
                   }
                 }
                 return tresult;
             }
             case 17: {
-                let tresult = {
-                    normal_schedule_timer_1: '',
-                    normal_schedule_timer_2: '',
-                    normal_schedule_timer_3: '',
-                    normal_schedule_timer_4: '',
-                };
+                const tresult = {normal_schedule_timer_1: '',normal_schedule_timer_2: '',normal_schedule_timer_3: '',normal_schedule_timer_4: ''};
                 for (let index = 0; index < 40; index += 13) {
-                    let timer = tuya.convertRawToTimer(value.slice(index));
+                    const timer = tuya.convertRawToTimer(value.slice(index));
                     if (timer.duration > 0) {
                         tresult['normal_schedule_timer_' + (index / 13 + 1)] = timer.time + 
                         ' / ' + timer.duration + 
