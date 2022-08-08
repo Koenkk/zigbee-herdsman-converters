@@ -4004,7 +4004,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             var data = [0];
             var footer = [0x64];
-            if (value == "") {
+            if (value == '') {
                 // delete
                 data.push(0x04);
                 data.push(getTimerValue(key));
@@ -4013,7 +4013,8 @@ const converters = {
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == "") || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') ||
+                    !meta.state.hasOwnProperty(key)) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -4021,31 +4022,31 @@ const converters = {
                 }
             }
 
-            tarray = value.replace(/ /g, "").split("/");
+            let tarray = value.replace(/ /g, '').split('/');
             if (tarray.length < 4) {
-                throw Exception("Please check the format of the timer string");
+                throw Exception('Please check the format of the timer string');
             }
             if (tarray.length < 5) {
-                tarray.push("MoTuWeThFrSaSu");
+                tarray.push('MoTuWeThFrSaSu');
             }
 
             if (tarray.length < 6) {
-                tarray.push("1");
+                tarray.push('1');
             }
 
-            var starttime = tarray[0];
-            var endtime = tarray[1];
-            var irrigation_duration = tarray[2];
-            var pause_duration = tarray[3];
-            var weekdays = tarray[4];
-            var active = parseInt(tarray[5]);
+            let starttime = tarray[0];
+            let endtime = tarray[1];
+            let irrigation_duration = tarray[2];
+            let pause_duration = tarray[3];
+            let weekdays = tarray[4];
+            let active = parseInt(tarray[5]);
 
             if (!(active == 0 || active == 1)) {
-                throw Exceptoin("Active value only 0 or 1 allowed")
+                throw Exception('Active value only 0 or 1 allowed')
             }
             data.push(active);
 
-            var weekdays_part = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
+            let weekdays_part = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
             data = data.concat(weekdays_part);
 
             data = data.concat(tuya.convertTimeTo2ByteHexArray(starttime));
@@ -4056,7 +4057,7 @@ const converters = {
 
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 16, data);
-            var ret = { state: {} };
+            let ret = { state: {} };
             ret['state'][key] = value;
             return ret;
         }
@@ -4064,18 +4065,18 @@ const converters = {
     ZVG1_normal_schedule_timer: {
         key: ['normal_schedule_timer_1', 'normal_schedule_timer_2', 'normal_schedule_timer_3', 'normal_schedule_timer_4'],
         convertSet: async (entity, key, value, meta) => {
-            var data = [0];
-            var footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
-            if (value == "") {
+            let data = [0];
+            let footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
+            if (value == '') {
                 // delete
                 data.push(0x04);
                 data.push(getTimerValue(key));
                 await tuya.sendDataPointRaw(entity, 17, data);
-                var ret = { state: {} };
+                let ret = { state: {} };
                 ret['state'][key] = value;
                 return ret;
             } else {
-                if ((meta.state.hasOwnProperty(key) && meta.state[key] == "") || !meta.state.hasOwnProperty(key)) {
+                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
                     data.push(0x03);
                 } else {
                     data.push(0x02);
@@ -4083,38 +4084,38 @@ const converters = {
                 }
             }
 
-            tarray = value.replace(/ /g, "").split("/");
+            tarray = value.replace(/ /g, '').split('/');
             if (tarray.length < 2) {
-                throw Exception("Please check the format of the timer string");
+                throw Exception('Please check the format of the timer string');
             }
             if (tarray.length < 3) {
-                tarray.push("MoTuWeThFrSaSu");
+                tarray.push('MoTuWeThFrSaSu');
             }
 
             if (tarray.length < 4) {
-                tarray.push("1");
+                tarray.push('1');
             }
 
-            var time = tarray[0];
-            var duration = tarray[1];
-            var weekdays = tarray[2];
-            var active = parseInt(tarray[3]);
+            let time = tarray[0];
+            let duration = tarray[1];
+            let weekdays = tarray[2];
+            let active = parseInt(tarray[3]);
 
             if (!(active == 0 || active == 1)) {
-                throw Exceptoin("Active value only 0 or 1 allowed")
+                throw Exception('Active value only 0 or 1 allowed')
             }
 
             data = data.concat(convertTimeTo2ByteHexArray(time));
 
-            var duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
+            let duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
             data = data.concat(duration_part);
 
-            var weekdays_part = convertWeekdaysTo1ByteHexArray(weekdays);
+            let weekdays_part = convertWeekdaysTo1ByteHexArray(weekdays);
             data = data.concat(weekdays_part);
             data = data.concat([64, active]);
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 17, data);
-            var ret = { state: {} };
+            let ret = { state: {} };
             ret['state'][key] = value;
             return ret;
         }  
