@@ -4072,7 +4072,7 @@ const converters = {
                 data.push(0x04);
                 data.push(parseInt(key.substr(-1)));
                 await tuya.sendDataPointRaw(entity, 17, data);
-                let ret = { state: {} };
+                const ret = {state: {}};
                 ret['state'][key] = value;
                 return ret;
             } else {
@@ -4107,15 +4107,15 @@ const converters = {
 
             data = data.concat(tuya.convertTimeTo2ByteHexArray(time));
 
-            const duration_part = tuya.convertDecimalValueTo2ByteHexArray(duration);
-            data = data.concat(duration_part);
+            const durationPart = tuya.convertDecimalValueTo2ByteHexArray(duration);
+            data = data.concat(durationPart);
 
-            const weekdays_part = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
-            data = data.concat(weekdays_part);
+            const weekdaysPart = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
+            data = data.concat(weekdaysPart);
             data = data.concat([64, active]);
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 17, data);
-            const ret = { state: {} };
+            const ret = {state: {}};
             ret['state'][key] = value;
             return ret;
         },
