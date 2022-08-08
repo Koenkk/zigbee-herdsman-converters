@@ -6820,6 +6820,17 @@ const converters = {
             case 7: {
                 return {battery: value};
             }
+            case 10: {
+                var data = "disabled";
+                if (value == 1) {
+                  data = "24h";
+                } else if (value == 2) {
+                  data = "48h";
+                } else if (value == 3) {
+                  data = "72h";
+                }
+                return { weather_delay: data };
+            }
             case 11: {
                 // value reported in seconds
                 return {timer_time_left: value / 60};
@@ -6832,6 +6843,26 @@ const converters = {
             case 15: {
                 // value reported in seconds
                 return {last_valve_open_duration: value / 60};
+            }
+            case 16: {
+                var tresult = { cycle_timer_1: "", cycle_timer_2: "", cycle_timer_3: "", cycle_timer_4: "" };
+                for (let index = 0; index < 40; index += 12) {
+                  var timer = tuya.convertRawToCycleTimer(value.slice(index));
+                  if (timer.irrigation_duration > 0) {
+                    tresult['cycle_timer_' + (index / 13 + 1)] = timer.starttime + " / " + timer.endtime + " / " + timer.irrigation_duration + " / " + timer.pause_duration + " / " + timer.weekdays + " / " + timer.active;
+                  }
+                }
+                return tresult;
+            }
+            case 17: {
+                var tresult = { normal_schedule_timer_1: "", normal_schedule_timer_2: "", normal_schedule_timer_3: "", normal_schedule_timer_4: "" };
+                for (let index = 0; index < 40; index += 13) {
+                  var timer = tuya.convertRawToTimer(value.slice(index));
+                  if (timer.duration > 0) {
+                    tresult['normal_schedule_timer_' + (index / 13 + 1)] = timer.time + " / " + timer.duration + " / " + timer.weekdays + " / " + timer.active;
+                  }
+                }
+                return tresult;
             }
             default: {
                 meta.logger.warn(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
