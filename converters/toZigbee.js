@@ -4002,14 +4002,14 @@ const converters = {
     ZVG1_cycle_timer: {
         key: ['cycle_timer_1', 'cycle_timer_2', 'cycle_timer_3', 'cycle_timer_4'],
         convertSet: async (entity, key, value, meta) => {
-            var data = [0];
-            var footer = [0x64];
+            let data = [0];
+            let footer = [0x64];
             if (value == '') {
                 // delete
                 data.push(0x04);
                 data.push(getTimerValue(key));
                 await tuya.sendDataPointRaw(entity, 16, data);
-                var ret = { state: {} };
+                let ret = { state: {} };
                 ret['state'][key] = value;
                 return ret;
             } else {
