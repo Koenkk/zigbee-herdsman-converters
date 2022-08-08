@@ -3997,7 +3997,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'disabled': 0, '24h': 1, '48h': 2, '72h': 3};
             await tuya.sendDataPointEnum(entity, 10, lookup[value]);
-        }
+        },
     },
     ZVG1_cycle_timer: {
         key: ['cycle_timer_1', 'cycle_timer_2', 'cycle_timer_3', 'cycle_timer_4'],
@@ -4009,7 +4009,7 @@ const converters = {
                 data.push(0x04);
                 data.push(parseInt(key.substr(-1)));
                 await tuya.sendDataPointRaw(entity, 16, data);
-                const ret = { state: {} };
+                const ret = {state: {}};
                 ret['state'][key] = value;
                 return ret;
             } else {
@@ -4024,7 +4024,7 @@ const converters = {
 
             const tarray = value.replace(/ /g, '').split('/');
             if (tarray.length < 4) {
-                throw Exception('Please check the format of the timer string');
+                throw new Error('Please check the format of the timer string');
             }
             if (tarray.length < 5) {
                 tarray.push('MoTuWeThFrSaSu');
@@ -4042,12 +4042,12 @@ const converters = {
             const active = parseInt(tarray[5]);
 
             if (!(active == 0 || active == 1)) {
-                throw Exception('Active value only 0 or 1 allowed')
+                throw new Error('Active value only 0 or 1 allowed')
             }
             data.push(active);
 
-            let weekdays_part = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
-            data = data.concat(weekdays_part);
+            const weekdaysPart = tuya.convertWeekdaysTo1ByteHexArray(weekdays);
+            data = data.concat(weekdaysPart);
 
             data = data.concat(tuya.convertTimeTo2ByteHexArray(starttime));
             data = data.concat(tuya.convertTimeTo2ByteHexArray(endtime));
@@ -4057,10 +4057,10 @@ const converters = {
 
             data = data.concat(footer);
             await tuya.sendDataPointRaw(entity, 16, data);
-            let ret = { state: {} };
+            const ret = { state: {} };
             ret['state'][key] = value;
             return ret;
-        }
+        },
     },
     ZVG1_normal_schedule_timer: {
         key: ['normal_schedule_timer_1', 'normal_schedule_timer_2', 'normal_schedule_timer_3', 'normal_schedule_timer_4'],
@@ -4084,9 +4084,9 @@ const converters = {
                 }
             }
 
-            tarray = value.replace(/ /g, '').split('/');
+            const tarray = value.replace(/ /g, '').split('/');
             if (tarray.length < 2) {
-                throw Exception('Please check the format of the timer string');
+                throw new Error('Please check the format of the timer string');
             }
             if (tarray.length < 3) {
                 tarray.push('MoTuWeThFrSaSu');
@@ -4102,7 +4102,7 @@ const converters = {
             const active = parseInt(tarray[3]);
 
             if (!(active == 0 || active == 1)) {
-                throw Exception('Active value only 0 or 1 allowed')
+                throw new Error('Active value only 0 or 1 allowed');
             }
 
             data = data.concat(convertTimeTo2ByteHexArray(time));
@@ -4118,7 +4118,7 @@ const converters = {
             const ret = { state: {} };
             ret['state'][key] = value;
             return ret;
-        }  
+        },
     },
     EMIZB_132_mode: {
         key: ['interface_mode'],
