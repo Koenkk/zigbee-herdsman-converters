@@ -23,6 +23,7 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `supportsHueAndSaturation`: see toZigbee.light_color (default: false)
 - `timeout`: timeout for commands to this device used in toZigbee. (default: 10000)
 - `coverInverted`: Set to true for cover controls that report position=100 as open (default: false)
+- `coverStateFromTilt`: Set cover state based on tilt
 - `turnsOffAtBrightness1`: Indicates light turns off when brightness 1 is set (default: false)
 - `pinCodeCount`: Amount of pincodes the lock can handle
 - `disableActionGroup`: Prevents some converters adding the action_group to the payload (default: false)

@@ -1542,15 +1542,22 @@ const converters = {
             // For zigbee-herdsman-converters: open = 100, close = 0
             // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
             const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
-                result[postfixWithEndpointName('state', msg, model, meta)] =
-                    invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                if (!coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                }
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
+                if (coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                }
             }
             return result;
         },

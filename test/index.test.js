@@ -267,7 +267,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
