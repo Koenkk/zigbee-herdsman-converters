@@ -320,6 +320,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbE26WWglobeclear250lm'],
+        model: 'LED2008G3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E26 250 lumen, wireless dimmable warm white/globe clear',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRIbulbG125E27WSopal470lm', 'TRADFRIbulbG125E26WSopal450lm'],
         model: 'LED1936G5',
         vendor: 'IKEA',
