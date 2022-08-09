@@ -914,6 +914,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_nkkl7uzv'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'}],
         model: 'TS0207_repeater',
         vendor: 'TuYa',
