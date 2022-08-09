@@ -402,7 +402,7 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['GL-S-007P'],
+        zigbeeModel: ['GL-S-007P', 'GL-S-006P'],
         model: 'GL-S-007P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
