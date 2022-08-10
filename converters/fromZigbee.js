@@ -1556,7 +1556,7 @@ const converters = {
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
                 if (coverStateFromTilt) {
                     result[postfixWithEndpointName('state', msg, model, meta)] =
-                        invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                        invert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
                 }
             }
             return result;
