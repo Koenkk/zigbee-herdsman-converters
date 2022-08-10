@@ -1008,6 +1008,26 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.motion.acn001'],
+        model: 'RTCGQ15LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 human body movement and illuminance sensor',
+        fromZigbee: [fz.aqara_occupancy_illuminance, fz.aqara_opple, fz.battery],
+        toZigbee: [tz.aqara_detection_interval],
+        exposes: [e.occupancy(), e.illuminance_lux().withProperty('illuminance'),
+            e.illuminance().withUnit('lx').withDescription('Measured illuminance in lux'),
+            exposes.numeric('detection_interval', ea.ALL).withValueMin(2).withValueMax(65535).withUnit('s')
+                .withDescription('Time interval for detecting actions'),
+            e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
+        meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
+        },
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.motion.ac01'],
         model: 'RTCZCGQ11LM',
         vendor: 'Xiaomi',
