@@ -1325,7 +1325,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['LTP002'],
+        zigbeeModel: ['LTP002', '929003054901'],
         model: '4023330P7',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Amaze',
