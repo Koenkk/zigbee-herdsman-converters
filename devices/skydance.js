@@ -1,6 +1,7 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
+const extend = require('../lib/extend');
 const ea = exposes.access;
 
 module.exports = [
@@ -48,6 +49,14 @@ module.exports = [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
                 ea.STATE_SET).withColor(['hs']),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0503B', manufacturerName: '_TZB210_zdvrsts8'}],
+        model: 'WZ5_rgb_1',
+        vendor: 'TuYa',
+        description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
+        extend: extend.light_onoff_brightness_color({supportsHS: true, preferHS: true, disableEffect: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
     },
     {
         fingerprint: [
