@@ -106,7 +106,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'}
+            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
         ],
         model: 'QT06',
         vendor: 'GiEX',
