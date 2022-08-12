@@ -562,6 +562,14 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_zbabx9wh'}],
+        model: 'HG08007',
+        vendor: 'TuYa',
+        description: 'Livarno Home outdoor LED band',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
+    },
+    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_z1vlyufu'}],
         model: '14158704L',
         vendor: 'Lidl',
