@@ -397,7 +397,9 @@ const converters = {
     cover_state: {
         key: ['state'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+            const lookup = utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
+                {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'} : 
+                {'close': 'upOpen', 'open': 'downClose', 'stop': 'stop', 'off': 'upOpen', 'on': 'downClose'};
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
