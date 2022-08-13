@@ -8,6 +8,35 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    // SPLZB-134 reports strange values sometimes
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13329
+    SPLZB134_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                return fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    SPLZB134_device_temperature: {
+        ...fz.device_temperature,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentTemperature !== -0x8000) {
+                return fz.device_temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    SPLZB134_metering: {
+        ...fz.metering,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.instantaneousDemand !== -0x800000) {
+                return fz.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['SPLZB-131'],
@@ -65,7 +94,7 @@ module.exports = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        fromZigbee: [fz.on_off, fzLocal.SPLZB134_electrical_measurement, fzLocal.SPLZB134_metering, fzLocal.SPLZB134_device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
