@@ -2479,7 +2479,12 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['manual', 'program']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
-            exposes.text('schedule', ea.STATE_SET), e.child_lock(), e.week(),
+            exposes.text('schedule', ea.STATE_SET).withDescription('There are 8 periods in the schedule in total. ' +
+                '6 for workdays and 2 for holidays. It should be set in the following format for each of the periods: ' +
+                '`hours:minutes/temperature`. All periods should be set at once and delimited by the space symbol. ' +
+                'For example: `06:00/20.5 08:00/15 11:30/15 13:30/15 17:00/22 22:00/15 06:00/20 22:00/15`. ' +
+                'The thermostat doesn\'t report the schedule by itself even if you change it manually from device'),
+            e.child_lock(), e.week(),
             exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
                 .withDescription('Screen brightness'),
             exposes.binary('sound', ea.STATE_SET, 'ON', 'OFF')
