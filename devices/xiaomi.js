@@ -312,6 +312,7 @@ module.exports = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b2laus01'],
@@ -332,6 +333,7 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b1naus01'],
@@ -344,6 +346,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b2naus01'],
@@ -364,6 +367,7 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint2);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n2acn1'],
@@ -737,6 +741,7 @@ module.exports = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
         onEvent: preventReset,
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b1nacn02'],
@@ -761,6 +766,7 @@ module.exports = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.b2nacn02'],
@@ -1392,6 +1398,7 @@ module.exports = [
         fromZigbee: [fz.DJT12LM_vibration],
         exposes: [e.action(['vibration'])],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.curtain'],
@@ -1681,6 +1688,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart RGBW light controller',
         extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true}),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.cbacn1'],
@@ -1688,6 +1696,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
         extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n0agl1'],
@@ -1811,6 +1820,7 @@ module.exports = [
             // await reporting.onOff(device.getEndpoint(2)); ToDo: Currently fails
             // await reporting.onOff(device.getEndpoint(3)); ToDo: Currently fails
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.b28ac1'],
