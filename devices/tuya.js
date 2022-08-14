@@ -2810,7 +2810,7 @@ module.exports = [
                 .withFeature(exposes.binary('over_leakage_current_trip', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(exposes.binary('over_leakage_current_alarm', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(exposes.binary('self_test', ea.STATE_SET, 'test', 'clear')),*/
-            exposes.enum('clear_device_data', ea.SET, ['clear']),
+            exposes.enum('clear_device_data', ea.SET, ['']),
         ],
     },
     {
@@ -3027,7 +3027,7 @@ module.exports = [
                 .withDescription('Favorite position of this cover'),
             exposes.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
             exposes.text('motor_type', ea.STATE),
-            exposes.enum('report', ea.SET, ['REPORT']),
+            exposes.enum('report', ea.SET, ['']),
         ],
     },
     {

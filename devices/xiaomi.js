@@ -1045,7 +1045,7 @@ module.exports = [
                 'sensor detects approaching'),
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
-            exposes.enum('reset_nopresence_status', ea.SET, ['Reset']).withDescription('Reset the status of no presence'),
+            exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
             e.device_temperature(), e.power_outage_count()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1304,10 +1304,10 @@ module.exports = [
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
-            exposes.enum('selftest', ea.SET, ['Test']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('mute_buzzer', ea.SET, ['Mute']).withDescription('Mute the buzzer for 10 minutes (buzzer cannot be ' +
+            exposes.enum('mute_buzzer', ea.SET, ['']).withDescription('Mute the buzzer for 10 minutes (buzzer cannot be ' +
                 'pre-muted, because this function only works when the alarm is triggered)'),
             exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas leak ' +
@@ -1338,10 +1338,10 @@ module.exports = [
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             exposes.numeric('smoke_density_dbm', ea.STATE).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
-            exposes.enum('selftest', ea.SET, ['Test']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('mute_buzzer', ea.SET, ['Mute']).withDescription('Mute the buzzer for 80 seconds (buzzer cannot be ' +
+            exposes.enum('mute_buzzer', ea.SET, ['']).withDescription('Mute the buzzer for 80 seconds (buzzer cannot be ' +
                 'pre-muted, because this function only works when the alarm is triggered)'),
             exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
             exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
@@ -1771,37 +1771,37 @@ module.exports = [
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'),
             e.switch().withEndpoint('right'),
-            exposes.binary('standby_enabled', ea.SET, true, false).withDescription('Enable standby'),
-            exposes.enum('theme', ea.SET, ['classic', 'concise']).withDescription('Display theme'),
-            exposes.enum('beep_volume', ea.SET, ['mute', 'low', 'medium', 'high']).withDescription('Beep volume'),
-            exposes.numeric('lcd_brightness', ea.SET).withValueMin(1).withValueMax(100).withUnit('%')
+            exposes.binary('standby_enabled', ea.STATE_SET, true, false).withDescription('Enable standby'),
+            exposes.enum('theme', ea.STATE_SET, ['classic', 'concise']).withDescription('Display theme'),
+            exposes.enum('beep_volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high']).withDescription('Beep volume'),
+            exposes.numeric('lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
                 .withDescription('LCD brightness (will not persist if auto-brightness is enabled)'),
-            exposes.enum('language', ea.SET, ['chinese', 'english']).withDescription('Interface language'),
-            exposes.enum('screen_saver_style', ea.SET, ['classic', 'analog clock']).withDescription('Screen saver style'),
-            exposes.numeric('standby_time', ea.SET).withValueMin(0).withValueMax(65534).withUnit('s')
+            exposes.enum('language', ea.STATE_SET, ['chinese', 'english']).withDescription('Interface language'),
+            exposes.enum('screen_saver_style', ea.STATE_SET, ['classic', 'analog clock']).withDescription('Screen saver style'),
+            exposes.numeric('standby_time', ea.STATE_SET).withValueMin(0).withValueMax(65534).withUnit('s')
                 .withDescription('Display standby time'),
-            exposes.enum('font_size', ea.SET, ['small', 'medium', 'large']).withDescription('Display font size'),
-            exposes.binary('lcd_auto_brightness_enabled', ea.SET, true, false).withDescription('Enable LCD auto brightness'),
-            exposes.enum('homepage', ea.SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
-            exposes.binary('screen_saver_enabled', ea.SET, true, false).withDescription('Enable screen saver'),
-            exposes.numeric('standby_lcd_brightness', ea.SET).withValueMin(1).withValueMax(100).withUnit('%')
+            exposes.enum('font_size', ea.STATE_SET, ['small', 'medium', 'large']).withDescription('Display font size'),
+            exposes.binary('lcd_auto_brightness_enabled', ea.STATE_SET, true, false).withDescription('Enable LCD auto brightness'),
+            exposes.enum('homepage', ea.STATE_SET, ['scene', 'feel', 'thermostat', 'switch']).withDescription('Default display homepage'),
+            exposes.binary('screen_saver_enabled', ea.STATE_SET, true, false).withDescription('Enable screen saver'),
+            exposes.numeric('standby_lcd_brightness', ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit('%')
                 .withDescription('Standby LCD brightness'),
-            exposes.enum('available_switches', ea.SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
+            exposes.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
                 .withDescription('Control which switches are available in the switches screen (none disables switches screen)'),
             exposes.composite('switch_1_text_icon', 'switch_1_text_icon').withDescription('Switch 1 text and icon')
-                .withFeature(exposes.enum('switch_1_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                .withFeature(exposes.enum('switch_1_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_1_text', ea.SET)
+                .withFeature(exposes.text('switch_1_text', ea.STATE_SET)
                     .withDescription('Text')),
             exposes.composite('switch_2_text_icon', 'switch_2_text_icon').withDescription('Switch 2 text and icon')
-                .withFeature(exposes.enum('switch_2_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                .withFeature(exposes.enum('switch_2_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_2_text', ea.SET)
+                .withFeature(exposes.text('switch_2_text', ea.STATE_SET)
                     .withDescription('Text')),
             exposes.composite('switch_3_text_icon', 'switch_3_text_icon').withDescription('Switch 3 text and icon')
-                .withFeature(exposes.enum('switch_3_icon', ea.SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
+                .withFeature(exposes.enum('switch_3_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
-                .withFeature(exposes.text('switch_3_text', ea.SET)
+                .withFeature(exposes.text('switch_3_text', ea.STATE_SET)
                     .withDescription('Text'))],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
