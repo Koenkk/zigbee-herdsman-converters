@@ -274,4 +274,25 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
         },
     },
+    {
+        zigbeeModel: ['ROB_200-035-0'],
+        model: 'ROB_200-035-0',
+        vendor: 'ROBB',
+        description: '1 Channel Switch with power monitoring',
+        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+        },
+    },
 ];
