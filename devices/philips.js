@@ -135,6 +135,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003045401'],
+        model: '929003045401',
+        vendor: 'Philips',
+        description: 'Hue Centura recessed spotlight white and color ambiance GU10 (black)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003045501_01', '929003045501_02', '929003045501_03'],
         model: '929003045501',
         vendor: 'Philips',
