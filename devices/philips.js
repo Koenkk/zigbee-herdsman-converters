@@ -2078,7 +2078,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['LCS001'],
+        zigbeeModel: ['LCS001', '1741830P7'],
         model: '1741830P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
