@@ -975,7 +975,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['3417831P6'],
+        zigbeeModel: ['3417831P6', '929003056101'],
         model: '3417831P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore spotlight with Bluetooth (1 spot)',
