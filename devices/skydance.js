@@ -101,7 +101,7 @@ module.exports = [
         model: 'WZ1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 2 channel LED controller',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
