@@ -2523,7 +2523,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0210', manufacturerName: '_TYZB01_3zv6oleo'},
             {modelID: 'TS0210', manufacturerName: '_TYZB01_j9xxahcl'},
-            {modelID: 'TS0210', manufacturerName: '_TYZB01_kulduhbj'}],
+            {modelID: 'TS0210', manufacturerName: '_TYZB01_kulduhbj'},
+            {modelID: 'TS0210', manufacturerName: '_TZ3000_bmfw9ykl'}],
         model: 'TS0210',
         vendor: 'TuYa',
         description: 'Vibration sensor',
