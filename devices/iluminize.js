@@ -169,7 +169,8 @@ module.exports = [
             .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
         exposes.numeric('action_group', ea.STATE),
         exposes.numeric('action_transition_time', ea.STATE),
-        exposes.numeric('action_step_size', ea.STATE)],
+        exposes.numeric('action_step_size', ea.STATE),
+        exposes.numeric('action_rate', ea.STATE)],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
