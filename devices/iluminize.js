@@ -166,7 +166,7 @@ module.exports = [
             .withFeature(exposes.numeric('x', ea.STATE))
             .withFeature(exposes.numeric('y', ea.STATE)),
         exposes.numeric('action_color_temperature', ea.STATE).withUnit('mired')
-        .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
+            .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
         exposes.numeric('action_group', ea.STATE),
         exposes.numeric('action_transition_time', ea.STATE),
         exposes.numeric('action_step_size', ea.STATE)],
