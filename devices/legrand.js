@@ -110,6 +110,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position()],
     },
