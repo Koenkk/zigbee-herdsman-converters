@@ -162,8 +162,8 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'hue_stop', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off']),
-        exposes.composite('action_color', 'action_color') * At the moment not shown in Frontend correctly
-           .withFeature(exposes.numeric('x', ea.STATE))     see: https://github.com/nurikk/zigbee2mqtt-frontend/issues/1535
+        exposes.composite('action_color', 'action_color')
+           .withFeature(exposes.numeric('x', ea.STATE))
            .withFeature(exposes.numeric('y', ea.STATE)),
         exposes.numeric('action_color_temperature', ea.STATE).withUnit('mired'),
         exposes.numeric('action_group', ea.STATE),
