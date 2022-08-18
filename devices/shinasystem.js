@@ -9,7 +9,12 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['CSM-300Z'],
+        fingerprint: [
+            {modelID: 'CSM-300Z', applicationVersion: 1},
+            {modelID: 'CSM-300Z', applicationVersion: 2},
+            {modelID: 'CSM-300Z', applicationVersion: 3},
+            {modelID: 'CSM-300Z', applicationVersion: 4},
+        ],
         model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
         description: 'SiHAS multipurpose sensor',
@@ -24,7 +29,27 @@ module.exports = [
             const payload = reporting.payload('presentValue', 1, 600, 0);
             await endpoint.configureReporting('genAnalogInput', payload);
         },
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
+    },
+    {
+        zigbeeModel: ['CSM-300Z'],
+        model: 'CSM-300ZB_V2',
+        vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
+        description: 'SiHAS multipurpose ToF sensor',
+        meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
+        fromZigbee: [fz.battery, fz.sihas_people_cnt],
+        toZigbee: [tz.sihas_set_people],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint);
+            const payload = reporting.payload('presentValue', 1, 600, 0);
+            await endpoint.configureReporting('genAnalogInput', payload);
+        },
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
