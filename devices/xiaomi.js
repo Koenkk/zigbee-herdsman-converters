@@ -101,6 +101,7 @@ module.exports = [
             e.light_brightness_colortemp([153, 370]).removeFeature('color_temp_startup').withEndpoint('l2'),
             exposes.enum('dimmer_mode', ea.ALL, ['rgbw', 'dual_ct'])
                 .withDescription('Switch between rgbw mode or dual color temperature mode')],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.light.aqcn02'],
