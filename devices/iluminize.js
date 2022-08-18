@@ -162,13 +162,17 @@ module.exports = [
         exposes: [e.battery(), e.action([
             'color_move', 'color_temperature_move', 'hue_move', 'hue_stop', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off']),
-        //    exposes.composite('action_color', 'action_color') * At the moment not shown in Frontend correctly
-        //       .withFeature(exposes.numeric('x', ea.STATE))     see: https://github.com/nurikk/zigbee2mqtt-frontend/issues/1535
-        //       .withFeature(exposes.numeric('y', ea.STATE)),
-        exposes.numeric('action_color_temperature', ea.STATE).withUnit('mired'),
-        exposes.numeric('action_group', ea.STATE),
+        exposes.composite('action_color', 'action_color')
+            .withFeature(exposes.numeric('x', ea.STATE))
+            .withFeature(exposes.numeric('y', ea.STATE))
+            .withDescription('Only shows the transmitted color in X7Y-Mode. Noch changes possible.'),
+        exposes.numeric('action_color_temperature', ea.STATE).withUnit('mired')
+            .withDescription('color temperature value. Fixed values for each key press: 145, 175, 222, 304, 480 mired'),
+        exposes.numeric('action_group', ea.STATE)
+            .withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
         exposes.numeric('action_transition_time', ea.STATE),
-        exposes.text('action_color', ea.STATE)],
+        exposes.numeric('action_step_size', ea.STATE),
+        exposes.numeric('action_rate', ea.STATE)],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
