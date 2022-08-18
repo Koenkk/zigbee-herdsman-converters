@@ -35,7 +35,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['CSM-300Z'],
-        model: 'CSM-300ZB V2',
+        model: 'CSM-300ZB_V2',
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS multipurpose ToF sensor',
