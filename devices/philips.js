@@ -967,6 +967,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['929003053001'],
+        model: '929003053001',
+        vendor: 'Philips',
+        description: 'Hue Sana wall light',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCE001'],
         model: '929002294101',
         vendor: 'Philips',
