@@ -475,7 +475,8 @@ module.exports = [
             options);
 
             // Device does not asks for the time with binding, we need to write time during configure
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
+            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
+                .getTimezoneOffset() * -1) * 60);
             const values = {time: time};
             endpoint.write('genTime', values);
 
