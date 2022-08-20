@@ -211,7 +211,7 @@ module.exports = [
         description: 'Smart remote controller',
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_day_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
