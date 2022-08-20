@@ -176,4 +176,16 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
     },
+	{
+		zigbeeModel: ['Z111PL0H-1JX'],
+		model: 'Z111PL0H-1JX',
+		vendor: 'SONOFF',
+		description: '13A Zigbee smart plug',
+		extend: extend.switch(),
+		fromZigbee: [fz.on_off_skip_duplicate_transaction],
+		configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+	},
 ];
