@@ -1674,7 +1674,7 @@ const converters = {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
-                return {state: {state_left: value.toUpperCase()}, readAfterWriteTime: 250};
+                return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'right') {
                 channel = 2.0;
                 await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level: oldstate, transtime: channel});
@@ -1683,21 +1683,21 @@ const converters = {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
-                return {state: {state_right: value.toUpperCase()}, readAfterWriteTime: 250};
+                return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'bottom_right') {
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomRight : payloadOffBottomRight,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
-                return {state: {state_bottom_right: value.toUpperCase()}, readAfterWriteTime: 250};
+                return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
             } else if (postfix === 'bottom_left') {
                 await entity.write('genPowerCfg', (state === 'on') ? payloadOnBottomLeft : payloadOffBottomLeft,
                     {
                         manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
                         reservedBits: 3, direction: 1, transactionSequenceNumber: 0xe9,
                     });
-                return {state: {state_bottom_left: value.toUpperCase()}, readAfterWriteTime: 250};
+                return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
             }
             return {state: {state: value.toUpperCase()}, readAfterWriteTime: 250};
         },
