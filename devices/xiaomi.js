@@ -1314,7 +1314,7 @@ module.exports = [
             exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+            exposes.enum('buzzer', ea.STATE_GET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
                 'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
                 'before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. ' +
                 'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
