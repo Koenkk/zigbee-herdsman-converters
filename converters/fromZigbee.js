@@ -395,8 +395,7 @@ const converters = {
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
+        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
@@ -5557,13 +5556,13 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+                result.push(exposes.options.calibration('illuminance', 'percentual'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
-                result.push(exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual'));
+                result.push(exposes.options.calibration('illuminance_lux', 'percentual'));
             }
             return result;
         },
@@ -5581,7 +5580,7 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             return result;
         },
@@ -5603,10 +5602,10 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+                result.push(exposes.options.calibration('illuminance', 'percentual'));
             }
             return result;
         },
@@ -5686,8 +5685,7 @@ const converters = {
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
+        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
@@ -5707,7 +5705,7 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true(),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+            exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
