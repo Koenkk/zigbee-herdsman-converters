@@ -2701,6 +2701,9 @@ const converters = {
             value = (value === 15361) ? 0 : 1;
             await entity.write('aqaraOpple', {0x0126: {value: [`${value}`], type: 0x20}}, manufacturerOptions.xiaomi);
         },
+    },
+    aqara_buzzer_manual: {
+        key: ['buzzer_manual_alarm', 'buzzer_manual_mute'],
         convertGet: async (entity, key, meta) => {
             if (key === 'buzzer_manual_mute') {
                 await entity.read('aqaraOpple', [0x0126], manufacturerOptions.xiaomi);
