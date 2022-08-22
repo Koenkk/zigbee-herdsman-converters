@@ -2693,7 +2693,7 @@ const converters = {
         },
     },
     aqara_buzzer: {
-        key: ['buzzer', 'buzzer_manual_alarm', 'buzzer_manual_mute'],
+        key: ['buzzer'],
         convertSet: async (entity, key, value, meta) => {
             const attribute = ['JY-GZ-01AQ'].includes(meta.mapped.model) ? 0x013e : 0x013f;
             value = (value.toLowerCase() === 'alarm') ? 15361 : 15360;
