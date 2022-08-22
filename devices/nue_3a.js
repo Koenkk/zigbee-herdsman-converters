@@ -235,7 +235,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {left: 12, right: 11};
+            return {left: 11, right: 12};
         },
     },
     {
