@@ -2669,7 +2669,7 @@ const converters = {
         },
     },
     aqara_density: {
-        key: ['gas_density', 'smoke_density'],
+        key: ['gas_density', 'smoke_density', 'smoke_density_dbm'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x013b], manufacturerOptions.xiaomi);
         },
@@ -2677,8 +2677,8 @@ const converters = {
     JTBZ01AQA_gas_sensitivity: {
         key: ['gas_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'15%lel': 1, '10%lel': 2};
+            value = value.toUpperCase();
+            const lookup = {'15%LEL': 1, '10%LEL': 2};
             await entity.write('aqaraOpple', {0x010c: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
             return {state: {gas_sensitivity: value}};
         },
@@ -2692,19 +2692,24 @@ const converters = {
             await entity.write('aqaraOpple', {0x0127: {value: true, type: 0x10}}, manufacturerOptions.xiaomi);
         },
     },
-    aqara_mute_buzzer: {
-        key: ['mute_buzzer'],
+    aqara_buzzer: {
+        key: ['buzzer'],
         convertSet: async (entity, key, value, meta) => {
-            let attribute = 0x013f;
-            if (['JY-GZ-01AQ'].includes(meta.mapped.model)) attribute = 0x013e;
-            await entity.write('aqaraOpple', {[`${attribute}`]: {value: 15360, type: 0x23}}, manufacturerOptions.xiaomi);
-            await entity.write('aqaraOpple', {0x0126: {value: 1, type: 0x20}}, manufacturerOptions.xiaomi);
+            const attribute = ['JY-GZ-01AQ'].includes(meta.mapped.model) ? 0x013e : 0x013f;
+            value = (value.toLowerCase() === 'alarm') ? 15361 : 15360;
+            await entity.write('aqaraOpple', {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.xiaomi);
+            value = (value === 15361) ? 0 : 1;
+            await entity.write('aqaraOpple', {0x0126: {value: [`${value}`], type: 0x20}}, manufacturerOptions.xiaomi);
         },
     },
-    aqara_mute: {
-        key: ['mute'],
+    aqara_buzzer_manual: {
+        key: ['buzzer_manual_alarm', 'buzzer_manual_mute'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x0126], manufacturerOptions.xiaomi);
+            if (key === 'buzzer_manual_mute') {
+                await entity.read('aqaraOpple', [0x0126], manufacturerOptions.xiaomi);
+            } else if (key === 'buzzer_manual_alarm') {
+                await entity.read('aqaraOpple', [0x013d], manufacturerOptions.xiaomi);
+            }
         },
     },
     JYGZ01AQ_heartbeat_indicator: {

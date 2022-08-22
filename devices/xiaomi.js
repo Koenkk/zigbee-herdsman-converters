@@ -1305,8 +1305,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart natural gas detector',
         fromZigbee: [fz.aqara_opple],
-        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.JTBZ01AQA_gas_sensitivity, tz.aqara_selftest, tz.aqara_mute_buzzer,
-            tz.aqara_mute, tz.aqara_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
+        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.JTBZ01AQA_gas_sensitivity, tz.aqara_selftest, tz.aqara_buzzer,
+            tz.aqara_buzzer_manual, tz.aqara_linkage_alarm, tz.JTBZ01AQA_state, tz.aqara_power_outage_count],
         exposes: [e.gas().withAccess(ea.STATE_GET),
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
@@ -1314,11 +1314,16 @@ module.exports = [
             exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('mute_buzzer', ea.SET, ['']).withDescription('Mute the buzzer for 10 minutes (buzzer cannot be ' +
-                'pre-muted, because this function only works when the alarm is triggered)'),
-            exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
-            exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas leak ' +
-                'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
+            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+                'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
+                'before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. ' +
+                'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
+            exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
+            exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
+            exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas ' +
+                'alarm has occurred, then "linkage_alarm_state"=true, and when the gas alarm has ended or the buzzer has ' +
+                'been manually muted, then "linkage_alarm_state"=false'),
+            exposes.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
             exposes.binary('state', ea.STATE_GET, 'preparation', 'work').withDescription('"Preparation" or "work" ' +
                 '(measurement of the gas concentration value and triggering of an alarm are only performed in the "work" state)'),
             e.power_outage_count().withAccess(ea.STATE_GET)],
@@ -1326,6 +1331,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0139], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
@@ -1340,21 +1346,26 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart smoke detector',
         fromZigbee: [fz.aqara_opple, fz.battery],
-        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.aqara_selftest, tz.aqara_mute_buzzer, tz.aqara_mute,
+        toZigbee: [tz.aqara_alarm, tz.aqara_density, tz.aqara_selftest, tz.aqara_buzzer, tz.aqara_buzzer_manual,
             tz.JYGZ01AQ_heartbeat_indicator, tz.aqara_linkage_alarm],
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
-            exposes.numeric('smoke_density_dbm', ea.STATE).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
+            exposes.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
             exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('mute_buzzer', ea.SET, ['']).withDescription('Mute the buzzer for 80 seconds (buzzer cannot be ' +
-                'pre-muted, because this function only works when the alarm is triggered)'),
-            exposes.binary('mute', ea.STATE_GET, true, false).withDescription('Buzzer muted'),
+            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+                'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("mute") and unmuted ("alarm"). ' +
+                'The buzzer cannot be pre-muted, as this function only works during a smoke alarm. ' +
+                'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
+            exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
+            exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
             exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
                 'the normal monitoring state, the green indicator light flashes every 60 seconds'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a smoke ' +
-                'is detected, other detectors with this option enabled will also sound the alarm buzzer'),
+                'alarm has occurred, then "linkage_alarm_state"=true, and when the smoke alarm has ended or the buzzer has ' +
+                'been manually muted, then "linkage_alarm_state"=false'),
+            exposes.binary('linkage_alarm_state', ea.STATE, true, false).withDescription('"linkage_alarm" is triggered'),
             e.battery(), e.battery_voltage(), e.power_outage_count(false)],
         meta: {battery: {voltageToPercentage: '3V_2850_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1363,6 +1374,7 @@ module.exports = [
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013c], {manufacturerCode: 0x115f});
+            await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x0126], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x014b], {manufacturerCode: 0x115f});
         },
