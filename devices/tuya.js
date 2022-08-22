@@ -271,6 +271,13 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    metering_skip_duplicate: {
+        ...fz.metering,
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            return fz.metering.convert(model, msg, publish, options, meta);
+        },
+    },
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -1928,8 +1935,8 @@ module.exports = [
             {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'},
             {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
-            fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
+            fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1982,8 +1989,8 @@ module.exports = [
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
             {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
-            fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
+            fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
