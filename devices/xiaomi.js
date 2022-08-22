@@ -1314,10 +1314,10 @@ module.exports = [
             exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('buzzer', ea.SET, ['Mute', 'Alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
-                'During a gas alarm, the buzzer can be manually muted for 10 minutes ("Mute"), but cannot be unmuted manually ' +
+            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+                'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
                 'before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. ' +
-                'During the absence of a gas alarm, the buzzer can be manually alarmed ("Alarm") and disalarmed ("Mute")'),
+                'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
             exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
             exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas ' +
@@ -1354,10 +1354,10 @@ module.exports = [
             exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
-            exposes.enum('buzzer', ea.SET, ['Mute', 'Alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
-                'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("Mute") and unmuted ("Alarm"). ' +
+            exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
+                'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("mute") and unmuted ("alarm"). ' +
                 'The buzzer cannot be pre-muted, as this function only works during a smoke alarm. ' +
-                'During the absence of a smoke alarm, the buzzer can be manually alarmed ("Alarm") and disalarmed ("Mute")'),
+                'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
             exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
             exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
             exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
