@@ -401,7 +401,7 @@ module.exports = [
         toZigbee: [tz.occupancy_timeout],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msOccupancySensing', ];
+            const binds = ['genPowerCfg', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
