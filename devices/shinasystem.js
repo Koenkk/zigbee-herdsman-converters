@@ -52,7 +52,7 @@ module.exports = [
         },
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count')],
     },
     {
         zigbeeModel: ['USM-300Z'],
