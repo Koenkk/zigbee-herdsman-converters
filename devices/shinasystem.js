@@ -395,7 +395,7 @@ module.exports = [
         model: 'DMS-300ZB',
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
-        description: 'SiHAS Dual Motion Sensor',
+        description: 'SiHAS dual motion sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout],
         toZigbee: [tz.occupancy_timeout],
