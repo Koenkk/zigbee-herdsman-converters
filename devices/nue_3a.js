@@ -360,7 +360,7 @@ module.exports = [
                 {ID: 2, profileID: 49246, deviceID: 0, inputClusters: [0, 4, 3, 6, 5, 4096, 8], outputClusters: [0]},
             ]},
         ],
-        model: 'NUE-AUWZO2',
+        model: ['NUE-AUWZO2', 'LXN56-TS27LX1.2'],
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee double power point',
         extend: extend.switch(),
