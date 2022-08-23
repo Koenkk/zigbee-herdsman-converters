@@ -410,4 +410,25 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
     },
+    {
+        zigbeeModel: ['ISM300Z3'],
+        model: 'ISM300Z3',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS IOT smart inner switch 3 gang',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+            await reporting.onOff(device.getEndpoint(3));
+        },
+    },
 ];
