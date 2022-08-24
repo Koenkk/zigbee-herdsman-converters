@@ -23,18 +23,6 @@ const energyMode = {
     'powerfull': 2,
 };
 
-const fzLocal = {
-    report: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            const result = {};
-            console.log(JSON.stringify({data: msg.data}));
-            return result;
-        },
-    },
-};
-
 const tzLocal = {
     quiet_fan: {
         key: ['quiet_fan'],
@@ -99,7 +87,6 @@ module.exports = [{
     fromZigbee: [
         fz.thermostat,
         fz.fan,
-        fzLocal.report,
     ],
     toZigbee: [
         tzLocal.quiet_fan,
