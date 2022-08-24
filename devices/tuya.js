@@ -2975,7 +2975,7 @@ module.exports = [
         fromZigbee: [fz.ZG204ZL_lms],
         toZigbee: [tz.ZG204ZL_lms],
         exposes: [
-            e.occupancy(), e.illuminance(), e.battery(),
+            e.occupancy(), e.illuminance_lux(), e.battery(),
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high'])
                 .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
             exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120'])
