@@ -15,11 +15,10 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('occupancy')) {
-                const payload = {occupancy_in: (msg.data.occupancy % 2) > 0};
-                utils.noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
-                return payload;
-            }
+            const occupancy = msg.data.occupancy;
+            return {
+                occupancy_in: (occupancy & 1) > 0
+            };
         },
     },
     DMS300_OUT: {
@@ -443,7 +442,7 @@ module.exports = [
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
             exposes.binary('occupancy_out', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
         zigbeeModel: ['ISM300Z3'],
