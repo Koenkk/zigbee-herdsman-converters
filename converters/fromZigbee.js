@@ -8641,29 +8641,27 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case tuya.dataPoints.HPSZInductionState:
-                    const lookup = {0: 'false', 1: 'true'};
-                    return {presence: lookup[value]};    
-                    break;
-                case tuya.dataPoints.HPSZPresenceTime:
-                    result.duration_of_attendance = value;
-                    break;
-                case tuya.dataPoints.HPSZLeavingTime:
-                    result.duration_of_absence = value;
-                    break;
-                case tuya.dataPoints.HPSZLEDState:
-                    result.state = value;
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
+            const dpValue = tuya.firstDpValue(msg, meta, 'hpsz');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.HPSZInductionState:
+                result = {presence: {0: 'false', 1: 'true'}[value]};    
+                break;
+            case tuya.dataPoints.HPSZPresenceTime:
+                result = {duration_of_attendance: value};
+                break;
+            case tuya.dataPoints.HPSZLeavingTime:
+                result = {duration_of_absence: value};
+                break;
+            case tuya.dataPoints.HPSZLEDState:
+                result = {state: value};
+                break;
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
                         dp} with data ${JSON.stringify(dpValue)}`);
                 }
-            }
             return result;
         },
     },
