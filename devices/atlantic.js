@@ -69,6 +69,14 @@ const tzLocal = {
             return {state: {energy_mode: value}};
         },
     },
+    thermostat_programming_operation_mode: {
+        key: ['programming_operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await tz.thermostat_programming_operation_mode.convertSet(entity, key, value, meta);
+            return {state: {programingOperMode: value}};
+        },
+        convertGet: tz.thermostat_programming_operation_mode.convertGet,
+    },
 };
 
 module.exports = [{
@@ -84,12 +92,12 @@ module.exports = [{
         tzLocal.quiet_fan,
         tzLocal.ac_louver_position,
         tzLocal.energy_mode,
+        tzLocal.thermostat_programming_operation_mode,
         tz.thermostat_local_temperature,
         tz.fan_mode,
         tz.thermostat_occupied_heating_setpoint,
         tz.thermostat_occupied_cooling_setpoint,
         tz.thermostat_system_mode,
-        tz.thermostat_programming_operation_mode,
         tz.thermostat_weekly_schedule,
     ],
     exposes: [
