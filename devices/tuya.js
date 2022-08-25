@@ -3088,6 +3088,6 @@ module.exports = [
                 .withDescription('Shows the duration of the absence in minutes'),
             exposes.enum('led_state', ea.STATE_SET, ['on', 'off'])
                 .withDescription('Turns the onboard LED on or off'),
-        ], 
+        ],
     },
 ];
