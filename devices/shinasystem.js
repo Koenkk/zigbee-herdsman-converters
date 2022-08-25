@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ota = require('../lib/ota');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -13,10 +14,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            const occupancy_in = msg.data.occupancy;
-            const occupancy = msg.data.occupancy || model.meta.occupancy_out;
+            const occupancyIn = msg.data.occupancy;
+            globalStore.putValue(msg.endpoint, 'occupancyIn', occupancyIn);
+			const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancyOut', 0);
             return {
-                occupancy_in: (occupancy_in & 1) > 0,
+                occupancyIn: (occupancyIn & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
             };
         },
@@ -26,9 +28,10 @@ const fzLocal = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            const occupancy = msg.data.zonestatus || model.meta.occupancy_in;
+            globalStore.putValue(msg.endpoint, 'zoneStatus', zoneStatus);
+            const occupancy = zoneStatus | globalStore.getValue(msg.endpoint, 'occupancyIn', 0);
             return {
-                occupancy_out: (zoneStatus & 1) > 0,
+                occupancyOut: (zoneStatus & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
             };
         },
@@ -440,9 +443,9 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.binary('occupancy_in', ea.STATE, true, false)
+            exposes.binary('occupancyIn', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy_out', ea.STATE, true, false)
+            exposes.binary('occupancyOut', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
             exposes.binary('occupancy', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
