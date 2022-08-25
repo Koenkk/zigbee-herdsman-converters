@@ -14,9 +14,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            const occupancy = msg.data.occupancy;
+            const occupancy_in = msg.data.occupancy;
+			const occupancy = msg.data.occupancy || model.meta.occupancy_out;
             return {
-                occupancy_in: (occupancy & 1) > 0,
+                occupancy_in: (occupancy_in & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
             };
         },
     },
@@ -25,8 +27,10 @@ const fzLocal = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
+			const occupancy = msg.data.zonestatus || model.meta.occupancy_out;
             return {
                 occupancy_out: (zoneStatus & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
             };
         },
     },
@@ -441,6 +445,8 @@ module.exports = [
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
             exposes.binary('occupancy_out', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
