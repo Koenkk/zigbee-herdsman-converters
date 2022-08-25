@@ -27,11 +27,11 @@ const fzLocal = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            globalStore.putValue(msg.endpoint, 'zoneStatus', zoneStatus);
-            const occupancy = zoneStatus | globalStore.getValue(msg.endpoint, 'occupancyIn', 0);
+            const occupancyOut = msg.data.zonestatus;
+            globalStore.putValue(msg.endpoint, 'occupancyOut', occupancyOut);
+            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancyIn', 0);
             return {
-                occupancyOut: (zoneStatus & 1) > 0,
+                occupancyOut: (occupancyOut & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
             };
         },
