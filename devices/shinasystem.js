@@ -9,13 +9,12 @@ const ea = exposes.access;
 
 const fzLocal = {
     DMS300_IN: {
-        // This is for occupancy sensor that send motion start AND stop messages
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
             const occupancy_in = msg.data.occupancy;
-			const occupancy = msg.data.occupancy || model.meta.occupancy_out;
+            const occupancy = msg.data.occupancy || model.meta.occupancy_out;
             return {
                 occupancy_in: (occupancy_in & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
@@ -27,7 +26,7 @@ const fzLocal = {
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-			const occupancy = msg.data.zonestatus || model.meta.occupancy_out;
+            const occupancy = msg.data.zonestatus || model.meta.occupancy_in;
             return {
                 occupancy_out: (zoneStatus & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
