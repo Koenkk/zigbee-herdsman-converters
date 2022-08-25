@@ -439,8 +439,10 @@ module.exports = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
         exposes: [e.battery(), e.battery_voltage(),
-            exposes.binary('occupancy_in', ea.STATE, true, false).withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy_out', ea.STATE, true, false).withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_in', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_out', ea.STATE, true, false)
+                .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
     },
     {
