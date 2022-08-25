@@ -62,7 +62,7 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
                 break;
             case energyMode.powerful:
-                await entity.write('hvacThermostat', {'programingOperMode': 0});
+                await entity.write('hvacThermostat', {'programingOperMode': 0}, {manufacturerCode: 0x125b});
                 await entity.write('hvacThermostat', {0x4270: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
                 break;
             }
