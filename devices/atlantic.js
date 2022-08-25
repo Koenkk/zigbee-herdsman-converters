@@ -27,8 +27,7 @@ const tzLocal = {
         key: ['quiet_fan'],
         convertSet: async (entity, key, value, meta) => {
             assert(typeof value === 'boolean');
-            // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}});
+            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
             return {state: {quiet_fan: value}};
         },
     },
@@ -40,12 +39,12 @@ const tzLocal = {
             const index = thermostatPositions[value];
             if (index === 5) {
                 // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4274: {value: 1, type: 0x10}});
+                await entity.write('hvacFanCtrl', {0x4274: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
             } else {
                 // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4274: {value: 0, type: 0x10}});
+                await entity.write('hvacFanCtrl', {0x4274: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
                 // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4273: {value: index, type: 0x04}});
+                await entity.write('hvacFanCtrl', {0x4273: {value: index, type: 0x04}}, {manufacturerCode: 0x125b});
             }
             return {state: {ac_louver_position: value}};
         },
@@ -59,18 +58,15 @@ const tzLocal = {
             switch (index) {
             case energyMode.eco:
                 await entity.write('hvacThermostat', {'programingOperMode': 4});
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}});
+                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
                 break;
             case energyMode.normal:
                 await entity.write('hvacThermostat', {'programingOperMode': 0});
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}});
+                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
                 break;
             case energyMode.powerful:
                 await entity.write('hvacThermostat', {'programingOperMode': 0});
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacThermostat', {0x4270: {value: 1, type: 0x10}});
+                await entity.write('hvacThermostat', {0x4270: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
                 break;
             }
             return {state: {energy_mode: value}};
