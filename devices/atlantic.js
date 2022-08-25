@@ -28,7 +28,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             assert(typeof value === 'boolean');
             // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-            await entity.write('hvacFanCtrl', {0x1000: {value: 1, type: 0x10}});
+            await entity.write('hvacFanCtrl', {0x1000: {value: value ? 1 : 0, type: 0x10}});
             return {state: {quiet_fan: value}};
         },
     },
