@@ -54,8 +54,8 @@ const tzLocal = {
             const index = energyMode[value];
             switch (index) {
             case energyMode.eco:
-                await entity.write('hvacThermostat', {'programingOperMode': 4});
                 await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
+                await entity.write('hvacThermostat', {'programingOperMode': 4});
                 break;
             case energyMode.normal:
                 await entity.write('hvacThermostat', {'programingOperMode': 0});
