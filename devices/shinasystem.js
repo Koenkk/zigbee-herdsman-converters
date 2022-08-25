@@ -4,7 +4,6 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ota = require('../lib/ota');
-const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -17,7 +16,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancy = msg.data.occupancy;
             return {
-                occupancy_in: (occupancy & 1) > 0
+                occupancy_in: (occupancy & 1) > 0,
             };
         },
     },
