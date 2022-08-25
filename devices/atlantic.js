@@ -19,7 +19,7 @@ const thermostatPositions = {
 const energyMode = {
     'eco': 0,
     'normal': 1,
-    'powerfull': 2,
+    'powerful': 2,
 };
 
 const tzLocal = {
@@ -67,7 +67,7 @@ const tzLocal = {
                 // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
                 await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}});
                 break;
-            case energyMode.powerfull:
+            case energyMode.powerful:
                 await entity.write('hvacThermostat', {'programingOperMode': 0});
                 // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
                 await entity.write('hvacThermostat', {0x4270: {value: 1, type: 0x10}});
