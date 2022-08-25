@@ -16,7 +16,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyIn = msg.data.occupancy;
             globalStore.putValue(msg.endpoint, 'occupancyIn', occupancyIn);
-			const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancyOut', 0);
+            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancyOut', 0);
             return {
                 occupancyIn: (occupancyIn & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
