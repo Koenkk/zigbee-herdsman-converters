@@ -37,7 +37,7 @@ const tzLocal = {
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value];
-            if (index === 5) {
+            if (index === thermostatPositions.swing) {
                 await entity.write('hvacThermostat', {0x4274: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
             } else {
                 await entity.write('hvacThermostat', {0x4274: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
