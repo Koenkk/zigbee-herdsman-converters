@@ -3073,4 +3073,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'}],
+        model: 'Human presence sensor zigbee',
+        vendor: 'TuYa',
+        description: 'Human presence sensor Zigbee',
+        fromZigbee: [fz.hpsz],
+        toZigbee: [tz.hpsz],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [e.presence(),
+            exposes.numeric('duration_of_attendance', ea.STATE).withUnit('minutes')
+                .withDescription('Shows the presence duration in minutes'),
+            exposes.numeric('duration_of_absence', ea.STATE).withUnit('minutes')
+                .withDescription('Shows the duration of the absence in minutes'),
+            exposes.enum('led_state', ea.STATE_SET, ['on', 'off'])
+                .withDescription('Turns the onboard LED on or off'),
+        ], 
+    },
 ];
