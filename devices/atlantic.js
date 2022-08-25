@@ -23,6 +23,14 @@ const energyMode = {
 };
 
 const tzLocal = {
+    presence_detection: {
+        key: ['presence_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            assert(typeof value === 'boolean');
+            await entity.write('hvacThermostat', {0x4275: {value: value ? 1 : 0, type: 0x30}}, {manufacturerCode: 0x125b});
+            return {state: {presence_detection: value}};
+        },
+    },
     quiet_fan: {
         key: ['quiet_fan'],
         convertSet: async (entity, key, value, meta) => {
@@ -91,6 +99,7 @@ module.exports = [{
     toZigbee: [
         tzLocal.ac_louver_position,
         tzLocal.energy_mode,
+        tzLocal.presence_detection,
         tzLocal.quiet_fan,
         tzLocal.thermostat_programming_operation_mode,
         tz.fan_mode,
@@ -112,6 +121,8 @@ module.exports = [{
         exposes.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
             .withDescription('Ac louver position of this device'),
         exposes.enum('energy_mode', ea.STATE_SET, Object.keys(energyMode)),
+        exposes.binary('presence_detection', ea.STATE_SET, true, false)
+            .withDescription('Turn to eco if the room is unoccupied. (for compatible device)'),
     ],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint1 = device.getEndpoint(1);
