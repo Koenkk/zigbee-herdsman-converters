@@ -8647,7 +8647,7 @@ const converters = {
             let result = null;
             switch (dp) {
             case tuya.dataPoints.HPSZInductionState:
-                result = {presence: {0: 'false', 1: 'true'}[value]};    
+                result = {presence: {0: 'false', 1: 'true'}[value]};
                 break;
             case tuya.dataPoints.HPSZPresenceTime:
                 result = {duration_of_attendance: value};
@@ -8660,8 +8660,8 @@ const converters = {
                 break;
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
-                        dp} with data ${JSON.stringify(dpValue)}`);
-                }
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
             return result;
         },
     },
