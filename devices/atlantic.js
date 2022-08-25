@@ -38,13 +38,10 @@ const tzLocal = {
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value];
             if (index === 5) {
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4274: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
+                await entity.write('hvacThermostat', {0x4274: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
             } else {
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4274: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
-                // todo: failed (Status 'UNSUPPORTED_ATTRIBUTE')
-                await entity.write('hvacFanCtrl', {0x4273: {value: index, type: 0x04}}, {manufacturerCode: 0x125b});
+                await entity.write('hvacThermostat', {0x4274: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
+                await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x04}}, {manufacturerCode: 0x125b});
             }
             return {state: {ac_louver_position: value}};
         },
