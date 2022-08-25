@@ -9,7 +9,6 @@ const ea = exposes.access;
 
 
 const thermostatPositions = {
-    'barley_closed': 0,
     'quarter_open': 1,
     'half_open': 2,
     'three_quarters_open': 3,
