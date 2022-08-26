@@ -14,11 +14,11 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
-            const occupancy_in = msg.data.occupancy;
-            globalStore.putValue(msg.endpoint, 'occupancy_in', occupancy_in);
-            const occupancy = occupancy_in | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyIn = msg.data.occupancy;
+            globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
+            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
             return {
-                occupancy_in: (occupancy_in & 1) > 0,
+                occupancy_in: (occupancyIn & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
             };
         },
@@ -27,11 +27,11 @@ const fzLocal = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            const occupancy_out = msg.data.zonestatus;
-            globalStore.putValue(msg.endpoint, 'occupancy_out', occupancy_out);
-            const occupancy = occupancy_out | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyOut = msg.data.zonestatus;
+            globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
+            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
             return {
-                occupancy_out: (occupancy_out & 1) > 0,
+                occupancy_out: (occupancyOut & 1) > 0,
                 occupancy: (occupancy & 1) > 0,
             };
         },
