@@ -2741,4 +2741,11 @@ module.exports = [
         description: 'Hue White E26 806 lumen',
         extend: hueExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['3402931P7'],
+        model: '3402931P7',
+        vendor: 'Philips',
+        description: 'Philips Hue Adore Bathroom Mirror Light',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
