@@ -1,4 +1,4 @@
-const extend = require('zigbee-herdsman-converters/lib/extend');
+const extend = require('../lib/extend');
 
 const definition = {
     zigbeeModel: ['TS0505B'],
