@@ -9,3 +9,4 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];
+
