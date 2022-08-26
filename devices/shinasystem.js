@@ -4,8 +4,40 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ota = require('../lib/ota');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    DMS300_IN: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.no_occupancy_since_false()],
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyIn = msg.data.occupancy;
+            globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
+            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            return {
+                occupancy_in: (occupancyIn & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
+            };
+        },
+    },
+    DMS300_OUT: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyOut = msg.data.zonestatus;
+            globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
+            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            return {
+                occupancy_out: (occupancyOut & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
+            };
+        },
+    },
+};
+
 
 module.exports = [
     {
@@ -397,18 +429,27 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'SiHAS dual motion sensor',
         meta: {battery: {voltageToPercentage: '3V_2100'}},
-        fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fzLocal.DMS300_OUT, fzLocal.DMS300_IN, fz.occupancy_timeout],
         toZigbee: [tz.occupancy_timeout],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genPowerCfg', 'msOccupancySensing'];
+            const binds = ['genPowerCfg', 'msOccupancySensing', 'ssIasZone'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
+            const payload = [{
+                attribute: 'zoneStatus', minimumReportInterval: 1, maximumReportInterval: 600, reportableChange: 1}];
+            await endpoint.configureReporting('ssIasZone', payload);
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
         },
-        exposes: [e.battery(), e.battery_voltage(), e.occupancy(),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.binary('occupancy_in', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_out', ea.STATE, true, false)
+                .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
         zigbeeModel: ['ISM300Z3'],
