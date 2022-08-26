@@ -23,6 +23,18 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla'];
 
 const tzLocal = {
+    hpsz: {
+        key: ['led_state'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'led_state': {
+                const ledState = value.toUpperCase() === 'ON' ? true : false;
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
+                return {led_state: value};
+            }
+            }
+        },
+    },
     TS0504B_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
@@ -271,6 +283,34 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    hpsz: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'hpsz');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let result = null;
+            switch (dp) {
+            case tuya.dataPoints.HPSZInductionState:
+                result = {presence: value === 1};
+                break;
+            case tuya.dataPoints.HPSZPresenceTime:
+                result = {duration_of_attendance: value};
+                break;
+            case tuya.dataPoints.HPSZLeavingTime:
+                result = {duration_of_absence: value};
+                break;
+            case tuya.dataPoints.HPSZLEDState:
+                result = {state: value};
+                break;
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            return result;
+        },
+    },
     metering_skip_duplicate: {
         ...fz.metering,
         convert: (model, msg, publish, options, meta) => {
@@ -3080,5 +3120,22 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'}],
+        model: 'TS0601_human_presence_sensor',
+        vendor: 'TuYa',
+        description: 'Human presence sensor Zigbee',
+        fromZigbee: [fzLocal.hpsz],
+        toZigbee: [tzLocal.hpsz],
+        onEvent: tuya.onEventSetLocalTime,
+        exposes: [e.presence(),
+            exposes.numeric('duration_of_attendance', ea.STATE).withUnit('minutes')
+                .withDescription('Shows the presence duration in minutes'),
+            exposes.numeric('duration_of_absence', ea.STATE).withUnit('minutes')
+                .withDescription('Shows the duration of the absence in minutes'),
+            exposes.enum('led_state', ea.STATE_SET, ['on', 'off'])
+                .withDescription('Turns the onboard LED on or off'),
+        ],
     },
 ];
