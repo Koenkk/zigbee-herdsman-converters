@@ -7298,18 +7298,6 @@ const converters = {
             }
         },
     },
-    hpsz: {
-        key: ['led_state'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'led_state': {
-                const ledState = value.toUpperCase() === 'ON' ? true : false;
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
-                return {led_state: value};
-            }
-            }
-        },
-    },
     // #endregion
 
     // #region Ignore converters
