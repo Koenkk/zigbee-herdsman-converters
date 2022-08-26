@@ -3825,7 +3825,7 @@ const converters = {
             // upscale to 1000
             let newValue;
             let dp = tuya.dataPoints.dimmerLevel;
-            if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
+            if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i'].includes(meta.device.manufacturerName)) {
                 dp = tuya.dataPoints.eardaDimmerLevel;
             }
             if (key === 'brightness_min') {
