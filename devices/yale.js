@@ -129,7 +129,7 @@ module.exports = [
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend({}, {max: 900}, ['closuresDoorLock']),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock']),
     },
     {
         zigbeeModel: ['06ffff2027'],
