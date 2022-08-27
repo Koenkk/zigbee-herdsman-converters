@@ -76,4 +76,14 @@ module.exports = [
                 'MoTu..= active weekdays ' +
                 '1 = deactivate timer with 0)')],
     },
+    {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mwd3c2at'}],
+        model: 'ZMS4',
+        vendor: 'RTX',
+        description: 'Zigbee PIR sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.occupancy()], 
+    },
+
 ];
