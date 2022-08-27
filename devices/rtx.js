@@ -83,7 +83,7 @@ module.exports = [
         description: 'Zigbee PIR sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.battery_low(), e.occupancy()], 
+        exposes: [e.battery_low(), e.occupancy()],
     },
 
 ];
