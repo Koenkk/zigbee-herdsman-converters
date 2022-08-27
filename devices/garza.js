@@ -8,5 +8,5 @@ module.exports = [
         vendor: 'Garza Smart',
         description: 'Garza Smart Zigbee Standard A60',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-    }
+    },
 ];
