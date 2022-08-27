@@ -285,7 +285,8 @@ module.exports = [
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
         model: 'MS-105B',
         vendor: 'Moes',
         description: 'Smart dimmer module (2 gang)',
