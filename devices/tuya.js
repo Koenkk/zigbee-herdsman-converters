@@ -3131,7 +3131,7 @@ module.exports = [
                 .withDescription('Shows the presence duration in minutes'),
             exposes.numeric('duration_of_absence', ea.STATE).withUnit('minutes')
                 .withDescription('Shows the duration of the absence in minutes'),
-            exposes.binary('led_state', ea.STATE_ALL, true, false)
+            exposes.binary('led_state', ea.STATE_SET, true, false)
                 .withDescription('Turns the onboard LED on or off'),
         ],
     },
