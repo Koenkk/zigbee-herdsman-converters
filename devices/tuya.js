@@ -26,9 +26,7 @@ const tzLocal = {
     hpsz: {
         key: ['led_state'],
         convertSet: async (entity, key, value, meta) => {
-            const ledState = value.toUpperCase() === 'ON' ? true : false;
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
-            return {led_state: value};
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, value);
         },
     },
     TS0504B_color: {
@@ -3133,7 +3131,7 @@ module.exports = [
                 .withDescription('Shows the presence duration in minutes'),
             exposes.numeric('duration_of_absence', ea.STATE).withUnit('minutes')
                 .withDescription('Shows the duration of the absence in minutes'),
-            exposes.enum('led_state', ea.STATE_SET, ['on', 'off'])
+            exposes.binary('led_state', ea.STATE_SET, true, false)
                 .withDescription('Turns the onboard LED on or off'),
         ],
     },
