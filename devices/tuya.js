@@ -302,7 +302,7 @@ const fzLocal = {
                 result = {duration_of_absence: value};
                 break;
             case tuya.dataPoints.HPSZLEDState:
-                result = {state: value};
+                result = {led_state: value};
                 break;
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
