@@ -1691,6 +1691,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_tvrvdj6o'},
             {modelID: 'zo2pocs\u0000', manufacturerName: '_TYST11_fzo2pocs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cf1sl3tj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zah67ekd'},
