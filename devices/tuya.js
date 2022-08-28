@@ -26,13 +26,9 @@ const tzLocal = {
     hpsz: {
         key: ['led_state'],
         convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'led_state': {
-                const ledState = value.toUpperCase() === 'ON' ? true : false;
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
-                return {led_state: value};
-            }
-            }
+            const ledState = value.toUpperCase() === 'ON' ? true : false;
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
+            return {led_state: value};
         },
     },
     TS0504B_color: {
@@ -302,7 +298,7 @@ const fzLocal = {
                 result = {duration_of_absence: value};
                 break;
             case tuya.dataPoints.HPSZLEDState:
-                result = {state: value};
+                result = {led_state: value};
                 break;
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
