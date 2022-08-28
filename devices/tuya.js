@@ -26,7 +26,7 @@ const tzLocal = {
     hpsz: {
         key: ['led_state'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, value)
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, value);
         },
     },
     TS0504B_color: {
