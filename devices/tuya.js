@@ -27,9 +27,9 @@ const tzLocal = {
         key: ['led_state'],
         convertSet: async (entity, key, value, meta) => {
             const ledState = value.toUpperCase() === 'ON' ? true : false;
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
-                return {led_state: value};
-       },
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, ledState);
+            return {led_state: value};
+        },
     },
     TS0504B_color: {
         key: ['color'],
