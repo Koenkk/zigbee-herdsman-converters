@@ -1,9 +1,9 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const globalStore = require('zigbee-herdsman-converters/lib/store');
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
-const utils = require('zigbee-herdsman-converters/lib/utils');
+const fz = require('../converters/fromZigbee');
+const exposes = require('../lib/exposes');
+const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
+const tuya = require('../lib/tuya');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
 
