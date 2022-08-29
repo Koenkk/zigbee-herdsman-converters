@@ -202,7 +202,9 @@ module.exports = [
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
-        exposes: [e.switch(), e.action(['identify']), e.power()],
+        exposes: [e.switch(), e.action(['identify']), e.power(),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription('Enable the LED when the device is off'),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enable the LED when the device is on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
