@@ -393,13 +393,13 @@ module.exports = [
                 .withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
             exposes.binary('alarm_consumed_energy', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
-            exposes.numeric('voltage_min', ea.ALL).withValueMin(0)
+            exposes.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253)
                 .withDescription('Minimum allowable voltage limit for alarms.'),
-            exposes.numeric('voltage_max', ea.ALL).withValueMin(0)
+            exposes.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253)
                 .withDescription('Maximum allowable voltage limit for alarms.'),
-            exposes.numeric('power_max', ea.ALL).withValueMin(0)
+            exposes.numeric('power_max', ea.ALL).withValueMin(0).withValueMax(65534)
                 .withDescription('Maximum allowable power limit for alarms.'),
-            exposes.numeric('consumed_energy_limit', ea.ALL).withValueMin(0)
+            exposes.numeric('consumed_energy_limit', ea.ALL).withValueMin(0).withValueMax(65534)
                 .withDescription('Limit of electric energy consumption in kW*h. 0 value represents no limit'),
             exposes.numeric('rssi', ea.STATE).withUnit('dB')
                 .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
