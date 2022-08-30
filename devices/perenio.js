@@ -392,7 +392,8 @@ module.exports = [
             exposes.binary('alarm_power_max', ea.ALL, true, false)
                 .withDescription('Indicates if the alarm is triggered on the active power rise above the limit, allows to reset alarms'),
             exposes.binary('alarm_consumed_energy', ea.ALL, true, false)
-                .withDescription('Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
+                .withDescription(
+                    'Indicates if the alarm is triggered when the consumption energy limit is reached, allows to reset alarms'),
             exposes.numeric('voltage_min', ea.ALL).withValueMin(0).withValueMax(253)
                 .withDescription('Minimum allowable voltage limit for alarms.'),
             exposes.numeric('voltage_max', ea.ALL).withValueMin(0).withValueMax(253)
