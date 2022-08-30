@@ -21,6 +21,8 @@ module.exports = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.lock(), e.battery(), e.sound_volume(),
             e.lock_action_source_name(), e.lock_action_user(),
