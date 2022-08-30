@@ -430,7 +430,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
-            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'}
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
         ],
         model: 'UFO-R11',
         vendor: 'Moes',
