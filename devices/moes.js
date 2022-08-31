@@ -428,7 +428,10 @@ module.exports = [
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'}],
+        fingerprint: [
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
+        ],
         model: 'UFO-R11',
         vendor: 'Moes',
         description: 'Universal smart IR remote control',
