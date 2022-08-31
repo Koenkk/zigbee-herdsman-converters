@@ -366,6 +366,7 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wamqdr3f'}, // FR
             {modelID: 'TS011F', manufacturerName: '_TZ3000_00mk2xzy'}, // BS
             {modelID: 'TS011F', manufacturerName: '_TZ3000_upjrsxh1'}, // DK
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
             {manufacturerName: '_TZ3000_00mk2xzy'}, // BS
         ],
         model: 'HG06337',

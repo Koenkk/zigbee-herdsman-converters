@@ -34,6 +34,7 @@ const fzLocal = {
                 case 14: {
                     const batteryLevels = {0: 'low', 1: 'middle', 2: 'high'};
                     result.battery_level = batteryLevels[value];
+                    result.battery_low = value === 0;
                     break;
                 }
                 case 16:

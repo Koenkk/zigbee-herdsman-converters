@@ -1540,14 +1540,15 @@ const converters = {
             // HomeAssistant etc. work the other way round.
             // For zigbee-herdsman-converters: open = 100, close = 0
             // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
-            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            const metaInvert = model.meta && model.meta.coverInverted;
+            const invert = metaInvert ? !options.invert_cover : options.invert_cover;
             const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
                 if (!coverStateFromTilt) {
                     result[postfixWithEndpointName('state', msg, model, meta)] =
-                        invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                        metaInvert ? (value === 0 ? 'CLOSE' : 'OPEN') : (value === 100 ? 'CLOSE' : 'OPEN');
                 }
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
@@ -1555,7 +1556,7 @@ const converters = {
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
                 if (coverStateFromTilt) {
                     result[postfixWithEndpointName('state', msg, model, meta)] =
-                        invert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
+                        metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
                 }
             }
             return result;
@@ -4839,7 +4840,8 @@ const converters = {
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
+            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i']
+                .includes(meta.device.manufacturerName)) {
                 if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
                     return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
                 } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {

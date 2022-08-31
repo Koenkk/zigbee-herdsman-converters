@@ -61,9 +61,8 @@ const local = {
                 if (!operationModeLookup.hasOwnProperty(value)) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
-                    const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     await entity.write('manuSpecificNiko1', {'switchOperationMode': operationModeLookup[value]});
-                    return {state: {[operationModeProperty]: value.toLowerCase()}};
+                    return {state: {operation_mode: value.toLowerCase()}};
                 }
             },
             convertGet: async (entity, key, meta) => {

@@ -337,6 +337,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929002401201'],
+        model: '929002401201',
+        vendor: 'Philips',
+        description: 'Hue Iris copper special edition (generation 4) ',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5063130P7'],
         model: '5063130P7',
         vendor: 'Philips',
@@ -2733,5 +2740,12 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White E26 806 lumen',
         extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['3402931P7'],
+        model: '3402931P7',
+        vendor: 'Philips',
+        description: 'Philips Hue Adore Bathroom Mirror Light',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];

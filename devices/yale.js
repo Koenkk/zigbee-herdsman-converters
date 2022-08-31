@@ -55,7 +55,7 @@ module.exports = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
-        extend: lockExtend({timeout: 20000}),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {timeout: 20000}),
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -129,7 +129,7 @@ module.exports = [
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend({}, {max: 900}, ['closuresDoorLock']),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock']),
     },
     {
         zigbeeModel: ['06ffff2027'],
