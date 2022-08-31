@@ -30,7 +30,7 @@ const local = {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
                     const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
-                    state['action$'] = actionMap[msg.data.switchAction];
+                    state['action'] = actionMap[msg.data.switchAction];
                 }
                 return state;
             },
