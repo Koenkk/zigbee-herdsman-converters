@@ -29,9 +29,8 @@ const local = {
                 if (msg.data.hasOwnProperty('switchAction')) {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
-                    const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
-                    state[actionProperty] = actionMap[msg.data.switchAction];
+                    state['action$'] = actionMap[msg.data.switchAction];
                 }
                 return state;
             },
