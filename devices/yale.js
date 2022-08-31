@@ -130,14 +130,14 @@ module.exports = [
         vendor: 'Yale',
         description: 'Biometric digital lock',
         fromZigbee: [
-          fz.yale_ymc_420_d_lock_operation_event,
-          fz.lock_programming_event,
-          fz.lock_pin_code_response,
-          fz.lock_user_status_response,
-          fz.lock,
-          fz.battery
+            fz.yale_ymc_420_d_lock_operation_event,
+            fz.lock_programming_event,
+            fz.lock_pin_code_response,
+            fz.lock_user_status_response,
+            fz.lock,
+            fz.battery,
         ],
-        extend: lockExtend({ timeout: 20000 }), //
+        extend: lockExtend({timeout: 20000}), //
     },
     {
         zigbeeModel: ['c700000202', '06ffff2029'],
