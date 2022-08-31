@@ -3131,7 +3131,7 @@ const converters = {
                 12: 'Schedule_unlock',
                 13: 'Manual_lock',
                 14: 'manual_unlock',
-                15: 'Non_access_user_operational_event'
+                15: 'Non_access_user_operational_event',
             };
 
             return {
