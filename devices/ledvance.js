@@ -167,14 +167,12 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
-{
+    {
         zigbeeModel: ['CLA 60 DIM'],
         model: '4058075728981',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic A E27 dimmable white',
-	   extend: extend.ledvance.light_onoff_brightness(),
+        extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
-        
-    };
-
+    },
 ];
