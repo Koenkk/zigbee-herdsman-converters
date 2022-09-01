@@ -8,6 +8,35 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    // SPLZB-134 reports strange values sometimes
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13329
+    SPLZB134_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                return fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    SPLZB134_device_temperature: {
+        ...fz.device_temperature,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentTemperature !== -0x8000) {
+                return fz.device_temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    SPLZB134_metering: {
+        ...fz.metering,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.instantaneousDemand !== -0x800000) {
+                return fz.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['SPLZB-131'],
@@ -39,19 +68,22 @@ module.exports = [
         description: 'Power plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
+        options: [exposes.options.precision(`ac_frequency`)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'genDeviceTempCfg']);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            // Set to true, to access the acFrequencyDivisor and acFrequencyMultiplier attribute. Not all devices support this.
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.activePower(endpoint, {change: 10}); // Power reports with every 10W change
             await reporting.rmsCurrent(endpoint, {change: 20}); // Current reports with every 20mA change
             await reporting.rmsVoltage(endpoint, {min: constants.repInterval.MINUTES_5, change: 400}); // Limit reports to every 5m, or 4V
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {change: [0, 20]}); // Limit reports to once every 5m, or 0.02kWh
             await reporting.instantaneousDemand(endpoint, {min: constants.repInterval.MINUTES_5, change: 10});
+            await reporting.acFrequency(endpoint);
         },
         endpoint: (device) => {
             return {default: 2};
@@ -62,7 +94,7 @@ module.exports = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        fromZigbee: [fz.on_off, fzLocal.SPLZB134_electrical_measurement, fzLocal.SPLZB134_metering, fzLocal.SPLZB134_device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -231,13 +263,17 @@ module.exports = [
         model: 'WISZB-120',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.temperature],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(38);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint);
+            const endpoint35 = device.getEndpoint(35);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.batteryVoltage(endpoint35);
+            await reporting.temperature(endpoint38);
         },
     },
     {

@@ -48,11 +48,20 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OGL 130 C'],
+        model: 'OGL 130 C',
+        vendor: 'Innr',
+        description: 'Outdoor smart globe lights',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 1000], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['OPL 130 C'],
         model: 'OPL 130 C',
         vendor: 'Innr',
         description: 'Outdoor smart pedestal light colour',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 555], supportsHS: true, disableColorTempStartup: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
@@ -96,6 +105,22 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['BY 266'],
+        model: 'BY 266',
+        vendor: 'Innr',
+        description: 'B22 (Bayonet) bulb, dimmable',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 266'],
+        model: 'RB 266',
+        vendor: 'Innr',
+        description: 'E27 bulb',
+        extend: extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RF 265'],
         model: 'RF 265',
         vendor: 'Innr',
@@ -130,6 +155,14 @@ module.exports = [
     {
         zigbeeModel: ['BY 285 C'],
         model: 'BY 285 C',
+        vendor: 'Innr',
+        description: 'B22 bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['BY 286 C'],
+        model: 'BY 286 C',
         vendor: 'Innr',
         description: 'B22 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
@@ -279,6 +312,14 @@ module.exports = [
         description: 'E14 candle with white spectrum',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 249 T'],
+        model: 'RB 249 T',
+        vendor: 'Innr',
+        description: 'E14 candle, dimmable with, color temp',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 148 T'],
@@ -456,6 +497,18 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
         },
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
+    },
+    {
+        zigbeeModel: ['SP 110'],
+        model: 'SP 110',
+        vendor: 'Innr',
+        description: 'Smart plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         zigbeeModel: ['SP 220'],

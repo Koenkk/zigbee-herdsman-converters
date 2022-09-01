@@ -8,6 +8,32 @@ const e = exposes.presets;
 const ea = exposes.access;
 const constants = require('../lib/constants');
 
+const fzLocal = {
+    thermostat_3156105: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('runningState')) {
+                if (msg.data['runningState'] == 1) {
+                    msg.data['runningState'] = 0;
+                } else if (msg.data['runningState'] == 5) {
+                    msg.data['runningState'] = 4;
+                } else if (msg.data['runningState'] == 7) {
+                    msg.data['runningState'] = 6;
+                } else if (msg.data['runningState'] == 13) {
+                    msg.data['runningState'] = 9;
+                }
+            }
+            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+                if (msg.data['ctrlSeqeOfOper'] == 6) {
+                    msg.data['ctrlSeqeOfOper'] = 4;
+                }
+            }
+            return fz.thermostat.convert(model, msg, publish, options, meta);
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['4256251-RZHAC'],
@@ -39,6 +65,26 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
             // 4256050-ZHAC doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
+            await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
+            await reporting.activePower(endpoint, {change: 2}); // Power reports in 0.1W
+        },
+    },
+    {
+        zigbeeModel: ['4256050-RZHAC'],
+        model: '4256050-RZHAC',
+        vendor: 'Centralite',
+        description: '3-Series smart outlet appliance module',
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            // 4256050-RZHAC doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
@@ -161,36 +207,10 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['3157100'],
+        fingerprint: [{modelID: '3157100', manufacturerName: 'Centralite'}, {modelID: '3157100-E', manufacturerName: 'Centralite'}],
         model: '3157100',
         vendor: 'Centralite',
-        description: '3-Series pearl touch thermostat,',
-        fromZigbee: [fz.battery, fz.legacy.thermostat_att_report, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
-            tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state],
-        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
-            .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
-            .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-            .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-            .withLocalTemperatureCalibration(-30, 30, 0.1)],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacFanCtrl']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.thermostatRunningState(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.fanMode(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['3157100-E'],
-        model: '3157100-E',
-        vendor: 'Centralite',
-        description: '3-Series pearl touch thermostat,',
+        description: '3-Series pearl touch thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
         toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
@@ -200,11 +220,40 @@ module.exports = [
         exposes: [e.battery(),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 1).withLocalTemperature()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
-                .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
-                .withLocalTemperatureCalibration(-30, 30, 0.1)],
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)],
+        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacFanCtrl']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.fanMode(endpoint);
+            await reporting.thermostatTemperatureSetpointHold(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['3156105'],
+        model: '3156105',
+        vendor: 'Centralite',
+        description: 'HA thermostat',
+        fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan, fz.ignore_time_read],
+        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
+            tz.thermostat_relay_status_log, tz.fan_mode, tz.thermostat_running_state, tz.thermostat_temperature_setpoint_hold],
+        exposes: [e.battery(),
+            exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
+                .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.'),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 1).withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool', 'emergency_heating'])
+                .withRunningState(['idle', 'heat', 'cool', 'fan_only']).withFanMode(['auto', 'on'])
+                .withSetpoint('occupied_cooling_setpoint', 7, 30, 1)],
         meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

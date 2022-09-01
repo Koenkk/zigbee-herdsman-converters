@@ -1,6 +1,8 @@
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -14,6 +16,22 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['43078'],
+        model: '43078',
+        vendor: 'Enbrighten',
+        description: 'Zigbee in-wall smart switch',
+        extend: extend.switch(),
+        fromZigbee: [...extend.switch().fromZigbee, fz.metering],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['43080'],
@@ -56,12 +74,16 @@ module.exports = [
         vendor: 'Enbrighten',
         description: 'Zigbee in-wall smart dimmer',
         extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        fromZigbee: [...extend.light_onoff_brightness({disableEffect: true, noConfigure: true}).fromZigbee, fz.metering],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'seMetering']);
             await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
+        exposes: [e.light_brightness(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['43084'],
@@ -97,6 +119,19 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['43096'],
+        model: '43096',
+        vendor: 'Enbrighten',
+        description: 'Zigbee plug-in smart dimmer with dual controlled outlets',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
     },

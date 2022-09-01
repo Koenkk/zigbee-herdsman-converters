@@ -11,10 +11,12 @@ module.exports = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
+        whiteLabel: [{vendor: 'Danfoss', model: '014G2463'}],
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
@@ -22,7 +24,9 @@ module.exports = [
             tz.danfoss_window_open_internal, tz.danfoss_window_open_external, tz.danfoss_load_estimate,
             tz.danfoss_viewing_direction, tz.danfoss_external_measured_room_sensor, tz.danfoss_radiator_covered,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
-            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode],
+            tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
+            tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
+            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -42,7 +46,7 @@ module.exports = [
                 .withDescription('Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request'),
             exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                 .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature().withPiHeatingDemand()
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
@@ -53,6 +57,8 @@ module.exports = [
             exposes.binary('radiator_covered', ea.ALL, true, false)
                 .withDescription('Set if the TRV should solely rely on external_measured_room_sensor or operate in offset mode. ' +
                     '`false` = Auto Offset Mode or `true` = Room Sensor Mode'),
+            exposes.binary('window_open_feature', ea.ALL, true, false)
+                .withDescription('Whether or not the window open feature is enabled'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
@@ -74,7 +80,20 @@ module.exports = [
                 .withDescription('Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)')
                 .withValueMin(-8000).withValueMax(2000),
             exposes.numeric('load_estimate', ea.STATE_GET)
-                .withDescription('Load estimate on this radiator')],
+                .withDescription('Load estimate on this radiator')
+                .withValueMin(-8000).withValueMax(3600),
+            exposes.binary('preheat_status', ea.STATE_GET, true, false)
+                .withDescription('Specific for pre-heat running in Zigbee Weekly Schedule mode'),
+            exposes.enum('adaptation_run_status', ea.STATE_GET, ['none', 'in_progress', 'found', 'lost'])
+                .withDescription('Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, ' +
+                    'Valve Characteristic Lost'),
+            exposes.binary('adaptation_run_settings', ea.ALL, true, false)
+                .withDescription('Automatic adaptation run enabled (the one during the night)'),
+            exposes.enum('adaptation_run_control', ea.ALL, ['none', 'initiate_adaptation', 'cancel_adaptation'])
+                .withDescription('Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run'),
+            exposes.numeric('regulation_setpoint_offset', ea.ALL)
+                .withDescription('Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.')
+                .withValueMin(-25).withValueMax(25)],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -112,20 +131,45 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.MAX,
                 reportableChange: 1,
             }], options);
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: 'danfossAdaptionRunStatus',
+                minimumReportInterval: constants.repInterval.MINUTE,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], options);
 
-            await endpoint.read('hvacThermostat', [
-                'danfossWindowOpenExternal',
-                'danfossDayOfWeek',
-                'danfossTriggerTime',
-                'danfossAlgorithmScaleFactor',
-                'danfossHeatAvailable',
-                'danfossMountedModeControl',
-                'danfossMountedModeActive',
-                'danfossExternalMeasuredRoomSensor',
-                'danfossRadiatorCovered',
-                'danfossLoadBalancingEnable',
-                'danfossLoadRoomMean',
-            ], options);
+            try {
+                await endpoint.configureReporting('hvacThermostat', [{
+                    attribute: 'danfossPreheatStatus',
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: 1,
+                }], options);
+            } catch (e) {
+                /* not supported by all */
+            }
+
+            try {
+                await endpoint.read('hvacThermostat', [
+                    'danfossWindowOpenFeatureEnable',
+                    'danfossWindowOpenExternal',
+                    'danfossDayOfWeek',
+                    'danfossTriggerTime',
+                    'danfossAlgorithmScaleFactor',
+                    'danfossHeatAvailable',
+                    'danfossMountedModeControl',
+                    'danfossMountedModeActive',
+                    'danfossExternalMeasuredRoomSensor',
+                    'danfossRadiatorCovered',
+                    'danfossLoadBalancingEnable',
+                    'danfossLoadRoomMean',
+                    'danfossAdaptionRunControl',
+                    'danfossAdaptionRunSettings',
+                    'danfossRegulationSetpointOffset',
+                ], options);
+            } catch (e) {
+                /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
+            }
 
             // read systemMode to have an initial value
             await endpoint.read('hvacThermostat', ['systemMode']);
@@ -161,6 +205,7 @@ module.exports = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
+            tz.thermostat_running_state,
             tz.thermostat_min_heat_setpoint_limit,
             tz.thermostat_max_heat_setpoint_limit,
             tz.danfoss_output_status,
@@ -169,7 +214,7 @@ module.exports = [
             tz.danfoss_system_status_code,
             tz.danfoss_multimaster_role,
         ],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         // ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {
@@ -184,8 +229,8 @@ module.exports = [
                 const epName = `l${i}`;
                 if (i!=16) {
                     features.push(e.battery().withEndpoint(epName));
-                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5)
-                        .withLocalTemperature().withSystemMode(['heat']).withEndpoint(epName));
+                    features.push(exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                        .withLocalTemperature().withRunningState(['idle', 'heat']).withSystemMode(['heat']).withEndpoint(epName));
                     features.push(exposes.numeric('abs_min_heat_setpoint_limit', ea.STATE)
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute min temperature allowed on the device'));
@@ -193,10 +238,10 @@ module.exports = [
                         .withUnit('°C').withEndpoint(epName)
                         .withDescription('Absolute max temperature allowed on the device'));
                     features.push(exposes.numeric('min_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Min temperature limit set on the device'));
                     features.push(exposes.numeric('max_heat_setpoint_limit', ea.ALL)
-                        .withValueMin(4).withValueMax(30).withValueStep(0.5).withUnit('°C')
+                        .withValueMin(4).withValueMax(35).withValueStep(0.5).withUnit('°C')
                         .withEndpoint(epName).withDescription('Max temperature limit set on the device'));
                     features.push(exposes.enum('setpoint_change_source', ea.STATE, ['manual', 'schedule', 'externally'])
                         .withEndpoint(epName));

@@ -4,6 +4,32 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
+
+const fzLocal = {
+    LXN59_cover_options: {
+        cluster: 'closuresWindowCovering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('tuyaMovingState')) {
+                const value = msg.data['tuyaMovingState'];
+                const movingLookup = {0: 'DOWN', 1: 'UP', 2: 'STOP'};
+                result.moving = movingLookup[value];
+            }
+            return result;
+        },
+    },
+    LXN59_cover_state_via_onoff: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'CLOSE' : 'OPEN'};
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -137,8 +163,13 @@ module.exports = [
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.brightness(device.getEndpoint(1));
+        },
     },
     {
         zigbeeModel: ['FB56+ZSW1HKJ1.7', 'FB56+ZSW1HKJ2.5', 'FB56+ZSW1HKJ2.7'],
@@ -204,7 +235,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-            return {left: 12, right: 11};
+            return {left: 11, right: 12};
         },
     },
     {
@@ -241,6 +272,40 @@ module.exports = [
         vendor: 'Nue / 3A',
         description: 'Smart 7W E27 light bulb',
         extend: extend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['LXN59-CS27LX1.0'],
+        model: 'ZW-EU-4C',
+        vendor: 'Nue / 3A',
+        description: 'Zigbee smart curtain switch',
+        fromZigbee: [fz.cover_position_tilt, fzLocal.LXN59_cover_state_via_onoff, fzLocal.LXN59_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {disableDefaultResponse: true},
+        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ['LXX60-CS27LX1.0'],
+        model: 'ZW-EC-01',
+        vendor: 'Nue / 3A',
+        description: 'Zigbee smart curtain switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.onOff(endpoint1);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['LXN56-0S27LX1.1', 'LXN56-0S27LX1.3'],
@@ -282,7 +347,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['LXN60-LS27-Z30'],
+        zigbeeModel: ['LXN60-LS27-Z30', 'FEB56-ZCW2CLX1.0'],
         model: 'WL-SD001-9W',
         vendor: 'Nue / 3A',
         description: '9W RGB LED downlight',

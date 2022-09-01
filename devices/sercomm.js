@@ -26,8 +26,28 @@ module.exports = [
         model: 'SZ-ESW01-AU',
         vendor: 'Sercomm',
         description: 'Telstra smart plug',
-        exposes: [e.switch(), e.power()],
+        exposes: [e.switch(), e.power(), e.energy(), e.current(), e.voltage()],
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000000, multiplier: 1});
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SZ-ESW02'],
+        model: 'SZ-ESW02',
+        vendor: 'Sercomm',
+        description: 'Telstra smart plug 2',
         fromZigbee: [fz.on_off, fz.metering],
+        exposes: [e.switch(), e.power()],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

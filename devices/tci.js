@@ -15,4 +15,11 @@ module.exports = [
         description: 'LED driver for wireless control (60 watt)',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['PROFESSIONALE ZB3'],
+        model: '122576',
+        vendor: 'TCI',
+        description: 'Direct current wireless dimmable electronic drivers with DIP-SWITCH',
+        extend: extend.light_onoff_brightness(),
+    },
 ];

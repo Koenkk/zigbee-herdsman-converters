@@ -5,7 +5,46 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const tzLocal = {
+    DD10Z_brightness: {
+        key: ['brightness'],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            // Device doesn't support moveToLevelWithOnOff therefore this converter is needed.
+            await entity.command('genLevelCtrl', 'moveToLevel', {level: Number(value), transtime: 0}, {disableDefaultResponse: true});
+            return {state: {brightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        },
+    },
+};
+
 module.exports = [
+    {
+        zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
+        model: 'DD10Z',
+        vendor: 'ORVIBO',
+        description: 'Smart spotlight',
+        // https://github.com/Koenkk/zigbee2mqtt/issues/13123#issuecomment-1198793749
+        meta: {disableDefaultResponse: true},
+        toZigbee: [tz.on_off, tzLocal.DD10Z_brightness, tz.light_colortemp, tz.effect],
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disableColorTempStartup: true}),
+    },
+    {
+        zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],
+        model: 'DS20Z07B',
+        vendor: 'ORVIBO',
+        description: 'Downlight (S series)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [166, 370]}),
+    },
+    {
+        zigbeeModel: ['ORVIBO Socket', '93e29b89b2ee45bea5bdbb7679d75d24'],
+        model: 'OR-ZB-S010-3C',
+        vendor: 'ORVIBO',
+        description: 'Smart socket',
+        extend: extend.switch(),
+    },
     {
         zigbeeModel: ['3c4e4fc81ed442efaf69353effcdfc5f', '51725b7bcba945c8a595b325127461e9'],
         model: 'CR11S8UZ',
@@ -57,6 +96,26 @@ module.exports = [
     {
         zigbeeModel: ['82c167c95ed746cdbd21d6817f72c593', '8762413da99140cbb809195ff40f8c51'],
         model: 'RL804QZB',
+        vendor: 'ORVIBO',
+        description: 'Multi-functional 3 gang relay',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['396483ce8b3f4e0d8e9d79079a35a420'],
+        model: 'CM10ZW',
         vendor: 'ORVIBO',
         description: 'Multi-functional 3 gang relay',
         extend: extend.switch(),
@@ -269,7 +328,187 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
+            device.powerSource = 'Battery';
+            device.save();
         },
         exposes: [e.cover_position(), e.battery()],
+    },
+    {
+        zigbeeModel: ['2ae011fb6d0542f58705d6861064eb5f'],
+        model: 'T40W1Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 1 gang',
+        extend: extend.switch(),
+        exposes: [e.switch()],
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['2e13af8e17434961be98f055d68c2166'],
+        model: 'T40W2Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 2 gangs',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['e8d667cb184b4a2880dd886c23d00976'],
+        model: 'T40W3Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 3 gangs',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+        },
+    },
+    {
+        zigbeeModel: ['20513b10079f4cc68cffb8b0dc6d3277'],
+        model: 'T40W4Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 4 gangs',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5'), e.switch().withEndpoint('l6')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5, 'l6': 6};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint4);
+            const endpoint5 = device.getEndpoint(5);
+            await reporting.bind(endpoint5, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint5);
+            const endpoint6 = device.getEndpoint(6);
+            await reporting.bind(endpoint6, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint6);
+        },
+    },
+    {
+        zigbeeModel: ['bcb949e87e8c4ea6bc2803052dd8fbf5'],
+        model: 'T40S6Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 6 gangs',
+        fromZigbee: [fz.orvibo_raw_2],
+        toZigbee: [],
+        exposes: [e.action(['button_1_click', 'button_2_click', 'button_3_click', 'button_4_click', 'button_5_click', 'button_6_click'])],
+    },
+    {
+        zigbeeModel: ['ba8120ad03f744ecb6a973672369e80d'],
+        model: 'T41W1Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 1 gang (without neutral wire)',
+        extend: extend.switch(),
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['7c8f476a0f764cd4b994bc73d07c906d'],
+        model: 'T41W2Z',
+        vendor: 'ORVIBO',
+        description: 'MixSwitch 2 gang (without neutral wire)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+    },
+    {
+        zigbeeModel: ['cb7ce9fe2cb147e69c5ea700b39b3d5b'],
+        model: 'DM10ZW',
+        vendor: 'ORVIBO',
+        description: '0-10v dimmer',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 371]}),
+    },
+    {
+        zigbeeModel: ['1a20628504bf48c88ed698fe96b7867c'],
+        model: 'DTZ09039',
+        vendor: 'ORVIBO',
+        description: 'Downlight (Q series)',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['bbfed49c738948b989911f9f9f73d759'],
+        model: 'R30W3Z',
+        vendor: 'ORVIBO',
+        description: 'In-wall switch 3 gang',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint3);
+        },
+    },
+    {
+        zigbeeModel: ['0e93fa9c36bb417a90ad5d8a184b683a'],
+        model: 'SM20',
+        vendor: 'ORVIBO',
+        description: 'Door or window contact switch',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
 ];

@@ -10,6 +10,13 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['FWGU10Bulb02UK'],
+        model: 'FWGU10Bulb02UK',
+        vendor: 'Hive',
+        description: 'GU10 warm white',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['MOT003'],
         model: 'MOT003',
         vendor: 'Hive',
@@ -84,7 +91,7 @@ module.exports = [
         model: '1613V',
         vendor: 'Hive',
         description: 'Active plug',
-        fromZigbee: [fz.on_off, fz.metering, fz.temperature],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
@@ -92,8 +99,9 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.temperature()],
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['TWBulb01US'],
@@ -275,6 +283,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -291,7 +300,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
@@ -326,6 +335,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -342,7 +352,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
@@ -377,6 +387,7 @@ module.exports = [
             await reporting.thermostatTemperatureSetpointHold(heatEndpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(heatEndpoint);
             await reporting.bind(waterEndpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(waterEndpoint);
             await reporting.thermostatRunningState(waterEndpoint);
             await reporting.thermostatSystemMode(waterEndpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(waterEndpoint);
@@ -393,7 +404,7 @@ module.exports = [
                 .withDescription('Period in minutes for which the setpoint hold will be active. 65535 = attribute not' +
                     ' used. 0 to 360 to match the remote display').withEndpoint('heat'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 22, 22, 1).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withEndpoint('water'),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']).withEndpoint('water'),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat').withEndpoint('water'),
@@ -495,5 +506,19 @@ module.exports = [
             }
         },
         exposes: [],
+    },
+    {
+        zigbeeModel: ['SLT6'],
+        model: 'SLT6',
+        vendor: 'Hive',
+        description: 'Heating thermostat remote control',
+        fromZigbee: [fz.battery],
+        toZigbee: [],
+        exposes: [e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
 ];

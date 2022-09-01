@@ -9,6 +9,16 @@ const ea = exposes.access;
 
 module.exports = [
     {
+
+        zigbeeModel: ['Motion-Sensor-ZB3.0'],
+        model: '07043M',
+        vendor: 'Immax',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         zigbeeModel: ['ZBT-CCTfilament-D0000'],
         model: '07089L',
         vendor: 'Immax',
@@ -66,16 +76,18 @@ module.exports = [
         model: '07048L',
         vendor: 'Immax',
         description: 'NEO SMART plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
             await reporting.activePower(endpoint);
         },
-        exposes: [e.switch(), e.power()],
+        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['losfena'],
@@ -95,10 +107,10 @@ module.exports = [
                 weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
             },
         },
-        exposes: [e.battery_low(), e.child_lock(), exposes.climate()
+        exposes: [e.battery_low(), e.child_lock(), e.away_mode(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
             .withLocalTemperature(ea.STATE).withSystemMode(['off', 'heat', 'auto'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE).withAwayMode()],
+            .withRunningState(['idle', 'heat'], ea.STATE)],
     },
     {
         zigbeeModel: ['Bulb-RGB+CCT-ZB3.0'],

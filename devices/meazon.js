@@ -13,7 +13,7 @@ module.exports = [
         vendor: 'Meazon',
         description: 'Bizy plug meter',
         fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.on_off, fz.meazon_meter],
-        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
+        exposes: [e.switch(), e.power(), e.voltage(), e.current(), e.energy()],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);

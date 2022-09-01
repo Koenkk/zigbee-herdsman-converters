@@ -70,7 +70,6 @@ module.exports = [
         model: 'ICZB-KPD18S',
         vendor: 'iCasa',
         description: 'Zigbee 3.0 Keypad Pulse 8S',
-        meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, fz.legacy.scenes_recall_click, fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off,
             fz.legacy.genOnOff_cmdOff, fz.battery, fz.legacy.cmd_move_with_onoff, fz.legacy.cmd_stop_with_onoff],
         exposes: [e.battery(), e.action(['on', 'recall_*', 'off', 'brightness_stop', 'brightness_move_up', 'brightness_move_down'])],
