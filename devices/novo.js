@@ -1,11 +1,10 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [ 
+module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_swhwv3k3'}],
         model: 'C10-3E-1.2',
