@@ -80,4 +80,4 @@ module.exports = [
 			await reporting.onOff(endpoint);
 			await reporting.fanMode(endpoint);
     },
-];
+]
