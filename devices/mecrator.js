@@ -79,5 +79,6 @@ module.exports = [
 			await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes', 'genOnOff', 'genIdentify', 'manuSpecificTuya','hvacFanCtrl']);
 			await reporting.onOff(endpoint);
 			await reporting.fanMode(endpoint);
-    },
-]
+		},
+	},
+];
