@@ -65,8 +65,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
-            {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'},
-            ],
+            {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'}, ],
         model: 'SSWF01G',
         description: 'AC Fan Controller',
         vendor: 'Mercator',
