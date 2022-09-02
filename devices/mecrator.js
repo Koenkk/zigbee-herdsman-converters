@@ -63,21 +63,22 @@ module.exports = [
             device.save();
         },
     },
-	{
-		fingerprint: [  {modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
+    {
+        fingerprint: [{modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
                         {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'}
-						],
-		model: 'SSWF01G',
-		description: 'AC Fan Controller',
-		vendor: 'Mercator',
-		fromZigbee: [fz.on_off, fz.fan],
-		toZigbee: [tz.fan_mode, tz.on_off],
-		exposes: [e.switch(), e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
-		configure: async (device, coordinatorEndpoint, logger) => {
-			const endpoint = device.getEndpoint(1);
-			await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes', 'genOnOff', 'genIdentify', 'manuSpecificTuya', 'hvacFanCtrl']);
-			await reporting.onOff(endpoint);
-			await reporting.fanMode(endpoint);
-		},
-	},
+                        ],
+        model: 'SSWF01G',
+        description: 'AC Fan Controller',
+        vendor: 'Mercator',
+        fromZigbee: [fz.on_off, fz.fan],
+        toZigbee: [tz.fan_mode, tz.on_off],
+        exposes: [e.switch(), e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes']);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify', 'manuSpecificTuya', 'hvacFanCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.fanMode(endpoint);
+        },
+    },
 ];
