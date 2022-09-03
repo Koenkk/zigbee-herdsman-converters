@@ -936,7 +936,7 @@ module.exports = [
         zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW37'],
         model: 'T2037',
         vendor: 'IKEA',
-        description 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable'
+        description: 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable'
         extend: tradfriExtend.light_onoff_brightness(),
     },
 ];
