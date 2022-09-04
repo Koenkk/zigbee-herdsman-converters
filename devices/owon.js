@@ -233,7 +233,8 @@ module.exports = [
         vendor: 'OWON',
         description: 'HVAC Fan Coil',
         fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.legacy.hvac_user_interface],
-        toZigbee: [tz.fan_mode, tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, 
+        toZigbee: [tz.fan_mode, tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, 
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint, 
             tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
             tz.thermostat_min_cool_setpoint_limit, tz.thermostat_max_cool_setpoint_limit,
@@ -249,7 +250,8 @@ module.exports = [
             e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']), e.keypad_lockout()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl', 'msTemperatureMeasurement', 'msOccupancySensing'];
+            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl',
+                           'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.fanMode(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
