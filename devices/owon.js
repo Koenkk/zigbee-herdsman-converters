@@ -242,16 +242,16 @@ module.exports = [
             tz.thermostat_keypad_lockout],
         exposes: [e.local_temperature(), e.humidity(), e.occupancy(),
             exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only']).withRunningState(['idle', 'heat', 'cool', 'fan_only'])
-            .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
-            .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5)
-            .withSetpointLimit('min_heat_setpoint_limit', 5, 30, 0.5).withSetpointLimit('max_heat_setpoint_limit', 5, 30, 0.5)
-            .withSetpointLimit('min_cool_setpoint_limit', 7, 35, 0.5).withSetpointLimit('max_cool_setpoint_limit', 7, 35, 0.5)
-            .withLocalTemperatureCalibration(-4, 4, 0.1),
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5)
+                .withSetpointLimit('min_heat_setpoint_limit', 5, 30, 0.5).withSetpointLimit('max_heat_setpoint_limit', 5, 30, 0.5)
+                .withSetpointLimit('min_cool_setpoint_limit', 7, 35, 0.5).withSetpointLimit('max_cool_setpoint_limit', 7, 35, 0.5)
+                .withLocalTemperatureCalibration(-4, 4, 0.1),
             e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']), e.keypad_lockout()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl',
-                           'msTemperatureMeasurement', 'msOccupancySensing'];
+                'msTemperatureMeasurement', 'msOccupancySensing'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.fanMode(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
@@ -266,7 +266,7 @@ module.exports = [
 
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint',
                 'occupiedCoolingSetpoint', 'unoccupiedCoolingSetpoint', 'localTemp'],
-                'minHeatSetpointLimit', 'maxHeatSetpointLimit', 'minCoolSetpointLimit', 'maxCoolSetpointLimit');
+            'minHeatSetpointLimit', 'maxHeatSetpointLimit', 'minCoolSetpointLimit', 'maxCoolSetpointLimit');
             await endpoint.read('msRelativeHumidity', ['measuredValue']);
 
             const endpoint2 = device.getEndpoint(2);
