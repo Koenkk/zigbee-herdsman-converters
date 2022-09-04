@@ -467,7 +467,7 @@ module.exports = [
             exposes.presets.power_on_behavior(),
             exposes.presets.switch_type_2(),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
-                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted')
+                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
