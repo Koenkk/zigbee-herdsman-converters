@@ -234,13 +234,13 @@ module.exports = [
         description: 'HVAC Fan Coil',
         fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.legacy.hvac_user_interface],
         toZigbee: [tz.fan_mode, tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, 
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint, 
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
             tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
             tz.thermostat_min_cool_setpoint_limit, tz.thermostat_max_cool_setpoint_limit,
-            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_running_state,
             tz.thermostat_keypad_lockout],
-        exposes: [e.local_temperature(), e.humidity(), e.occupancy(), 
+        exposes: [e.local_temperature(), e.humidity(), e.occupancy(),
             exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only']).withRunningState(['idle', 'heat', 'cool', 'fan_only'])
             .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
             .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5)
@@ -273,6 +273,6 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
             await reporting.occupancy(endpoint2, {min: 1, max: 600, change: 1});
             await endpoint2.read('msOccupancySensing', ['occupancy']);
-       },
+        },
     },
 ];
