@@ -459,7 +459,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
-        description: 'Smart Light Push Button Switch (1 gang)',
+        description: 'Wall light switch (1 gang)',
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
         exposes: [
