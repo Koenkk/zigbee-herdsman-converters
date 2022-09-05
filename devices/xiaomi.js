@@ -45,7 +45,7 @@ const fzLocal = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            let result = {};
+            const result = {};
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                 case 0x0271:
@@ -73,7 +73,7 @@ const fzLocal = {
                     result['sensor'] = {1: 'external', 0: 'internal'}[value];
                     break;
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
-                case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23:01:00:00:00:65:20:00:66:29:96:0a:67:29:66:08:68:23:01:00:00:00:69:20:64:6a:20:00
+                case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
                 case 0x0275: // 0x00000001
                 case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
                 case 0x027a: // 0x00
@@ -98,19 +98,24 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
             case 'state':
-                await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'preset':
-                await entity.write('aqaraOpple', {0x0272: {value: {'manual': 0, 'auto': 1, 'away': 2}[value], type: 0x20}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0272: {value: {'manual': 0, 'auto': 1, 'away': 2}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'window_detection':
-                await entity.write('aqaraOpple', {0x0273: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0273: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'valve_detection':
-                await entity.write('aqaraOpple', {0x0274: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0274: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'child_lock':
-                await entity.write('aqaraOpple', {0x0277: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: 0x20}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0x0277: {value: {'UNLOCK': 0, 'LOCK': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
                 break;
             case 'away_preset_temperature':
                 await entity.write('aqaraOpple', {0x0279: {value: Math.round(value * 100), type: 0x23}}, {manufacturerCode: 0x115f});
@@ -2256,7 +2261,7 @@ module.exports = [
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-            .withLocalTemperature().withPreset(['manual', 'away', 'auto']),
+                .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.STATE_SET),
             e.child_lock(), e.window_detection(), e.valve_detection(),
             e.away_preset_temperature(),
         ],
