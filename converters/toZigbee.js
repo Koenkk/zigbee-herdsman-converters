@@ -1510,6 +1510,12 @@ const converters = {
             await entity.read('msTemperatureMeasurement', ['measuredValue']);
         },
     },
+    illuminance: {
+        key: ['illuminance', 'illuminance_lux'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msIlluminanceMeasurement', ['measuredValue']);
+        },
+    },
     // #endregion
 
     // #region Non-generic converters
