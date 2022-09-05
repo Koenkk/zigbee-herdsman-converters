@@ -5,7 +5,6 @@ const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
-
 module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_yvxjawlt'}],
@@ -67,7 +66,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0501', manufacturerName: '_TZ3210_lzqq3u4r'},
             {modelID: 'TS0501', manufacturerName: '_TZ3210_4whigl8i'}],
         model: 'SSWF01G',
-        description: 'AC Fan Controller',
+        description: 'AC fan controller',
         vendor: 'Mercator',
         fromZigbee: [fz.on_off, fz.fan],
         toZigbee: [tz.fan_mode, tz.on_off],
