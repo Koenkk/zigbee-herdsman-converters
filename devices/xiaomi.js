@@ -2254,7 +2254,7 @@ module.exports = [
         description: 'Aqara Smart Radiator Thermostat E1',
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
-        exposes: [e.switch(),
+        exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
             .withLocalTemperature().withPreset(['manual', 'away', 'auto']),
             e.child_lock(), e.window_detection(), e.valve_detection(),
