@@ -366,7 +366,6 @@ module.exports = [
             {modelID: 'TS011F', manufacturerName: '_TZ3000_wamqdr3f'}, // FR
             {modelID: 'TS011F', manufacturerName: '_TZ3000_00mk2xzy'}, // BS
             {modelID: 'TS011F', manufacturerName: '_TZ3000_upjrsxh1'}, // DK
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
             {manufacturerName: '_TZ3000_00mk2xzy'}, // BS
         ],
         model: 'HG06337',
@@ -378,6 +377,28 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}],
+        model: 'HG08673-FR',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart plug FR with power monitoring',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+            });
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: tuya.onEventMeasurementPoll,
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],

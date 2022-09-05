@@ -13,11 +13,12 @@ module.exports = [
         vendor: 'BTicino',
         description: 'Light switch with neutral',
         fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fz.legrand_cluster_fc01],
-        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
+        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn, tz.legrand_identify],
         exposes: [
             e.switch(), e.action(['identify', 'on', 'off']),
-            exposes.binary('led_when_off', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is off'),
-            exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on'),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to 
+                see the switch in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -31,7 +32,7 @@ module.exports = [
         description: 'Dimmer switch with neutral',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01],
-        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingAlwaysEnableLed, tz.legrand_settingEnableLedIfOn,
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
             tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config],
         exposes: [e.light_brightness(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -39,8 +40,9 @@ module.exports = [
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
             exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_when_off', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is off'),
-            exposes.binary('led_when_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is on')],
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to 
+                see the switch in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -62,7 +64,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.ignore_zclversion_read, fz.bticino_4027C_binary_input_moving,
             fz.cover_position_tilt],
         toZigbee: [tz.bticino_4027C_cover_state, tz.bticino_4027C_cover_position, tz.legrand_identify,
-            tz.legrand_settingAlwaysEnableLed],
+            tz.legrand_settingEnableLedInDark],
         exposes: [e.cover_position()],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -95,7 +97,7 @@ module.exports = [
         vendor: 'BTicino',
         description: 'Power socket with power consumption monitoring',
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off, tz.legrand_settingAlwaysEnableLed, tz.legrand_identify],
+        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify],
         exposes: [e.switch(), e.action(['identify']), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
