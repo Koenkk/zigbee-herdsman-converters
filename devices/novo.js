@@ -7,7 +7,7 @@ const ea = exposes.access;
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_swhwv3k3'}],
-        model: 'C10-3E-1.2',
+        model: 'TS0601',
         vendor: 'Novo',
         description: 'Curtain switch',
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
