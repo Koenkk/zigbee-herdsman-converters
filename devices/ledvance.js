@@ -167,15 +167,15 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
-{
+   {
         zigbeeModel: ['A60 DIM T'],
         model: '4058075728981',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic A E27 dimmable white',
-	   extend: extend.ledvance.light_onoff_brightness(),
+	      extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
         
-    };
+    },
 {
         zigbeeModel: ['B40 DIM T'],
         model: '4058075729063',
@@ -183,7 +183,7 @@ module.exports = [
         description: 'SMART+ Classic B40 E14 dimmable white',
 	   extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,        
-    };
+    },
 {
         zigbeeModel: ['PAR16 DIM T'],
         model: '4058075729148',
@@ -193,7 +193,8 @@ module.exports = [
         ota: ota.ledvance,
  
         
-    };
+    },
+
 
 
 ];

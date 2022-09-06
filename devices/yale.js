@@ -47,7 +47,7 @@ module.exports = [
         model: 'YMF30',
         vendor: 'Yale',
         description: 'Digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],

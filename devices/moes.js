@@ -273,9 +273,14 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -428,7 +433,10 @@ module.exports = [
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'}],
+        fingerprint: [
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
+        ],
         model: 'UFO-R11',
         vendor: 'Moes',
         description: 'Universal smart IR remote control',
@@ -445,6 +453,26 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
+        model: 'ZS-EUB_1gang',
+        vendor: 'Moes',
+        description: 'Wall light switch (1 gang)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
+        exposes: [
+            e.switch(),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
+                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
 ];

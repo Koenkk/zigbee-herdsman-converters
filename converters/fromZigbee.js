@@ -8022,7 +8022,7 @@ const converters = {
                 const value = tuya.getDataValue(dpValue);
                 switch (dpValue.dp) {
                 case tuya.dataPoints.state:
-                    result.contact = Boolean(value);
+                    result.contact = !value;
                     break;
                 case tuya.dataPoints.thitBatteryPercentage:
                     result.battery = value;
