@@ -20,7 +20,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
     '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
     '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
-    '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx'];
+    '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_b28wrpvx'];
 
 const tzLocal = {
     hpsz: {
