@@ -336,6 +336,16 @@ const fzLocal = {
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     },
+    TS0201_humidity: {
+        ...fz.humidity,
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.humidity.convert(model, msg, publish, options, meta);
+            if (meta.device.manufacturerName === '_TZ3000_ywagc4rj') {
+                result.humidity = result.humidity * 10;
+            }
+            return result;
+        },
+    },
     TS0222: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -1326,7 +1336,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
         whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-IS4'}],
-        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
+        fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fzLocal.TS0201_humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
