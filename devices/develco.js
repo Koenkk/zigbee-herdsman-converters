@@ -144,7 +144,7 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement, fz.develco_fw],
+        fromZigbee: [fzLocal.SPLZB134_metering, fzLocal.SPLZB134_electrical_measurement, fz.develco_fw],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
