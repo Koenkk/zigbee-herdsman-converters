@@ -95,8 +95,6 @@ module.exports = [{
         exposes.binary('quiet_fan', ea.STATE_SET, true, false).withDescription('Fan quiet mode'),
         exposes.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
             .withDescription('Ac louver position of this device'),
-        exposes.binary('presence_detection', ea.STATE_SET, true, false)
-            .withDescription('Turn to eco if the room is unoccupied. (for compatible device)'),
     ],
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint1 = device.getEndpoint(1);
