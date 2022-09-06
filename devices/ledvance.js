@@ -194,6 +194,14 @@ module.exports = [
  
         
     },
+    {
+        zigbeeModel: ['P40 DIM T'],
+        model: '4058075729100',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Classic P40 E14 dimmable white',
+        extend: extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
 
 
 
