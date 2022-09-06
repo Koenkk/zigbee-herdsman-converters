@@ -724,7 +724,7 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(),
+            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.voltage(),
             e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
