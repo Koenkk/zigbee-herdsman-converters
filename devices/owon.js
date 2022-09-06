@@ -238,15 +238,14 @@ module.exports = [
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
             tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
             tz.thermostat_min_cool_setpoint_limit, tz.thermostat_max_cool_setpoint_limit,
-            tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.thermostat_keypad_lockout],
         exposes: [e.local_temperature(), e.humidity(), e.occupancy(),
             exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only']).withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5)
                 .withSetpointLimit('min_heat_setpoint_limit', 5, 30, 0.5).withSetpointLimit('max_heat_setpoint_limit', 5, 30, 0.5)
-                .withSetpointLimit('min_cool_setpoint_limit', 7, 35, 0.5).withSetpointLimit('max_cool_setpoint_limit', 7, 35, 0.5)
-                .withLocalTemperatureCalibration(-4, 4, 0.1),
+                .withSetpointLimit('min_cool_setpoint_limit', 7, 35, 0.5).withSetpointLimit('max_cool_setpoint_limit', 7, 35, 0.5),
             e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']), e.keypad_lockout()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
