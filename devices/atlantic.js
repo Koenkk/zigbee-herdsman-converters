@@ -91,7 +91,7 @@ module.exports = [{
             .withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
             .withPreset(['activity', 'boost', 'eco'])
             .withFanMode(['low', 'medium', 'high', 'auto'])
-            .withSwingMode(['on', 'off']),
+            .withSwingMode(['on', 'off'], ea.STATE_SET),
         exposes.binary('quiet_fan', ea.STATE_SET, true, false).withDescription('Fan quiet mode'),
         exposes.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
             .withDescription('Ac louver position of this device'),
