@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 const ea = exposes.access;
