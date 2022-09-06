@@ -191,7 +191,7 @@ module.exports = [
         description: 'SMART+ Spot PAR16 50 GU10 dimmable white',
 	   extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
-
+ 
         
     };
 
