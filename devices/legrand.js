@@ -338,7 +338,8 @@ module.exports = [
             exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
             exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
             e.power().withAccess(ea.STATE_GET),
-            e.power_on_behavior().withDescription('Controls the behavior when the device is powered on. Works only when the pilot wire is deactivated')],
+            e.power_on_behavior().withDescription(`Controls the behavior when the device is powered on. Works only when the pilot wire is
+                deactivated`)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'manuSpecificLegrandDevices2']);
