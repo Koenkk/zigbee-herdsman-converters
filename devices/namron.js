@@ -3,11 +3,19 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
 const extend = require('../lib/extend');
 const ea = exposes.access;
 const e = exposes.presets;
 
 module.exports = [
+    {
+        zigbeeModel: ['3308431'],
+        model: '3308431',
+        vendor: 'Namron',
+        description: 'Luna ceiling light',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
     {
         zigbeeModel: ['3802967'],
         model: '3802967',
@@ -20,6 +28,19 @@ module.exports = [
         model: '4512700',
         vendor: 'Namron',
         description: 'ZigBee dimmer 400W',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['4512708'],
+        model: '4512708',
+        vendor: 'Namron',
+        description: 'Zigbee LED dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -320,6 +341,25 @@ module.exports = [
                 .withValueMin(20).withValueMax(60)
                 .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
         ],
+        onEvent: async (type, data, device, options) => {
+            const endpoint = device.getEndpoint(1);
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'time'));
+                globalStore.clearValue(device, 'time');
+            } else if (!globalStore.hasValue(device, 'time')) {
+                const hours24 = 1000 * 60 * 60 * 24;
+                const interval = setInterval(async () => {
+                    try {
+                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
+                        const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
+                            .getTimezoneOffset() * -1) * 60);
+                        const values = {time: time};
+                        endpoint.write('genTime', values);
+                    } catch (error) {/* Do nothing*/}
+                }, hours24);
+                globalStore.putValue(device, 'time', interval);
+            }
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -453,11 +493,6 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null}],
             options);
-
-            // Device does not asks for the time with binding, we need to write time during configure
-            const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000);
-            const values = {time: time};
-            endpoint.write('genTime', values);
 
             // Trigger initial read
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);

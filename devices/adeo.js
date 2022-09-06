@@ -5,7 +5,37 @@ const extend = require('../lib/extend');
 const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
+const fzLocal = {
+    LDSENK08: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                vibration: (zoneStatus & 1<<1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+            };
+        },
+    },
+};
+
 module.exports = [
+    {
+        zigbeeModel: ['LDSENK08'],
+        model: 'LDSENK08',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN wireless smart door window sensor with vibration',
+        fromZigbee: [fzLocal.LDSENK08, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
     {
         zigbeeModel: ['LDSENK09'],
         model: 'LDSENK09',
@@ -37,11 +67,25 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['ZBEK-6'],
+        model: 'IG-CDZB2AG009RA-MZN-01',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 Led white bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['ZBEK-4'],
         model: 'IM-CDZDGAAA0005KA_MAN',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN RGBTW GU10 Bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-10'],
+        model: 'IC-CDZFB2AC004HA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['ZBEK-12'],
@@ -55,6 +99,13 @@ module.exports = [
         model: 'IG-CDZFB2AG010RA-MNZ',
         vendor: 'ADEO',
         description: 'ENKI LEXMAN E27 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['ZBEK-14'],
+        model: 'IC-CDZFB2AC005HA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E14 LED white',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {

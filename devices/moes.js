@@ -8,9 +8,77 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const zosung = require('../lib/zosung');
+const utils = require('../lib/utils');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
+
+const fzLocal = {
+    ZSEUD: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: async (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case 1:
+                    result.state_l1 = value ? 'ON' : 'OFF';
+                    break;
+                case 2:
+                    result.brightness_l1 = utils.mapNumberRange(value, 0, 1000, 0, 254);
+                    break;
+                case 7:
+                    result.state_l2 = value ? 'ON' : 'OFF';
+                    break;
+                case 8:
+                    result.brightness_l2 = utils.mapNumberRange(value, 0, 1000, 0, 254);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:ZSEUD: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
+};
+
+const tzLocal = {
+    ZSEUD_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {l1: 1, l2: 7};
+            const dp = lookup[meta.endpoint_name];
+            await tuya.sendDataPointBool(entity, dp, value === 'ON');
+        },
+    },
+    ZSEUD_brightness: {
+        key: ['brightness'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {l1: 2, l2: 8};
+            const dp = lookup[meta.endpoint_name];
+
+            if (key == 'brightness') {
+                // upscale to 1000
+                if (value >= 0 && value <= 254) {
+                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
+                    // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+                    if (meta.state[`state_${meta.endpoint_name}`] === 'ON') {
+                        await tuya.sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
+                    } else {
+                        await tuya.sendDataPoints(entity, [tuya.dpValueFromBool(dp-1, true), tuya.dpValueFromIntValue(dp, newValue)],
+                            'dataRequest', 1);
+                    }
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..254');
+                }
+            } else {
+                meta.logger.warn(`ZSEUD TZ unsupported key=${key} value=${value}`);
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -205,9 +273,14 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
-            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            exposes.enum('indicate_light', ea.STATE_SET, Object.values(tuya.moesSwitch.indicateLight))
+                .withDescription('Indicator light status'),
+            exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
+                .withDescription('Controls the behavior when the device is powered on')],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -247,7 +320,7 @@ module.exports = [
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
             tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature(), e.min_temperature(),
+            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
             e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
             exposes.climate()
@@ -283,6 +356,24 @@ module.exports = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
+        model: 'ZS-EUD',
+        vendor: 'Moes',
+        description: '2 gang light dimmer switch',
+        fromZigbee: [fzLocal.ZSEUD, fz.ignore_basic_report],
+        toZigbee: [tzLocal.ZSEUD_brightness, tzLocal.ZSEUD_state],
+        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
+            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
@@ -342,7 +433,10 @@ module.exports = [
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },
     {
-        fingerprint: [{modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'}],
+        fingerprint: [
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_j37rooaxrcdcqo5n'},
+            {modelID: 'TS1201', manufacturerName: '_TZ3290_ot6ewjvmejq5ekhl'},
+        ],
         model: 'UFO-R11',
         vendor: 'Moes',
         description: 'Universal smart IR remote control',
@@ -359,6 +453,26 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_hhiodade'}],
+        model: 'ZS-EUB_1gang',
+        vendor: 'Moes',
+        description: 'Wall light switch (1 gang)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
+        exposes: [
+            e.switch(),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
+                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
 ];

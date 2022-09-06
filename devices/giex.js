@@ -104,7 +104,10 @@ const tzLocal = {
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'}],
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
+        ],
         model: 'QT06',
         vendor: 'GiEX',
         description: 'Water irrigation valve',
@@ -115,8 +118,8 @@ module.exports = [
             e.battery(),
             exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('State'),
             exposes.enum('mode', ea.STATE_SET, ['duration', 'capacity']).withDescription('Irrigation mode'),
-            exposes.numeric('irrigation_target', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('mintues or Litres')
-                .withDescription('Irrigation Target, duration in minutes or capacity in Liters (depending on mode)'),
+            exposes.numeric('irrigation_target', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('minutes or Litres')
+                .withDescription('Irrigation Target, duration in minutes or capacity in Litres (depending on mode)'),
             exposes.numeric('cycle_irrigation_num_times', exposes.access.STATE_SET).withValueMin(0).withValueMax(100).withUnit('#')
                 .withDescription('Number of cycle irrigation times, set to 0 for single cycle'),
             exposes.numeric('cycle_irrigation_interval', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('min')

@@ -109,7 +109,7 @@ module.exports = [
         extend: extend.light_onoff_brightness({disableEffect: true}),
     },
     {
-        zigbeeModel: ['RGBGU10Bulb50AU'],
+        zigbeeModel: ['RGBGU10Bulb50AU', 'RGBGU10Bulb50AU2'],
         model: 'AU-A1GUZBRGBW',
         vendor: 'Aurora Lighting',
         description: 'AOne 5.6w smart RGBW tuneable GU10 lamp',

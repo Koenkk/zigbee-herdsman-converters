@@ -13,6 +13,7 @@ module.exports = [
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -20,8 +21,8 @@ module.exports = [
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -69,6 +70,7 @@ module.exports = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -76,8 +78,8 @@ module.exports = [
             tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -126,6 +128,7 @@ module.exports = [
         model: 'TH1300ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_TH1300ZB_specific],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
@@ -184,6 +187,7 @@ module.exports = [
         model: 'TH1400ZB',
         vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.sinope_thermostat_state],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,

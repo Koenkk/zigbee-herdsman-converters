@@ -7,6 +7,19 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ota = require('../lib/ota');
 
+const fzLocal = {
+    // SNZB-02 reports stranges values sometimes
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13640
+    SNZB02_temperature: {
+        ...fz.temperature,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue > -10000 && msg.data.measuredValue < 10000) {
+                return fz.temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['BASICZBR3'],
@@ -119,7 +132,7 @@ module.exports = [
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK08'}],
         description: 'Temperature and humidity sensor',
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        fromZigbee: [fzLocal.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {

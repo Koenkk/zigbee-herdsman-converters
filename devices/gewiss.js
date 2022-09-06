@@ -39,8 +39,8 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            await reporting.brightness(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position()],
     },

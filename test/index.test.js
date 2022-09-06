@@ -267,7 +267,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -483,7 +483,7 @@ describe('index.js', () => {
         const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
         expect(ZNCLDJ12LM.options.length).toBe(1);
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
-        expect(ZNCZ04LM.options.length).toBe(2);
+        expect(ZNCZ04LM.options.length).toBe(1);
     });
 
     it('Verify imports', () => {

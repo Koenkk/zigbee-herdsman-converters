@@ -379,6 +379,28 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}],
+        model: 'HG08673-FR',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart plug FR with power monitoring',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+            });
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: tuya.onEventMeasurementPoll,
+    },
+    {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
         model: 'HG08164',
         vendor: 'Lidl',
@@ -560,6 +582,14 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_zbabx9wh'}],
+        model: 'HG08007',
+        vendor: 'TuYa',
+        description: 'Livarno Home outdoor LED band',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        meta: {applyRedFix: true, enhancedHue: false},
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_z1vlyufu'}],

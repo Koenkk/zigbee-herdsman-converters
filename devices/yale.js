@@ -4,7 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
-const lockExtend = (meta) => {
+const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'genPowerCfg']) => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -13,8 +13,8 @@ const lockExtend = (meta) => {
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
-            await reporting.lockState(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.lockState(endpoint, lockStateOptions);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     };
@@ -47,7 +47,7 @@ module.exports = [
         model: 'YMF30',
         vendor: 'Yale',
         description: 'Digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
@@ -55,7 +55,7 @@ module.exports = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
-        extend: lockExtend({timeout: 20000}),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {timeout: 20000}),
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -129,7 +129,7 @@ module.exports = [
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock']),
     },
     {
         zigbeeModel: ['06ffff2027'],

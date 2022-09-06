@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
@@ -30,7 +30,8 @@ module.exports = [
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
             {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
             {vendor: 'Tesla', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
-            {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'}],
+            {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
+            {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
             .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)

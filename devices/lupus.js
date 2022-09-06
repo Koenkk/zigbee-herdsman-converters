@@ -28,7 +28,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
-        zigbeeModel: ['PSMP5_00.00.03.11TC'],
+        zigbeeModel: ['PSMP5_00.00.03.11TC', 'PSMP5_00.00.05.12TC'],
         model: '12050',
         vendor: 'Lupus',
         description: 'LUPUSEC mains socket with power meter',

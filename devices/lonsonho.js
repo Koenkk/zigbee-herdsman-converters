@@ -82,7 +82,8 @@ module.exports = [
             return {'left': 1, 'right': 2};
         },
         exposes: [
-            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
+            exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
             e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
@@ -133,7 +134,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_weaqkhab'}],
         model: 'QS-Zigbee-D02-TRIAC-L',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module without neutral',

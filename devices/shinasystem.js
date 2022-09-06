@@ -3,12 +3,50 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ota = require('../lib/ota');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    DMS300_IN: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.no_occupancy_since_false()],
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyIn = msg.data.occupancy;
+            globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
+            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            return {
+                occupancy_in: (occupancyIn & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
+            };
+        },
+    },
+    DMS300_OUT: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyOut = msg.data.zonestatus;
+            globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
+            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            return {
+                occupancy_out: (occupancyOut & 1) > 0,
+                occupancy: (occupancy & 1) > 0,
+            };
+        },
+    },
+};
+
+
 module.exports = [
     {
-        zigbeeModel: ['CSM-300Z'],
+        fingerprint: [
+            {modelID: 'CSM-300Z', applicationVersion: 1},
+            {modelID: 'CSM-300Z', applicationVersion: 2},
+            {modelID: 'CSM-300Z', applicationVersion: 3},
+            {modelID: 'CSM-300Z', applicationVersion: 4},
+        ],
         model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
         description: 'SiHAS multipurpose sensor',
@@ -26,6 +64,27 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
+    },
+    {
+        zigbeeModel: ['CSM-300Z'],
+        model: 'CSM-300ZB_V2',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS multipurpose ToF sensor',
+        meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
+        fromZigbee: [fz.battery, fz.sihas_people_cnt],
+        toZigbee: [tz.sihas_set_people],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint);
+            const payload = reporting.payload('presentValue', 1, 600, 0);
+            await endpoint.configureReporting('genAnalogInput', payload);
+        },
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count')],
     },
     {
         zigbeeModel: ['USM-300Z'],
@@ -362,5 +421,55 @@ module.exports = [
                 .withFeature(exposes.numeric('user', ea.SET).withDescription('User ID can only number 1'))
                 .withFeature(exposes.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
         ],
+    },
+    {
+        zigbeeModel: ['DMS-300Z'],
+        model: 'DMS-300ZB',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS dual motion sensor',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.battery, fzLocal.DMS300_OUT, fzLocal.DMS300_IN, fz.occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msOccupancySensing', 'ssIasZone'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
+            const payload = [{
+                attribute: 'zoneStatus', minimumReportInterval: 1, maximumReportInterval: 600, reportableChange: 1}];
+            await endpoint.configureReporting('ssIasZone', payload);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.binary('occupancy_in', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_out', ea.STATE, true, false)
+                .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
+    },
+    {
+        zigbeeModel: ['ISM300Z3'],
+        model: 'ISM300Z3',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS IOT smart inner switch 3 gang',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+            await reporting.onOff(device.getEndpoint(3));
+        },
     },
 ];

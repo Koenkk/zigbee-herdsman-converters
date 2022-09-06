@@ -91,7 +91,7 @@ module.exports = [
         },
         exposes: [e.battery_low(), e.tamper(), e.warning(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
-            exposes.binary('alarm', ea.SET, 'ON', 'OFF').withDescription('Manual start of siren')],
+            exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren')],
     },
     {
         zigbeeModel: ['WS15_00.00.00.14TC'],
