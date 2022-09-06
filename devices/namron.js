@@ -502,4 +502,64 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
     },
+    {
+        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399'],
+        model: 'Panel heater',
+        vendor: 'Namron',
+        description: 'Panel Heater 400/600/800/1000 W',
+            fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement],
+            toZigbee: [
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout
+            ],
+            exposes: [
+                e.power(),
+                e.current(),
+                e.voltage(),
+                e.energy(),
+                e.keypad_lockout(),
+    
+                exposes.climate()
+                    .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                    .withLocalTemperature()
+                    // Unit also supports Auto, but i havent added support the scheduler yet
+                    // so the function is not listed for now, as this doesn´t allow you the set the temperature
+                    .withSystemMode(['off', 'heat'])
+                    .withLocalTemperatureCalibration(-3, 3, 0.1)
+                    .withRunningState(['idle', 'heat']),
+            ],
+            configure: async (device, coordinatorEndpoint, logger) => {
+                const endpoint = device.getEndpoint(1);
+                const binds = [
+                    'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
+                    'genTime', 'hvacUserInterfaceCfg',
+                ];
+    
+                await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
+                await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+    
+                // Reporting
+    
+                // Metering
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+                await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - zigbee2mqtt displays only the first decimals, so change of 10 (0,01)
+                await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+                await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
+    
+                // Thermostat reporting
+                await reporting.thermostatTemperature(endpoint);
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+                await reporting.thermostatTemperature(endpoint);
+                await reporting.thermostatKeypadLockMode(endpoint);
+                await reporting.thermostatTemperature(endpoint, {min: 0, change: 50}); // LocalTemp is spammy, reports 0.01C diff by default, min change is now 0.5C
+    
+                // Device proprietary stuff
+                // incomming
+                
+                await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            },
+    },
 ];
