@@ -509,9 +509,9 @@ module.exports = [
         description: 'Panel Heater 400/600/800/1000 W',
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement],
         toZigbee: [
-        tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-        tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
-        tz.thermostat_keypad_lockout,
+            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
+            tz.thermostat_keypad_lockout,
         ],
         exposes: [
             e.power(),
@@ -543,7 +543,7 @@ module.exports = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - zigbee2mqtt displays only the first decimals, so change of 10 (0,01)
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
             await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
             await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
 
@@ -559,6 +559,6 @@ module.exports = [
             // incomming
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            },
+        },
     },
 ];
