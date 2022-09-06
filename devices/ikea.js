@@ -398,6 +398,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm'],
+        model: 'LED2101G4',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 WS globe 470lm, dimmable, white spectrum, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
         zigbeeModel: ['TRADFRI bulb GU10 WW 400lm'],
         model: 'LED1837R5',
         vendor: 'IKEA',
