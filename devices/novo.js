@@ -5,7 +5,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 module.exports = [
-    {        
+    {
         zigbeeModel: ['TS0601'],
         model: 'C10-3E-1.2',
         vendor: 'Novo',
