@@ -859,6 +859,7 @@ const converters = {
                 state = meta.message.state = brightness === 0 ? 'off' : 'on';
             }
 
+            let publishFakeOnLevel = false;
             let publishBrightness = brightness !== undefined;
             const targetState = state === 'toggle' ? (meta.state.state === 'ON' ? 'off' : 'on') : state;
             if (targetState === 'off') {
@@ -885,17 +886,27 @@ const converters = {
                 // TODO: same problem as above.
                 // TODO: if transition is not specified, should use device default (OnTransitionTime), not 0.
                 if (transition.specified || globalStore.getValue(entity, 'turnedOffWithTransition') === true) {
-                    const current = utils.getObjectProperty(meta.state, 'brightness', 254);
-                    brightness = globalStore.getValue(entity, 'brightness', current);
-                    try {
-                        const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
-                        // TODO: for groups, `read` does not wait for responses. If it did, we could still issue a single
-                        //  command if all values of `OnLevel` are equal, or split into one command per device if not.
-                        if (attributeRead !== undefined && attributeRead['onLevel'] != 255) {
-                            brightness = attributeRead['onLevel'];
+                    const levelConfig = utils.getObjectProperty(meta.state, 'level_config', {});
+                    let onLevel = utils.getObjectProperty(levelConfig, 'on_level', 0);
+                    if (onLevel === 0) {
+                        try {
+                            const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
+                            if (attributeRead !== undefined) {
+                                onLevel = attributeRead['onLevel'];
+                            }
+                        } catch (e) {
+                            // OnLevel not supported; write a 'previous' value to state to avoid re-reads
                         }
-                    } catch (e) {
-                        // OnLevel not supported
+                    }
+                    if (onLevel === 0) {
+                        onLevel = 'previous';
+                        publishFakeOnLevel = true;
+                    }
+                    if (onLevel === 255 || onLevel === 'previous') {
+                        const current = utils.getObjectProperty(meta.state, 'brightness', 254);
+                        brightness = globalStore.getValue(entity, 'brightness', current);
+                    } else {
+                        brightness = onLevel;
                     }
                     // Published state might have gotten clobbered by reporting.
                     publishBrightness = true;
@@ -932,6 +943,9 @@ const converters = {
             const result = {state: {}, readAfterWriteTime: transition.time * 100};
             if (publishBrightness) {
                 result.state.brightness = Number(brightness);
+            }
+            if (publishFakeOnLevel) {
+                result.state.level_config = {on_level: 'previous'};
             }
             if (state !== null) {
                 result.state.state = brightness === 0 ? 'OFF' : 'ON';
@@ -1508,6 +1522,12 @@ const converters = {
         key: ['temperature'],
         convertGet: async (entity, key, meta) => {
             await entity.read('msTemperatureMeasurement', ['measuredValue']);
+        },
+    },
+    illuminance: {
+        key: ['illuminance', 'illuminance_lux'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msIlluminanceMeasurement', ['measuredValue']);
         },
     },
     // #endregion

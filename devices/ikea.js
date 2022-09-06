@@ -356,10 +356,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbT120E26WSopal450lm'],
+        zigbeeModel: ['TRADFRIbulbT120E26WSopal450lm', 'TRADFRIbulbT120E26WSopal470lm'],
         model: 'LED1937T5_E26',
         vendor: 'IKEA',
-        description: 'LED bulb E26 450 lumen, wireless dimmable white spectrum/tube-shaped white frosted glass',
+        description: 'LED bulb E26 450/470 lumen, wireless dimmable white spectrum/tube-shaped white frosted glass',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -395,6 +395,13 @@ module.exports = [
         model: 'LED1903C5/LED1835C6',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E12/E14/E17 WS 450/470/440 lumen, dimmable, white spectrum, opal white',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm'],
+        model: 'LED2101G4',
+        vendor: 'IKEA',
+        description: 'TRADFRI bulb E14 WS globe 470lm, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -931,5 +938,12 @@ module.exports = [
         vendor: 'IKEA',
         description: 'NYMÅNE Pendant lamp',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW37'],
+        model: 'T2037',
+        vendor: 'IKEA',
+        description: 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
     },
 ];

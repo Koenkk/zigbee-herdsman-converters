@@ -724,7 +724,7 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for right button')
                 .withEndpoint('right'),
-            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(),
+            e.power().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.voltage(),
             e.device_temperature().withAccess(ea.STATE), e.flip_indicator_light(),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
@@ -1685,7 +1685,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'YTC4043GL'}],
         description: 'MiJia light intensity sensor',
         fromZigbee: [fz.battery, fz.illuminance, fz.aqara_opple],
-        toZigbee: [],
+        toZigbee: [tz.illuminance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1693,7 +1693,8 @@ module.exports = [
             await reporting.illuminance(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 500});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux(), e.power_outage_count(false)],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance().withAccess(ea.STATE_GET),
+            e.illuminance_lux().withAccess(ea.STATE_GET), e.power_outage_count(false)],
     },
     {
         zigbeeModel: ['lumi.light.rgbac1'],
