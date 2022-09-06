@@ -804,15 +804,15 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(),
         exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
             .withValueMin(1).withValueMax(60),
-        exposes.binary('enable_temp', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
-        exposes.numeric('high_temp', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
+        exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+        exposes.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
             .withValueMin(-5).withValueMax(50),
-        exposes.numeric('low_temp', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
+        exposes.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
             .withValueMin(-5).withValueMax(50),
-        exposes.binary('enable_hum', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
-        exposes.numeric('high_hum', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
+        exposes.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+        exposes.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
             .withValueMin(0).withValueMax(99),
-        exposes.numeric('low_hum', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
+        exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
             .withValueMin(0).withValueMax(99)],
     },
 ];
