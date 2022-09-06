@@ -2265,7 +2265,5 @@ module.exports = [
             e.child_lock(), e.window_detection(), e.valve_detection(),
             e.away_preset_temperature(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-        },
     },
 ];
