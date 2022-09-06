@@ -1427,7 +1427,7 @@ const converters = {
             }
             const minHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {minHeatSetpointLimit});
-            return {state: {min_heat_setpoint_limit: value}}
+            return {state: {min_heat_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['minHeatSetpointLimit']);
@@ -1444,7 +1444,7 @@ const converters = {
             }
             const maxHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {maxHeatSetpointLimit});
-            return {state: {max_heat_setpoint_limit: value}}
+            return {state: {max_heat_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['maxHeatSetpointLimit']);
@@ -1461,7 +1461,7 @@ const converters = {
             }
             const minCoolSetpointLimit = result;
             await entity.write('hvacThermostat', {minCoolSetpointLimit});
-            return {state: {min_cool_setpoint_limit: value}}
+            return {state: {min_cool_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['minCoolSetpointLimit']);
@@ -1478,7 +1478,7 @@ const converters = {
             }
             const maxCoolSetpointLimit = result;
             await entity.write('hvacThermostat', {maxCoolSetpointLimit});
-            return {state: {max_cool_setpoint_limit: value}}
+            return {state: {max_cool_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['maxCoolSetpointLimit']);
