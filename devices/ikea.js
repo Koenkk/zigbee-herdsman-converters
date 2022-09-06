@@ -932,4 +932,11 @@ module.exports = [
         description: 'NYMÅNE Pendant lamp',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW37'],
+        model: 'T2037',
+        vendor: 'IKEA',
+        description: 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
 ];
