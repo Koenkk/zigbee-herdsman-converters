@@ -13,24 +13,9 @@ const thermostatPositions = {
     'half_open': 2,
     'three_quarters_open': 3,
     'fully_open': 4,
-    'swing': 5,
-};
-
-const energyMode = {
-    'eco': 0,
-    'normal': 1,
-    'powerful': 2,
 };
 
 const tzLocal = {
-    presence_detection: {
-        key: ['presence_detection'],
-        convertSet: async (entity, key, value, meta) => {
-            assert(typeof value === 'boolean');
-            await entity.write('hvacThermostat', {0x4275: {value: value ? 1 : 0, type: 0x30}}, {manufacturerCode: 0x125b});
-            return {state: {presence_detection: value}};
-        },
-    },
     quiet_fan: {
         key: ['quiet_fan'],
         convertSet: async (entity, key, value, meta) => {
@@ -45,45 +30,34 @@ const tzLocal = {
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(thermostatPositions));
             const index = thermostatPositions[value];
-            if (index === thermostatPositions.swing) {
-                await entity.write('hvacThermostat', {0x4274: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
-            } else {
-                await entity.write('hvacThermostat', {0x4274: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
-                await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
-            }
+            await entity.write('hvacThermostat', {0x4273: {value: index, type: 0x30}}, {manufacturerCode: 0x125b});
             return {state: {ac_louver_position: value}};
         },
     },
-    energy_mode: {
-        key: ['energy_mode'],
+    preset: {
+        key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             value = value.toLowerCase();
-            utils.validateValue(value, Object.keys(energyMode));
-            const index = energyMode[value];
-            switch (index) {
-            case energyMode.eco:
-                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
-                await entity.write('hvacThermostat', {'programingOperMode': 4});
-                break;
-            case energyMode.normal:
-                await entity.write('hvacThermostat', {'programingOperMode': 0});
-                await entity.write('hvacThermostat', {0x4270: {value: 0, type: 0x10}}, {manufacturerCode: 0x125b});
-                break;
-            case energyMode.powerful:
-                await entity.write('hvacThermostat', {'programingOperMode': 0}, {manufacturerCode: 0x125b});
-                await entity.write('hvacThermostat', {0x4270: {value: 1, type: 0x10}}, {manufacturerCode: 0x125b});
-                break;
-            }
-            return {state: {energy_mode: value}};
+            utils.validateValue(value, ['activity', 'boost', 'eco', 'none']);
+            const activity = value === 'activity' ? 1 : 0;
+            const boost = value === 'boost' ? 1 : 0;
+            const eco = value === 'eco' ? 4 : 0;
+
+            await entity.write('hvacThermostat', {0x4275: {value: activity, type: 0x30}}, {manufacturerCode: 0x125b});
+            await entity.write('hvacThermostat', {'programingOperMode': eco});
+            await entity.write('hvacThermostat', {0x4270: {value: boost, type: 0x10}}, {manufacturerCode: 0x125b});
+
+            return {state: {preset: value}};
         },
     },
-    thermostat_programming_operation_mode: {
-        key: ['programming_operation_mode'],
+    swingMode: {
+        key: ['swing_mode'],
         convertSet: async (entity, key, value, meta) => {
-            await tz.thermostat_programming_operation_mode.convertSet(entity, key, value, meta);
-            return {state: {programingOperMode: value}};
+            value = value.toLowerCase();
+            utils.validateValue(value, ['on', 'off']);
+            await entity.write('hvacThermostat', {0x4274: {value: value === 'on' ? 1 : 0, type: 0x10}}, {manufacturerCode: 0x125b});
+            return {state: {swing_mode: value}};
         },
-        convertGet: tz.thermostat_programming_operation_mode.convertGet,
     },
 };
 
@@ -98,16 +72,15 @@ module.exports = [{
     ],
     toZigbee: [
         tzLocal.ac_louver_position,
-        tzLocal.energy_mode,
-        tzLocal.presence_detection,
+        tzLocal.preset,
         tzLocal.quiet_fan,
-        tzLocal.thermostat_programming_operation_mode,
+        tzLocal.swingMode,
         tz.fan_mode,
         tz.thermostat_local_temperature,
         tz.thermostat_occupied_cooling_setpoint,
         tz.thermostat_occupied_heating_setpoint,
+        tz.thermostat_programming_operation_mode,
         tz.thermostat_system_mode,
-        tz.thermostat_weekly_schedule,
     ],
     exposes: [
         e.programming_operation_mode(),
@@ -116,11 +89,12 @@ module.exports = [{
             .withSetpoint('occupied_cooling_setpoint', 18, 30, 0.5)
             .withSetpoint('occupied_heating_setpoint', 16, 30, 0.5)
             .withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
-            .withFanMode(['low', 'medium', 'high', 'auto']),
+            .withPreset(['activity', 'boost', 'eco'])
+            .withFanMode(['low', 'medium', 'high', 'auto'])
+            .withSwingMode(['on', 'off']),
         exposes.binary('quiet_fan', ea.STATE_SET, true, false).withDescription('Fan quiet mode'),
         exposes.enum('ac_louver_position', ea.STATE_SET, Object.keys(thermostatPositions))
             .withDescription('Ac louver position of this device'),
-        exposes.enum('energy_mode', ea.STATE_SET, Object.keys(energyMode)),
         exposes.binary('presence_detection', ea.STATE_SET, true, false)
             .withDescription('Turn to eco if the room is unoccupied. (for compatible device)'),
     ],
