@@ -457,7 +457,7 @@ module.exports = [
         meta: {supportsHueAndSaturation: false},
     },
     {
-        zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm'],
+        zigbeeModel: ['TRADFRI bulb E26 CWS 800lm', 'TRADFRI bulb E27 CWS 806lm', 'TRADFRI bulb E26 CWS 806lm'],
         model: 'LED1924G9',
         vendor: 'IKEA',
         description: 'TRADFRI bulb E26/E27 CWS 800/806 lumen, dimmable, color, opal white',
