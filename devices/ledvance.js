@@ -199,6 +199,13 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
-
+    {
+        zigbeeModel: ['A60 FIL DIM T'],
+        model: '4058075729209',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Classic A 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
 
 ];
