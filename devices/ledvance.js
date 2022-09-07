@@ -176,33 +176,30 @@ module.exports = [
         ota: ota.ledvance,
         
     },
-{
+    {
         zigbeeModel: ['B40 DIM T'],
         model: '4058075729063',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic B40 E14 dimmable white',
-	   extend: extend.ledvance.light_onoff_brightness(),
-        ota: ota.ledvance,        
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
     },
-{
+    {
         zigbeeModel: ['PAR16 DIM T'],
         model: '4058075729148',
         vendor: 'LEDVANCE',
         description: 'SMART+ Spot PAR16 50 GU10 dimmable white',
-	   extend: extend.ledvance.light_onoff_brightness(),
+        extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
- 
-        
     },
     {
         zigbeeModel: ['P40 DIM T'],
         model: '4058075729100',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic P40 E14 dimmable white',
-        extend: extend: extend.ledvance.light_onoff_brightness(),
+        extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
-
 
 
 ];
