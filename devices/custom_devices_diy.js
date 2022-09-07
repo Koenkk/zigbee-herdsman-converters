@@ -790,7 +790,7 @@ module.exports = [
         zigbeeModel: ['SNZB-02_EFEKTA'],
         model: 'SNZB-02_EFEKTA',
         vendor: 'Custom devices (DiY)',
-        description: 'An alternative view from EfektaLab on the SONOFF SNZB-02 sensor, DIY',
+        description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.node_config],
         toZigbee: [tz.factory_reset, tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
