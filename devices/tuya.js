@@ -2113,7 +2113,7 @@ module.exports = [
         toZigbee: [tz.tuya_switch_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.energy(), e.power()],
     },
