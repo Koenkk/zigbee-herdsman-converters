@@ -2105,17 +2105,17 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
     },
     {
-            fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bkkmqmyo'}],
-            model: 'TS06001_kWh',
-            vendor: 'Thomz',
-            description: 'Zigbee smart energy meter DDS238-2 Zigbee v2',
-            fromZigbee: [fz.tuya_dinrail_switch2],
-           toZigbee: [tz.tuya_switch_state],
-           configure: async (device, coordinatorEndpoint, logger) => {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-    },
-    exposes: [e.switch().setAccess('state', ea.STATE_SET), e.energy(), e.power()],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bkkmqmyo'}],
+        model: 'TS06001_kWh',
+        vendor: 'Thomz',
+        description: 'Zigbee smart energy meter DDS238-2 Zigbee v2',
+        fromZigbee: [fz.tuya_dinrail_switch2],
+        toZigbee: [tz.tuya_switch_state],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+        exposes: [e.switch().setAccess('state', ea.STATE_SET), e.energy(), e.power()],
     },
     {
         fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
