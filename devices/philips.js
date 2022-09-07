@@ -330,6 +330,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003046001'],
+        model: '5309031P8',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner spot white (1 spot)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929002376301'],
         model: '929002376301',
         vendor: 'Philips',
