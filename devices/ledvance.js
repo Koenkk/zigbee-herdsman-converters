@@ -207,5 +207,21 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['EDISON60 FIL DIM T'],
+        model: '4058075729223',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Edison 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['GLOBE60 FIL DIM T'],
+        model: '4058075729247',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Globe125 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
 
 ];
