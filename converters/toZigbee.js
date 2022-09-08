@@ -1430,6 +1430,7 @@ const converters = {
             }
             const minHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {minHeatSetpointLimit});
+            return {state: {min_heat_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['minHeatSetpointLimit']);
@@ -1446,9 +1447,44 @@ const converters = {
             }
             const maxHeatSetpointLimit = result;
             await entity.write('hvacThermostat', {maxHeatSetpointLimit});
+            return {state: {max_heat_setpoint_limit: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['maxHeatSetpointLimit']);
+        },
+    },
+    thermostat_min_cool_setpoint_limit: {
+        key: ['min_cool_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const minCoolSetpointLimit = result;
+            await entity.write('hvacThermostat', {minCoolSetpointLimit});
+            return {state: {min_cool_setpoint_limit: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['minCoolSetpointLimit']);
+        },
+    },
+    thermostat_max_cool_setpoint_limit: {
+        key: ['max_cool_setpoint_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            let result;
+            if (meta.options.thermostat_unit === 'fahrenheit') {
+                result = Math.round(utils.normalizeCelsiusVersionOfFahrenheit(value) * 100);
+            } else {
+                result = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+            }
+            const maxCoolSetpointLimit = result;
+            await entity.write('hvacThermostat', {maxCoolSetpointLimit});
+            return {state: {max_cool_setpoint_limit: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['maxCoolSetpointLimit']);
         },
     },
     thermostat_ac_louver_position: {
