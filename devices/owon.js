@@ -240,10 +240,11 @@ module.exports = [
             tz.thermostat_min_cool_setpoint_limit, tz.thermostat_max_cool_setpoint_limit,
             tz.thermostat_local_temperature, tz.thermostat_running_state,
             tz.thermostat_keypad_lockout],
-        exposes: [e.local_temperature(), e.humidity(), e.occupancy(),
+        exposes: [e.humidity(), e.occupancy(),
             exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only']).withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5),
+                .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5)
+                .withLocalTemperature(),
             e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']), e.keypad_lockout(),
             e.max_heat_setpoint_limit(5, 30, 0.5), e.min_heat_setpoint_limit(5, 30, 0.5),
             e.max_cool_setpoint_limit(7, 35, 0.5), e.min_cool_setpoint_limit(7, 35, 0.5)],
