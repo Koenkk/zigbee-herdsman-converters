@@ -30,8 +30,8 @@ const reader = {
             if (msg.data.hasOwnProperty('currentLevel')) {
                 result.light_indicator_level = msg.data['currentLevel'];
             }
-        }
-    }
+        },
+    },
 };
 
 module.exports = [
@@ -207,14 +207,14 @@ module.exports = [
         zigbeeModel: ['DONGLE-E_R'],
         model: 'ZBDongle-E',
         vendor: 'SONOFF',
-        description: 'Sonoff Zigbee 3.0 USB Dongle Plus (EFR32MG21) with router firmware (https://github.com/itead/Sonoff_Zigbee_Dongle_Firmware/tree/master/Dongle-E/Router)',
+        description: 'Sonoff Zigbee 3.0 USB Dongle Plus (EFR32MG21) with router firmware '+
+        '(https://github.com/itead/Sonoff_Zigbee_Dongle_Firmware/tree/master/Dongle-E/Router)',
         fromZigbee: [fz.linkquality_from_basic, reader.router_config],
         toZigbee: [],
         exposes: [exposes.numeric('light_indicator_level').withDescription('Brightness of the indicator light').withAccess(ea.STATE)],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
             device.powerSource = 'Mains (single phase)';
             device.save();
-        },		
+        },
     },
 ];
