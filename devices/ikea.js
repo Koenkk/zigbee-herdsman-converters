@@ -924,6 +924,7 @@ module.exports = [
 
             await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
+        ota: ota.tradfri,
     },
     {
         zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
