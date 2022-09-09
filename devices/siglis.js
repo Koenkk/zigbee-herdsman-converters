@@ -184,7 +184,7 @@ module.exports = [
             tz.cover_position_tilt,
             coverAndLightToZigbee,
         ],
-        meta: {multiEndpoint: true, coverInverted: true},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
                 'l1': zigfredEndpoint,
