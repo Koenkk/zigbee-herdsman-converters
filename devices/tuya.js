@@ -2128,9 +2128,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bkkmqmyo'}],
-        model: 'TS06001_kWh',
-        vendor: 'Thomz',
-        description: 'Zigbee smart energy meter DDS238-2 Zigbee v2',
+        model: 'DDS238-2',
+        vendor: 'TuYa',
+        description: 'Zigbee smart energy meter',
         fromZigbee: [fzLocal.tuya_dinrail_switch2],
         toZigbee: [tz.tuya_switch_state],
         configure: async (device, coordinatorEndpoint, logger) => {
