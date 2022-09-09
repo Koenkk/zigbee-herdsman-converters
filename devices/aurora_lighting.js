@@ -80,6 +80,13 @@ const batteryRotaryDimmer = (...endpointsIds) => ({
 
 module.exports = [
     {
+        zigbeeModel: ['RGBCXStrip50AU'],
+        model: 'AU-A1ZBSCRGBCX',
+        vendor: 'Aurora',
+        description: 'RGBW LED strip controller',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [166, 400]}),
+    },
+    {
         zigbeeModel: ['TWGU10Bulb50AU'],
         model: 'AU-A1GUZBCX5',
         vendor: 'Aurora Lighting',
