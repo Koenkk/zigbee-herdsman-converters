@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 const ota = require('../lib/ota');
 
 const fzLocal = {
@@ -15,6 +16,16 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue > -10000 && msg.data.measuredValue < 10000) {
                 return fz.temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    router_config: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                result.light_indicator_level = msg.data['currentLevel'];
             }
         },
     },
@@ -187,6 +198,19 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['DONGLE-E_R'],
+        model: 'ZBDongle-E',
+        vendor: 'SONOFF',
+        description: 'Sonoff Zigbee 3.0 USB Dongle Plus (EFR32MG21) with router firmware',
+        fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
+        toZigbee: [],
+        exposes: [exposes.numeric('light_indicator_level').withDescription('Brightness of the indicator light').withAccess(ea.STATE)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
 ];
