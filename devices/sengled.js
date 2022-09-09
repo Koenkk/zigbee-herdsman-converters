@@ -61,8 +61,22 @@ module.exports = [
         model: 'E12-N1E',
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
-        extend: sengledExtend.light_onoff_brightness_colortemp_color(),
+        fromZigbee: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).fromZigbee.concat([fz.metering]),
+        toZigbee: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).toZigbee,
+        exposes: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).exposes.concat([e.power(), e.energy()]),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]})
+                .configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
     },
     {
         zigbeeModel: ['E1G-G8E'],
