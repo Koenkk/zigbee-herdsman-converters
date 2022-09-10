@@ -981,10 +981,17 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['929003053001', '929003052901'],
+        zigbeeModel: ['929003053001'],
         model: '929003053001',
         vendor: 'Philips',
-        description: 'Hue Sana wall light',
+        description: 'Hue Sana wall light (white)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003052901'],
+        model: '929003052901',
+        vendor: 'Philips',
+        description: 'Hue Sana wall light (black)',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
