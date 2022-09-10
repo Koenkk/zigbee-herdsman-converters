@@ -23,6 +23,18 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx'];
 
 const tzLocal = {
+    SA12IZL_silence_siren: {
+        key: ['silence_siren'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, 16, value);
+        },
+    },
+    SA12IZL_alarm: {
+        key: ['alarm'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointEnum(entity, 20, {true: 0, false: 1}[value]);
+        },
+    },
     hpsz: {
         key: ['led_state'],
         convertSet: async (entity, key, value, meta) => {
@@ -277,6 +289,37 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    SA12IZL: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
+                switch (dp) {
+                case tuya.dataPoints.state:
+                    result.smoke = value === 0;
+                    break;
+                case 15:
+                    result.battery = value;
+                    break;
+                case 16:
+                    result.silence_siren = value;
+                    break;
+                case 20: {
+                    const alarm = {0: true, 1: false};
+                    result.alarm = alarm[value];
+                    break;
+                }
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:SA12IZL: NOT RECOGNIZED DP #${
+                        dp} with data ${JSON.stringify(dpValue)}`);
+                }
+            }
+            return result;
+        },
+    },
     tuya_dinrail_switch2: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
@@ -2116,6 +2159,21 @@ module.exports = [
         fromZigbee: [fz.tuya_smoke],
         toZigbee: [],
         exposes: [e.smoke(), e.battery()],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}],
+        model: 'SA12IZL',
+        vendor: 'TuYa',
+        description: 'Smart smoke alarm',
+        meta: {timeout: 30000, disableDefaultResponse: true},
+        fromZigbee: [fzLocal.SA12IZL],
+        toZigbee: [tzLocal.SA12IZL_silence_siren, tzLocal.SA12IZL_alarm],
+        exposes: [e.battery(),
+            exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
+            exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
+            exposes.binary('alarm', ea.STATE_SET, true, false).withDescription('Enable the alarm'),
+            exposes.binary('silence_siren', ea.STATE_SET, true, false).withDescription('Silence the siren')],
+        onEvent: tuya.onEventsetTime,
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
