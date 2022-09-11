@@ -235,10 +235,16 @@ module.exports = [
         model: 'E1D-G73WNA',
         vendor: 'Sengled',
         description: 'Smart window and door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['E1C-NB6'],
