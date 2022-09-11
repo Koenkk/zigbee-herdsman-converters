@@ -2182,7 +2182,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'}],
         model: 'SA12IZL',
         vendor: 'TuYa',
         description: 'Smart smoke alarm',
