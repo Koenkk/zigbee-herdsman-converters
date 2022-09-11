@@ -50,7 +50,7 @@ module.exports = [
         description: 'Ynoa Smart Plug ZigBee3.0',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(),e.power()],
+        exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
