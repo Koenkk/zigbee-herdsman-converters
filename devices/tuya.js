@@ -976,7 +976,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'}],
         model: 'TS0202_1',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1674,7 +1675,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_bvrlqyj7'}],
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_bvrlqyj7'},
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_7ed9cqgi'}],
         model: 'TS0002_switch_module',
         vendor: 'TuYa',
         description: '2 gang switch module',
