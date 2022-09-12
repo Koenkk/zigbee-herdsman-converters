@@ -241,8 +241,8 @@ module.exports = [
             tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode, tz.thermostat_running_mode, tz.thermostat_running_state, tz.thermostat_programming_operation_mode],
-        exposes: [e.local_temperature(), e.humidity(), e.occupancy(),
-            exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only', 'sleep'])
+        exposes: [e.humidity(), e.occupancy(),
+            exposes.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only', 'sleep']).withLocalTemperature()
                 .withRunningMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
