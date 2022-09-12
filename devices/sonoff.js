@@ -213,16 +213,4 @@ module.exports = [
             device.save();
         },
     },
-    {
-        zigbeeModel: ['SA-029-1'],
-        model: 'SA-029-1',
-        vendor: 'Sonoff',
-        description: 'Smart Plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-    },
 ];
