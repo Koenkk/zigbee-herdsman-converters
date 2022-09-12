@@ -231,7 +231,7 @@ module.exports = [
         zigbeeModel: ['PCT504'],
         model: 'PCT504',
         vendor: 'OWON',
-        description: 'HVAC Fan Coil',
+        description: 'HVAC fan coil',
         fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.legacy.hvac_user_interface],
         toZigbee: [tz.fan_mode,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
