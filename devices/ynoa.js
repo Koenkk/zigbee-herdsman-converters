@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -46,8 +46,8 @@ module.exports = [
     {
         zigbeeModel: ['ZBT-ONOFFPlug-D0009'],
         model: 'LA-PLUG-10Amp',
-        vendor: 'LDS',
-        description: 'Ynoa Smart Plug ZigBee3.0',
+        vendor: 'Ynoa',
+        description: 'Smart plug Zigbee 3.0',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
