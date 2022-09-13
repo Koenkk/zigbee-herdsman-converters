@@ -960,5 +960,5 @@ module.exports = [
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp 24 warm light dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
-    }
+    },
 ];
