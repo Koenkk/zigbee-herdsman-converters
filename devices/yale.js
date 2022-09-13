@@ -145,8 +145,8 @@ module.exports = [
             manufacturerID: 43690,
             powerSource: 'Battery',
             endpoints: [
-               {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
-               {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
+                {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
+                {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
             ]},
         ],
         model: 'ZYA-C4-MOD-S',
