@@ -8645,7 +8645,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.clusterid == 64512) {
-                //We need to read the lock state in case the alarm code is unknown
+                // We need to read the lock state in case the alarm code is unknown
                 msg.endpoint.read('closuresDoorLock', ['lockState']);
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -8654,9 +8654,9 @@ const converters = {
                     22: 'manual_unlock',
                     24: 'lock',
                     25: 'unlock',
-                    27: 'auto_lock'
+                    27: 'auto_lock',
                 };
-                if (!alarmlookup[alarmcode]) {
+                if (!lookup[alarmcode]) {
                     result.action = 'unknown';
                     meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
                 } else {
