@@ -154,6 +154,6 @@ module.exports = [
         description: 'Control4 module for Yale KeyFree/Keyless lock',
         fromZigbee: [fz.lock, fz.yale_lock_operation_event],
         toZigbee: [tz.lock],
-        exposes: [e.lock(), e.lock_action()]
+        exposes: [e.lock(), e.lock_action()],
     },
 ];
