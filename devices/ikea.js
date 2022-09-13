@@ -954,4 +954,11 @@ module.exports = [
         description: 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW24'],
+        model: 'T2035',
+        vendor: 'IKEA',
+        description: 'STOFTMOLN ceiling/wall lamp 24 warm light dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    }
 ];
