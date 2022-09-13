@@ -138,4 +138,22 @@ module.exports = [
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
+    {
+        fingerprint: [{
+            type: 'EndDevice',
+            manufacturerName: 'Yale',
+            manufacturerID: 43690,
+            powerSource: 'Battery',
+            endpoints: [
+               {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0,9,10,257,64512,1], outputClusters: []},
+               {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
+            ]},
+        ],
+        model: 'ZYA-C4-MOD-S',
+        vendor: 'Yale',
+        description: 'Control4 module for Yale KeyFree/Keyless lock',
+        fromZigbee: [fz.lock, fz.yale_lock_operation_event],
+        toZigbee: [tz.lock],
+        exposes: [e.lock(), e.lock_action()]
+    },
 ];
