@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const ota = require('../lib/ota');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -12,6 +13,7 @@ module.exports = [
         fromZigbee: [fz.battery, fz.humidity, fz.temperature, fz.co2],
         exposes: [e.battery_voltage(), e.battery_low(), e.humidity(), e.temperature(), e.co2()],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msCO2']);
