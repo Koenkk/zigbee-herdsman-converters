@@ -20,6 +20,36 @@ const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'gen
     };
 };
 
+const fzLocal = {
+    c4_lock_operation_event: {
+        cluster: 'genAlarms',
+        type: ['commandAlarm'],
+        convert: async (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.clusterid == 64512) {
+                // We need to read the lock state in case the alarm code is unknown
+                await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                const alarmcode = msg.data.alarmcode;
+                const lookup = {
+                    9: 'error_jammed',
+                    21: 'manual_lock',
+                    22: 'manual_unlock',
+                    24: 'lock',
+                    25: 'unlock',
+                    27: 'auto_lock',
+                };
+                if (!lookup[alarmcode]) {
+                    result.action = 'unknown';
+                    meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
+                } else {
+                    result.action = lookup[alarmcode];
+                }
+            }
+            return result;
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['YRD446 BLE TSDB'],
@@ -152,7 +182,7 @@ module.exports = [
         model: 'ZYA-C4-MOD-S',
         vendor: 'Yale',
         description: 'Control4 module for Yale KeyFree/Keyless lock',
-        fromZigbee: [fz.lock, fz.yale_lock_operation_event],
+        fromZigbee: [fz.lock, fzLocal.c4_lock_operation_event],
         toZigbee: [tz.lock],
         exposes: [e.lock(), e.lock_action()],
     },

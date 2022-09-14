@@ -8639,33 +8639,6 @@ const converters = {
             return result;
         },
     },
-    yale_lock_operation_event: {
-        cluster: 'genAlarms',
-        type: ['commandAlarm'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.clusterid == 64512) {
-                // We need to read the lock state in case the alarm code is unknown
-                msg.endpoint.read('closuresDoorLock', ['lockState']);
-                const alarmcode = msg.data.alarmcode;
-                const lookup = {
-                    9: 'error_jammed',
-                    21: 'manual_lock',
-                    22: 'manual_unlock',
-                    24: 'lock',
-                    25: 'unlock',
-                    27: 'auto_lock',
-                };
-                if (!lookup[alarmcode]) {
-                    result.action = 'unknown';
-                    meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
-                } else {
-                    result.action = lookup[alarmcode];
-                }
-            }
-            return result;
-        },
-    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
