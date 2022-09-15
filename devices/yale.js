@@ -27,22 +27,26 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.clusterid == 64512) {
-                // We need to read the lock state in case the alarm code is unknown
-                await msg.endpoint.read('closuresDoorLock', ['lockState']);
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
-                    9: 'error_jammed',
-                    21: 'manual_lock',
-                    22: 'manual_unlock',
-                    24: 'lock',
-                    25: 'unlock',
-                    27: 'auto_lock',
+                    9: {action: 'error_jammed', state: 'UNLOCKED', lock_state: 'not_fully_locked'},
+                    21: {action: 'manual_lock', state: 'LOCKED', lock_state: 'locked'},
+                    22: {action: 'manual_unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
+                    24: {action: 'lock', state: 'LOCKED', lock_state: 'locked'},
+                    25: {action: 'unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
+                    27: {action: 'auto_lock', state: 'LOCKED', lock_state: 'locked'},
                 };
                 if (!lookup[alarmcode]) {
                     result.action = 'unknown';
                     meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
+                    // We need to read the lock state as the alarm code is unknown
+                    try {
+                        await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                    } catch (error) {
+                        meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
+                    }                   
                 } else {
-                    result.action = lookup[alarmcode];
+                    result = lookup[alarmcode];
                 }
             }
             return result;
@@ -181,7 +185,7 @@ module.exports = [
         ],
         model: 'ZYA-C4-MOD-S',
         vendor: 'Yale',
-        description: 'Control4 module for Yale KeyFree/Keyless lock',
+        description: 'Control4 module for Yale KeyFree/Keyless/Doorman/Assure/nexTouch locks',
         fromZigbee: [fz.lock, fzLocal.c4_lock_operation_event],
         toZigbee: [tz.lock],
         exposes: [e.lock(), e.lock_action()],
