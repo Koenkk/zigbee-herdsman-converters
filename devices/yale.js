@@ -25,7 +25,7 @@ const fzLocal = {
         cluster: 'genAlarms',
         type: ['commandAlarm'],
         convert: async (model, msg, publish, options, meta) => {
-            const result = {};
+            let result = {};
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
@@ -44,7 +44,7 @@ const fzLocal = {
                         await msg.endpoint.read('closuresDoorLock', ['lockState']);
                     } catch (error) {
                         meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
-                    }                   
+                    }                
                 } else {
                     result = lookup[alarmcode];
                 }
