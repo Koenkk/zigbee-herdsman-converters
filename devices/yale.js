@@ -28,7 +28,12 @@ const fzLocal = {
             const result = {};
             if (msg.data.clusterid == 64512) {
                 // We need to read the lock state in case the alarm code is unknown
-                await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                try {
+                    await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                } catch (error) {
+                    meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
+                }
+
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
                     9: 'error_jammed',
