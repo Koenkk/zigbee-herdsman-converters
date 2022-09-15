@@ -44,7 +44,7 @@ const fzLocal = {
                         await msg.endpoint.read('closuresDoorLock', ['lockState']);
                     } catch (error) {
                         meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
-                    }                
+                    }
                 } else {
                     result = lookup[alarmcode];
                 }
