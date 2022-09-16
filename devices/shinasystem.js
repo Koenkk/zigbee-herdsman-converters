@@ -16,10 +16,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyIn = msg.data.occupancy;
             globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
-            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancy_or = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancy_and = occupancyIn & globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
             return {
                 occupancy_in: (occupancyIn & 1) > 0,
-                occupancy: (occupancy & 1) > 0,
+                occupancy_or: (occupancy_or & 1) > 0,
+                occupancy_and: (occupancy_and & 1) > 0,
             };
         },
     },
@@ -29,10 +31,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyOut = msg.data.zonestatus;
             globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
-            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancy_or = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancy_and = occupancyOut & globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
             return {
                 occupancy_out: (occupancyOut & 1) > 0,
-                occupancy: (occupancy & 1) > 0,
+                occupancy_or: (occupancy_or & 1) > 0,
+                occupancy_and: (occupancy_and & 1) > 0,
             };
         },
     },
@@ -447,7 +451,9 @@ module.exports = [
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
             exposes.binary('occupancy_out', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy', ea.STATE, true, false)
+            exposes.binary('occupancy_or', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_and', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
