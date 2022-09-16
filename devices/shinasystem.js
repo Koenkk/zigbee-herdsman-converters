@@ -540,7 +540,7 @@ module.exports = [
             exposes.binary('occupancy_or', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
             exposes.binary('occupancy_and', ea.STATE, true, false)
-                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+                .withDescription('Indicates whether "IN and OUT" Sensor of the device detected occupancy'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
