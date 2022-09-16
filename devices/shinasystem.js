@@ -42,6 +42,84 @@ const fzLocal = {
     },
 };
 
+const tzLocal = {
+    CSM300_SETUP: {
+        key: ['rf_pairing_on', 'counting', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            switch(key){
+            case 'rf_pairing_on':
+                payload = {'presentValue': 81};
+                break;
+            case 'counting':
+                if(value === 'on'){
+                    payload = {'presentValue': 82};
+                }
+                else if (value === 'off'){
+                    payload = {'presentValue': 84};
+                }
+                break;
+            case 'tof_init':
+                payload = {'presentValue': 83};
+                break;
+            case 'led_state':
+                if(value === 'enable'){
+                    payload = {'presentValue': 86};
+                }
+                else if (value === 'disable'){
+                    payload = {'presentValue': 87};
+                }
+                break;
+            case 'rf_state':
+                if(value === 'enable'){
+                    payload = {'presentValue': 88};
+                }
+                else if (value === 'disable'){
+                    payload = {'presentValue': 89};
+                }
+                break;
+            case 'transation':
+                if(value === '0ms'){
+                    payload = {'presentValue': 90};
+                }
+                else if (value === '200ms'){
+                    payload = {'presentValue': 91};
+                }
+                else if (value === '400ms'){
+                    payload = {'presentValue': 92};
+                }
+                else if (value === '600ms'){
+                    payload = {'presentValue': 93};
+                }
+                else if (value === '800ms'){
+                    payload = {'presentValue': 94};
+                }
+                else if (value === '1,000ms'){
+                    payload = {'presentValue': 95};
+                }
+                break;
+            case 'fast_in':
+                if(value === 'enable'){
+                    payload = {'presentValue': 96};
+                }
+                else if (value === 'disable'){
+                    payload = {'presentValue': 97};
+                }
+                break;
+            case 'fast_out':
+                if(value === 'enable'){
+                    payload = {'presentValue': 98};
+                }
+                else if (value === 'disable'){
+                    payload = {'presentValue': 99};
+                }
+                break;
+            }
+            await endpoint.write('genAnalogInput', payload);
+        },
+    },
+};
 
 module.exports = [
     {
@@ -77,7 +155,7 @@ module.exports = [
         description: 'SiHAS multipurpose ToF sensor',
         meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people],
+        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'genAnalogInput'];
@@ -88,7 +166,15 @@ module.exports = [
         },
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count')],
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
+            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF Paring mode'),
+            exposes.enum('counting', ea.SET, ['on', 'off']).withDescription('Counting Freeze'),
+            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor Initial'),
+            exposes.enum('led_state', ea.SET, ['enable', 'disable']).withDescription('Indicate LED Enable/Disable, default : enable'),
+            exposes.enum('rf_state', ea.SET, ['enable', 'disable']).withDescription('RF function Enable/Disable, default : disable'),
+            exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms']).withDescription('Transation Interval, default : 400ms'),
+            exposes.enum('fast_in', ea.SET, ['enable', 'disable']).withDescription('Fast process Enable/Disable when people 0 to 1. default : enable'),
+            exposes.enum('fast_out', ea.SET, ['enable', 'disable']).withDescription('Fast process Enable/Disable when people 1 to 0. default : enable')],
     },
     {
         zigbeeModel: ['USM-300Z'],
