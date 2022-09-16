@@ -44,7 +44,7 @@ const fzLocal = {
 
 const tzLocal = {
     CSM300_SETUP: {
-        key: ['rf_pairing_on', 'counting', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
+        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
@@ -52,7 +52,7 @@ const tzLocal = {
             case 'rf_pairing_on':
                 payload = {'presentValue': 81};
                 break;
-            case 'counting':
+            case 'counting_freeze':
                 if (value === 'on') {
                     payload = {'presentValue': 82};
                 } else if (value === 'off') {
@@ -158,7 +158,7 @@ module.exports = [
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
             exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF Paring mode'),
-            exposes.enum('counting', ea.SET, ['on', 'off']).withDescription('Counting Freeze'),
+            exposes.enum('counting_freeze', ea.SET, ['on', 'off']).withDescription('Counting Freeze On/Off, Not reporting people value when is On'),
             exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor Initial'),
             exposes.enum('led_state', ea.SET, ['enable', 'disable']).withDescription('Indicate LED Enable/Disable, default : enable'),
             exposes.enum('rf_state', ea.SET, ['enable', 'disable']).withDescription('RF function Enable/Disable, default : disable'),
