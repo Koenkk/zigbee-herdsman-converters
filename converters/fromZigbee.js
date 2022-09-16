@@ -5119,7 +5119,7 @@ const converters = {
                 '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
             };
 
-            const ID = `${commandID}_${msg.data.commandFrame.raw.join('_')}`;
+            const ID = `${commandID}_${msg.data.commandFrame.raw.slice(0, 1).join('_')}`;
             if (!lookup.hasOwnProperty(ID)) {
                 meta.logger.error(`PTM 216Z: missing command '${ID}'`);
             } else {

@@ -18,6 +18,7 @@ module.exports = [
             {vendor: 'Vimar', description: 'Zigbee Friends of Hue RF switch', model: '03906'},
             {vendor: 'Sunricher', model: 'SR-ZGP2801K4-FOH-E'},
             {vendor: 'LED Trading', model: '9125'},
+            {vendor: 'Feller', description: 'Smart light control for Philips Hue', model: '4120.2.S.FMI.61'},
         ],
     },
     {

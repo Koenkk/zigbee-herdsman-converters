@@ -77,7 +77,7 @@ module.exports = [
         description: 'Dual curtain/blind module',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },

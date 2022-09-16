@@ -146,9 +146,9 @@ module.exports = [
             e.light_brightness().withEndpoint('l3'),
             e.light_brightness().withEndpoint('l4'),
             e.light_brightness().withEndpoint('l5'),
-            exposes.cover().withState('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+            exposes.cover().setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                 .withPosition().withTilt().withEndpoint('l6'),
-            exposes.cover().withState('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+            exposes.cover().setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                 .withPosition().withTilt().withEndpoint('l7'),
             e.action([
                 'button_1_single', 'button_1_double', 'button_1_hold', 'button_1_release',
@@ -184,7 +184,7 @@ module.exports = [
             tz.cover_position_tilt,
             coverAndLightToZigbee,
         ],
-        meta: {multiEndpoint: true, coverInverted: true},
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {
                 'l1': zigfredEndpoint,
