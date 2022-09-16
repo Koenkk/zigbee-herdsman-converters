@@ -48,14 +48,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
-            switch (key){
+            switch (key) {
             case 'rf_pairing_on':
                 payload = {'presentValue': 81};
                 break;
             case 'counting':
-                if (value === 'on'){
+                if (value === 'on') {
                     payload = {'presentValue': 82};
-                } else if (value === 'off'){
+                } else if (value === 'off') {
                     payload = {'presentValue': 84};
                 }
                 break;
@@ -63,45 +63,45 @@ const tzLocal = {
                 payload = {'presentValue': 83};
                 break;
             case 'led_state':
-                if (value === 'enable'){
+                if (value === 'enable') {
                     payload = {'presentValue': 86};
-                } else if (value === 'disable'){
+                } else if (value === 'disable') {
                     payload = {'presentValue': 87};
                 }
                 break;
             case 'rf_state':
-                if (value === 'enable'){
+                if (value === 'enable') {
                     payload = {'presentValue': 88};
-                } else if (value === 'disable'){
+                } else if (value === 'disable') {
                     payload = {'presentValue': 89};
                 }
                 break;
             case 'transation':
-                if (value === '0ms'){
+                if (value === '0ms') {
                     payload = {'presentValue': 90};
-                } else if (value === '200ms'){
+                } else if (value === '200ms') {
                     payload = {'presentValue': 91};
-                } else if (value === '400ms'){
+                } else if (value === '400ms') {
                     payload = {'presentValue': 92};
-                } else if (value === '600ms'){
+                } else if (value === '600ms') {
                     payload = {'presentValue': 93};
-                } else if (value === '800ms'){
+                } else if (value === '800ms') {
                     payload = {'presentValue': 94};
-                } else if (value === '1,000ms'){
+                } else if (value === '1,000ms') {
                     payload = {'presentValue': 95};
                 }
                 break;
             case 'fast_in':
-                if (value === 'enable'){
+                if (value === 'enable') {
                     payload = {'presentValue': 96};
-                } else if (value === 'disable'){
+                } else if (value === 'disable') {
                     payload = {'presentValue': 97};
                 }
                 break;
             case 'fast_out':
-                if (value === 'enable'){
+                if (value === 'enable') {
                     payload = {'presentValue': 98};
-                } else if (value === 'disable'){
+                } else if (value === 'disable') {
                     payload = {'presentValue': 99};
                 }
                 break;
