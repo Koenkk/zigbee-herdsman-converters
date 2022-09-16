@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const extend = require('../lib/extend');
 const ea = exposes.access;
+const e = exposes.presets;
 
 module.exports = [
     {
@@ -21,5 +22,13 @@ module.exports = [
         vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch (https://databyte.ch/panda1-wallswitch-zigbee)',
         extend: extend.switch(),
+    },
+    {
+        zigbeeModel: ['DTB-ED2011-014'],
+        model: 'DTB-ED2011-014',
+        vendor: 'databyte.ch',
+        description: 'Wall Touchsensor with 4 keys (https://databyte.ch/zigbee-touch-key)',
+        fromZigbee: [fz.on_off],
+        exposes: [e.battery(), e.switch(), e.linkquality()],
     },
 ];

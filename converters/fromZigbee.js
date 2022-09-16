@@ -2428,6 +2428,18 @@ const converters = {
             };
         },
     },
+    DTB2011014: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                key1: msg.data['41361'] === 1 ? 'ON' : 'OFF',
+                key2: msg.data['41362'] === 1 ? 'ON' : 'OFF',
+                key3: msg.data['41363'] === 1 ? 'ON' : 'OFF',
+                key4: msg.data['41364'] === 1 ? 'ON' : 'OFF',
+            };
+        },
+    },
     ZNMS12LM_low_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
