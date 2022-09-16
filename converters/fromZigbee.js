@@ -8072,7 +8072,7 @@ const converters = {
                 };
             case 110:
                 return {
-                    Minor-motion: value,
+                    Minormotion: value,
                 };
             case 111:
                 return {
