@@ -21,5 +21,5 @@ module.exports = [
         vendor: 'databyte.ch',
         description: 'Panda 1 - wall switch (https://databyte.ch/panda1-wallswitch-zigbee)',
         extend: extend.switch(),
-    }
+    },
 ];
