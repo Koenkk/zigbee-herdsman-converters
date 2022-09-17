@@ -3291,8 +3291,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9xejegcy'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9xejegcy'}],
         model: 'MSA201_Z',
         vendor: 'Merrytek',
         description: 'Large Beam Microwave Occupancy Sensor 24GHz',
