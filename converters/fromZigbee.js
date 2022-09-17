@@ -8013,7 +8013,7 @@ const converters = {
             return result;
         },
     },
-	merrytek_microwave_sensor: {
+    merrytek_microwave_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -8082,7 +8082,7 @@ const converters = {
                 return {
                     Linght: value,
                 };
-            case 112:
+            case 113:
                 return {
                     Behavior: value,
                 };
