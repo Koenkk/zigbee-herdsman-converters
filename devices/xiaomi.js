@@ -1594,7 +1594,7 @@ module.exports = [
             e.battery_voltage().withAccess(ea.STATE_GET),
             e.device_temperature(),
             e.action(['manual_open', 'manual_close']),
-            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause'])
                 .withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
