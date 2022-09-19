@@ -158,16 +158,16 @@ module.exports = [
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
             exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF Paring mode'),
-            exposes.enum('counting_freeze', ea.SET, ['on', 'off'])
+            exposes.binary('counting_freeze', ea.SET, 'on', 'off')
                 .withDescription('Counting Freeze On/Off, Not reporting people value when is On'),
             exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor Initial'),
-            exposes.enum('led_state', ea.SET, ['enable', 'disable']).withDescription('Indicate LED Enable/Disable, default : enable'),
-            exposes.enum('rf_state', ea.SET, ['enable', 'disable']).withDescription('RF function Enable/Disable, default : disable'),
+            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED Enable/Disable, default : enable'),
+            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function Enable/Disable, default : disable'),
             exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
                 .withDescription('Transation Interval, default : 400ms'),
-            exposes.enum('fast_in', ea.SET, ['enable', 'disable'])
+            exposes.binary('fast_in', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process Enable/Disable when people 0 to 1. default : enable'),
-            exposes.enum('fast_out', ea.SET, ['enable', 'disable'])
+            exposes.binary('fast_out', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process Enable/Disable when people 1 to 0. default : enable')],
     },
     {
