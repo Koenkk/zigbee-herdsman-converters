@@ -157,18 +157,18 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
-            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF Paring mode'),
-            exposes.binary('counting_freeze', ea.SET, 'on', 'off')
-                .withDescription('Counting Freeze On/Off, Not reporting people value when is On'),
-            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor Initial'),
-            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED Enable/Disable, default : enable'),
-            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function Enable/Disable, default : disable'),
+            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF pairing mode'),
+            exposes.binary('counting_freeze', ea.SET, 'ON', 'OFF')
+                .withDescription('Counting Freeze ON/OFF, not reporting people value when is ON'),
+            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
+            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
+            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
             exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
-                .withDescription('Transation Interval, default : 400ms'),
+                .withDescription('Transation interval, default : 400ms'),
             exposes.binary('fast_in', ea.SET, 'enable', 'disable')
-                .withDescription('Fast process Enable/Disable when people 0 to 1. default : enable'),
+                .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
             exposes.binary('fast_out', ea.SET, 'enable', 'disable')
-                .withDescription('Fast process Enable/Disable when people 1 to 0. default : enable')],
+                .withDescription('Fast process enable/disable when people 1 to 0. default : enable')],
     },
     {
         zigbeeModel: ['USM-300Z'],
