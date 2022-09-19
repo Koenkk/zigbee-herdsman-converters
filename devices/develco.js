@@ -43,7 +43,7 @@ module.exports = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, fz.develco_electrical_measurement, fz.develco_metering],
+        fromZigbee: [fz.on_off, fzLocal.develco_electrical_measurement, fzLocal.develco_metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
