@@ -2756,8 +2756,8 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['3402931P7'],
-        model: '3402931P7',
+        zigbeeModel: ['3402931P7', '3418231P6'],
+        model: '8718696175798',
         vendor: 'Philips',
         description: 'Philips Hue Adore Bathroom Mirror Light',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
