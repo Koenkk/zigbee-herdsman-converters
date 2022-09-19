@@ -16,12 +16,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyIn = msg.data.occupancy;
             globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
-            const occupancy_or = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
-            const occupancy_and = occupancyIn & globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyOr = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyAnd = occupancyIn & globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
             return {
                 occupancy_in: (occupancyIn & 1) > 0,
-                occupancy_or: (occupancy_or & 1) > 0,
-                occupancy_and: (occupancy_and & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
     },
@@ -31,12 +31,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyOut = msg.data.zonestatus;
             globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
-            const occupancy_or = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
-            const occupancy_and = occupancyOut & globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyOr = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyAnd = occupancyOut & globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
             return {
                 occupancy_out: (occupancyOut & 1) > 0,
-                occupancy_or: (occupancy_or & 1) > 0,
-                occupancy_and: (occupancy_and & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
     },
@@ -53,9 +53,9 @@ const tzLocal = {
                 payload = {'presentValue': 81};
                 break;
             case 'counting_freeze':
-                if (value === 'on') {
+                if (value.toLowerCase() === 'on') {
                     payload = {'presentValue': 82};
-                } else if (value === 'off') {
+                } else if (value.toLowerCase() === 'off') {
                     payload = {'presentValue': 84};
                 }
                 break;
