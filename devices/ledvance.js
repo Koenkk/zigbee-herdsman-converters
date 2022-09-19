@@ -223,7 +223,7 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
-   {
+    {
         zigbeeModel: ['PLUG COMPACT EU T'],
         model: '4058075729322',
         vendor: 'LEDVANCE',
@@ -236,7 +236,7 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-   {
+    {
         zigbeeModel: ['PLUG OUTDOOR EU T'],
         model: '4058075729308',
         vendor: 'LEDVANCE',
