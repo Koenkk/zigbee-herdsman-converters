@@ -223,5 +223,30 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness(),
         ota: ota.ledvance,
     },
-
+    {
+        zigbeeModel: ['PLUG COMPACT EU T'],
+        model: '4058075729322',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Compact Outdoor Plug EU',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['PLUG OUTDOOR EU T'],
+        model: '4058075729308',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Outdoor Plug EU',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];

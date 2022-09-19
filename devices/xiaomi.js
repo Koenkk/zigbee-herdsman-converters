@@ -550,6 +550,7 @@ module.exports = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n2aeu1'],
@@ -1594,7 +1595,7 @@ module.exports = [
             e.battery_voltage().withAccess(ea.STATE_GET),
             e.device_temperature(),
             e.action(['manual_open', 'manual_close']),
-            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause'])
                 .withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
@@ -2258,13 +2259,18 @@ module.exports = [
         model: 'SRTS-A01',
         vendor: 'Xiaomi',
         description: 'Aqara Smart Radiator Thermostat E1',
-        fromZigbee: [fzLocal.aqara_trv, fz.thermostat],
+        fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.STATE_SET),
             e.child_lock(), e.window_detection(), e.valve_detection(),
-            e.away_preset_temperature(),
+            e.away_preset_temperature(), e.battery_voltage(), e.battery(),
         ],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
     },
 ];
