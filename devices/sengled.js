@@ -61,8 +61,22 @@ module.exports = [
         model: 'E12-N1E',
         vendor: 'Sengled',
         description: 'Smart LED multicolor (BR30)',
-        extend: sengledExtend.light_onoff_brightness_colortemp_color(),
+        fromZigbee: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).fromZigbee.concat([fz.metering]),
+        toZigbee: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).toZigbee,
+        exposes: sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]}).exposes.concat([e.power(), e.energy()]),
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await sengledExtend.light_onoff_brightness_colortemp_color({colorTempRange: [154, 500]})
+                .configure(device, coordinatorEndpoint, logger);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+        },
     },
     {
         zigbeeModel: ['E1G-G8E'],
@@ -221,10 +235,16 @@ module.exports = [
         model: 'E1D-G73WNA',
         vendor: 'Sengled',
         description: 'Smart window and door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
     {
         zigbeeModel: ['E1C-NB6'],

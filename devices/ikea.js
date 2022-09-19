@@ -872,6 +872,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['TRADFRIbulbE12WWcandleclear250lm'],
+        model: 'LED2009C3',
+        vendor: 'IKEA',
+        description: 'TRADFRI LED bulb E12 WW candle clear 250 lumen, dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRIbulbGU10WS345lm', 'TRADFRI bulb GU10 WW 345lm', 'TRADFRIbulbGU10WS380lm'],
         model: 'LED2005R5',
         vendor: 'IKEA',
@@ -924,6 +931,7 @@ module.exports = [
 
             await endpoint.read('manuSpecificIkeaAirPurifier', ['controlPanelLight', 'childLock', 'filterRunTime']);
         },
+        ota: ota.tradfri,
     },
     {
         zigbeeModel: ['TRADFRIbulbE14WScandleopal470lm', 'TRADFRIbulbE12WScandleopal450lm'],
@@ -944,6 +952,13 @@ module.exports = [
         model: 'T2037',
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp 37 warm light dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW24'],
+        model: 'T2035',
+        vendor: 'IKEA',
+        description: 'STOFTMOLN ceiling/wall lamp 24 warm light dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
     },
 ];

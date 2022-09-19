@@ -3,7 +3,7 @@ const reporting = require('../lib/reporting');
 
 module.exports = [
     {
-        zigbeeModel: ['Z111PL0H-1JX'],
+        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1'],
         model: 'SA-029',
         vendor: 'Woolley',
         description: 'Smart Plug',
