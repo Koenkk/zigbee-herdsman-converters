@@ -2762,4 +2762,11 @@ module.exports = [
         description: 'Philips Hue Adore Bathroom Mirror Light',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['929003045901'],
+        model: '929003045901',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner spot white (1 spot)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
