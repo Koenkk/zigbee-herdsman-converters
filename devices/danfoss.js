@@ -16,6 +16,7 @@ module.exports = [
         vendor: 'Danfoss',
         description: 'Ally thermostat',
         whiteLabel: [{vendor: 'Danfoss', model: '014G2463'}],
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface, fz.danfoss_thermostat],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
@@ -213,7 +214,7 @@ module.exports = [
             tz.danfoss_system_status_code,
             tz.danfoss_multimaster_role,
         ],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         // ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {

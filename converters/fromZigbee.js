@@ -37,6 +37,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
+            const dontMapPIHeatingDemand = model.meta && model.meta.thermostat && model.meta.thermostat.dontMapPIHeatingDemand;
             if (msg.data.hasOwnProperty('localTemp')) {
                 result[postfixWithEndpointName('local_temperature', msg, model, meta)] = precisionRound(msg.data['localTemp'], 2) / 100;
             }
@@ -110,7 +111,7 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('pIHeatingDemand')) {
                 result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
-                    mapNumberRange(msg.data['pIHeatingDemand'], 0, 255, 0, 100);
+                    mapNumberRange(msg.data['pIHeatingDemand'], 0, (dontMapPIHeatingDemand ? 100: 255), 0, 100);
             }
             if (msg.data.hasOwnProperty('tempSetpointHold')) {
                 result[postfixWithEndpointName('temperature_setpoint_hold', msg, model, meta)] = msg.data['tempSetpointHold'] == 1;
@@ -394,8 +395,7 @@ const converters = {
     illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
+        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
             const illuminance = msg.data['measuredValue'];
@@ -1540,16 +1540,24 @@ const converters = {
             // HomeAssistant etc. work the other way round.
             // For zigbee-herdsman-converters: open = 100, close = 0
             // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
-            const invert = model.meta && model.meta.coverInverted ? !options.invert_cover : options.invert_cover;
+            const metaInvert = model.meta && model.meta.coverInverted;
+            const invert = metaInvert ? !options.invert_cover : options.invert_cover;
+            const coverStateFromTilt = model.meta && model.meta.coverStateFromTilt;
             if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
                 const value = msg.data['currentPositionLiftPercentage'];
                 result[postfixWithEndpointName('position', msg, model, meta)] = invert ? value : 100 - value;
-                result[postfixWithEndpointName('state', msg, model, meta)] =
-                    invert ? (value === 100 ? 'CLOSE' : 'OPEN') : (value === 0 ? 'CLOSE' : 'OPEN');
+                if (!coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        metaInvert ? (value === 0 ? 'CLOSE' : 'OPEN') : (value === 100 ? 'CLOSE' : 'OPEN');
+                }
             }
             if (msg.data.hasOwnProperty('currentPositionTiltPercentage') && msg.data['currentPositionTiltPercentage'] <= 100) {
                 const value = msg.data['currentPositionTiltPercentage'];
                 result[postfixWithEndpointName('tilt', msg, model, meta)] = invert ? value : 100 - value;
+                if (coverStateFromTilt) {
+                    result[postfixWithEndpointName('state', msg, model, meta)] =
+                        metaInvert ? (value === 100 ? 'OPEN' : 'CLOSE') : (value === 0 ? 'OPEN' : 'CLOSE');
+                }
             }
             return result;
         },
@@ -2486,18 +2494,6 @@ const converters = {
             } else {
                 return converters.metering.convert(model, msg, publish, options, meta);
             }
-        },
-    },
-    sinope_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = converters.thermostat.convert(model, msg, publish, options, meta);
-            // Sinope seems to report pIHeatingDemand between 0 and 100 already
-            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
-                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
-            return result;
         },
     },
     stelpro_thermostat: {
@@ -3516,11 +3512,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            // Danfoss sends pi_heating_demand as raw %
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result[postfixWithEndpointName('pi_heating_demand', msg, model, meta)] =
-                    precisionRound(msg.data['pIHeatingDemand'], 0);
-            }
             if (msg.data.hasOwnProperty('danfossWindowOpenFeatureEnable')) {
                 result[postfixWithEndpointName('window_open_feature', msg, model, meta)] =
                     (msg.data['danfossWindowOpenFeatureEnable'] === 1);
@@ -4849,7 +4840,8 @@ const converters = {
                     }
                     return {brightness: mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots'].includes(meta.device.manufacturerName)) {
+            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i']
+                .includes(meta.device.manufacturerName)) {
                 if (dpValue.dp === tuya.dataPoints.eardaDimmerLevel) {
                     return {brightness: mapNumberRange(value, 0, 1000, 0, 254)};
                 } else if (dpValue.dp === tuya.dataPoints.dimmerMinLevel) {
@@ -5127,7 +5119,7 @@ const converters = {
                 '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
             };
 
-            const ID = `${commandID}_${msg.data.commandFrame.raw.join('_')}`;
+            const ID = `${commandID}_${msg.data.commandFrame.raw.slice(0, 1).join('_')}`;
             if (!lookup.hasOwnProperty(ID)) {
                 meta.logger.error(`PTM 216Z: missing command '${ID}'`);
             } else {
@@ -5566,13 +5558,13 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+                result.push(exposes.options.calibration('illuminance', 'percentual'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
-                result.push(exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual'));
+                result.push(exposes.options.calibration('illuminance_lux', 'percentual'));
             }
             return result;
         },
@@ -5590,7 +5582,7 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             return result;
         },
@@ -5612,10 +5604,10 @@ const converters = {
                 result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.precision('device_temperature'), exposes.options.calibration('device_temperature'));
+                result.push(exposes.options.calibration('device_temperature'));
             }
             if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'));
+                result.push(exposes.options.calibration('illuminance', 'percentual'));
             }
             return result;
         },
@@ -5695,8 +5687,7 @@ const converters = {
     RTCGQ11LM_illuminance: {
         cluster: 'msIlluminanceMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual'),
-            exposes.options.precision('illuminance_lux'), exposes.options.calibration('illuminance_lux', 'percentual')],
+        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
@@ -5716,7 +5707,7 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.occupancy_timeout_2(), exposes.options.no_occupancy_since_true(),
-            exposes.options.precision('illuminance'), exposes.options.calibration('illuminance', 'percentual')],
+            exposes.options.calibration('illuminance', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('illuminance')) {
                 // The occupancy sensor only sends a message when motion detected.
@@ -6836,6 +6827,17 @@ const converters = {
             case 7: {
                 return {battery: value};
             }
+            case 10: {
+                let data = 'disabled';
+                if (value == 1) {
+                    data = '24h';
+                } else if (value == 2) {
+                    data = '48h';
+                } else if (value == 3) {
+                    data = '72h';
+                }
+                return {weather_delay: data};
+            }
             case 11: {
                 // value reported in seconds
                 return {timer_time_left: value / 60};
@@ -6848,6 +6850,43 @@ const converters = {
             case 15: {
                 // value reported in seconds
                 return {last_valve_open_duration: value / 60};
+            }
+            case 16: {
+                const tresult = {
+                    cycle_timer_1: '',
+                    cycle_timer_2: '',
+                    cycle_timer_3: '',
+                    cycle_timer_4: '',
+                };
+                for (let index = 0; index < 40; index += 12) {
+                    const timer = tuya.convertRawToCycleTimer(value.slice(index));
+                    if (timer.irrigationDuration > 0) {
+                        tresult['cycle_timer_' + (index / 13 + 1)] = timer.starttime +
+                            ' / ' + timer.endtime + ' / ' +
+                            timer.irrigationDuration + ' / ' +
+                            timer.pauseDuration + ' / ' +
+                            timer.weekdays + ' / ' + timer.active;
+                    }
+                }
+                return tresult;
+            }
+            case 17: {
+                const tresult = {
+                    normal_schedule_timer_1: '',
+                    normal_schedule_timer_2: '',
+                    normal_schedule_timer_3: '',
+                    normal_schedule_timer_4: '',
+                };
+                for (let index = 0; index < 40; index += 13) {
+                    const timer = tuya.convertRawToTimer(value.slice(index));
+                    if (timer.duration > 0) {
+                        tresult['normal_schedule_timer_' + (index / 13 + 1)] = timer.time +
+                        ' / ' + timer.duration +
+                        ' / ' + timer.weekdays +
+                        ' / ' + timer.active;
+                    }
+                }
+                return tresult;
             }
             default: {
                 meta.logger.warn(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
@@ -7983,7 +8022,7 @@ const converters = {
                 const value = tuya.getDataValue(dpValue);
                 switch (dpValue.dp) {
                 case tuya.dataPoints.state:
-                    result.contact = Boolean(value);
+                    result.contact = !value;
                     break;
                 case tuya.dataPoints.thitBatteryPercentage:
                     result.battery = value;
@@ -8444,6 +8483,9 @@ const converters = {
                         `Mode ${value} is not recognized.`);
                     break;
                 }
+                break;
+            case tuya.dataPoints.AM02AddRemoter: // DP 101: Ignore until need is defined
+            case tuya.dataPoints.AM02TimeTotal: // DP 10: Ignore until need is defined
                 break;
             default: // Unknown code
                 meta.logger.warn(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:

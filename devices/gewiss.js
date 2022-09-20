@@ -37,10 +37,11 @@ module.exports = [
         vendor: 'Gewiss',
         fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
-            await reporting.brightness(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position()],
     },

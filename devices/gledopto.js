@@ -331,6 +331,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
+        zigbeeModel: ['GL-S-006P'],
+        model: 'GL-S-006P',
+        vendor: 'Gledopto',
+        description: 'Zigbee GU10 LED lamp',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-MC-001P'],
         model: 'GL-MC-001P',
         vendor: 'Gledopto',
@@ -474,6 +481,14 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee 12W E26/E27 Bulb RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['GL-D-002P'],
+        model: 'GL-D-002P',
+        vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
+        description: 'Zigbee 6W Downlight RGB+CCT (pro CRI>90)',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-D-003Z'],

@@ -211,7 +211,7 @@ module.exports = [
         description: 'Smart remote controller',
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_partial_zones', 'arm_all_zones'])],
+        exposes: [e.battery(), e.action(['emergency', 'disarm', 'arm_day_zones', 'arm_all_zones'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -442,6 +442,20 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'heimanSpecificScenes']);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'ColorDimmerSw-EM-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS2WDSR-E',
+        vendor: 'HEIMAN',
+        description: 'Remote dimmer and color control',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color],
+        exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move'])],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
         },
     },
     {

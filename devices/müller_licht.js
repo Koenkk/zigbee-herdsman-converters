@@ -149,7 +149,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['tint-Remote-white'],
-        model: '404022',
+        model: '404022/404049C',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp],

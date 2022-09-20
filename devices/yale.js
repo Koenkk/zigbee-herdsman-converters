@@ -4,7 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
-const lockExtend = (meta) => {
+const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'genPowerCfg']) => {
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
@@ -13,11 +13,45 @@ const lockExtend = (meta) => {
         exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
-            await reporting.lockState(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.lockState(endpoint, lockStateOptions);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     };
+};
+
+const fzLocal = {
+    c4_lock_operation_event: {
+        cluster: 'genAlarms',
+        type: ['commandAlarm'],
+        convert: async (model, msg, publish, options, meta) => {
+            let result = {};
+            if (msg.data.clusterid == 64512) {
+                const alarmcode = msg.data.alarmcode;
+                const lookup = {
+                    9: {action: 'error_jammed', state: 'UNLOCKED', lock_state: 'not_fully_locked'},
+                    21: {action: 'manual_lock', state: 'LOCKED', lock_state: 'locked'},
+                    22: {action: 'manual_unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
+                    24: {action: 'lock', state: 'LOCKED', lock_state: 'locked'},
+                    25: {action: 'unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
+                    27: {action: 'auto_lock', state: 'LOCKED', lock_state: 'locked'},
+                };
+                if (!lookup[alarmcode]) {
+                    result.action = 'unknown';
+                    meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: Unrecognized Operation Event (${alarmcode})`);
+                    // We need to read the lock state as the alarm code is unknown
+                    try {
+                        await msg.endpoint.read('closuresDoorLock', ['lockState']);
+                    } catch (error) {
+                        meta.logger.warn(`zigbee-herdsman-converters:Yale Lock: failed to read lock state`);
+                    }
+                } else {
+                    result = lookup[alarmcode];
+                }
+            }
+            return result;
+        },
+    },
 };
 
 module.exports = [
@@ -47,7 +81,7 @@ module.exports = [
         model: 'YMF30',
         vendor: 'Yale',
         description: 'Digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}),
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
@@ -55,7 +89,7 @@ module.exports = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
-        extend: lockExtend({timeout: 20000}),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {timeout: 20000}),
     },
     {
         zigbeeModel: ['YRD210 PB DB'],
@@ -129,7 +163,7 @@ module.exports = [
         model: 'YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
-        extend: lockExtend(),
+        extend: lockExtend({battery: {dontDividePercentage: true}}, {max: 900}, ['closuresDoorLock']),
     },
     {
         zigbeeModel: ['06ffff2027'],
@@ -137,5 +171,23 @@ module.exports = [
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         extend: lockExtend({battery: {dontDividePercentage: true}}),
+    },
+    {
+        fingerprint: [{
+            type: 'EndDevice',
+            manufacturerName: 'Yale',
+            manufacturerID: 43690,
+            powerSource: 'Battery',
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 10, inputClusters: [0, 9, 10, 257, 64512, 1], outputClusters: []},
+                {ID: 196, profileID: 260, deviceID: 10, inputClusters: [1], outputClusters: []},
+            ]},
+        ],
+        model: 'ZYA-C4-MOD-S',
+        vendor: 'Yale',
+        description: 'Control4 module for Yale KeyFree/Keyless/Doorman/Assure/nexTouch locks',
+        fromZigbee: [fz.lock, fzLocal.c4_lock_operation_event],
+        toZigbee: [tz.lock],
+        exposes: [e.lock(), e.lock_action()],
     },
 ];

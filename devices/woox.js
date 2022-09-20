@@ -34,6 +34,7 @@ const fzLocal = {
                 case 14: {
                     const batteryLevels = {0: 'low', 1: 'middle', 2: 'high'};
                     result.battery_level = batteryLevels[value];
+                    result.battery_low = value === 0;
                     break;
                 }
                 case 16:
@@ -106,6 +107,10 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
         exposes: [e.switch(), e.battery()],
         meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_keabpigv'}],

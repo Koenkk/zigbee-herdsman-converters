@@ -3,12 +3,122 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ota = require('../lib/ota');
+const globalStore = require('../lib/store');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    DMS300_IN: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.no_occupancy_since_false()],
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyIn = msg.data.occupancy;
+            globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
+            const occupancyOr = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyAnd = occupancyIn & globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            return {
+                occupancy_in: (occupancyIn & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
+            };
+        },
+    },
+    DMS300_OUT: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const occupancyOut = msg.data.zonestatus;
+            globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
+            const occupancyOr = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyAnd = occupancyOut & globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            return {
+                occupancy_out: (occupancyOut & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
+            };
+        },
+    },
+};
+
+const tzLocal = {
+    CSM300_SETUP: {
+        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            switch (key) {
+            case 'rf_pairing_on':
+                payload = {'presentValue': 81};
+                break;
+            case 'counting_freeze':
+                if (value.toLowerCase() === 'on') {
+                    payload = {'presentValue': 82};
+                } else if (value.toLowerCase() === 'off') {
+                    payload = {'presentValue': 84};
+                }
+                break;
+            case 'tof_init':
+                payload = {'presentValue': 83};
+                break;
+            case 'led_state':
+                if (value === 'enable') {
+                    payload = {'presentValue': 86};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 87};
+                }
+                break;
+            case 'rf_state':
+                if (value === 'enable') {
+                    payload = {'presentValue': 88};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 89};
+                }
+                break;
+            case 'transation':
+                if (value === '0ms') {
+                    payload = {'presentValue': 90};
+                } else if (value === '200ms') {
+                    payload = {'presentValue': 91};
+                } else if (value === '400ms') {
+                    payload = {'presentValue': 92};
+                } else if (value === '600ms') {
+                    payload = {'presentValue': 93};
+                } else if (value === '800ms') {
+                    payload = {'presentValue': 94};
+                } else if (value === '1,000ms') {
+                    payload = {'presentValue': 95};
+                }
+                break;
+            case 'fast_in':
+                if (value === 'enable') {
+                    payload = {'presentValue': 96};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 97};
+                }
+                break;
+            case 'fast_out':
+                if (value === 'enable') {
+                    payload = {'presentValue': 98};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 99};
+                }
+                break;
+            }
+            await endpoint.write('genAnalogInput', payload);
+        },
+    },
+};
+
 module.exports = [
     {
-        zigbeeModel: ['CSM-300Z'],
+        fingerprint: [
+            {modelID: 'CSM-300Z', applicationVersion: 1},
+            {modelID: 'CSM-300Z', applicationVersion: 2},
+            {modelID: 'CSM-300Z', applicationVersion: 3},
+            {modelID: 'CSM-300Z', applicationVersion: 4},
+        ],
         model: 'CSM-300ZB',
         vendor: 'ShinaSystem',
         description: 'SiHAS multipurpose sensor',
@@ -26,6 +136,39 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
             exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(50).withDescription('People count')],
+    },
+    {
+        zigbeeModel: ['CSM-300Z'],
+        model: 'CSM-300ZB_V2',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS multipurpose ToF sensor',
+        meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
+        fromZigbee: [fz.battery, fz.sihas_people_cnt],
+        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'genAnalogInput'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint);
+            const payload = reporting.payload('presentValue', 1, 600, 0);
+            await endpoint.configureReporting('genAnalogInput', payload);
+        },
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
+            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF pairing mode'),
+            exposes.binary('counting_freeze', ea.SET, 'ON', 'OFF')
+                .withDescription('Counting Freeze ON/OFF, not reporting people value when is ON'),
+            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
+            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
+            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
+            exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
+                .withDescription('Transation interval, default : 400ms'),
+            exposes.binary('fast_in', ea.SET, 'enable', 'disable')
+                .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
+            exposes.binary('fast_out', ea.SET, 'enable', 'disable')
+                .withDescription('Fast process enable/disable when people 1 to 0. default : enable')],
     },
     {
         zigbeeModel: ['USM-300Z'],
@@ -362,5 +505,57 @@ module.exports = [
                 .withFeature(exposes.numeric('user', ea.SET).withDescription('User ID can only number 1'))
                 .withFeature(exposes.numeric('pin_code', ea.SET).withDescription('Pincode to set, set pincode(4 digit) to null to clear')),
         ],
+    },
+    {
+        zigbeeModel: ['DMS-300Z'],
+        model: 'DMS-300ZB',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS dual motion sensor',
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        fromZigbee: [fz.battery, fzLocal.DMS300_OUT, fzLocal.DMS300_IN, fz.occupancy_timeout],
+        toZigbee: [tz.occupancy_timeout],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'msOccupancySensing', 'ssIasZone'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
+            const payload = [{
+                attribute: 'zoneStatus', minimumReportInterval: 1, maximumReportInterval: 600, reportableChange: 1}];
+            await endpoint.configureReporting('ssIasZone', payload);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+        },
+        exposes: [e.battery(), e.battery_voltage(),
+            exposes.binary('occupancy_in', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_out', ea.STATE, true, false)
+                .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_or', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_and', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN and OUT" Sensor of the device detected occupancy'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
+    },
+    {
+        zigbeeModel: ['ISM300Z3'],
+        model: 'ISM300Z3',
+        vendor: 'ShinaSystem',
+        ota: ota.zigbeeOTA,
+        description: 'SiHAS IOT smart inner switch 3 gang',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(device.getEndpoint(1));
+            await reporting.onOff(device.getEndpoint(2));
+            await reporting.onOff(device.getEndpoint(3));
+        },
     },
 ];

@@ -167,4 +167,86 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['A60 DIM T'],
+        model: '4058075728981',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Classic A E27 dimmable white',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['B40 DIM T'],
+        model: '4058075729063',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Classic B40 E14 dimmable white',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['PAR16 DIM T'],
+        model: '4058075729148',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Spot PAR16 50 GU10 dimmable white',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['P40 DIM T'],
+        model: '4058075729100',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Classic P40 E14 dimmable white',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['A60 FIL DIM T'],
+        model: '4058075729209',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Classic A 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['EDISON60 FIL DIM T'],
+        model: '4058075729223',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Edison 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['GLOBE60 FIL DIM T'],
+        model: '4058075729247',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Filament Globe125 52 E27 Amber dimmable',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['PLUG COMPACT EU T'],
+        model: '4058075729322',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Compact Outdoor Plug EU',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['PLUG OUTDOOR EU T'],
+        model: '4058075729308',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Outdoor Plug EU',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];

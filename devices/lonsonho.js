@@ -77,7 +77,7 @@ module.exports = [
         description: 'Dual curtain/blind module',
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
             return {'left': 1, 'right': 2};
         },
@@ -134,7 +134,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_weaqkhab'}],
         model: 'QS-Zigbee-D02-TRIAC-L',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module without neutral',

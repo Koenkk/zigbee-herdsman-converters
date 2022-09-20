@@ -8,13 +8,42 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const fzLocal = {
+    // SPLZB-134 and SPLZB-131 reports strange values sometimes
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13329
+    develco_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                return fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    develco_device_temperature: {
+        ...fz.device_temperature,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentTemperature !== -0x8000) {
+                return fz.device_temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+    develco_metering: {
+        ...fz.metering,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.instantaneousDemand !== -0x800000) {
+                return fz.metering.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['SPLZB-131'],
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        fromZigbee: [fz.on_off, fzLocal.develco_electrical_measurement, fzLocal.develco_metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -65,7 +94,7 @@ module.exports = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        fromZigbee: [fz.on_off, fzLocal.develco_electrical_measurement, fzLocal.develco_metering, fzLocal.develco_device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -115,7 +144,7 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering, fz.electrical_measurement, fz.develco_fw],
+        fromZigbee: [fzLocal.develco_metering, fzLocal.develco_electrical_measurement, fz.develco_fw],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {

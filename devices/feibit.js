@@ -23,6 +23,13 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['FB56+ZSW1GKJ2.3'],
+        model: 'SKY01-TS1-101',
+        vendor: 'Feibit',
+        description: 'Smart light switch - 1 gang',
+        extend: extend.switch(),
+    },
+    {
         zigbeeModel: ['FNB56-SOS03FB1.5'],
         model: 'SEB01ZB',
         vendor: 'Feibit',
@@ -32,7 +39,7 @@ module.exports = [
         exposes: [e.sos(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2'],
+        zigbeeModel: ['FNB56-BOT06FB2.3', 'FNB56-BOT06FB2.8', 'FB56-BOT02HM1.2', 'FNB56-BOT06FB2.8'],
         model: 'SBM01ZB',
         vendor: 'Feibit',
         description: 'Human body movement sensor',
@@ -47,7 +54,7 @@ module.exports = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-THM14FB2.4', 'FNB54-THM17ML1.1', 'FB56-THM12HM1.2'],
+        zigbeeModel: ['FNB56-THM14FB2.4', 'FNB54-THM17ML1.1', 'FB56-THM12HM1.2', 'FNB56-THM14FB2.5'],
         model: 'STH01ZB',
         vendor: 'Feibit',
         description: 'Smart temperature & humidity Sensor',
@@ -57,7 +64,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-SMF06FB1.6'],
+        zigbeeModel: ['FNB56-SMF06FB1.6', 'FNB56-SMF06FB2.0'],
         model: 'SSA01ZB',
         vendor: 'Feibit',
         description: 'Smoke detector',
@@ -72,7 +79,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-COS06FB1.7'],
+        zigbeeModel: ['FNB56-COS06FB1.7', 'FNB56-COS06FB2.1'],
         model: 'SCA01ZB',
         vendor: 'Feibit',
         description: 'Smart carbon monoxide sensor',
@@ -87,7 +94,7 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FNB56-GAS05FB1.4'],
+        zigbeeModel: ['FNB56-GAS05FB1.4', 'FNB56-GAS05FB1.8'],
         model: 'SGA01ZB',
         vendor: 'Feibit',
         description: 'Combustible gas sensor',
@@ -96,7 +103,7 @@ module.exports = [
         exposes: [e.gas()],
     },
     {
-        zigbeeModel: ['FNB56-WTS05FB2.0'],
+        zigbeeModel: ['FNB56-WTS05FB2.0', 'FNB56-WTS05FB2.4'],
         model: 'SWA01ZB',
         vendor: 'Feibit',
         description: 'Water leakage sensor',
@@ -114,7 +121,7 @@ module.exports = [
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['FB56+SKT14AL2.1'],
+        zigbeeModel: ['FB56+SKT14AL2.1', 'FTB56+SKT1BCW1.0'],
         model: 'SFS01ZB',
         vendor: 'Feibit',
         description: 'Power plug',

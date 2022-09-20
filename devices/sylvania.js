@@ -41,7 +41,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['LIGHTIFY RT Tunable White'],
+        zigbeeModel: ['LIGHTIFY RT Tunable White', 'RT TW'],
         model: '73742',
         vendor: 'Sylvania',
         description: 'LIGHTIFY LED adjustable white RT 5/6',
