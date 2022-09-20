@@ -6959,30 +6959,6 @@ const converters = {
             }
         },
     },
-    merrytek_microwave_sensor: {
-        key: [
-            'illuminance_calibration', 'led_enable',
-            'sensitivity', 'keep_time',
-        ],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'illuminance_calibration':// (10--100) sensor illuminance sensitivity
-                await tuya.sendDataPointRaw(entity, 102, [value]);
-                break;
-            case 'led_enable':// OK (value true/false or 1/0)
-                await tuya.sendDataPointRaw(entity, 107, [value ? 1 : 0]);
-                break;
-            case 'sensitivity':// value: 25, 50, 75, 100
-                await tuya.sendDataPointRaw(entity, 2, [value]);
-                break;
-            case 'keep_time': // value 0 --> 7 corresponding 5s, 30s, 1, 3, 5, 10, 20, 30 min
-                await tuya.sendDataPointRaw(entity, 106, [value]);
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
-            }
-        },
-    },
     moes_thermostat_tv: {
         key: [
             'system_mode', 'window_detection', 'frost_detection', 'child_lock',
