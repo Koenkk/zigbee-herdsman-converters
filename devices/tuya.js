@@ -3271,6 +3271,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
