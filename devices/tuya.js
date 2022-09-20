@@ -1940,9 +1940,9 @@ module.exports = [
             exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged'+
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
                     'heating stop, the device display "HS", press the pair button to cancel.'),
-            e.holiday_temperature(), exposes.composite('holiday_mode_date').withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.')
-                .withFeature(exposes.text('holiday_start_stop', ea.STATE_SET)),
+            e.holiday_temperature(),
+            exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
+                    'automatically start at the set time starting point and run the holiday temperature.'),
             // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
             exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
                 .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
