@@ -796,6 +796,7 @@ module.exports = [
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_v7gnj3ad'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_ark8nv4y'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_mx3vgyea'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_qsp2pwtf'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_46t1rvdu'}],
