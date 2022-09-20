@@ -2542,7 +2542,7 @@ module.exports = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['TS0004'],
+        fingerprint: [{modelID: 'TS0004', manufacturerName: '_TZ3000_ay8hciaf'}],
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
