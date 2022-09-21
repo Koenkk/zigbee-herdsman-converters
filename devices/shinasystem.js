@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
@@ -38,6 +39,20 @@ const fzLocal = {
                 occupancy_or: (occupancyOr & 1) > 0,
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
+        },
+    },
+    ISM300Z3_on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const property = utils.postfixWithEndpointName('state', msg, model, meta);
+                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            } else if (msg.data.hasOwnProperty(0x9000)) {
+                const value = msg.data[0x9000];
+                const lookup = {0: 'auto', 1: 'push', 2: 'latch'};
+                return {operation_mode: lookup[value]};
+            }
         },
     },
 };
@@ -107,6 +122,44 @@ const tzLocal = {
                 break;
             }
             await endpoint.write('genAnalogInput', payload);
+        },
+    },
+    ISM300Z3_on_off: {
+        key: ['state', 'operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            if (key === 'state') {
+                const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+                utils.validateValue(state, ['toggle', 'off', 'on']);
+                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                } else {
+                    return {state: {state: state.toUpperCase()}};
+                }
+            } else if (key === 'operation_mode') {
+                const lookup = {'auto': 0, 'push': 1, 'latch': 2};
+                const payload = {0x9000: {value: lookup[value], type: 0x20}}; // INT8U
+                await entity.write('genOnOff', payload);
+                await endpoint.read('genOnOff', [0x9000]);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'operation_mode') {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.read('genOnOff', [0x9000]);
+            } else {
+                await entity.read('genOnOff', ['onOff']);
+            }
+        },
+    },
+    ISM300Z3_rf_pairing: {
+        key: ['rf_pairing'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
+            const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
+            await entity.write('genOnOff', payload);
         },
     },
 };
@@ -543,13 +596,19 @@ module.exports = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS IOT smart inner switch 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        fromZigbee: [fzLocal.ISM300Z3_on_off],
+        toZigbee: [tzLocal.ISM300Z3_on_off, tzLocal.ISM300Z3_rf_pairing],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
+                .withDescription('Operation mode: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W'),
+            exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
+                .withDescription('Enable RF pairing mode each button l1, l2, l3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genOnOff', [0x9000]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
