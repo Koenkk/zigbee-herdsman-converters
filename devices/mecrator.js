@@ -87,9 +87,16 @@ module.exports = [
         description: 'Ikuü Double Power Point with USB',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off],
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'), e.power().withEndpoint('left'), e.current().withEndpoint('left'), e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy()],
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            e.power().withEndpoint('left'),
+            e.current().withEndpoint('left'),
+            e.voltage().withEndpoint('left').withAccess(ea.STATE),
+            e.energy()
+        ],
         endpoint: (device) => {
-                return {left: 1, right: 2};
+            return {left: 1, right: 2};
         },
         // The configure method below is needed to make the device reports on/off state changes
         // when the device is controlled manually through the button on it.
@@ -109,7 +116,7 @@ module.exports = [
             await reporting.onOff(endpoint2);
             endpoint1.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint1.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-        device.save();
+            device.save();
         }
     }
 ];
