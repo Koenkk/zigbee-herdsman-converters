@@ -602,7 +602,7 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
                 .withDescription('Operation mode: "auto" - Toggle by S/W, "push" - For Momentary S/W, "latch" - Sync S/W'),
             exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
-                .withDescription('Enable RF pairing mode each button L1, L2, L3'),],
+                .withDescription('Enable RF pairing mode each button L1, L2, L3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
