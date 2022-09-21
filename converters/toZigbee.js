@@ -3484,8 +3484,6 @@ const converters = {
                 if (value == 'ON') {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 } else {
-                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
-                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
@@ -3493,8 +3491,6 @@ const converters = {
                 if (value == 'ON') {
                     await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 1);
                 } else {
-                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvFrostDetection, 0);
-                    await utils.sleep(500);
                     await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
                 }
                 break;
