@@ -129,8 +129,8 @@ const tzLocal = {
             await endpoint.write('genAnalogInput', payload);
         },
     },
-    INNER_RELAY_SETUP: {
-        key: ['state', 'operation_mode', 'rf_pairing'],
+    INNER_RELAY_ON_OFF_W_MODE: {
+        key: ['state', 'operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             if (key === 'state') {
@@ -148,10 +148,6 @@ const tzLocal = {
                 const payload = {0x9000: {value: lookup[value], type: 0x20}}; // INT8U
                 await entity.write('genOnOff', payload);
                 await endpoint.read('genOnOff', [0x9000]);
-            } else if (key === 'rf_pairing') {
-                const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
-                const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
-                await entity.write('genOnOff', payload);
             }
         },
         convertGet: async (entity, key, meta) => {            
@@ -162,6 +158,14 @@ const tzLocal = {
             } else {
                 await entity.read('genOnOff', ['onOff']);
             }
+        },
+    },
+    INNER_RELAY_RF: {
+        key: ['rf_pairing'],
+        convertSet: async (entity, key, value, meta) => {
+			const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
+			const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
+			await entity.write('genOnOff', payload);
         },
     },
 };
@@ -600,7 +604,7 @@ module.exports = [
         description: 'SiHAS IOT smart inner switch 3 gang',
         //extend: extend.switch(),
 		fromZigbee: [fzLocal.INNER_RELAY_ON_OFF_W_MODE],
-		toZigbee: [tzLocal.INNER_RELAY_SETUP],
+		toZigbee: [tzLocal.INNER_RELAY_ON_OFF_W_MODE, tzLocal.INNER_RELAY_RF],
 		exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
 			exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
 				.withDescription('Operation mode: "auto" - Toggle by S/W, "push" - For Momentary S/W, "latch" - Sync S/W'),
