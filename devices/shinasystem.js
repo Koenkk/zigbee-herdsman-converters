@@ -1,8 +1,3 @@
-const {
-    precisionRound, mapNumberRange, isLegacyEnabled, toLocalISOString, numberWithinRange, hasAlreadyProcessedMessage,
-    calibrateAndPrecisionRoundOptions, addActionGroup, postfixWithEndpointName, getKey,
-    batteryVoltageToPercentage, getMetaValue,
-} = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const utils = require('../lib/utils');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
@@ -51,7 +46,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
-                const property = postfixWithEndpointName('state', msg, model, meta);
+                const property = utils.postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             } else if (msg.data.hasOwnProperty(0x9000)) {
                 const value = msg.data[0x9000];
@@ -150,9 +145,8 @@ const tzLocal = {
                 await endpoint.read('genOnOff', [0x9000]);
             }
         },
-        convertGet: async (entity, key, meta) => {            
+        convertGet: async (entity, key, meta) => {
             if (key === 'operation_mode') {
-                const lookup = {'auto': 0, 'push': 1, 'latch': 2};
                 const endpoint = meta.device.getEndpoint(1);
                 await endpoint.read('genOnOff', [0x9000]);
             } else {
@@ -163,9 +157,9 @@ const tzLocal = {
     INNER_RELAY_RF: {
         key: ['rf_pairing'],
         convertSet: async (entity, key, value, meta) => {
-			const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
-			const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
-			await entity.write('genOnOff', payload);
+            const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
+            const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
+            await entity.write('genOnOff', payload);
         },
     },
 };
@@ -602,14 +596,13 @@ module.exports = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS IOT smart inner switch 3 gang',
-        //extend: extend.switch(),
-		fromZigbee: [fzLocal.INNER_RELAY_ON_OFF_W_MODE],
-		toZigbee: [tzLocal.INNER_RELAY_ON_OFF_W_MODE, tzLocal.INNER_RELAY_RF],
-		exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-			exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
-				.withDescription('Operation mode: "auto" - Toggle by S/W, "push" - For Momentary S/W, "latch" - Sync S/W'),
-			exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
-				.withDescription('Enable RF pairing mode each button L1, L2, L3'),],
+        fromZigbee: [fzLocal.INNER_RELAY_ON_OFF_W_MODE],
+        toZigbee: [tzLocal.INNER_RELAY_ON_OFF_W_MODE, tzLocal.INNER_RELAY_RF],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
+                .withDescription('Operation mode: "auto" - Toggle by S/W, "push" - For Momentary S/W, "latch" - Sync S/W'),
+            exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
+                .withDescription('Enable RF pairing mode each button L1, L2, L3'),],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
