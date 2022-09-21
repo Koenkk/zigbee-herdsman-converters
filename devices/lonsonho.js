@@ -148,7 +148,6 @@ module.exports = [
         fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.tuya_min_brightness]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tuya_min_brightness]),
         exposes: [e.light_brightness().withMinBrightness()],
-        extend: extend.light_onoff_brightness(),
     },
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_pagajpog'}],
