@@ -41,7 +41,7 @@ const fzLocal = {
             };
         },
     },
-    INNER_RELAY_ON_OFF_W_MODE: {
+    ISM300Z3_on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -154,7 +154,7 @@ const tzLocal = {
             }
         },
     },
-    INNER_RELAY_RF: {
+    ISM300Z3_rf_pairing: {
         key: ['rf_pairing'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
@@ -596,13 +596,13 @@ module.exports = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS IOT smart inner switch 3 gang',
-        fromZigbee: [fzLocal.INNER_RELAY_ON_OFF_W_MODE],
-        toZigbee: [tzLocal.INNER_RELAY_ON_OFF_W_MODE, tzLocal.INNER_RELAY_RF],
+        fromZigbee: [fzLocal.ISM300Z3_on_off],
+        toZigbee: [tzLocal.ISM300Z3_on_off, tzLocal.ISM300Z3_rf_pairing],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
             exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
-                .withDescription('Operation mode: "auto" - Toggle by S/W, "push" - For Momentary S/W, "latch" - Sync S/W'),
+                .withDescription('Operation mode: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W'),
             exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
-                .withDescription('Enable RF pairing mode each button L1, L2, L3')],
+                .withDescription('Enable RF pairing mode each button l1, l2, l3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
