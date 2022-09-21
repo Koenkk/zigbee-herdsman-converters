@@ -2581,6 +2581,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005997901'],
+        model: '915005997901',
+        vendor: 'Philips',
+        description: 'Hue White & Color Ambiance Xamento L',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929002966401'],
         model: '929002966401',
         vendor: 'Philips',
@@ -2760,6 +2767,13 @@ module.exports = [
         model: '8718696175798',
         vendor: 'Philips',
         description: 'Philips Hue Adore Bathroom Mirror Light',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003045901'],
+        model: '929003045901',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Runner spot white (1 spot)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
