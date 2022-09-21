@@ -124,7 +124,7 @@ const tzLocal = {
             await endpoint.write('genAnalogInput', payload);
         },
     },
-    INNER_RELAY_ON_OFF_W_MODE: {
+    ISM300Z3_on_off: {
         key: ['state', 'operation_mode'],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
