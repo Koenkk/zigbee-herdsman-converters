@@ -26,7 +26,6 @@ const zifgredFromZigbeeButtonEvent = {
     cluster: 'manuSpecificSiglisZigfred',
     type: ['commandSiglisZigfredButtonEvent'],
     convert: (model, msg, publish, options, meta) => {
-        console.log(msg);
         const button = msg.data.button;
         const type = msg.data.type;
 
@@ -195,7 +194,7 @@ module.exports = [
             }
 
             if (device.cover2Enabled) {
-                if (device.cover1TiltEnabled) {
+                if (device.cover2TiltEnabled) {
                     expose.push(exposes.cover()
                         .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                         .withPosition().withTilt().withEndpoint('l7'));
@@ -309,7 +308,7 @@ module.exports = [
 
             // Bind Cover 2 EP
             const cover2Ep = device.getEndpoint(12);
-            device.cover2Enabled = await cover2Ep.read('genBasic', ['deviceEnabled']).deviceEnabled;
+            device.cover2Enabled = (await cover2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
             if (device.cover2Enabled) {
                 await reporting.bind(cover2Ep, coordinatorEndpoint, ['closuresWindowCovering']);
                 await reporting.currentPositionLiftPercentage(cover2Ep);
