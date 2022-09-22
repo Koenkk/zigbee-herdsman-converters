@@ -1,7 +1,6 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
-const ota = require('../lib/ota');
 
 const e = exposes.presets;
 
