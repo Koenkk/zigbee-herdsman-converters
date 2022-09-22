@@ -8155,9 +8155,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const lookup = {'0': 'idle', '1': 'in', '2': 'out'};
             const value = precisionRound(parseFloat(msg.data['presentValue']), 1);
+            const people = precisionRound(msg.data.presentValue, 0);
             let result = null;
-            result = {people: precisionRound(msg.data.presentValue, 0), status: lookup[value*10%10]};
-            return result;
+            if (value <= 80) {
+                result = {people: people, status: lookup[value*10%10]};
+                return result;
+            }
         },
     },
     sihas_action: {
