@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
+const ea = exposes.access;
 
 
 const zigfredEndpoint = 5;
@@ -66,28 +67,50 @@ const buttonEventExposes = e.action([
     'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
 ]);
 
+function checkOption(options, key) {
+    if (options && options.hasOwnProperty(key)) {
+        return options[key];
+    } else {
+        return false;
+    }
+}
+
+function setOption(options, key, enabled) {
+    if (options) {
+        options[key] = enabled;
+    }
+}
+
 module.exports = [
     {
         zigbeeModel: ['zigfred uno'],
         model: 'ZFU-1D-CH',
         vendor: 'Siglis',
         description: 'zigfred uno smart in-wall switch',
+        options: [
+            exposes.binary(`front_surface_enabled`, ea.SET, true, false)
+                .withDescription('Front Surface LED enabled'),
+            exposes.binary(`relay_enabled`, ea.SET, true, false)
+                .withDescription('Relay enabled'),
+            exposes.binary(`dimmer_enabled`, ea.SET, true, false)
+                .withDescription('Dimmer enabled'),
+        ],
         exposes: (device, options) => {
             const expose = [];
 
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null) {
-                if (device.frontSurfaceEnabled) {
+            if (device != null && options != null) {
+                if (checkOption(options, 'front_surface_enabled')) {
                     expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
                 }
 
-                if (device.relayEnabled) {
+                if (checkOption(options, 'relay_enabled')) {
                     expose.push(e.switch().withEndpoint('l2'));
                 }
 
-                if (device.dimmerEnabled) {
+                if (checkOption(options, 'dimmer_enabled')) {
                     expose.push(e.light_brightness().withEndpoint('l3'));
                 }
             }
@@ -125,30 +148,30 @@ module.exports = [
                 'l3': 7,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger, options) => {
             if (device != null) {
                 const controlEp = device.getEndpoint(zigfredEndpoint);
                 const relayEp = device.getEndpoint(6);
                 const dimmerEp = device.getEndpoint(7);
 
                 // Bind Control EP (LED)
-                device.frontSurfaceEnabled = (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.frontSurfaceEnabled) {
+                setOption(options, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'front_surface_enabled')) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
                     await reporting.onOff(controlEp);
                     await reporting.brightness(controlEp);
                 }
 
                 // Bind Relay EP
-                device.relayEnabled = (await relayEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.relayEnabled) {
+                setOption(options, 'relay_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'relay_enabled')) {
                     await reporting.bind(relayEp, coordinatorEndpoint, ['genOnOff']);
                     await reporting.onOff(relayEp);
                 }
 
                 // Bind Dimmer EP
-                device.dimmerEnabled = (await dimmerEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.dimmerEnabled) {
+                setOption(options, 'dimmer_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'dimmer_enabled')) {
                     await reporting.bind(dimmerEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmerEp);
                     await reporting.brightness(dimmerEp);
@@ -161,35 +184,55 @@ module.exports = [
         model: 'ZFP-1A-CH',
         vendor: 'Siglis',
         description: 'zigfred plus smart in-wall switch',
+        options: [
+            exposes.binary(`front_surface_enabled`, ea.SET, true, false)
+                .withDescription('Front Surface LED enabled'),
+            exposes.binary(`dimmer_1_enabled`, ea.SET, true, false)
+                .withDescription('Dimmer 1 enabled'),
+            exposes.binary(`dimmer_2_enabled`, ea.SET, true, false)
+                .withDescription('Dimmer 2 enabled'),
+            exposes.binary(`dimmer_3_enabled`, ea.SET, true, false)
+                .withDescription('Dimmer 3 enabled'),
+            exposes.binary(`dimmer_4_enabled`, ea.SET, true, false)
+                .withDescription('Dimmer 4 enabled'),
+            exposes.binary(`cover_1_enabled`, ea.SET, true, false)
+                .withDescription('Cover 1 enabled'),
+            exposes.binary(`cover_1_tilt_enabled`, ea.SET, true, false)
+                .withDescription('Cover 1 tiltable'),
+            exposes.binary(`cover_2_enabled`, ea.SET, true, false)
+                .withDescription('Cover 2 enabled'),
+            exposes.binary(`cover_2_tilt_enabled`, ea.SET, true, false)
+                .withDescription('Cover 2 tiltable'),
+        ],
         exposes: (device, options) => {
             const expose = [];
 
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null) {
-                if (device.frontSurfaceEnabled) {
+            if (device != null && options != null) {
+                if (checkOption(options, 'front_surface_enabled')) {
                     expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
                 }
 
-                if (device.dimmer1Enabled) {
+                if (checkOption(options, 'dimmer_1_enabled')) {
                     expose.push(e.light_brightness().withEndpoint('l2'));
                 }
 
-                if (device.dimmer2Enabled) {
+                if (checkOption(options, 'dimmer_2_enabled')) {
                     expose.push(e.light_brightness().withEndpoint('l3'));
                 }
 
-                if (device.dimmer3Enabled) {
+                if (checkOption(options, 'dimmer_3_enabled')) {
                     expose.push(e.light_brightness().withEndpoint('l4'));
                 }
 
-                if (device.dimmer4Enabled) {
+                if (checkOption(options, 'dimmer_4_enabled')) {
                     expose.push(e.light_brightness().withEndpoint('l5'));
                 }
 
-                if (device.cover1Enabled) {
-                    if (device.cover1TiltEnabled) {
+                if (checkOption(options, 'cover_1_enabled')) {
+                    if (checkOption(options, 'cover_2_tilt_enabled')) {
                         expose.push(exposes.cover()
                             .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                             .withPosition().withTilt().withEndpoint('l6'));
@@ -200,8 +243,8 @@ module.exports = [
                     }
                 }
 
-                if (device.cover2Enabled) {
-                    if (device.cover2TiltEnabled) {
+                if (checkOption(options, 'cover_2_enabled')) {
+                    if (checkOption(options, 'cover_2_tilt_enabled')) {
                         expose.push(exposes.cover()
                             .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                             .withPosition().withTilt().withEndpoint('l7'));
@@ -255,12 +298,12 @@ module.exports = [
                 'l7': 12,
             };
         },
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, logger, options) => {
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);
-                device.frontSurfaceEnabled = (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.frontSurfaceEnabled) {
+                setOption(options, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'front_surface_enabled')) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
                     await reporting.onOff(controlEp);
                     await reporting.brightness(controlEp);
@@ -268,8 +311,8 @@ module.exports = [
 
                 // Bind Dimmer 1 EP
                 const dimmer1Ep = device.getEndpoint(7);
-                device.dimmer1Enabled = (await dimmer1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.dimmer1Enabled) {
+                setOption(options, 'dimmer_1_enabled', (await dimmer1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'dimmer_1_enabled')) {
                     await reporting.bind(dimmer1Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer1Ep);
                     await reporting.brightness(dimmer1Ep);
@@ -277,8 +320,8 @@ module.exports = [
 
                 // Bind Dimmer 2 EP
                 const dimmer2Ep = device.getEndpoint(8);
-                device.dimmer2Enabled = (await dimmer2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.dimmer2Enabled) {
+                setOption(options, 'dimmer_2_enabled', (await dimmer2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'dimmer_2_enabled')) {
                     await reporting.bind(dimmer2Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer2Ep);
                     await reporting.brightness(dimmer2Ep);
@@ -286,8 +329,8 @@ module.exports = [
 
                 // Bind Dimmer 3 EP
                 const dimmer3Ep = device.getEndpoint(9);
-                device.dimmer3Enabled = (await dimmer3Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.dimmer3Enabled) {
+                setOption(options, 'dimmer_3_enabled', (await dimmer3Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'dimmer_3_enabled')) {
                     await reporting.bind(dimmer3Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer3Ep);
                     await reporting.brightness(dimmer3Ep);
@@ -295,8 +338,8 @@ module.exports = [
 
                 // Bind Dimmer 4 EP
                 const dimmer4Ep = device.getEndpoint(10);
-                device.dimmer4Enabled = (await dimmer4Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.dimmer4Enabled) {
+                setOption(options, 'dimmer_4_enabled', (await dimmer4Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'dimmer_4_enabled')) {
                     await reporting.bind(dimmer4Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer4Ep);
                     await reporting.brightness(dimmer4Ep);
@@ -304,26 +347,30 @@ module.exports = [
 
                 // Bind Cover 1 EP
                 const cover1Ep = device.getEndpoint(11);
-                device.cover1Enabled = (await cover1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.cover1Enabled) {
+                setOption(options, 'cover_1_enabled', (await cover1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'cover_1_enabled')) {
                     await reporting.bind(cover1Ep, coordinatorEndpoint, ['closuresWindowCovering']);
                     await reporting.currentPositionLiftPercentage(cover1Ep);
-                    device.cover1TiltEnabled =
-                        (await cover1Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08;
-                    if (device.cover1TiltEnabled) {
+                    setOption(
+                        options,
+                        'cover_1_tilt_enabled',
+                        (await cover1Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
+                    if (checkOption(options, 'cover_1_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover1Ep);
                     }
                 }
 
                 // Bind Cover 2 EP
                 const cover2Ep = device.getEndpoint(12);
-                device.cover2Enabled = (await cover2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-                if (device.cover2Enabled) {
+                setOption(options, 'cover_2_enabled', (await cover2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkOption(options, 'cover_2_enabled')) {
                     await reporting.bind(cover2Ep, coordinatorEndpoint, ['closuresWindowCovering']);
                     await reporting.currentPositionLiftPercentage(cover2Ep);
-                    device.cover2TiltEnabled =
-                        (await cover2Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08;
-                    if (device.cover2TiltEnabled) {
+                    setOption(
+                        options,
+                        'cover_2_tilt_enabled',
+                        (await cover2Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
+                    if (checkOption(options, 'cover_2_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover2Ep);
                     }
                 }
