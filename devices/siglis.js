@@ -76,17 +76,20 @@ module.exports = [
             const expose = [];
 
             expose.push(buttonEventExposes);
+            expose.push(e.linkquality());
 
-            if (device.frontSurfaceEnabled) {
-                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-            }
+            if (device != null) {
+                if (device.frontSurfaceEnabled) {
+                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
+                }
 
-            if (device.relayEnabled) {
-                expose.push(e.switch().withEndpoint('l2'));
-            }
+                if (device.relayEnabled) {
+                    expose.push(e.switch().withEndpoint('l2'));
+                }
 
-            if (device.dimmerEnabled) {
-                expose.push(e.light_brightness().withEndpoint('l3'));
+                if (device.dimmerEnabled) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                }
             }
 
             return expose;
@@ -123,31 +126,33 @@ module.exports = [
             };
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            const controlEp = device.getEndpoint(zigfredEndpoint);
-            const relayEp = device.getEndpoint(6);
-            const dimmerEp = device.getEndpoint(7);
+            if (device != null) {
+                const controlEp = device.getEndpoint(zigfredEndpoint);
+                const relayEp = device.getEndpoint(6);
+                const dimmerEp = device.getEndpoint(7);
 
-            // Bind Control EP (LED)
-            device.frontSurfaceEnabled = (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-            if (device.frontSurfaceEnabled) {
-                await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
-                await reporting.onOff(controlEp);
-                await reporting.brightness(controlEp);
-            }
+                // Bind Control EP (LED)
+                device.frontSurfaceEnabled = (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
+                if (device.frontSurfaceEnabled) {
+                    await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
+                    await reporting.onOff(controlEp);
+                    await reporting.brightness(controlEp);
+                }
 
-            // Bind Relay EP
-            device.relayEnabled = (await relayEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-            if (device.relayEnabled) {
-                await reporting.bind(relayEp, coordinatorEndpoint, ['genOnOff']);
-                await reporting.onOff(relayEp);
-            }
+                // Bind Relay EP
+                device.relayEnabled = (await relayEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
+                if (device.relayEnabled) {
+                    await reporting.bind(relayEp, coordinatorEndpoint, ['genOnOff']);
+                    await reporting.onOff(relayEp);
+                }
 
-            // Bind Dimmer EP
-            device.dimmerEnabled = (await dimmerEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
-            if (device.dimmerEnabled) {
-                await reporting.bind(dimmerEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-                await reporting.onOff(dimmerEp);
-                await reporting.brightness(dimmerEp);
+                // Bind Dimmer EP
+                device.dimmerEnabled = (await dimmerEp.read('genBasic', ['deviceEnabled'])).deviceEnabled;
+                if (device.dimmerEnabled) {
+                    await reporting.bind(dimmerEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+                    await reporting.onOff(dimmerEp);
+                    await reporting.brightness(dimmerEp);
+                }
             }
         },
     },
@@ -160,48 +165,51 @@ module.exports = [
             const expose = [];
 
             expose.push(buttonEventExposes);
+            expose.push(e.linkquality());
 
-            if (device.frontSurfaceEnabled) {
-                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-            }
-
-            if (device.dimmer1Enabled) {
-                expose.push(e.light_brightness().withEndpoint('l2'));
-            }
-
-            if (device.dimmer2Enabled) {
-                expose.push(e.light_brightness().withEndpoint('l3'));
-            }
-
-            if (device.dimmer3Enabled) {
-                expose.push(e.light_brightness().withEndpoint('l4'));
-            }
-
-            if (device.dimmer4Enabled) {
-                expose.push(e.light_brightness().withEndpoint('l5'));
-            }
-
-            if (device.cover1Enabled) {
-                if (device.cover1TiltEnabled) {
-                    expose.push(exposes.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withTilt().withEndpoint('l6'));
-                } else {
-                    expose.push(exposes.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withEndpoint('l6'));
+            if (device != null) {
+                if (device.frontSurfaceEnabled) {
+                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
                 }
-            }
 
-            if (device.cover2Enabled) {
-                if (device.cover2TiltEnabled) {
-                    expose.push(exposes.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withTilt().withEndpoint('l7'));
-                } else {
-                    expose.push(exposes.cover()
-                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                        .withPosition().withEndpoint('l7'));
+                if (device.dimmer1Enabled) {
+                    expose.push(e.light_brightness().withEndpoint('l2'));
+                }
+
+                if (device.dimmer2Enabled) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                }
+
+                if (device.dimmer3Enabled) {
+                    expose.push(e.light_brightness().withEndpoint('l4'));
+                }
+
+                if (device.dimmer4Enabled) {
+                    expose.push(e.light_brightness().withEndpoint('l5'));
+                }
+
+                if (device.cover1Enabled) {
+                    if (device.cover1TiltEnabled) {
+                        expose.push(exposes.cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition().withTilt().withEndpoint('l6'));
+                    } else {
+                        expose.push(exposes.cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition().withEndpoint('l6'));
+                    }
+                }
+
+                if (device.cover2Enabled) {
+                    if (device.cover2TiltEnabled) {
+                        expose.push(exposes.cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition().withTilt().withEndpoint('l7'));
+                    } else {
+                        expose.push(exposes.cover()
+                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                            .withPosition().withEndpoint('l7'));
+                    }
                 }
             }
 
