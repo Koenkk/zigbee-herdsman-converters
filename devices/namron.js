@@ -507,11 +507,19 @@ module.exports = [
         model: 'Panel heater',
         vendor: 'Namron',
         description: 'Panel Heater 400/600/800/1000 W',
-        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement],
+        fromZigbee: [
+            fz.thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            fz.namron_panelheater
+        ],
         toZigbee: [
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration,
-            tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
+            tz.namron_panelheater
         ],
         exposes: [
             e.power(),
@@ -528,6 +536,26 @@ module.exports = [
                 .withSystemMode(['off', 'heat'])
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withRunningState(['idle', 'heat']),
+
+            // Namron proprietary stuff
+            exposes.numeric('hysterersis', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5).withValueMax(50).withValueStep(0.1)
+                .withDescription('Hysterersis setting, range is 5-50, unit is 0.1oC,  Default: 5.'),
+
+            exposes.numeric('display_brightnesss', ea.ALL)
+                .withValueMin(1).withValueMax(7).withValueStep(1)
+                .withDescription('Adjust brightness of display values 1(Low)-7(High) '),
+            
+            exposes.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
+                .withDescription('Enable / Disable display auto off'),
+
+            exposes.enum('power_up_status', ea.ALL, ['manual', 'last_state'])
+                .withDescription('The mode after a power reset.  Default: Previous Mode. See instructions for information about manual'),
+
+            exposes.enum('window_open_check', ea.ALL, ['enable', 'disable'])
+                .withDescription('Turn on/off window check mode'),
+
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -555,10 +583,45 @@ module.exports = [
             // LocalTemp is spammy, reports 0.01C diff by default, min change is now 0.5C
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
 
-            // Device proprietary stuff
-            // incomming
+            // Namron proprietary stuff
+            // display_brightnesss
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1000, type: 0x30},
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // display_auto_off
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1001, type: 0x30},
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // power_up_status
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1004, type: 0x30},
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // window_open_check
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1009, type: 0x30},
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
+            // hysterersis
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x100A, type: 0x20},
+                minimumReportInterval: 10,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 0}],
+            options);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A], options);
         },
     },
 ];

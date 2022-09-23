@@ -1783,6 +1783,34 @@ const converters = {
             return result;
         },
     },
+    namron_panelheater: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x1000)) { // OperateDisplayBrightnesss
+                result.display_brightnesss = data[0x1000];
+            }
+            if (data.hasOwnProperty(0x1001)) { // DisplayAutoOffActivation
+                const lookup = {0: 'deactivated', 1: 'activated'};
+                result.display_auto_off = lookup[data[0x1001]];
+            }
+            if (data.hasOwnProperty(0x1004)) { // PowerUpStatus
+                const lookup = {0: 'manual', 1: 'last_state'};
+                result.power_up_status = lookup[data[0x1004]];
+            }
+            if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
+                const lookup = {0: 'enable', 1: 'disable'};
+                result.window_open_check = lookup[data[0x1009]];
+            }
+            if (data.hasOwnProperty(0x100A)) { // Hysterersis
+                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
+            }
+    
+            return result;
+        },
+    },
     namron_hvac_user_interface: {
         cluster: 'hvacUserInterfaceCfg',
         type: ['attributeReport', 'readResponse'],

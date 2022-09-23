@@ -3215,6 +3215,56 @@ const converters = {
         },
 
     },
+    namron_panelheater: {
+        key: [
+            'display_brightnesss', 'display_auto_off', 
+            'power_up_status', 'window_open_check', 'hysterersis',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'display_brightnesss') {
+                const payload = {0x1000: {value: value, type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key === 'display_auto_off') {
+                const lookup = {'deactivated': 0, 'activated': 1};
+                const payload = {0x1001: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key === 'power_up_status') {
+                const lookup = {'manual': 0, 'last_state': 1};
+                const payload = {0x1004: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='window_open_check') {
+                const lookup = {'enable': 0, 'disable': 1};
+                const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            } else if (key==='hysterersis') {
+                const payload = {0x100A: value, type: 0x20}};
+                await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'display_brightnesss':
+                await entity.read('hvacThermostat', [0x1000], manufacturerOptions.sunricher);
+                break;
+            case 'display_auto_off':
+                await entity.read('hvacThermostat', [0x1001], manufacturerOptions.sunricher);
+                break;
+            case 'power_up_status':
+                await entity.read('hvacThermostat', [0x1004], manufacturerOptions.sunricher);
+                break;
+            case 'window_open_check':
+                await entity.read('hvacThermostat', [0x1009], manufacturerOptions.sunricher);
+                break;
+            case 'hysterersis':
+                await entity.read('hvacThermostat', [0x100A], manufacturerOptions.sunricher);
+                break;
+                    
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
+            }
+        },
+    
+    },
     namron_thermostat_child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
