@@ -67,18 +67,29 @@ const buttonEventExposes = e.action([
     'button_4_single', 'button_4_double', 'button_4_hold', 'button_4_release',
 ]);
 
-function checkOption(options, key) {
-    if (options && options.hasOwnProperty(key)) {
-        return options[key];
-    } else {
+function checkOption(device, options, key) {
+    if (options.hasOwnProperty(key)) {
+        if (options[key] === 'true') {
+            return true;
+        } else if (options[key] === 'false') {
+            return false;
+        }
+    }
+
+    return checkMetaOption(device, key);
+}
+
+function checkMetaOption(device, key) {
+    const enabled = device.meta[key];
+    if (enabled === undefined) {
         return false;
+    } else {
+        return !!enabled;
     }
 }
 
-function setOption(options, key, enabled) {
-    if (options) {
-        options[key] = enabled;
-    }
+function setMetaOption(device, key, enabled) {
+    device.meta[key] = enabled;
 }
 
 module.exports = [
@@ -88,12 +99,14 @@ module.exports = [
         vendor: 'Siglis',
         description: 'zigfred uno smart in-wall switch',
         options: [
-            exposes.binary(`front_surface_enabled`, ea.SET, true, false)
+            exposes.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Front Surface LED enabled'),
-            exposes.binary(`relay_enabled`, ea.SET, true, false)
+            exposes.enum(`relay_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Relay enabled'),
-            exposes.binary(`dimmer_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer enabled'),
+            exposes.enum(`dimmer_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+                .withDescription('Dimmer dimmable'),
         ],
         exposes: (device, options) => {
             const expose = [];
@@ -102,16 +115,20 @@ module.exports = [
             expose.push(e.linkquality());
 
             if (device != null && options != null) {
-                if (checkOption(options, 'front_surface_enabled')) {
+                if (checkOption(device, options, 'front_surface_enabled')) {
                     expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
                 }
 
-                if (checkOption(options, 'relay_enabled')) {
+                if (checkOption(device, options, 'relay_enabled')) {
                     expose.push(e.switch().withEndpoint('l2'));
                 }
 
-                if (checkOption(options, 'dimmer_enabled')) {
-                    expose.push(e.light_brightness().withEndpoint('l3'));
+                if (checkOption(device, options, 'dimmer_enabled')) {
+                    if (checkOption(device, options, 'dimmer_dimming_enabled')) {
+                        expose.push(e.light_brightness().withEndpoint('l3'));
+                    } else {
+                        expose.push(e.switch().withEndpoint('l3'));
+                    }
                 }
             }
 
@@ -155,27 +172,30 @@ module.exports = [
                 const dimmerEp = device.getEndpoint(7);
 
                 // Bind Control EP (LED)
-                setOption(options, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'front_surface_enabled')) {
+                setMetaOption(device, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'front_surface_enabled')) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
                     await reporting.onOff(controlEp);
                     await reporting.brightness(controlEp);
                 }
 
                 // Bind Relay EP
-                setOption(options, 'relay_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'relay_enabled')) {
+                setMetaOption(device, 'relay_enabled', (await relayEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'relay_enabled')) {
                     await reporting.bind(relayEp, coordinatorEndpoint, ['genOnOff']);
                     await reporting.onOff(relayEp);
                 }
 
                 // Bind Dimmer EP
-                setOption(options, 'dimmer_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'dimmer_enabled')) {
+                setMetaOption(device, 'dimmer_enabled', (await dimmerEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'dimmer_enabled')) {
                     await reporting.bind(dimmerEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmerEp);
                     await reporting.brightness(dimmerEp);
                 }
+                setMetaOption(device, 'dimmer_dimming_enabled', true);
+
+                device.save();
             }
         },
     },
@@ -185,23 +205,31 @@ module.exports = [
         vendor: 'Siglis',
         description: 'zigfred plus smart in-wall switch',
         options: [
-            exposes.binary(`front_surface_enabled`, ea.SET, true, false)
+            exposes.enum(`front_surface_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Front Surface LED enabled'),
-            exposes.binary(`dimmer_1_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_1_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 1 enabled'),
-            exposes.binary(`dimmer_2_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_1_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+                .withDescription('Dimmer 1 dimmable'),
+            exposes.enum(`dimmer_2_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 2 enabled'),
-            exposes.binary(`dimmer_3_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_2_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+                .withDescription('Dimmer 2 dimmable'),
+            exposes.enum(`dimmer_3_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 3 enabled'),
-            exposes.binary(`dimmer_4_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_3_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+                .withDescription('Dimmer 3 dimmable'),
+            exposes.enum(`dimmer_4_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Dimmer 4 enabled'),
-            exposes.binary(`cover_1_enabled`, ea.SET, true, false)
+            exposes.enum(`dimmer_4_dimming_enabled`, ea.SET, ['auto', 'true', 'false'])
+                .withDescription('Dimmer 4 dimmable'),
+            exposes.enum(`cover_1_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 1 enabled'),
-            exposes.binary(`cover_1_tilt_enabled`, ea.SET, true, false)
+            exposes.enum(`cover_1_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 1 tiltable'),
-            exposes.binary(`cover_2_enabled`, ea.SET, true, false)
+            exposes.enum(`cover_2_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 2 enabled'),
-            exposes.binary(`cover_2_tilt_enabled`, ea.SET, true, false)
+            exposes.enum(`cover_2_tilt_enabled`, ea.SET, ['auto', 'true', 'false'])
                 .withDescription('Cover 2 tiltable'),
         ],
         exposes: (device, options) => {
@@ -211,28 +239,44 @@ module.exports = [
             expose.push(e.linkquality());
 
             if (device != null && options != null) {
-                if (checkOption(options, 'front_surface_enabled')) {
+                if (checkOption(device, options, 'front_surface_enabled')) {
                     expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
                 }
 
-                if (checkOption(options, 'dimmer_1_enabled')) {
-                    expose.push(e.light_brightness().withEndpoint('l2'));
+                if (checkOption(device, options, 'dimmer_1_enabled')) {
+                    if (checkOption(device, options, 'dimmer_1_dimming_enabled')) {
+                        expose.push(e.light_brightness().withEndpoint('l2'));
+                    } else {
+                        expose.push(e.switch().withEndpoint('l2'));
+                    }
                 }
 
-                if (checkOption(options, 'dimmer_2_enabled')) {
-                    expose.push(e.light_brightness().withEndpoint('l3'));
+                if (checkOption(device, options, 'dimmer_2_enabled')) {
+                    if (checkOption(device, options, 'dimmer_2_dimming_enabled')) {
+                        expose.push(e.light_brightness().withEndpoint('l3'));
+                    } else {
+                        expose.push(e.switch().withEndpoint('l3'));
+                    }
                 }
 
-                if (checkOption(options, 'dimmer_3_enabled')) {
-                    expose.push(e.light_brightness().withEndpoint('l4'));
+                if (checkOption(device, options, 'dimmer_3_enabled')) {
+                    if (checkOption(device, options, 'dimmer_3_dimming_enabled')) {
+                        expose.push(e.light_brightness().withEndpoint('l4'));
+                    } else {
+                        expose.push(e.switch().withEndpoint('l4'));
+                    }
                 }
 
-                if (checkOption(options, 'dimmer_4_enabled')) {
-                    expose.push(e.light_brightness().withEndpoint('l5'));
+                if (checkOption(device, options, 'dimmer_4_enabled')) {
+                    if (checkOption(device, options, 'dimmer_4_dimming_enabled')) {
+                        expose.push(e.light_brightness().withEndpoint('l5'));
+                    } else {
+                        expose.push(e.switch().withEndpoint('l5'));
+                    }
                 }
 
-                if (checkOption(options, 'cover_1_enabled')) {
-                    if (checkOption(options, 'cover_2_tilt_enabled')) {
+                if (checkOption(device, options, 'cover_1_enabled')) {
+                    if (checkOption(device, options, 'cover_1_tilt_enabled')) {
                         expose.push(exposes.cover()
                             .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                             .withPosition().withTilt().withEndpoint('l6'));
@@ -243,8 +287,8 @@ module.exports = [
                     }
                 }
 
-                if (checkOption(options, 'cover_2_enabled')) {
-                    if (checkOption(options, 'cover_2_tilt_enabled')) {
+                if (checkOption(device, options, 'cover_2_enabled')) {
+                    if (checkOption(device, options, 'cover_2_tilt_enabled')) {
                         expose.push(exposes.cover()
                             .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
                             .withPosition().withTilt().withEndpoint('l7'));
@@ -302,8 +346,8 @@ module.exports = [
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);
-                setOption(options, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'front_surface_enabled')) {
+                setMetaOption(device, 'front_surface_enabled', (await controlEp.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'front_surface_enabled')) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'manuSpecificSiglisZigfred']);
                     await reporting.onOff(controlEp);
                     await reporting.brightness(controlEp);
@@ -311,69 +355,79 @@ module.exports = [
 
                 // Bind Dimmer 1 EP
                 const dimmer1Ep = device.getEndpoint(7);
-                setOption(options, 'dimmer_1_enabled', (await dimmer1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'dimmer_1_enabled')) {
+                setMetaOption(device, 'dimmer_1_enabled', (await dimmer1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'dimmer_1_enabled')) {
                     await reporting.bind(dimmer1Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer1Ep);
                     await reporting.brightness(dimmer1Ep);
                 }
+                setMetaOption(device, 'dimmer_1_dimming_enabled', true);
 
                 // Bind Dimmer 2 EP
                 const dimmer2Ep = device.getEndpoint(8);
-                setOption(options, 'dimmer_2_enabled', (await dimmer2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'dimmer_2_enabled')) {
+                setMetaOption(device, 'dimmer_2_enabled', (await dimmer2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'dimmer_2_enabled')) {
                     await reporting.bind(dimmer2Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer2Ep);
                     await reporting.brightness(dimmer2Ep);
                 }
+                setMetaOption(device, 'dimmer_2_dimming_enabled', true);
 
                 // Bind Dimmer 3 EP
                 const dimmer3Ep = device.getEndpoint(9);
-                setOption(options, 'dimmer_3_enabled', (await dimmer3Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'dimmer_3_enabled')) {
+                setMetaOption(device, 'dimmer_3_enabled', (await dimmer3Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'dimmer_3_enabled')) {
                     await reporting.bind(dimmer3Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer3Ep);
                     await reporting.brightness(dimmer3Ep);
                 }
+                setMetaOption(device, 'dimmer_3_dimming_enabled', true);
 
                 // Bind Dimmer 4 EP
                 const dimmer4Ep = device.getEndpoint(10);
-                setOption(options, 'dimmer_4_enabled', (await dimmer4Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'dimmer_4_enabled')) {
+                setMetaOption(device, 'dimmer_4_enabled', (await dimmer4Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'dimmer_4_enabled')) {
                     await reporting.bind(dimmer4Ep, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
                     await reporting.onOff(dimmer4Ep);
                     await reporting.brightness(dimmer4Ep);
                 }
+                setMetaOption(device, 'dimmer_4_dimming_enabled', true);
 
                 // Bind Cover 1 EP
                 const cover1Ep = device.getEndpoint(11);
-                setOption(options, 'cover_1_enabled', (await cover1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'cover_1_enabled')) {
+                setMetaOption(device, 'cover_1_enabled', (await cover1Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'cover_1_enabled')) {
                     await reporting.bind(cover1Ep, coordinatorEndpoint, ['closuresWindowCovering']);
                     await reporting.currentPositionLiftPercentage(cover1Ep);
-                    setOption(
-                        options,
+                    setMetaOption(
+                        device,
                         'cover_1_tilt_enabled',
                         (await cover1Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
-                    if (checkOption(options, 'cover_1_tilt_enabled')) {
+                    if (checkMetaOption(device, 'cover_1_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover1Ep);
                     }
+                } else {
+                    setMetaOption(device, 'cover_1_tilt_enabled', false);
                 }
 
                 // Bind Cover 2 EP
                 const cover2Ep = device.getEndpoint(12);
-                setOption(options, 'cover_2_enabled', (await cover2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
-                if (checkOption(options, 'cover_2_enabled')) {
+                setMetaOption(device, 'cover_2_enabled', (await cover2Ep.read('genBasic', ['deviceEnabled'])).deviceEnabled);
+                if (checkMetaOption(device, 'cover_2_enabled')) {
                     await reporting.bind(cover2Ep, coordinatorEndpoint, ['closuresWindowCovering']);
                     await reporting.currentPositionLiftPercentage(cover2Ep);
-                    setOption(
-                        options,
+                    setMetaOption(
+                        device,
                         'cover_2_tilt_enabled',
                         (await cover2Ep.read('closuresWindowCovering', ['windowCoveringType'])).windowCoveringType === 0x08);
-                    if (checkOption(options, 'cover_2_tilt_enabled')) {
+                    if (checkMetaOption(device, 'cover_2_tilt_enabled')) {
                         await reporting.currentPositionTiltPercentage(cover2Ep);
                     }
+                } else {
+                    setMetaOption(device, 'cover_2_tilt_enabled', false);
                 }
+
+                device.save();
             }
         },
     },
