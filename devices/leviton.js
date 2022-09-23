@@ -90,7 +90,7 @@ module.exports = [
         zigbeeModel: ['ZS057'],
         model: 'ZS057-D0Z',
         vendor: 'Leviton',
-        description: 'Wall Switch, 0-10V Dimmer, 120-277V, Lumina™ RF',
+        description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.lighting_ballast_configuration, fz.level_config],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config],
