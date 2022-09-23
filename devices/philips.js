@@ -2785,4 +2785,11 @@ module.exports = [
         description: 'Hue White ambiance Runner spot white (1 spot)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['915005998101'],
+        model: '915005998101',
+        vendor: 'Philips',
+        description: 'Hue white ambiance ceiling black Enrave',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
