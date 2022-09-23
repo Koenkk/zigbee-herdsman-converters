@@ -445,6 +445,21 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TempDimmerSw-EM-3.0'],
+        model: 'HS2WDSC-E',
+        vendor: 'HEIMAN',
+        description: 'Remote dimmer and temperature control',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color,
+            fz.command_move_to_color_temp],
+        exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move', 'color_temperature_move'])],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+        },
+    },
+    {
         fingerprint: [{modelID: 'ColorDimmerSw-EM-3.0', manufacturerName: 'HEIMAN'}],
         model: 'HS2WDSR-E',
         vendor: 'HEIMAN',
