@@ -2313,6 +2313,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWV004'],
+        model: '8719514279193',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 B22 LED',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
