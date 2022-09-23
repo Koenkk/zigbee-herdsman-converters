@@ -668,6 +668,13 @@ module.exports = [
             e.device_temperature()],
     },
     {
+        zigbeeModel: ['TemperLight'],
+        model: 'HS2WDS',
+        vendor: 'HEIMAN',
+        description: 'LED 9W CCT E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],
         model: 'HS2CM-N-DC',
         vendor: 'HEIMAN',
