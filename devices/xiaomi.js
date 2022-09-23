@@ -886,8 +886,7 @@ module.exports = [
             e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE_GET),
             e.action([
-                'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
-                'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both',
+                'hold_left', 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both',
             ]),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
