@@ -597,7 +597,7 @@ module.exports = [
                 attribute: {ID: 0x1001, type: 0x30},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}];
+                reportableChange: null}]);
             // power_up_status
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1004, type: 0x30},
