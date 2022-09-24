@@ -511,7 +511,7 @@ module.exports = [
             fz.thermostat,
             fz.metering,
             fz.electrical_measurement,
-            fz.namron_panelheater
+            fz.namron_panelheater,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -519,7 +519,7 @@ module.exports = [
             tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
-            tz.namron_panelheater
+            tz.namron_panelheater,
         ],
         exposes: [
             e.power(),
@@ -545,7 +545,7 @@ module.exports = [
 
             exposes.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
-                .withDescription('Adjust brightness of display values 1(Low)-7(High) '),
+                .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
             
             exposes.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
                 .withDescription('Enable / Disable display auto off'),
@@ -565,6 +565,8 @@ module.exports = [
             ];
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A]);
+
             // Reporting
             //
             // Metering
@@ -587,41 +589,35 @@ module.exports = [
             // display_brightnesss
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1000, type: 0x30},
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}],
-            options);
+                reportableChange: null}]);
             // display_auto_off
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1001, type: 0x30},
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+                reportableChange: null}];
             // power_up_status
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1004, type: 0x30},
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+                reportableChange: null}]);
             // window_open_check
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1009, type: 0x30},
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+                reportableChange: null}]);
             // hysterersis
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x100A, type: 0x20},
-                minimumReportInterval: 10,
+                minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 0}],
-            options);
+                reportableChange: null}]);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A], options);
         },
     },
 ];

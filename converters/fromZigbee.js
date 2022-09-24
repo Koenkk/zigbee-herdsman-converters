@@ -1807,7 +1807,6 @@ const converters = {
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
                 result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
-    
             return result;
         },
     },
