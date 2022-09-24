@@ -3263,7 +3263,6 @@ const converters = {
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
         },
-    
     },
     namron_thermostat_child_lock: {
         key: ['child_lock'],

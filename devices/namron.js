@@ -546,7 +546,7 @@ module.exports = [
             exposes.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
                 .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
-            
+
             exposes.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
                 .withDescription('Enable / Disable display auto off'),
 

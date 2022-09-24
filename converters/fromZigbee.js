@@ -1805,7 +1805,7 @@ const converters = {
                 result.window_open_check = lookup[data[0x1009]];
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
+                result.hysterersis = data[0x100A];
             }
             return result;
         },
