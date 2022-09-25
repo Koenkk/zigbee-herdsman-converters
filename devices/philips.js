@@ -2702,6 +2702,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['LCD005'],
+        model: '9290031345',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance 4" retrofit recessed downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCD006'],
         model: '9290031346',
         vendor: 'Philips',
