@@ -3258,7 +3258,7 @@ const converters = {
             case 'hysterersis':
                 await entity.read('hvacThermostat', [0x100A], manufacturerOptions.sunricher);
                 break;
-   
+
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
             }
