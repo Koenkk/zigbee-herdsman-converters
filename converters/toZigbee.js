@@ -3237,7 +3237,7 @@ const converters = {
                 const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='hysterersis') {
-                const payload = {0x100A: {value, type: 0x20}};
+                const payload = {0x100A: {value: value, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             }
         },
