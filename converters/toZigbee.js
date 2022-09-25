@@ -3239,6 +3239,7 @@ const converters = {
             } else if (key==='hysterersis') {
                 const payload = {0x100A: {value, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
