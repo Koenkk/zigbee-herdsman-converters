@@ -80,6 +80,13 @@ const batteryRotaryDimmer = (...endpointsIds) => ({
 
 module.exports = [
     {
+        zigbeeModel: ['TWBulb51AU'],
+        model: 'AU-A1GSZ9CX',
+        vendor: 'Aurora',
+        description: 'AOne GLS lamp 9w tunable dimmable 2200-5000K',
+        extend: extend.light_onoff_brightness_colortemp(200, 454),
+    },
+    {
         zigbeeModel: ['RGBCXStrip50AU'],
         model: 'AU-A1ZBSCRGBCX',
         vendor: 'Aurora',
