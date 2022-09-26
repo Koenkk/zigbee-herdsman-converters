@@ -563,12 +563,9 @@ module.exports = [
                 'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
                 'genTime', 'hvacUserInterfaceCfg',
             ];
-            await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
-            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A]);
 
             // Reporting
-            //
+
             // Metering
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -623,6 +620,10 @@ module.exports = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null}],
             options);
+
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A], options);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
