@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
@@ -52,10 +51,14 @@ const coverAndLightToZigbee = {
         }
     },
     convertGet: async (entity, key, meta) => {
-        if (key === 'brightness') {
-            await entity.read('genLevelCtrl', ['currentLevel']);
-        } else if (key === 'state') {
-            await tz.on_off.convertGet(entity, key, meta);
+        if (entity.ID === 0x0b || entity.ID === 0x0c) {
+            return null;
+        } else {
+            if (key === 'brightness') {
+                await entity.read('genLevelCtrl', ['currentLevel']);
+            } else if (key === 'state') {
+                await tz.on_off.convertGet(entity, key, meta);
+            }
         }
     },
 };
