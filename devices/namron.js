@@ -584,7 +584,7 @@ module.exports = [
 
             // Namron proprietary stuff
             const options = {manufacturerCode: 0x1224};
-            
+
             // display_brightnesss
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1000, type: 0x30},
