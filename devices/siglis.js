@@ -45,20 +45,18 @@ const coverAndLightToZigbee = {
     convertSet: async (entity, key, value, meta) => {
         const isCover = (typeof value === 'string' && ['open', 'close', 'stop'].includes(value.toLowerCase()));
         if (isCover) {
-            return tz.cover_state.convertSet(entity, key, value, meta);
+            return tz.cover_state.convertSet(entity, 'key', value, meta);
         } else {
             return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         }
     },
     convertGet: async (entity, key, meta) => {
-        if (entity.ID === 0x0b || entity.ID === 0x0c) {
-            return null;
-        } else {
-            if (key === 'brightness') {
-                await entity.read('genLevelCtrl', ['currentLevel']);
-            } else if (key === 'state') {
-                await tz.on_off.convertGet(entity, key, meta);
-            }
+        if (key === 'state' && (entity.ID === 0x0b || entity.ID === 0x0c)) {
+            await tz.cover_position_tilt.convertGet(entity, 'position', meta);
+        } else if (key === 'brightness') {
+            await entity.read('genLevelCtrl', ['currentLevel']);
+        } else if (key === 'state') {
+            await tz.on_off.convertGet(entity, key, meta);
         }
     },
 };
@@ -314,9 +312,6 @@ module.exports = [
             fz.power_on_behavior,
             fz.ignore_basic_report,
             fz.cover_position_tilt,
-            fz.command_cover_open,
-            fz.command_cover_close,
-            fz.command_cover_stop,
         ],
         toZigbee: [
             tz.light_color,
