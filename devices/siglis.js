@@ -96,7 +96,11 @@ function checkMetaOption(device, key) {
 }
 
 function setMetaOption(device, key, enabled) {
-    device.meta[key] = enabled;
+    if (!device.meta.testing) {
+        device.meta[key] = enabled;
+    } else {
+        device.meta[key] = true;
+    }
 }
 
 module.exports = [
