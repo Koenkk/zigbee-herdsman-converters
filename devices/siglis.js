@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');

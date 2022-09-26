@@ -610,6 +610,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['1741930V7'],
+        model: '1741930V7',
+        vendor: 'Philips',
+        description: 'Hue Calla outdoor',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['1744130P7'],
         model: '1744130P7',
         vendor: 'Philips',
@@ -1815,7 +1822,9 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue wall switch module',
         fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch],
-        exposes: [e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release']),
+        exposes: [
+            e.battery(), e.action(['left_press', 'left_press_release', 'right_press', 'right_press_release',
+                'left_hold', 'left_hold_release', 'right_hold', 'right_hold_release']),
             exposes.enum('device_mode', ea.ALL, ['single_rocker', 'single_push_button', 'dual_rocker', 'dual_push_button'])],
         toZigbee: [tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2304,6 +2313,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWV004'],
+        model: '8719514279193',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 B22 LED',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['HML004'],
         model: '3115331PH',
         vendor: 'Philips',
@@ -2686,6 +2702,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['LCD005'],
+        model: '9290031345',
+        vendor: 'Philips',
+        description: 'Hue white and color ambiance 4" retrofit recessed downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCD006'],
         model: '9290031346',
         vendor: 'Philips',
@@ -2774,6 +2797,13 @@ module.exports = [
         model: '929003045901',
         vendor: 'Philips',
         description: 'Hue White ambiance Runner spot white (1 spot)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['915005998101'],
+        model: '915005998101',
+        vendor: 'Philips',
+        description: 'Hue white ambiance ceiling black Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
