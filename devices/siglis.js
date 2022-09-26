@@ -40,14 +40,20 @@ const zifgredFromZigbeeButtonEvent = {
 };
 
 const coverAndLightToZigbee = {
-    key: ['state', 'brightness', 'brightness_percent', 'on_time'],
+    key: ['state', 'brightness', 'brightness_percent', 'on_time', 'position', 'tilt'],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        const isCover = (typeof value === 'string' && ['open', 'close', 'stop'].includes(value.toLowerCase()));
+        const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
-            return tz.cover_state.convertSet(entity, 'key', value, meta);
+            if (key === 'state') {
+                return tz.cover_state.convertSet(entity, key, value, meta);
+            } else if (key === 'position' || key === 'tilt') {
+                return tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            }
         } else {
-            return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            if (key === 'state' || key === 'brightness' || key === 'brightness_percent' || key === 'on_time') {
+                return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            }
         }
     },
     convertGet: async (entity, key, meta) => {
@@ -325,7 +331,6 @@ module.exports = [
             tz.light_hue_saturation_step,
             tz.light_color_options,
             tz.light_color_mode,
-            tz.cover_position_tilt,
             coverAndLightToZigbee,
         ],
         meta: {multiEndpoint: true},
