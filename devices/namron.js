@@ -586,36 +586,43 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
 
             // Namron proprietary stuff
+            const options = {manufacturerCode: 0x1224};
+            
             // display_brightnesss
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1000, type: 0x30},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: null}],
+            options);
             // display_auto_off
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1001, type: 0x30},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: null}],
+            options);
             // power_up_status
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1004, type: 0x30},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: null}]),
+            options);
             // window_open_check
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1009, type: 0x30},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: null}],
+            options);
             // hysterersis
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x100A, type: 0x20},
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: null}],
+            options);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
