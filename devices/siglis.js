@@ -77,6 +77,10 @@ const buttonEventExposes = e.action([
 
 function checkOption(device, options, key) {
     if (options != null && options.hasOwnProperty(key)) {
+        if (device != null && device.meta.testing) {
+            return true;
+        }
+
         if (options[key] === 'true') {
             return true;
         } else if (options[key] === 'false') {
@@ -89,6 +93,10 @@ function checkOption(device, options, key) {
 
 function checkMetaOption(device, key) {
     if (device != null) {
+        if (device.meta.testing) {
+            return true;
+        }
+
         const enabled = device.meta[key];
         if (enabled === undefined) {
             return false;
