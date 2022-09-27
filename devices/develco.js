@@ -290,16 +290,20 @@ module.exports = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1],
+        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
+        exposes: [e.occupancy(), e.battery(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(38);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint1);
-            const endpoint2 = device.getEndpoint(39);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint2);
+            const endpoint1 = device.getEndpoint(35);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+            const endpoint2 = device.getEndpoint(38);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint2);
+            const endpoint3 = device.getEndpoint(39);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint3);
         },
     },
     {
