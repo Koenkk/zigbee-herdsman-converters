@@ -76,7 +76,7 @@ const buttonEventExposes = e.action([
 ]);
 
 function checkOption(device, options, key) {
-    if (options.hasOwnProperty(key)) {
+    if (options != null && options.hasOwnProperty(key)) {
         if (options[key] === 'true') {
             return true;
         } else if (options[key] === 'false') {
@@ -88,19 +88,21 @@ function checkOption(device, options, key) {
 }
 
 function checkMetaOption(device, key) {
-    const enabled = device.meta[key];
-    if (enabled === undefined) {
-        return false;
+    if (device != null) {
+        const enabled = device.meta[key];
+        if (enabled === undefined) {
+            return false;
+        } else {
+            return !!enabled;
+        }
     } else {
-        return !!enabled;
+        return true;
     }
 }
 
 function setMetaOption(device, key, enabled) {
-    if (!device.meta.testing) {
+    if (device != null && key != null) {
         device.meta[key] = enabled;
-    } else {
-        device.meta[key] = true;
     }
 }
 
@@ -126,21 +128,19 @@ module.exports = [
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null && options != null) {
-                if (checkOption(device, options, 'front_surface_enabled')) {
-                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-                }
+            if (checkOption(device, options, 'front_surface_enabled')) {
+                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
+            }
 
-                if (checkOption(device, options, 'relay_enabled')) {
-                    expose.push(e.switch().withEndpoint('l2'));
-                }
+            if (checkOption(device, options, 'relay_enabled')) {
+                expose.push(e.switch().withEndpoint('l2'));
+            }
 
-                if (checkOption(device, options, 'dimmer_enabled')) {
-                    if (checkOption(device, options, 'dimmer_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l3'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l3'));
-                    }
+            if (checkOption(device, options, 'dimmer_enabled')) {
+                if (checkOption(device, options, 'dimmer_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l3'));
                 }
             }
 
@@ -247,68 +247,68 @@ module.exports = [
         exposes: (device, options) => {
             const expose = [];
 
+            console.log('mau');
+
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null && options != null) {
-                if (checkOption(device, options, 'front_surface_enabled')) {
-                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-                }
+            if (checkOption(device, options, 'front_surface_enabled')) {
+                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
+            }
 
-                if (checkOption(device, options, 'dimmer_1_enabled')) {
-                    if (checkOption(device, options, 'dimmer_1_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l2'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l2'));
-                    }
+            if (checkOption(device, options, 'dimmer_1_enabled')) {
+                if (checkOption(device, options, 'dimmer_1_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l2'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l2'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_2_enabled')) {
-                    if (checkOption(device, options, 'dimmer_2_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l3'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l3'));
-                    }
+            if (checkOption(device, options, 'dimmer_2_enabled')) {
+                if (checkOption(device, options, 'dimmer_2_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l3'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_3_enabled')) {
-                    if (checkOption(device, options, 'dimmer_3_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l4'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l4'));
-                    }
+            if (checkOption(device, options, 'dimmer_3_enabled')) {
+                if (checkOption(device, options, 'dimmer_3_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l4'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l4'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_4_enabled')) {
-                    if (checkOption(device, options, 'dimmer_4_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l5'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l5'));
-                    }
+            if (checkOption(device, options, 'dimmer_4_enabled')) {
+                if (checkOption(device, options, 'dimmer_4_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l5'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l5'));
                 }
+            }
 
-                if (checkOption(device, options, 'cover_1_enabled')) {
-                    if (checkOption(device, options, 'cover_1_tilt_enabled')) {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withTilt().withEndpoint('l6'));
-                    } else {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withEndpoint('l6'));
-                    }
+            if (checkOption(device, options, 'cover_1_enabled')) {
+                if (checkOption(device, options, 'cover_1_tilt_enabled')) {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withTilt().withEndpoint('l6'));
+                } else {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withEndpoint('l6'));
                 }
+            }
 
-                if (checkOption(device, options, 'cover_2_enabled')) {
-                    if (checkOption(device, options, 'cover_2_tilt_enabled')) {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withTilt().withEndpoint('l7'));
-                    } else {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withEndpoint('l7'));
-                    }
+            if (checkOption(device, options, 'cover_2_enabled')) {
+                if (checkOption(device, options, 'cover_2_tilt_enabled')) {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withTilt().withEndpoint('l7'));
+                } else {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withEndpoint('l7'));
                 }
             }
 
