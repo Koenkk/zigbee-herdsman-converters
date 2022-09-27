@@ -247,8 +247,6 @@ module.exports = [
         exposes: (device, options) => {
             const expose = [];
 
-            console.log('mau');
-
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
