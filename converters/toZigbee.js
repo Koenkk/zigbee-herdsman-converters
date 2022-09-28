@@ -3377,6 +3377,35 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
         },
     },
+    moes_thermostat2_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 0);
+                break;
+            case 'cool':
+                // turn on
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 0);
+                break;
+            case 'heat':
+                // turn on
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1);
+                break;
+            case 'fan_only':
+                // turn on
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.moesSsystemMode, 1);
+
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 2);
+                // await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesScheduleEnable, 0);
+                break;
+            }
+        },
+    },
     moesS_thermostat_system_mode: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {

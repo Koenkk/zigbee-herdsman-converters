@@ -12,15 +12,15 @@ module.exports = [
         vendor: 'HKGK',
         description: 'BAC series thermostat',
         fromZigbee: [
-            fz.moes_thermostat,
             fz.ignore_basic_report,
             fz.ignore_tuya_set_time,
+            fz.moes_thermostat2,
         ],
         onEvent: tuya.onEventSetLocalTime,
         toZigbee: [
             tz.moes_thermostat_child_lock,
             tz.moes_thermostat_current_heating_setpoint,
-            tz.moes_thermostat_mode,
+            tz.moes_thermostat2_system_mode,
             tz.hgkg_thermostat_standby,
             tz.moes_thermostat_sensor,
             tz.moes_thermostat_calibration,
@@ -37,11 +37,10 @@ module.exports = [
                 .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET)
-                .withSystemMode(['off', 'cool'], ea.STATE_SET)
-                // .withRunningState(['off','on'], ea.STATE)
-                .withPreset(['hold', 'program'])
-                .withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)
-                .withFanMode(['off', 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
+                .withSystemMode(['off', 'cool', 'heat', 'fan_only'], ea.STATE_SET)
+                // .withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)
+                // .withPreset(['valve_state'])
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
             exposes.composite('programming_mode')
                 .withDescription(
                     'Schedule MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature.',

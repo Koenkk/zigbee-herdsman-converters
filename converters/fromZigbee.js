@@ -4061,6 +4061,71 @@ const converters = {
             }
         },
     },
+    moes_thermostat2: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'moes_thermostat');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+            let temperature;
+            const stateLookup = {0: 'cool', 1: 'heat', 2: 'fan_only'};
+            /* See tuyaThermostat above for message structure comment */
+            switch (dp) {
+            case tuya.dataPoints.moesSchedule:
+                return {
+                    program: [
+                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
+                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
+                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
+                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
+                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
+                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
+                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
+                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
+                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
+                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
+                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
+                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
+                    ],
+                };
+            case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
+                return {system_mode: value ? 'on' : 'off'};
+            case tuya.dataPoints.moesChildLock:
+                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            case tuya.dataPoints.moesHeatingSetpoint:
+                return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesMaxTempLimit:
+                return {max_temperature_limit: value};
+            case tuya.dataPoints.moesMaxTemp:
+                return {max_temperature: value};
+            case tuya.dataPoints.moesDeadZoneTemp:
+                return {deadzone_temperature: value};
+            case tuya.dataPoints.moesLocalTemp:
+                temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
+                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/11980
+                    temperature = temperature / 10;
+                }
+
+                return {local_temperature: parseFloat(temperature.toFixed(1))};
+            case tuya.dataPoints.moesTempCalibration:
+                temperature = value;
+                // for negative values produce complimentary hex (equivalent to negative values)
+                if (temperature > 4000) temperature = temperature - 4096;
+                return {local_temperature_calibration: temperature};
+            case tuya.dataPoints.tvMode:
+                return {system_mode: stateLookup[value]};
+            case tuya.dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
+                return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
+            case tuya.dataPoints.bacFanMode:
+                return {fan_mode: tuya.fanModes[value]};
+            default: // DataPoint 17 is unknown
+                meta.logger.warn(`zigbee-herdsman-converters: BAC-002-ALZB: Unrecognized DP #${
+                    dp} with data ${JSON.stringify(dpValue)}`);
+            }
+        },
+    },
     moesS_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
