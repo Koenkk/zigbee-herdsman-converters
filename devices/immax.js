@@ -54,7 +54,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['TS0505B'],
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_pwauw3g2'}],
         model: '07743L',
         vendor: 'Immax',
         description: 'Neo Smart LED E27 11W RGB + CCT, color, dimmable, Zigbee 3.0',
