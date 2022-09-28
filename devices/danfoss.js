@@ -37,7 +37,7 @@ module.exports = [
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
                     '`false` Horizontal or `true` Vertical'),
             exposes.binary('viewing_direction', ea.ALL, true, false)
-                .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
+                .withDescription('Viewing/display direction, `false` normal or `true` upside-down'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
                     'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
