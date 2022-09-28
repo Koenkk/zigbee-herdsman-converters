@@ -1,6 +1,7 @@
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
+const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -14,7 +15,8 @@ module.exports = [
         model: 'ZVG1',
         vendor: 'RTX',
         description: 'Zigbee smart water valve',
-        fromZigbee: [fz.ZVG1, fz.ignore_tuya_set_time, fz.ignore_basic_report],
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [fz.ZVG1, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state, tz.ZVG1_weather_delay, tz.ZVG1_timer, tz.ZVG1_cycle_timer, tz.ZVG1_normal_schedule_timer],
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.battery(),
             exposes.enum('weather_delay', ea.STATE_SET, ['disabled', '24h', '48h', '72h']),
