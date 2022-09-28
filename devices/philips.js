@@ -2810,7 +2810,7 @@ module.exports = [
         zigbeeModel: ['1740447P0'],
         model: '8718696166079',
         vendor: 'Philips',
-        description: 'Hue Tuar Outdoor Wall Light',
+        description: 'Hue Tuar outdoor wall light',
         extend: hueExtend.light_onoff_brightness(),
     },
 ];
