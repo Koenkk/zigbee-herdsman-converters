@@ -2806,4 +2806,11 @@ module.exports = [
         description: 'Hue white ambiance ceiling black Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['1740447P0'],
+        model: '8718696166079',
+        vendor: 'Philips',
+        description: 'Hue Tuar outdoor wall light',
+        extend: hueExtend.light_onoff_brightness(),
+    },
 ];
