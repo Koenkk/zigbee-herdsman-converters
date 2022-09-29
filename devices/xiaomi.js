@@ -1411,7 +1411,7 @@ module.exports = [
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
@@ -1451,7 +1451,7 @@ module.exports = [
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             exposes.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
