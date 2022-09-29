@@ -127,7 +127,7 @@ module.exports = [
         },
         exposes: [
             e.occupancy(),
-            exposes.numeric('states', ea.STATE).withDescription('Motion state')
+            exposes.enum('states', ea.STATE).withDescription('Motion state')
                 .withDescription('No motion, big motion, minor motion, breathing'),
             e.illuminance_lux(),
             exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
