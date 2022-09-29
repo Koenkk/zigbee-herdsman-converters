@@ -635,6 +635,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -698,6 +702,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
