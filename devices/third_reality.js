@@ -142,7 +142,7 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Temperature and humidity sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
-        tozigbee: [],
+        toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
