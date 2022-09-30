@@ -2817,7 +2817,14 @@ module.exports = [
         zigbeeModel: ['915005998001'],
         model: '915005998001',
         vendor: 'Philips',
-        description: 'Hue Enrave white ambiance pendant',
+        description: 'Hue white ambiance pendant white Enrave',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['915005998101'],
+        model: '915005998101',
+        vendor: 'Philips',
+        description: 'Hue white ambiance pendant black Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
