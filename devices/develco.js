@@ -4,12 +4,26 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
+const utils = require('../lib/utils');
 const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
 // develco specific cosntants
 const manufacturerOptions = {manufacturerCode: 0x1015};
+
+/* MOSZB-1xx - ledControl - bitmap8 - r/w
+ * 0x00 Disable LED when movement is detected.
+ * 0x01 Enables periodic fault flashes. These flashes are used to indicate e.g. low battery level.
+ * 0x02 Enables green application defined LED. This is e.g. used to indicate motion detection.
+ * Default value 0xFF ( seems to be fault + motion)
+ */
+const develcoLedControlMap = {
+    0x00: 'off',
+    0x01: 'fault_only',
+    0x02: 'motion_only',
+    0xFF: 'both',
+};
 
 // develco specific convertors
 const develco = {
@@ -40,8 +54,33 @@ const develco = {
                 }
             },
         },
+        led_control: {
+            cluster: 'genBasic',
+            type: ['attributeReport', 'readResponse'],
+            options: [],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+
+                if (msg.data.hasOwnProperty('develcoLedControl')) {
+                    state['led_control'] = develcoLedControlMap[msg.data['develcoLedControl']];
+                }
+
+                return state;
+            },
+        },
     },
     tz: {
+        led_control: {
+            key: ['led_control'],
+            convertSet: async (entity, key, value, meta) => {
+                const ledControl = utils.getKey(develcoLedControlMap, value, value, Number);
+                await entity.write('genBasic', {'develcoLedControl': ledControl}, manufacturerOptions);
+                return {state: {led_control: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            },
+        },
     },
 };
 
@@ -295,18 +334,29 @@ module.exports = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery(), e.battery_low(), e.tamper(), e.temperature(), e.illuminance_lux()],
+        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery, develco.fz.led_control],
+        toZigbee: [develco.tz.led_control],
+        exposes: [
+            e.occupancy(), e.battery(), e.battery_low(),
+            e.tamper(), e.temperature(), e.illuminance_lux(),
+            exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
+                withDescription('Control LED indicator usage.'),
+        ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        endpoint: (device) => {
+            return {default: 35};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(35);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
             await endpoint1.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint1.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2);
+
             const endpoint3 = device.getEndpoint(39);
             await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
             await reporting.illuminance(endpoint3);
