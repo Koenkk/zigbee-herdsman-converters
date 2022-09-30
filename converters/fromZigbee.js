@@ -435,8 +435,9 @@ const converters = {
         options: [exposes.options.no_occupancy_since_false()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
-                const payload = {occupancy: (msg.data.occupancy % 2) > 0};
-                utils.noOccupancySince(msg.endpoint, options, publish, payload.occupancy ? 'stop' : 'start');
+                const property = postfixWithEndpointName('occupancy', msg, model, meta);
+                const payload = {[property]: (msg.data.occupancy % 2) > 0};
+                utils.noOccupancySince(msg.endpoint, options, publish, payload[property] ? 'stop' : 'start');
                 return payload;
             }
         },
