@@ -482,7 +482,8 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('pirOToUDelay')) {
-                return {occupancy_timeout: msg.data.pirOToUDelay};
+                const property = postfixWithEndpointName('occupancy_timeout', msg, model, meta);
+                return {[property]: msg.data.pirOToUDelay};
             }
         },
     },
