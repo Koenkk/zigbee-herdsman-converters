@@ -8,32 +8,40 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
-    // SPLZB-134 and SPLZB-131 reports strange values sometimes
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13329
-    develco_electrical_measurement: {
-        ...fz.electrical_measurement,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
-                return fz.electrical_measurement.convert(model, msg, publish, options, meta);
-            }
+// develco specific cosntants
+const manufacturerOptions = {manufacturerCode: 0x1015};
+
+// develco specific convertors
+const develco = {
+    fz: {
+        // SPLZB-134 and SPLZB-131 reports strange values sometimes
+        // https://github.com/Koenkk/zigbee2mqtt/issues/13329
+        electrical_measurement: {
+            ...fz.electrical_measurement,
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.rmsVoltage !== 0xFFFF && msg.data.rmsCurrent !== 0xFFFF && msg.data.activePower !== -0x8000) {
+                    return fz.electrical_measurement.convert(model, msg, publish, options, meta);
+                }
+            },
+        },
+        device_temperature: {
+            ...fz.device_temperature,
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.currentTemperature !== -0x8000) {
+                    return fz.device_temperature.convert(model, msg, publish, options, meta);
+                }
+            },
+        },
+        metering: {
+            ...fz.metering,
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.instantaneousDemand !== -0x800000) {
+                    return fz.metering.convert(model, msg, publish, options, meta);
+                }
+            },
         },
     },
-    develco_device_temperature: {
-        ...fz.device_temperature,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.currentTemperature !== -0x8000) {
-                return fz.device_temperature.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
-    develco_metering: {
-        ...fz.metering,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.instantaneousDemand !== -0x800000) {
-                return fz.metering.convert(model, msg, publish, options, meta);
-            }
-        },
+    tz: {
     },
 };
 
@@ -43,7 +51,7 @@ module.exports = [
         model: 'SPLZB-131',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, fzLocal.develco_electrical_measurement, fzLocal.develco_metering],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -94,7 +102,7 @@ module.exports = [
         model: 'SPLZB-134',
         vendor: 'Develco',
         description: 'Power plug (type G)',
-        fromZigbee: [fz.on_off, fzLocal.develco_electrical_measurement, fzLocal.develco_metering, fzLocal.develco_device_temperature],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -144,13 +152,12 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [fzLocal.develco_metering, fzLocal.develco_electrical_measurement, fz.develco_fw],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, fz.develco_fw],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            const options = {manufacturerCode: 4117};
-            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], options);
+            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], manufacturerOptions);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
             try {
@@ -191,12 +198,11 @@ module.exports = [
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], options);
+            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -225,12 +231,11 @@ module.exports = [
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000], options);
+            await endpoint.read('genBasic', [0x8000], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -248,15 +253,6 @@ module.exports = [
             exposes.enum('reliability', ea.STATE, ['no_fault_detected', 'unreliable_other', 'process_error'])
                 .withDescription('Indicates reason if any fault'),
             exposes.binary('fault', ea.STATE, true, false).withDescription('Indicates whether the device are in fault state')],
-    },
-    {
-        zigbeeModel: ['MOSZB-130'],
-        model: 'MOSZB-130',
-        vendor: 'Develco',
-        description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
         zigbeeModel: ['WISZB-120'],
@@ -286,6 +282,15 @@ module.exports = [
         exposes: [e.contact(), e.battery_low()],
     },
     {
+        zigbeeModel: ['MOSZB-130'],
+        model: 'MOSZB-130',
+        vendor: 'Develco',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['MOSZB-140'],
         model: 'MOSZB-140',
         vendor: 'Develco',
@@ -298,6 +303,7 @@ module.exports = [
             const endpoint1 = device.getEndpoint(35);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+            await endpoint1.read('genPowerCfg', ['batteryVoltage']);
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2);
@@ -414,11 +420,10 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(38);
-            const options = {manufacturerCode: 0x1015};
             await reporting.bind(endpoint, coordinatorEndpoint,
                 ['develcoSpecificAirQuality', 'msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await endpoint.configureReporting('develcoSpecificAirQuality', [{attribute: 'measuredValue', minimumReportInterval: 60,
-                maximumReportInterval: 3600, reportableChange: 10}], options);
+                maximumReportInterval: 3600, reportableChange: 10}], manufacturerOptions);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
@@ -433,11 +438,10 @@ module.exports = [
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4117};
             const endpoint = device.getEndpoint(43);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000], options);
+            await endpoint.read('genBasic', [0x8000], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
