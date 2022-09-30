@@ -176,6 +176,20 @@ const develco = {
                 return state;
             },
         },
+        ias_occupancy_timeout: {
+            cluster: 'ssIasZone',
+            type: ['attributeReport', 'readResponse'],
+            options: [],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+
+                if (msg.data.hasOwnProperty('develcoAlarmOffDelay')) {
+                    state['occupancy_timeout'] = msg.data['develcoAlarmOffDelay'];
+                }
+
+                return state;
+            },
+        },
     },
     tz: {
         pulse_configuration: {
@@ -215,6 +229,21 @@ const develco = {
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            },
+        },
+        ias_occupancy_timeout: {
+            key: ['occupancy_timeout'],
+            convertSet: async (entity, key, value, meta) => {
+                let timeoutValue = value;
+                if (timeoutValue < 20) {
+                    meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
+                    timeoutValue = 20;
+                }
+                await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
+                return {state: {occupancy_timeout: timeoutValue}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             },
         },
     },
@@ -470,13 +499,17 @@ module.exports = [
         model: 'MOSZB-140',
         vendor: 'Develco',
         description: 'Motion sensor',
-        fromZigbee: [fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery, develco.fz.led_control],
-        toZigbee: [develco.tz.led_control],
+        fromZigbee: [
+            fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
+            develco.fz.led_control, develco.fz.ias_occupancy_timeout,
+        ],
+        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: [
             e.occupancy(), e.battery(), e.battery_low(),
             e.tamper(), e.temperature(), e.illuminance_lux(),
             exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
                 withDescription('Control LED indicator usage.'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(20).withValueMax(65535),
         ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
@@ -488,6 +521,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
             await endpoint1.read('genPowerCfg', ['batteryVoltage']);
             await endpoint1.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            await endpoint1.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
 
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
