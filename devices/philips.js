@@ -2803,7 +2803,7 @@ module.exports = [
         zigbeeModel: ['915005998101'],
         model: '915005998101',
         vendor: 'Philips',
-        description: 'Hue white ambiance ceiling black Enrave',
+        description: 'Hue white ambiance pendant black Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
@@ -2812,5 +2812,12 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Tuar outdoor wall light',
         extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['915005998001'],
+        model: '915005998001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance pendant white Enrave',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
