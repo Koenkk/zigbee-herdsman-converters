@@ -10,8 +10,8 @@ module.exports = [
         model: 'C10-3E-1.2',
         vendor: 'Novo',
         description: 'Curtain switch',
-        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        fromZigbee: [fz.tuya_cover],
+        toZigbee: [tz.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];
