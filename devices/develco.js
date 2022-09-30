@@ -54,6 +54,114 @@ const develco = {
                 }
             },
         },
+        pulse_configuration: {
+            cluster: 'seMetering',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
+                    result[utils.postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
+                        msg.data['develcoPulseConfiguration'];
+                }
+
+                return result;
+            },
+        },
+        interface_mode: {
+            cluster: 'seMetering',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
+                    result[utils.postfixWithEndpointName('interface_mode', msg, model, meta)] =
+                        constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
+                            constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
+                            msg.data['develcoInterfaceMode'];
+                }
+                if (msg.data.hasOwnProperty('status')) {
+                    result['battery_low'] = (msg.data.status & 2) > 0;
+                    result['check_meter'] = (msg.data.status & 1) > 0;
+                }
+
+                return result;
+            },
+        },
+        firmware_version: {
+            cluster: 'genBasic',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (0x8000 in msg.data) {
+                    const firmware = msg.data[0x8000].join('.');
+                    result.current_firmware = firmware;
+                    meta.device.softwareBuildID = firmware;
+                }
+
+                if (0x8020 in msg.data) {
+                    meta.device.hardwareVersion = msg.data[0x8020].join('.');
+                }
+
+                return result;
+            },
+        },
+        fault_status: {
+            cluster: 'genBinaryInput',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (msg.data.hasOwnProperty('reliability')) {
+                    const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
+                    result.reliability = lookup[msg.data['reliability']];
+                }
+                if (msg.data.hasOwnProperty('statusFlags')) {
+                    result.fault = (msg.data['statusFlags']===1);
+                }
+                return result;
+            },
+        },
+        voc: {
+            cluster: 'develcoSpecificAirQuality',
+            type: ['attributeReport', 'readResponse'],
+            options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
+            convert: (model, msg, publish, options, meta) => {
+                const voc = parseFloat(msg.data['measuredValue']);
+                const vocProperty = utils.postfixWithEndpointName('voc', msg, model, meta);
+
+                let airQuality;
+                const airQualityProperty = utils.postfixWithEndpointName('air_quality', msg, model, meta);
+                if (voc <= 65) {
+                    airQuality = 'excellent';
+                } else if (voc <= 220) {
+                    airQuality = 'good';
+                } else if (voc <= 660) {
+                    airQuality = 'moderate';
+                } else if (voc <= 2200) {
+                    airQuality = 'poor';
+                } else if (voc <= 5500) {
+                    airQuality = 'unhealthy';
+                } else if (voc > 5500) {
+                    airQuality = 'out_of_range';
+                } else {
+                    airQuality = 'unknown';
+                }
+                return {[vocProperty]: utils.calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
+            },
+        },
+        voc_battery: {
+            cluster: 'genPowerCfg',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                /*
+                 * Per the technical documentation for AQSZB-110:
+                 * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
+                 * When a voltage of 2.5V is measured the battery should be replaced.
+                 * Low batt LED indication–RED LED will blink twice every 60 second.
+                 */
+                const result = fz.battery.convert(model, msg, publish, options, meta);
+                result.battery_low = (result.voltage <= 2500);
+                return result;
+            },
+        },
         led_control: {
             cluster: 'genBasic',
             type: ['attributeReport', 'readResponse'],
@@ -70,6 +178,34 @@ const develco = {
         },
     },
     tz: {
+        pulse_configuration: {
+            key: ['pulse_configuration'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('seMetering', {'develcoPulseConfiguration': value}, manufacturerOptions);
+                return {readAfterWriteTime: 200, state: {'pulse_configuration': value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions);
+            },
+        },
+        interface_mode: {
+            key: ['interface_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                const payload = {'develcoInterfaceMode': utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
+                await entity.write('seMetering', payload, manufacturerOptions.develco);
+                return {readAfterWriteTime: 200, state: {'interface_mode': value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions);
+            },
+        },
+        current_summation: {
+            key: ['current_summation'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('seMetering', {'develcoCurrentSummation': value}, manufacturerOptions);
+                return {state: {'current_summation': value}};
+            },
+        },
         led_control: {
             key: ['led_control'],
             convertSet: async (entity, key, value, meta) => {
@@ -191,7 +327,7 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, fz.develco_fw],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.firmware_version],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -232,7 +368,7 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
+            develco.fz.firmware_version, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -266,7 +402,7 @@ module.exports = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            fz.develco_fw, fz.ias_enroll, fz.ias_wd, fz.develco_genbinaryinput],
+            develco.fz.firmware_version, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -393,8 +529,8 @@ module.exports = [
         model: 'ZHEMI101',
         vendor: 'Develco',
         description: 'Energy meter',
-        fromZigbee: [fz.metering, fz.develco_metering],
-        toZigbee: [tz.develco_pulse_configuration, tz.develco_interface_mode, tz.develco_current_summation],
+        fromZigbee: [fz.metering, develco.fz.pulse_configuration, develco.fz.interface_mode],
+        toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode, develco.tz.current_summation],
         endpoint: (device) => {
             return {'default': 2};
         },
@@ -457,7 +593,7 @@ module.exports = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        fromZigbee: [fz.develco_voc_battery, fz.develco_voc, fz.temperature, fz.humidity],
+        fromZigbee: [develco.fz.voc, develco.fz.voc_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [
             e.voc(), e.temperature(), e.humidity(),
@@ -484,7 +620,7 @@ module.exports = [
         model: 'SIRZB-110',
         vendor: 'Develco Products A/S',
         description: 'Customizable siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.develco_fw, fz.ias_siren],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, develco.fz.firmware_version, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
