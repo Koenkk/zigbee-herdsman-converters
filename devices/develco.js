@@ -501,9 +501,10 @@ module.exports = [
         description: 'Motion sensor',
         fromZigbee: [
             fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
+            fz.occupancy, fz.occupancy_timeout,
             develco.fz.led_control, develco.fz.ias_occupancy_timeout,
         ],
-        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
+        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout, tz.occupancy_timeout],
         exposes: [
             e.occupancy(), e.battery(), e.battery_low(),
             e.tamper(), e.temperature(), e.illuminance_lux(),
@@ -511,25 +512,41 @@ module.exports = [
                 withDescription('Control LED indicator usage.'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(20).withValueMax(65535),
         ],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         endpoint: (device) => {
-            return {default: 35};
+            return {'default': 35, 'logic_a': 34, 'logic_b': 40, 'logic_c': 41};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(35);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-            await endpoint1.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint1.read('genBasic', ['develcoLedControl'], manufacturerOptions);
-            await endpoint1.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            // NOTE: configure ssIasZone based occupancy sensor recommended one for 'alarm' purposes
+            //       additonally configure batteryVoltage reporting. Also fetch initial ledControl and AlarmOffDelay values
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+            await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
 
-            const endpoint2 = device.getEndpoint(38);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            // NOTE: configure temperature sensor
+            //       use develco recommended reporting settings
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint38,
+                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 100});
 
-            const endpoint3 = device.getEndpoint(39);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint3);
+            // NOTE: configure illuminance sensor
+            //       use develco recommended reproting settings, very spammy/drains abttery
+            const endpoint39 = device.getEndpoint(39);
+            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint39,
+                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500});
+
+            // NOTE: there are 3 msOccupancySensing endpoints, each cable of having 'logic' configuration
+            //       based on msTemperatureMeasurement and msIlluminanceMEasurement inputs
+            for (const id of [34, 40, 41]) {
+                const endpoint = device.getEndpoint(id);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['msOccupancySensing']);
+                await reporting.occupancy(endpoint);
+                await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            }
         },
     },
     {
