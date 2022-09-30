@@ -706,30 +706,6 @@ const converters = {
             return result;
         },
     },
-    develco_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
-                result[postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
-                    msg.data['develcoPulseConfiguration'];
-            }
-
-            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                result[postfixWithEndpointName('interface_mode', msg, model, meta)] =
-                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
-                        msg.data['develcoInterfaceMode'];
-            }
-            if (msg.data.hasOwnProperty('status')) {
-                result['battery_low'] = (msg.data.status & 2) > 0;
-                result['check_meter'] = (msg.data.status & 1) > 0;
-            }
-
-            return result;
-        },
-    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -1925,49 +1901,6 @@ const converters = {
             const payload1 = converters.checkin_presence.convert(model, msg, publish, options, meta);
             const payload2 = converters.command_on.convert(model, msg, publish, options, meta);
             return {...payload1, ...payload2};
-        },
-    },
-    develco_voc: {
-        cluster: 'develcoSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
-        convert: (model, msg, publish, options, meta) => {
-            const voc = parseFloat(msg.data['measuredValue']);
-            const vocProperty = postfixWithEndpointName('voc', msg, model, meta);
-
-            let airQuality;
-            const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
-            if (voc <= 65) {
-                airQuality = 'excellent';
-            } else if (voc <= 220) {
-                airQuality = 'good';
-            } else if (voc <= 660) {
-                airQuality = 'moderate';
-            } else if (voc <= 2200) {
-                airQuality = 'poor';
-            } else if (voc <= 5500) {
-                airQuality = 'unhealthy';
-            } else if (voc > 5500) {
-                airQuality = 'out_of_range';
-            } else {
-                airQuality = 'unknown';
-            }
-            return {[vocProperty]: calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
-        },
-    },
-    develco_voc_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-             * Per the technical documentation for AQSZB-110:
-             * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
-             * When a voltage of 2.5V is measured the battery should be replaced.
-             * Low batt LED indication–RED LED will blink twice every 60 second.
-             */
-            const result = converters.battery.convert(model, msg, publish, options, meta);
-            result.battery_low = (result.voltage <= 2500);
-            return result;
         },
     },
     tuya_temperature_humidity_sensor: {
@@ -7816,39 +7749,6 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const scenes = {2: '1', 52: '2', 102: '3', 153: '4', 194: '5', 254: '6'};
             return {action: `scene_${scenes[msg.data.level]}`};
-        },
-    },
-    develco_fw: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (0x8000 in msg.data) {
-                const firmware = msg.data[0x8000].join('.');
-                result.current_firmware = firmware;
-                meta.device.softwareBuildID = firmware;
-            }
-
-            if (0x8020 in msg.data) {
-                meta.device.hardwareVersion = msg.data[0x8020].join('.');
-            }
-
-            return result;
-        },
-    },
-    develco_genbinaryinput: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('reliability')) {
-                const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
-                result.reliability = lookup[msg.data['reliability']];
-            }
-            if (msg.data.hasOwnProperty('statusFlags')) {
-                result.fault = (msg.data['statusFlags']===1);
-            }
-            return result;
         },
     },
     xiaomi_tvoc: {
