@@ -2813,4 +2813,11 @@ module.exports = [
         description: 'Hue Tuar outdoor wall light',
         extend: hueExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['915005998001'],
+        model: '915005998001',
+        vendor: 'Philips',
+        description: 'Hue Enrave white ambiance pendant',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
