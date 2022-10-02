@@ -176,7 +176,7 @@ const develco = {
                 return state;
             },
         },
-        ias_occupancy_timeout: {
+        moszb_occupancy_timeout: {
             cluster: 'ssIasZone',
             type: ['attributeReport', 'readResponse'],
             options: [],
@@ -231,19 +231,33 @@ const develco = {
                 await entity.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             },
         },
-        ias_occupancy_timeout: {
+        /*
+         * MOSZB-1xx devices get occupancy from both ssIasZone cluster and
+         * from msOccupancySensing cluster. Both support timeout that is located
+         * on a different attribute but for sanity both are called 'occupancy_timeout'
+         * there is never an endpoint with both clusters so we can differentiat easily!
+         */
+        moszb_occupancy_timeout: {
             key: ['occupancy_timeout'],
             convertSet: async (entity, key, value, meta) => {
-                let timeoutValue = value;
-                if (timeoutValue < 20) {
-                    meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
-                    timeoutValue = 20;
+                if (entity.clusters.hasOwnProperty('msOccupancySensing')) {
+                    return tz.occupancy_timeout.convertSet(entity, key, value, meta);
+                } else if (entity.clusters.hasOwnProperty('ssIasZone')) {
+                    let timeoutValue = value;
+                    if (timeoutValue < 20) {
+                        meta.logger.warn(`Minimum occupancy_timeout is 20, using 20 instead of ${timeoutValue}!`);
+                        timeoutValue = 20;
+                    }
+                    await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
+                    return {state: {occupancy_timeout: timeoutValue}};
                 }
-                await entity.write('ssIasZone', {'develcoAlarmOffDelay': timeoutValue}, manufacturerOptions);
-                return {state: {occupancy_timeout: timeoutValue}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+                if (entity.clusters.hasOwnProperty('msOccupancySensing')) {
+                    tz.occupancy_timeout.convertGet(entity, key, meta);
+                } else if (entity.clusters.hasOwnProperty('ssIasZone')) {
+                    await entity.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+                }
             },
         },
     },
@@ -502,19 +516,21 @@ module.exports = [
         fromZigbee: [
             fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
             fz.occupancy, fz.occupancy_timeout,
-            develco.fz.led_control, develco.fz.ias_occupancy_timeout,
+            develco.fz.led_control, develco.fz.moszb_occupancy_timeout,
         ],
-        toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout, tz.occupancy_timeout],
+        toZigbee: [
+            develco.tz.led_control, develco.tz.moszb_occupancy_timeout,
+        ],
         exposes: [
             e.occupancy(), e.battery(), e.battery_low(),
             e.tamper(), e.temperature(), e.illuminance_lux(),
             exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
-                withDescription('Control LED indicator usage.'),
+                withDescription('Control LED indicator usage'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(20).withValueMax(65535),
         ],
         meta: {battery: {voltageToPercentage: '3V_2500'}, multiEndpoint: true},
         endpoint: (device) => {
-            return {'default': 35, 'logic_a': 34, 'logic_b': 40, 'logic_c': 41};
+            return {'default': 35, 'l1': 34, 'l2': 40, 'l3': 41};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             // NOTE: configure ssIasZone based occupancy sensor recommended one for 'alarm' purposes
