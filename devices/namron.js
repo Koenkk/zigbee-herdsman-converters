@@ -512,21 +512,22 @@ module.exports = [
             fz.metering,
             fz.electrical_measurement,
             fz.namron_panelheater,
+            fz.namron_hvac_user_interface,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
-            tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
             tz.thermostat_local_temperature,
-            tz.thermostat_keypad_lockout,
             tz.namron_panelheater,
+            tz.namron_thermostat_child_lock,
         ],
         exposes: [
             e.power(),
             e.current(),
             e.voltage(),
             e.energy(),
-            e.keypad_lockout(),
 
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
@@ -538,6 +539,9 @@ module.exports = [
                 .withRunningState(['idle', 'heat']),
 
             // Namron proprietary stuff
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+                .withDescription('Enables/disables physical input on the device'),
+
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(5).withValueMax(50).withValueStep(0.1)
