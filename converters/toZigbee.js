@@ -16,7 +16,6 @@ const manufacturerOptions = {
     osram: {manufacturerCode: herdsman.Zcl.ManufacturerCode.OSRAM},
     eurotronic: {manufacturerCode: herdsman.Zcl.ManufacturerCode.JENNIC},
     danfoss: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DANFOSS},
-    develco: {manufacturerCode: herdsman.Zcl.ManufacturerCode.DEVELCO},
     hue: {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS},
     ikea: {manufacturerCode: herdsman.Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: herdsman.Zcl.ManufacturerCode.SINOPE_TECH},
@@ -582,7 +581,8 @@ const converters = {
             'ballast_physical_minimum_level',
             'ballast_physical_maximum_level',
             'ballast_minimum_level',
-            'ballast_maximum_level'],
+            'ballast_maximum_level',
+            'ballast_power_on_level'],
         // zcl attribute names are camel case, but we want to use snake case in the outside communication
         convertSet: async (entity, key, value, meta) => {
             if (key === 'ballast_config') {
@@ -598,6 +598,9 @@ const converters = {
             }
             if (key === 'ballast_maximum_level') {
                 await entity.write('lightingBallastCfg', {'maxLevel': value});
+            }
+            if (key === 'ballast_power_on_level') {
+                await entity.write('lightingBallastCfg', {'powerOnLevel': value});
             }
             converters.ballast_config.convertGet(entity, key, meta);
         },
@@ -3075,34 +3078,6 @@ const converters = {
         key: ['multimaster_role'],
         convertGet: async (entity, key, meta) => {
             await entity.read('haDiagnostic', ['danfossMultimasterRole'], manufacturerOptions.danfoss);
-        },
-    },
-    develco_pulse_configuration: {
-        key: ['pulse_configuration'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('seMetering', {'develcoPulseConfiguration': value}, manufacturerOptions.develco);
-            return {readAfterWriteTime: 200, state: {'pulse_configuration': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('seMetering', ['develcoPulseConfiguration'], manufacturerOptions.develco);
-        },
-    },
-    develco_interface_mode: {
-        key: ['interface_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {'develcoInterfaceMode': utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
-            await entity.write('seMetering', payload, manufacturerOptions.develco);
-            return {readAfterWriteTime: 200, state: {'interface_mode': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('seMetering', ['develcoInterfaceMode'], manufacturerOptions.develco);
-        },
-    },
-    develco_current_summation: {
-        key: ['current_summation'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('seMetering', {'develcoCurrentSummation': value}, manufacturerOptions.develco);
-            return {state: {'current_summation': value}};
         },
     },
     ZMCSW032D_cover_position: {

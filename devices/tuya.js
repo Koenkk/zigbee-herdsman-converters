@@ -21,7 +21,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
     '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx',
-    '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3'];
+    '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3', '_TZ3000_7dndcnnb', '_TZ3000_waho4jtj'];
 
 const tzLocal = {
     SA12IZL_silence_siren: {
@@ -897,6 +897,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_mzdax7ha'},
             {modelID: 'TS0505B', manufacturerName: '_TZB210_tmi0rihb'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_a4s41wm4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_awrucboq'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_ijczzg9h'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_iwbaamgh'},
@@ -907,7 +908,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_6amjviba'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_xr5m6kfg'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_bf175wi4'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_bf175wi4'},
+            {modelID: 'TS0505B', manufacturerName: '_TZB210_3zfp8mki'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -1045,6 +1047,22 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3040_msl6wxk9'}],
+        model: '40ZH-O',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, fzLocal.ZM35HQ_battery],
+        toZigbee: [tz.ZM35HQ_attr],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(),
+            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_mcxw5ehu'}],
         model: 'IH012-RT01',
         vendor: 'TuYa',
@@ -1121,8 +1139,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ojzhk75b'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_swaamsoy'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3p5ydos3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_1agwnems'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ip2akl4w'},
         ],
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
@@ -1143,7 +1159,29 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
             {vendor: 'Mercator Ikuü', model: 'SSWD01'},
             {vendor: 'Moes', model: 'ZS-USD'},
+            {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems']),
+        model: 'TS0601_dimmer_1',
+        vendor: 'TuYa',
+        description: 'Zigbee smart dimmer',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.lightBrightnessWithMinMax, tuya.exposes.powerOnBehavior, tuya.exposes.countdown, tuya.exposes.lightType],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'light_type', tuya.valueConverter.lightType],
+                [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [6, 'countdown', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
@@ -1368,6 +1406,7 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_ijsj2evj'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_pgq2qvyv'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_nvaik6gk'},
+            {modelID: 'TS0502B', manufacturerName: '_TZB210_rkgngb5o'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3000_armwcncd'},
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_2p6wbry3'},
             {modelID: 'TS0502B', manufacturerName: '_TZB210_nfzrlz29'},
@@ -1913,6 +1952,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
             {modelID: 'TS0601', manufacturerName: '_TZE200_lllliz3p'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
             {modelID: 'TS0601', manufacturerName: '_TZE200_mudxchsu'}, /* model: 'TV05-ZG curve', vendor: 'TuYa' */
+            {modelID: 'TS0601', manufacturerName: '_TZE200_7yoranx2'}, /* model: 'TV01-ZB', vendor: 'Moes' */
         ],
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
@@ -3173,7 +3213,7 @@ module.exports = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}, {modelID: 'TS0601', manufacturerName: '_TZE200_1ibpyhdc'}],
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',

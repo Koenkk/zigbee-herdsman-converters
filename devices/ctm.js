@@ -281,15 +281,6 @@ const fzLocal = {
 
 
 const tzLocal = {
-    ballast_power_on_level: {
-        key: ['ballast_power_on_level'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('lightingBallastCfg', {'powerOnLevel': value});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('lightingBallastCfg', ['powerOnLevel']);
-        },
-    },
     ctm_device_mode: {
         key: ['device_mode'],
         convertGet: async (entity, key, meta) => {
@@ -577,7 +568,7 @@ module.exports = [
         vendor: 'CTM Lyng',
         description: 'mTouch Dim OP, touch dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.lighting_ballast_configuration],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config, tzLocal.ballast_power_on_level],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_brightness_move, tz.ballast_config],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

@@ -15,6 +15,14 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['Retro Bulb Gold XXL white+ambiance'],
+        model: '404065',
+        vendor: 'Müller Licht',
+        description: 'tint LED-Globe Retro Gold XXL E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-A4700001'],
         model: '404023',
         vendor: 'Müller Licht',
