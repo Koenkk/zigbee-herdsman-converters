@@ -1506,6 +1506,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWS001'],
+        model: '9290018189',
+        vendor: 'Philips',
+        description: 'Hue white PAR38 outdoor',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['LLC010'],
         model: '7199960PH',
         vendor: 'Philips',
