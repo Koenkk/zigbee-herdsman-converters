@@ -225,7 +225,7 @@ module.exports = [
             exposes.numeric('sunday_p4_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
             exposes.numeric('sunday_p4_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59),
             exposes.numeric('sunday_p4_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5),
-            ],
+        ],
         onEvent: tuya.onEventSetLocalTime,
     },
     {
