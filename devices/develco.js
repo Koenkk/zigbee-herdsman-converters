@@ -755,10 +755,10 @@ module.exports = [
         meta: {multiEndpoint: true},
 
         exposes: [
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l1').withDescription('State of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l2').withDescription('State of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l3').withDescription('State of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l4').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, true, false).withEndpoint('l3').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, true, false).withEndpoint('l4').withDescription('State of the input.'),
             e.switch().withEndpoint('l11'),
             e.switch().withEndpoint('l12'),
         ],
