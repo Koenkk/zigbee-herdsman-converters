@@ -11,7 +11,7 @@ module.exports = [
         vendor: 'Novo',
         description: 'Curtain switch',
         fromZigbee: [fz.tuya_cover],
-        toZigbee: [tz.tuya_cover_control],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];
