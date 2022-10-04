@@ -746,26 +746,26 @@ module.exports = [
     },
     {
         zigbeeModel: ['IOMZB-110'],
-        model: 'IOMZB-110', 
-        vendor: 'Develco Products A/S', 
-        description: 'Develco IO module', 
+        model: 'IOMZB-110',
+        vendor: 'Develco Products A/S',
+        description: 'Develco IO module',
         fromZigbee: [fz.on_off, develco.fz.presentvalue, develco.fz.firmware_version],
-        toZigbee: [tz.on_off, develco.tz.presentvalue, develco.tz.polarity], 
-//        ota: ota.zigbeeOTA,
+        toZigbee: [tz.on_off, develco.tz.presentvalue, develco.tz.polarity],
+        //ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true},
 
         exposes: [
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l1').withDescription('Reflects the state of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l2').withDescription('Reflects the state of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l3').withDescription('Reflects the state of the input.'),
-            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l4').withDescription('Reflects the state of the input.'),
-            e.switch().withEndpoint('l11'), 
+            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l1').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l2').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l3').withDescription('State of the input.'),
+            exposes.binary('presentvalue', ea.STATE_GET, false, true).withEndpoint('l4').withDescription('State of the input.'),
+            e.switch().withEndpoint('l11'),
             e.switch().withEndpoint('l12'),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
-//            const ep1 = device.getEndpoint(1);
+            //const ep1 = device.getEndpoint(1);
 
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
@@ -786,7 +786,7 @@ module.exports = [
 
             const ep6 = device.getEndpoint(116);
             await reporting.bind(ep6, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
-//            await ep6.read('genBinaryInput', [0x8000]);
+            //await ep6.read('genBinaryInput', [0x8000]);
             await reporting.onOff(ep6);
 
             const ep7 = device.getEndpoint(117);
@@ -794,7 +794,7 @@ module.exports = [
             await reporting.onOff(ep7);
         },
         endpoint: (device) => {
-            return { 'ep1':1,  'l1': 112, 'l2':113, 'l3':114, 'l4':115, 'l11':116, 'l12':117, };
+            return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117,};
         },
     },
 ];
