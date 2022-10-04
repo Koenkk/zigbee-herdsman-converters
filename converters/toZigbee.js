@@ -2850,8 +2850,8 @@ const converters = {
             await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
         },
     },
-    danfoss_thermostat_occupied_heating_scheduled_setpoint: {
-        key: ['occupied_heating_scheduled_setpoint'],
+    danfoss_thermostat_occupied_heating_setpoint_scheduled: {
+        key: ['occupied_heating_setpoint_scheduled'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 // 0: "Schedule Change" Just changes occupied heating setpoint. No special behavior,
