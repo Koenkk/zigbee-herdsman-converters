@@ -751,7 +751,7 @@ module.exports = [
         description: 'Develco IO module',
         fromZigbee: [fz.on_off, develco.fz.presentvalue, develco.fz.firmware_version],
         toZigbee: [tz.on_off, develco.tz.presentvalue, develco.tz.polarity],
-        //ota: ota.zigbeeOTA,
+        // ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true},
 
         exposes: [
@@ -765,7 +765,7 @@ module.exports = [
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
-            //const ep1 = device.getEndpoint(1);
+            // const ep1 = device.getEndpoint(1);
 
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
@@ -786,7 +786,7 @@ module.exports = [
 
             const ep6 = device.getEndpoint(116);
             await reporting.bind(ep6, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
-            //await ep6.read('genBinaryInput', [0x8000]);
+            // await ep6.read('genBinaryInput', [0x8000]);
             await reporting.onOff(ep6);
 
             const ep7 = device.getEndpoint(117);
