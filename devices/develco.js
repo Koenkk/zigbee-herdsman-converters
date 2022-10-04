@@ -794,7 +794,7 @@ module.exports = [
             await reporting.onOff(ep7);
         },
         endpoint: (device) => {
-            return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117,};
+            return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117};
         },
     },
 ];
