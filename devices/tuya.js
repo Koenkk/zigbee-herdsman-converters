@@ -2253,6 +2253,35 @@ module.exports = [
         onEvent: tuya.onEventsetTime,
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15', '_TZE200_bkkmqmyo']),
+        model: 'TS0601_din_1',
+        vendor: 'TuYa',
+        description: 'Zigbee DIN energy meter',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverterMultiProperty.phaseA], // voltage and current
+                [16, 'state', tuya.valueConverter.onOff],
+                [103, 'power', tuya.valueConverterBasic.raw],
+                [105, 'ac_frequency', tuya.valueConverter.divideBy100],
+                [111, 'power_factor', tuya.valueConverter.divideBy10],
+                // Ignored for now; we don't know what the values mean
+                [109, null, null], // reactive_power in VArh, ignored for now
+                [101, null, null], // total active power (translated from chinese) - same as energy dp 1??
+                [102, null, null], // Reverse active power (translated from chinese), produced power? (e.g. if solar panels are connected)
+                [9, null, null], // Fault - we don't know the possible values here
+                [110, null, null], // total reactive power (translated from chinese) - value is 0.03kvar, we already have kvarh on dp 109
+                [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
+                [18, null, null], // 18 - Alarm set2 - value seems garbage "AAUAZAAFAB4APAAAAAAAAAA="
+            ],
+        },
+        whiteLabel: [{vendor: 'Hiking', model: 'DDS238-2'}, {vendor: 'TuYa', model: 'RC-MCB'}],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fsb6zw01'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ewxhg6o9'}],
@@ -2266,19 +2295,6 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.voltage(), e.power(), e.current(), e.energy()],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bkkmqmyo'}],
-        model: 'DDS238-2',
-        vendor: 'TuYa',
-        description: 'Zigbee smart energy meter',
-        fromZigbee: [fzLocal.tuya_dinrail_switch2],
-        toZigbee: [tz.tuya_switch_state],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
-        exposes: [e.switch().setAccess('state', ea.STATE_SET), e.energy(), e.power()],
     },
     {
         fingerprint: [{modelID: 'TS1101', manufacturerName: '_TZ3000_xfs39dbf'}],
