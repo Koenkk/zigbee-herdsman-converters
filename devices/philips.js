@@ -701,6 +701,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003052601'],
+        model: '929003052601',
+        vendor: 'Philips',
+        description: 'Hue Flourish white and color ambiance table light with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCG002'],
         model: '929001953101',
         vendor: 'Philips',
@@ -1494,6 +1501,13 @@ module.exports = [
     {
         zigbeeModel: ['LWB015'],
         model: '046677476816',
+        vendor: 'Philips',
+        description: 'Hue white PAR38 outdoor',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['LWS001'],
+        model: '9290018189',
         vendor: 'Philips',
         description: 'Hue white PAR38 outdoor',
         extend: hueExtend.light_onoff_brightness(),
@@ -2803,7 +2817,7 @@ module.exports = [
         zigbeeModel: ['915005998101'],
         model: '915005998101',
         vendor: 'Philips',
-        description: 'Hue white ambiance ceiling black Enrave',
+        description: 'Hue white ambiance pendant black Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
@@ -2812,5 +2826,12 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Tuar outdoor wall light',
         extend: hueExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['915005998001'],
+        model: '915005998001',
+        vendor: 'Philips',
+        description: 'Hue white ambiance pendant white Enrave',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
