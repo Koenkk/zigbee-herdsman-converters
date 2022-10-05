@@ -687,7 +687,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
-        zigbeeModel: ['4090531P9', '929003053601'],
+        zigbeeModel: ['4090531P9', '929003053601', '929003053501'],
         model: '4090531P9',
         vendor: 'Philips',
         description: 'Hue Flourish white and color ambiance ceiling light with Bluetooth',
