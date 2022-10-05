@@ -2230,6 +2230,23 @@ module.exports = [
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
+        model: 'TS0601_smoke_1',
+        vendor: 'TuYa',
+        description: 'Smoke sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.smoke(), e.tamper(), e.battery_low()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.true0ElseFalse],
+                [4, 'tamper', tuya.valueConverter.raw],
+                [14, 'battery_low', tuya.valueConverter.true0ElseFalse],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['5p1vj8r'],
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_t5p1vj8r'}, {modelID: 'TS0601', manufacturerName: '_TZE200_uebojraa'}],
         model: 'TS0601_smoke',
@@ -2240,7 +2257,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}, {modelID: 'TS0601', manufacturerName: '_TZE200_ntcy3xu1'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_5d3vhjro'}],
         model: 'SA12IZL',
         vendor: 'TuYa',
         description: 'Smart smoke alarm',
@@ -2266,9 +2283,9 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
-                [6, null, tuya.valueConverterMultiProperty.phaseA], // voltage and current
+                [6, null, tuya.valueConverter.phaseA], // voltage and current
                 [16, 'state', tuya.valueConverter.onOff],
-                [103, 'power', tuya.valueConverterBasic.raw],
+                [103, 'power', tuya.valueConverter.raw],
                 [105, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [111, 'power_factor', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean
