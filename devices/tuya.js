@@ -2272,7 +2272,7 @@ module.exports = [
         onEvent: tuya.onEventsetTime,
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15', '_TZE200_bkkmqmyo']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15', '_TZE200_bkkmqmyo', '_TZE200_eaac7dkw']),
         model: 'TS0601_din_1',
         vendor: 'TuYa',
         description: 'Zigbee DIN energy meter',
