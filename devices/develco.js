@@ -519,8 +519,10 @@ module.exports = [
             const endpoint35 = device.getEndpoint(35);
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-            await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
-            await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            try {
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            } catch (error) {/* some reports of timeouts on reading these */}
 
             const endpoint38 = device.getEndpoint(38);
             await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
