@@ -1508,24 +1508,6 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
-        model: 'TS0041',
-        vendor: 'TuYa',
-        description: 'Wireless switch with 1 button',
-        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/6313 */}
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
         model: 'TS011F_2_gang_2_usb_wall',
         vendor: 'TuYa',
@@ -1551,6 +1533,29 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TS0041'],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
+        model: 'TS0041',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 1 button',
+        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genBasic', {0xffde: {value: 0x13, type: 0x20}});
+
+            /*
+             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+             */
+        },
+    },
+    {
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
@@ -1561,8 +1566,15 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genBasic', {0xffde: {value: 0x13, type: 0x20}});
+
+            /*
+             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+             */
         },
     },
     {
@@ -1577,10 +1589,15 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genBasic', {0xffde: {value: 0x13, type: 0x20}});
+
+            /*
+             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+             */
         },
     },
     {
@@ -1596,10 +1613,15 @@ module.exports = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
+            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
+            await endpoint.write('genBasic', {0xffde: {value: 0x13, type: 0x20}});
+
+            /*
+             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+             */
         },
     },
     {
