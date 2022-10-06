@@ -1596,18 +1596,13 @@ module.exports = [
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write('genBasic', {0xffde: {value: 0x13, type: 0x20}});
-
-            /*
-             * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
-             * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
-             * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
-             * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
-             */
-        },
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_czuyt8lz'}],
