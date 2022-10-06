@@ -2768,7 +2768,8 @@ module.exports = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(['manual', 'program']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
+                .withPreset(['manual', 'program']),
+            e.temperature_sensor_select(['internal', 'external', 'both']),
             exposes.text('schedule', ea.STATE_SET).withDescription('There are 8 periods in the schedule in total. ' +
                 '6 for workdays and 2 for holidays. It should be set in the following format for each of the periods: ' +
                 '`hours:minutes/temperature`. All periods should be set at once and delimited by the space symbol. ' +
