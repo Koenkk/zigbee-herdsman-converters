@@ -97,7 +97,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['state', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'calibrated', 'sensor', 'sensor_temp', 'identify'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -2375,15 +2375,19 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
-            exposes.switch().withState('state', true, 'Turn off the thermostat', ea.ALL, 'OFF', 'ON'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.ALL),
-            exposes.enum('sensor', ea.ALL, ['internal', 'external']).withDescription('Select temperature sensor to use'),
-            exposes.binary('calibrated', ea.STATE_GET, true, false).withDescription('Is the valve calibrated'),
+            exposes.switch()
+                .withState('state', true, 'Turn off the thermostat', ea.ALL, 'OFF', 'ON'),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
+            e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
+            exposes.binary('calibrated', ea.STATE, true, false)
+                .withDescription('Is the valve calibrated'),
             e.child_lock().setAccess('state', ea.ALL),
             e.window_detection().setAccess('state', ea.ALL),
             e.valve_detection().setAccess('state', ea.ALL),
-            e.away_preset_temperature(),
+            e.away_preset_temperature().withAccess(ea.ALL),
             e.battery_voltage(),
             e.battery(),
         ],
