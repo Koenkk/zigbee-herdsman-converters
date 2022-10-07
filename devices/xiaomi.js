@@ -91,14 +91,6 @@ const fzLocal = {
             });
             return result;
         },
-        convertGet: async (entity, key, meta) => {
-            const dict = {'state': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
-                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
-
-            if (dict.hasOwnProperty(key)) {
-                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
-            }
-        },
     },
 };
 
@@ -215,6 +207,14 @@ const tzLocal = {
                 break;
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const dict = {'state': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
+                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+
+            if (dict.hasOwnProperty(key)) {
+                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
             }
         },
     },
