@@ -2010,7 +2010,9 @@ module.exports = [
             exposes.text('schedule_friday', ea.STATE_SET),
             exposes.text('schedule_saturday', ea.STATE_SET),
             exposes.text('schedule_sunday', ea.STATE_SET),
-            exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
+            exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn on this property to poll current data from the ' +
+                'device. It can be used to periodically fetch a new local temperature since the device doesn\'t update itself. ' +
+                'Setting this property doesn\'t turn on the display.'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
         ],
     },
