@@ -4077,7 +4077,7 @@ const converters = {
             case tuya.dataPoints.tvWindowDetection:
                 return {open_window: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.tvHeatingStop:
-                return {heating_stop: value ? 'ON' : 'OFF'};
+                return {system_mode: value ? 'off' : 'heat'};
             case tuya.dataPoints.tvLocalTemp:
                 return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvBattery:

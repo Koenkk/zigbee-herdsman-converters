@@ -3450,7 +3450,7 @@ const converters = {
     },
     tvtwo_thermostat: {
         key: [
-            'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'heating_stop',
+            'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'system_mode',
             'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
             'working_day', 'week_schedule_programming', 'online', 'holiday_mode_date',
@@ -3461,11 +3461,11 @@ const converters = {
                 const presetLookup = {'auto': 0, 'manual': 1, 'holiday': 3};
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, presetLookup[value]);
                 return {state: {preset: value}};}
-            case 'heating_stop':
-                if (value == 'ON') {
-                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
+            case 'system_mode':
+                if (value == 'heat') {
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 0);
                 } else {
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvMode, 1 /* manual */);
+                    await tuya.sendDataPointBool(entity, tuya.dataPoints.tvHeatingStop, 1);
                 }
                 break;
             case 'frost_protection':
