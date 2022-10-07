@@ -68,11 +68,12 @@ const fzLocal = {
                     result['away_preset_temperature'] = (value / 100).toFixed(1);
                     break;
                 case 0x027b:
-                    result['calibration'] = {1: true, 0: false}[value];
+                    result['calibrated'] = {1: true, 0: false}[value];
                     break;
                 case 0x027e:
                     result['sensor'] = {1: 'external', 0: 'internal'}[value];
                     break;
+                case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
                 case 0x0275: // 0x00000001
@@ -81,7 +82,7 @@ const fzLocal = {
                 case 0x027c: // 0x00
                 case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
-                case 0x040a: // 0x64
+                case 0x040a: // 0x64 battery percent?
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
                 default:
@@ -90,13 +91,27 @@ const fzLocal = {
             });
             return result;
         },
+        convertGet: async (entity, key, meta) => {
+            const dict = {'state': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
+                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+
+            if (dict.hasOwnProperty(key)) {
+                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
+            }
+        },
     },
 };
 
 const tzLocal = {
     aqara_trv: {
-        key: ['state', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature'],
+        key: ['state', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
+            'calibrate', 'calibrated', 'sensor', 'sensor_temp', 'identify'],
         convertSet: async (entity, key, value, meta) => {
+            const aqaraHeader = (counter, params, action) => {
+                const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
+                const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
+                return [...header, integrity, action, 0x41, params.length];
+            };
             switch (key) {
             case 'state':
                 await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
@@ -120,6 +135,83 @@ const tzLocal = {
                 break;
             case 'away_preset_temperature':
                 await entity.write('aqaraOpple', {0x0279: {value: Math.round(value * 100), type: 0x23}}, {manufacturerCode: 0x115f});
+                break;
+            case 'sensor': {
+                const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
+                const timestamp = Buffer.allocUnsafe(4);
+                timestamp.writeUint32BE(Date.now()/1000);
+
+                if (value === 'external') {
+                    const sensor = Buffer.from('00158d00019d1b98', 'hex');
+                    const params1 = [
+                        ...timestamp,
+                        0x3d, 0x04,
+                        ...device,
+                        ...sensor,
+                        0x00, 0x01, 0x00, 0x55,
+                        0x13, 0x0a, 0x02, 0x00, 0x00, 0x64, 0x04, 0xce, 0xc2, 0xb6, 0xc8,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x3d,
+                        0x64,
+                        0x65,
+                    ];
+                    const params2 = [
+                        ...timestamp,
+                        0x3d, 0x05,
+                        ...device,
+                        ...sensor,
+                        0x08, 0x00, 0x07, 0xfd,
+                        0x16, 0x0a, 0x02, 0x0a, 0xc9, 0xe8, 0xb1, 0xb8, 0xd4, 0xda, 0xcf, 0xdf, 0xc0, 0xeb,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x3d,
+                        0x04,
+                        0x65,
+                    ];
+
+                    const val1 = [...(aqaraHeader(0x12, params1, 0x02)), ...params1];
+                    const val2 = [...(aqaraHeader(0x13, params2, 0x02)), ...params2];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                } else if (value === 'internal') {
+                    const params1 = [
+                        ...timestamp,
+                        0x3d, 0x05,
+                        ...device,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    ];
+                    const params2 = [
+                        ...timestamp,
+                        0x3d, 0x04,
+                        ...device,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    ];
+
+                    const val1 = [...(aqaraHeader(0x12, params1, 0x04)), ...params1];
+                    const val2 = [...(aqaraHeader(0x13, params2, 0x04)), ...params2];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+
+                    await entity.read('hvacThermostat', ['localTemp']);
+                }
+                break;
+            }
+            case 'sensor_temp':
+                if (meta.state['sensor_type'] === 'external') {
+                    const sensor = Buffer.from(meta.state['sensor'].substring(2), 'hex');
+                    const temperatureBuf = Buffer.allocUnsafe(4);
+                    temperatureBuf.writeFloatBE(Math.round(value * 100));
+
+                    const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
+                    const data = [...(aqaraHeader(0x12, params, 0x05)), ...params];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: 0x115f});
+                }
+                break;
+            case 'calibrate':
+                await entity.write('aqaraOpple', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
+                break;
+            case 'identify':
+                await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
@@ -2282,11 +2374,18 @@ module.exports = [
         description: 'Aqara Smart Radiator Thermostat E1',
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
-        exposes: [e.switch().setAccess('state', ea.STATE_SET),
+        exposes: [
+            exposes.switch().withState('state', true, 'Turn off the thermostat', ea.ALL, 'OFF', 'ON'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.STATE_SET),
-            e.child_lock(), e.window_detection(), e.valve_detection(),
-            e.away_preset_temperature(), e.battery_voltage(), e.battery(),
+                .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.ALL),
+            exposes.enum('sensor', ea.ALL, ['internal', 'external']).withDescription('Select temperature sensor to use'),
+            exposes.binary('calibrated', ea.STATE_GET, true, false).withDescription('Is the valve calibrated'),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.window_detection().setAccess('state', ea.ALL),
+            e.valve_detection().setAccess('state', ea.ALL),
+            e.away_preset_temperature(),
+            e.battery_voltage(),
+            e.battery(),
         ],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
