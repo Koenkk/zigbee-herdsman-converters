@@ -105,7 +105,7 @@ const tzLocal = {
                 return [...header, integrity, action, 0x41, params.length];
             };
             const sensor = Buffer.from('00158d00019d1b98', 'hex');
-            
+
             switch (key) {
             case 'state':
                 await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
