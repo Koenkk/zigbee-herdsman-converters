@@ -3517,11 +3517,13 @@ const converters = {
                 await tuya.sendDataPointBool(entity, tuya.dataPoints.tvBoostMode, value === 'ON');
                 break;
             case 'working_day': {
-                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                const workLookup = {'0': 0, '1': 1, '2': 2, '3': 3};
-                const workDay = workLookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, workDay);
-                return {state: {working_day: value}};
+                value = value.toLowerCase();
+                const lookup = {'mon_sun': 0, 'mon_fri+sat+sun': 1, 'separate': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+                globalStore.putValue(entity, 'workingDay', value);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, value);
+                break;
             }
             case 'week_schedule_programming':
                 // DP-106, Send Only, raw, week_program3_day

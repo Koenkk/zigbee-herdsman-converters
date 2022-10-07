@@ -1991,7 +1991,10 @@ module.exports = [
                 '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes`. ' +
                 'For example: `2022/10/01 16:30 | 2022/10/21 18:10`. After the end of holiday mode, it switches to "auto" ' +
                 'mode and uses schedule.'),
-            // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
+            exposes.enum('working_day', ea.STATE_SET, ['mon_sun', 'mon_fri+sat+sun', 'separate']).withDescription('`mon_sun` ' +
+                '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
+                'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
+                '- schedule for each day is defined separately.'),
             exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
                 .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
                     'the device executes a preset week programming temperature time and temperature. '),

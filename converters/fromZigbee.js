@@ -4114,9 +4114,11 @@ const converters = {
             case tuya.dataPoints.tvBoostMode:
                 // 115 online / Is the device online
                 return {online: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvWorkingDay:
-                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {working_day: value};
+            case tuya.dataPoints.tvWorkingDay: {
+                const lookup = {0: 'mon_sun', 1: 'mon_fri+sat+sun', 2: 'separate'};
+                globalStore.putValue(msg.endpoint, 'workingDay', value);
+                return {working_day: lookup[value]};
+            }
             case tuya.dataPoints.tvMondaySchedule:
                 return {schedule_monday:
                         '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
