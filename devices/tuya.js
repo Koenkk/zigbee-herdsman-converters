@@ -1975,8 +1975,9 @@ module.exports = [
             e.comfort_temperature().withValueMin(5).withValueMax(30), e.eco_temperature().withValueMin(5).withValueMax(30),
             exposes.climate().withSystemMode(['off', 'heat'], ea.STATE_SET, 'When switched to the "off" mode, the device will display ' +
                 '"HS" and the valve will be fully closed. Press the pair button to cancel or switch back to "heat" mode. Battery life ' +
-                'can be prolonged by switching the heating off.').withPreset(['auto', 'manual', 'holiday'])
-                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+                'can be prolonged by switching the heating off.').withPreset(['auto', 'manual', 'holiday'], '`auto` uses schedule ' +
+                'properties, check them. `manual` allows you to control the device, `holiday` uses `holiday_start_stop` and ' +
+                '`holiday_temperature` properties.').withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
