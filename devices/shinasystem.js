@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const utils = require('../lib/utils');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
@@ -16,10 +17,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyIn = msg.data.occupancy;
             globalStore.putValue(msg.endpoint, 'occupancy_in', occupancyIn);
-            const occupancy = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyOr = occupancyIn | globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
+            const occupancyAnd = occupancyIn & globalStore.getValue(msg.endpoint, 'occupancy_out', 0);
             return {
                 occupancy_in: (occupancyIn & 1) > 0,
-                occupancy: (occupancy & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
     },
@@ -29,15 +32,137 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const occupancyOut = msg.data.zonestatus;
             globalStore.putValue(msg.endpoint, 'occupancy_out', occupancyOut);
-            const occupancy = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyOr = occupancyOut | globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
+            const occupancyAnd = occupancyOut & globalStore.getValue(msg.endpoint, 'occupancy_in', 0);
             return {
                 occupancy_out: (occupancyOut & 1) > 0,
-                occupancy: (occupancy & 1) > 0,
+                occupancy_or: (occupancyOr & 1) > 0,
+                occupancy_and: (occupancyAnd & 1) > 0,
             };
+        },
+    },
+    ISM300Z3_on_off: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('onOff')) {
+                const property = utils.postfixWithEndpointName('state', msg, model, meta);
+                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            } else if (msg.data.hasOwnProperty(0x9000)) {
+                const value = msg.data[0x9000];
+                const lookup = {0: 'auto', 1: 'push', 2: 'latch'};
+                return {operation_mode: lookup[value]};
+            }
         },
     },
 };
 
+const tzLocal = {
+    CSM300_SETUP: {
+        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transaction', 'fast_in', 'fast_out'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
+            switch (key) {
+            case 'rf_pairing_on':
+                payload = {'presentValue': 81};
+                break;
+            case 'counting_freeze':
+                if (value.toLowerCase() === 'on') {
+                    payload = {'presentValue': 82};
+                } else if (value.toLowerCase() === 'off') {
+                    payload = {'presentValue': 84};
+                }
+                break;
+            case 'tof_init':
+                payload = {'presentValue': 83};
+                break;
+            case 'led_state':
+                if (value === 'enable') {
+                    payload = {'presentValue': 86};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 87};
+                }
+                break;
+            case 'rf_state':
+                if (value === 'enable') {
+                    payload = {'presentValue': 88};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 89};
+                }
+                break;
+            case 'transaction':
+                if (value === '0ms') {
+                    payload = {'presentValue': 90};
+                } else if (value === '200ms') {
+                    payload = {'presentValue': 91};
+                } else if (value === '400ms') {
+                    payload = {'presentValue': 92};
+                } else if (value === '600ms') {
+                    payload = {'presentValue': 93};
+                } else if (value === '800ms') {
+                    payload = {'presentValue': 94};
+                } else if (value === '1,000ms') {
+                    payload = {'presentValue': 95};
+                }
+                break;
+            case 'fast_in':
+                if (value === 'enable') {
+                    payload = {'presentValue': 96};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 97};
+                }
+                break;
+            case 'fast_out':
+                if (value === 'enable') {
+                    payload = {'presentValue': 98};
+                } else if (value === 'disable') {
+                    payload = {'presentValue': 99};
+                }
+                break;
+            }
+            await endpoint.write('genAnalogInput', payload);
+        },
+    },
+    ISM300Z3_on_off: {
+        key: ['state', 'operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            if (key === 'state') {
+                const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
+                utils.validateValue(state, ['toggle', 'off', 'on']);
+                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === 'toggle') {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                } else {
+                    return {state: {state: state.toUpperCase()}};
+                }
+            } else if (key === 'operation_mode') {
+                const lookup = {'auto': 0, 'push': 1, 'latch': 2};
+                const payload = {0x9000: {value: lookup[value], type: 0x20}}; // INT8U
+                await entity.write('genOnOff', payload);
+                await endpoint.read('genOnOff', [0x9000]);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'operation_mode') {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.read('genOnOff', [0x9000]);
+            } else {
+                await entity.read('genOnOff', ['onOff']);
+            }
+        },
+    },
+    ISM300Z3_rf_pairing: {
+        key: ['rf_pairing'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'l1': 1, 'l2': 2, 'l3': 3};
+            const payload = {0x9001: {value: lookup[value], type: 0x20}}; // INT8U
+            await entity.write('genOnOff', payload);
+        },
+    },
+};
 
 module.exports = [
     {
@@ -73,7 +198,7 @@ module.exports = [
         description: 'SiHAS multipurpose ToF sensor',
         meta: {battery: {voltageToPercentage: 'Add_1V_42V_CSM300z2v2'}},
         fromZigbee: [fz.battery, fz.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people],
+        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genPowerCfg', 'genAnalogInput'];
@@ -84,7 +209,19 @@ module.exports = [
         },
         exposes: [e.battery(), e.battery_voltage(),
             exposes.enum('status', ea.STATE, ['idle', 'in', 'out']).withDescription('Currently status'),
-            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count')],
+            exposes.numeric('people', ea.ALL).withValueMin(0).withValueMax(100).withDescription('People count'),
+            exposes.enum('rf_pairing_on', ea.SET, ['run']).withDescription('Run RF pairing mode'),
+            exposes.binary('counting_freeze', ea.SET, 'ON', 'OFF')
+                .withDescription('Counting Freeze ON/OFF, not reporting people value when is ON'),
+            exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
+            exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
+            exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
+            exposes.enum('transaction', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
+                .withDescription('Transaction interval, default : 400ms'),
+            exposes.binary('fast_in', ea.SET, 'enable', 'disable')
+                .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
+            exposes.binary('fast_out', ea.SET, 'enable', 'disable')
+                .withDescription('Fast process enable/disable when people 1 to 0. default : enable')],
     },
     {
         zigbeeModel: ['USM-300Z'],
@@ -447,8 +584,10 @@ module.exports = [
                 .withDescription('Indicates whether "IN" Sensor of the device detected occupancy'),
             exposes.binary('occupancy_out', ea.STATE, true, false)
                 .withDescription('Indicates whether "OUT" Sensor of the device detected occupancy'),
-            exposes.binary('occupancy', ea.STATE, true, false)
+            exposes.binary('occupancy_or', ea.STATE, true, false)
                 .withDescription('Indicates whether "IN or OUT" Sensor of the device detected occupancy'),
+            exposes.binary('occupancy_and', ea.STATE, true, false)
+                .withDescription('Indicates whether "IN and OUT" Sensor of the device detected occupancy'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(3600)],
     },
     {
@@ -457,13 +596,19 @@ module.exports = [
         vendor: 'ShinaSystem',
         ota: ota.zigbeeOTA,
         description: 'SiHAS IOT smart inner switch 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
+        fromZigbee: [fzLocal.ISM300Z3_on_off],
+        toZigbee: [tzLocal.ISM300Z3_on_off, tzLocal.ISM300Z3_rf_pairing],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            exposes.enum('operation_mode', ea.ALL, ['auto', 'push', 'latch'])
+                .withDescription('Operation mode: "auto" - toggle by S/W, "push" - for momentary S/W, "latch" - sync S/W'),
+            exposes.enum('rf_pairing', ea.SET, ['l1', 'l2', 'l3'])
+                .withDescription('Enable RF pairing mode each button l1, l2, l3')],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).read('genOnOff', [0x9000]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);

@@ -40,7 +40,6 @@ module.exports = [
         fromZigbee: [fz.occupancy, fz.humidity, fz.temperature, fz.ignore_basic_report, fz.ignore_genIdentify, fz.ignore_poll_ctrl,
             fz.battery, fz.ignore_iaszone_report, fz.ias_occupancy_alarm_2],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
     },
     {

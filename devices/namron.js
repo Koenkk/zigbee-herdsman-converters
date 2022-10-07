@@ -1,5 +1,6 @@
+const herdsman = require('zigbee-herdsman');
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
@@ -7,6 +8,90 @@ const globalStore = require('../lib/store');
 const extend = require('../lib/extend');
 const ea = exposes.access;
 const e = exposes.presets;
+
+const sunricherManufacturer = {manufacturerCode: herdsman.Zcl.ManufacturerCode.SHENZHEN_SUNRICH};
+
+const fzLocal = {
+    namron_panelheater: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x1000)) { // OperateDisplayBrightnesss
+                result.display_brightnesss = data[0x1000];
+            }
+            if (data.hasOwnProperty(0x1001)) { // DisplayAutoOffActivation
+                const lookup = {0: 'deactivated', 1: 'activated'};
+                result.display_auto_off = lookup[data[0x1001]];
+            }
+            if (data.hasOwnProperty(0x1004)) { // PowerUpStatus
+                const lookup = {0: 'manual', 1: 'last_state'};
+                result.power_up_status = lookup[data[0x1004]];
+            }
+            if (data.hasOwnProperty(0x1009)) { // WindowOpenCheck
+                const lookup = {0: 'enable', 1: 'disable'};
+                result.window_open_check = lookup[data[0x1009]];
+            }
+            if (data.hasOwnProperty(0x100A)) { // Hysterersis
+                result.hysterersis = data[0x100A];
+            }
+            return result;
+        },
+    },
+};
+
+const tzLocal = {
+    namron_panelheater: {
+        key: [
+            'display_brightnesss', 'display_auto_off',
+            'power_up_status', 'window_open_check', 'hysterersis',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'display_brightnesss') {
+                const payload = {0x1000: {value: value, type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, sunricherManufacturer);
+            } else if (key === 'display_auto_off') {
+                const lookup = {'deactivated': 0, 'activated': 1};
+                const payload = {0x1001: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, sunricherManufacturer);
+            } else if (key === 'power_up_status') {
+                const lookup = {'manual': 0, 'last_state': 1};
+                const payload = {0x1004: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, sunricherManufacturer);
+            } else if (key==='window_open_check') {
+                const lookup = {'enable': 0, 'disable': 1};
+                const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
+                await entity.write('hvacThermostat', payload, sunricherManufacturer);
+            } else if (key==='hysterersis') {
+                const payload = {0x100A: {value: value, type: 0x20}};
+                await entity.write('hvacThermostat', payload, sunricherManufacturer);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'display_brightnesss':
+                await entity.read('hvacThermostat', [0x1000], sunricherManufacturer);
+                break;
+            case 'display_auto_off':
+                await entity.read('hvacThermostat', [0x1001], sunricherManufacturer);
+                break;
+            case 'power_up_status':
+                await entity.read('hvacThermostat', [0x1004], sunricherManufacturer);
+                break;
+            case 'window_open_check':
+                await entity.read('hvacThermostat', [0x1009], sunricherManufacturer);
+                break;
+            case 'hysterersis':
+                await entity.read('hvacThermostat', [0x100A], sunricherManufacturer);
+                break;
+
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.namron_panelheater.convertGet ${key}`);
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -500,6 +585,111 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x1004, 0x1005, 0x1006, 0x1007], options);
             await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A, 0x100B], options);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
+        },
+    },
+    {
+        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399'],
+        model: '540139X',
+        vendor: 'Namron',
+        description: 'Panel heater 400/600/800/1000 W',
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_system_mode,
+            tz.thermostat_running_state, tz.thermostat_local_temperature, tzLocal.namron_panelheater, tz.namron_thermostat_child_lock],
+        exposes: [e.power(), e.current(), e.voltage(), e.energy(),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5)
+                .withLocalTemperature()
+                // Unit also supports Auto, but i havent added support the scheduler yet
+                // so the function is not listed for now, as this doesn´t allow you the set the temperature
+                .withSystemMode(['off', 'heat'])
+                .withLocalTemperatureCalibration(-3, 3, 0.1)
+                .withRunningState(['idle', 'heat']),
+            // Namron proprietary stuff
+            exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK')
+                .withDescription('Enables/disables physical input on the device'),
+            exposes.numeric('hysterersis', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5).withValueMax(50).withValueStep(0.1)
+                .withDescription('Hysterersis setting, range is 5-50, unit is 0.1oC,  Default: 5.'),
+            exposes.numeric('display_brightnesss', ea.ALL)
+                .withValueMin(1).withValueMax(7).withValueStep(1)
+                .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
+            exposes.enum('display_auto_off', ea.ALL, ['deactivated', 'activated'])
+                .withDescription('Enable / Disable display auto off'),
+            exposes.enum('power_up_status', ea.ALL, ['manual', 'last_state'])
+                .withDescription('The mode after a power reset.  Default: Previous Mode. See instructions for information about manual'),
+            exposes.enum('window_open_check', ea.ALL, ['enable', 'disable'])
+                .withDescription('Turn on/off window check mode'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'hvacThermostat', 'seMetering', 'haElectricalMeasurement', 'genAlarms',
+                'genTime', 'hvacUserInterfaceCfg',
+            ];
+
+            // Reporting
+
+            // Metering
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
+            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
+
+            // Thermostat reporting
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+            // LocalTemp is spammy, reports 0.01C diff by default, min change is now 0.5C
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
+
+            // Namron proprietary stuff
+            const options = {manufacturerCode: 0x1224};
+
+            // display_brightnesss
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1000, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // display_auto_off
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1001, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // power_up_status
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1004, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // window_open_check
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1009, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+            // hysterersis
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x100A, type: 0x20},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+
+            await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
+            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A], options);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
     },
 ];

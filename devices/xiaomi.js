@@ -8,6 +8,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const globalStore = require('../lib/store');
+const xiaomi = require('../lib/xiaomi');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -123,6 +124,17 @@ const tzLocal = {
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
             }
+        },
+    },
+    VOCKQJK11LM_display_unit: {
+        key: ['display_unit'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple',
+                {0x0114: {value: xiaomi.VOCKQJK11LMDisplayUnit[value], type: 0x20}}, {manufacturerCode: 0x115F});
+            return {state: {display_unit: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
         },
     },
 };
@@ -550,6 +562,7 @@ module.exports = [
             // set "event" mode
             await endpoint1.write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.switch.n2aeu1'],
@@ -622,6 +635,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -685,6 +702,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
@@ -873,8 +894,7 @@ module.exports = [
             e.switch().withEndpoint('right'),
             e.power().withAccess(ea.STATE_GET),
             e.action([
-                'hold_left', 'single_left', 'double_left', 'release_left', 'hold_right', 'single_right',
-                'double_right', 'release_right', 'hold_both', 'single_both', 'double_both', 'release_both',
+                'hold_left', 'single_left', 'double_left', 'single_right', 'double_right', 'single_both', 'double_both',
             ]),
             exposes.enum('operation_mode', ea.ALL, ['control_left_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
@@ -1399,7 +1419,7 @@ module.exports = [
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
@@ -1439,7 +1459,7 @@ module.exports = [
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             exposes.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
@@ -1594,7 +1614,7 @@ module.exports = [
             e.battery_voltage().withAccess(ea.STATE_GET),
             e.device_temperature(),
             e.action(['manual_open', 'manual_close']),
-            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing'])
+            exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause'])
                 .withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
@@ -2020,9 +2040,11 @@ module.exports = [
         whiteLabel: [{vendor: 'Xiaomi', model: 'AAQS-S01'}],
         description: 'Aqara TVOC air quality monitor',
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, fz.aqara_opple],
-        toZigbee: [],
+        toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.device_temperature(), e.battery(), e.battery_voltage()],
+        exposes: [e.temperature(), e.humidity(), e.voc(), e.device_temperature(), e.battery(), e.battery_voltage(),
+            exposes.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
+                .withDescription('Units to show on the display')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genAnalogInput'];
@@ -2258,13 +2280,18 @@ module.exports = [
         model: 'SRTS-A01',
         vendor: 'Xiaomi',
         description: 'Aqara Smart Radiator Thermostat E1',
-        fromZigbee: [fzLocal.aqara_trv, fz.thermostat],
+        fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.STATE_SET),
             e.child_lock(), e.window_detection(), e.valve_detection(),
-            e.away_preset_temperature(),
+            e.away_preset_temperature(), e.battery_voltage(), e.battery(),
         ],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        },
     },
 ];

@@ -13,7 +13,7 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['ZG50CC-CCT-DRIVER'],
+        zigbeeModel: ['ZG50CC-CCT-DRIVER', 'HK-CCT'],
         model: 'ZG50CC-CCT-DRIVER',
         vendor: 'Envilar',
         description: 'Zigbee CCT LED driver',

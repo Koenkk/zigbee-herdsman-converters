@@ -706,30 +706,6 @@ const converters = {
             return result;
         },
     },
-    develco_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
-                result[postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
-                    msg.data['develcoPulseConfiguration'];
-            }
-
-            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                result[postfixWithEndpointName('interface_mode', msg, model, meta)] =
-                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
-                        msg.data['develcoInterfaceMode'];
-            }
-            if (msg.data.hasOwnProperty('status')) {
-                result['battery_low'] = (msg.data.status & 2) > 0;
-                result['check_meter'] = (msg.data.status & 1) > 0;
-            }
-
-            return result;
-        },
-    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -782,6 +758,20 @@ const converters = {
             if (msg.data.hasOwnProperty('onOff')) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    on_off_force_multiendpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // This converted is need instead of `fz.on_off` when no meta: {multiEndpoint: true} can be defined for this device
+            // but it is needed for the `state`. E.g. when a switch has 3 channels (state_l1, state_l2, state_l3) but
+            // has combined power measurements (power, energy))
+            if (msg.data.hasOwnProperty('onOff')) {
+                const endpointName = model.hasOwnProperty('endpoint') ?
+                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
     },
@@ -1911,49 +1901,6 @@ const converters = {
             const payload1 = converters.checkin_presence.convert(model, msg, publish, options, meta);
             const payload2 = converters.command_on.convert(model, msg, publish, options, meta);
             return {...payload1, ...payload2};
-        },
-    },
-    develco_voc: {
-        cluster: 'develcoSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
-        convert: (model, msg, publish, options, meta) => {
-            const voc = parseFloat(msg.data['measuredValue']);
-            const vocProperty = postfixWithEndpointName('voc', msg, model, meta);
-
-            let airQuality;
-            const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
-            if (voc <= 65) {
-                airQuality = 'excellent';
-            } else if (voc <= 220) {
-                airQuality = 'good';
-            } else if (voc <= 660) {
-                airQuality = 'moderate';
-            } else if (voc <= 2200) {
-                airQuality = 'poor';
-            } else if (voc <= 5500) {
-                airQuality = 'unhealthy';
-            } else if (voc > 5500) {
-                airQuality = 'out_of_range';
-            } else {
-                airQuality = 'unknown';
-            }
-            return {[vocProperty]: calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
-        },
-    },
-    develco_voc_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-             * Per the technical documentation for AQSZB-110:
-             * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
-             * When a voltage of 2.5V is measured the battery should be replaced.
-             * Low batt LED indication–RED LED will blink twice every 60 second.
-             */
-            const result = converters.battery.convert(model, msg, publish, options, meta);
-            result.battery_low = (result.voltage <= 2500);
-            return result;
         },
     },
     tuya_temperature_humidity_sensor: {
@@ -7804,39 +7751,6 @@ const converters = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     },
-    develco_fw: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (0x8000 in msg.data) {
-                const firmware = msg.data[0x8000].join('.');
-                result.current_firmware = firmware;
-                meta.device.softwareBuildID = firmware;
-            }
-
-            if (0x8020 in msg.data) {
-                meta.device.hardwareVersion = msg.data[0x8020].join('.');
-            }
-
-            return result;
-        },
-    },
-    develco_genbinaryinput: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('reliability')) {
-                const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
-                result.reliability = lookup[msg.data['reliability']];
-            }
-            if (msg.data.hasOwnProperty('statusFlags')) {
-                result.fault = (msg.data['statusFlags']===1);
-            }
-            return result;
-        },
-    },
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -8155,9 +8069,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const lookup = {'0': 'idle', '1': 'in', '2': 'out'};
             const value = precisionRound(parseFloat(msg.data['presentValue']), 1);
+            const people = precisionRound(msg.data.presentValue, 0);
             let result = null;
-            result = {people: precisionRound(msg.data.presentValue, 0), status: lookup[value*10%10]};
-            return result;
+            if (value <= 80) {
+                result = {people: people, status: lookup[value*10%10]};
+                return result;
+            }
         },
     },
     sihas_action: {
