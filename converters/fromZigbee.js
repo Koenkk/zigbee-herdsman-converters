@@ -4081,7 +4081,7 @@ const converters = {
             case tuya.dataPoints.tvLocalTemp:
                 return {local_temperature: (value / 10).toFixed(1)};
             case tuya.dataPoints.tvBattery:
-                return {battery_low: value === 0 ? true : false};
+                return {battery: value, battery_low: value <= 25 ? true : false};
             case tuya.dataPoints.tvTempCalibration:
                 return {local_temperature_calibration: value > 55 ?
                     ((value - 0x100000000)/10).toFixed(1): (value/ 10).toFixed(1)};
