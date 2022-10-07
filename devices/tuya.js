@@ -1995,16 +1995,21 @@ module.exports = [
                 '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
                 'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
                 '- schedule for each day is defined separately.'),
-            exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
-                .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
-                    'the device executes a preset week programming temperature time and temperature. '),
-            exposes.text('schedule_monday', ea.STATE),
-            exposes.text('schedule_tuesday', ea.STATE),
-            exposes.text('schedule_wednesday', ea.STATE),
-            exposes.text('schedule_thursday', ea.STATE),
-            exposes.text('schedule_friday', ea.STATE),
-            exposes.text('schedule_saturday', ea.STATE),
-            exposes.text('schedule_sunday', ea.STATE),
+            exposes.composite('schedule').withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
+                'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
+                'property. Each day can contain up to 10 segments. At least 1 segment should be defined. Different count of segments ' +
+                'can be defined for each day, e.g., 3 segments for Monday, 5 segments for Thursday, etc. It should be defined in the ' +
+                'following format: `hours:minutes/temperature`. Minutes can be only tens, i.e., 00, 10, 20, 30, 40, 50. Segments should ' +
+                'be divided by space symbol. Examples: `04:00/20 08:30/22 10:10/18 18:40/24 22:50/19.5`; `06:00/21.5 17:20/26 24:00/18`. ' +
+                'The temperature will be set from the beginning/start of one period and until the next period, e.g., `04:00/20 24:00/22` ' +
+                'means that from 00:00 to 04:00 temperature will be 20 degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
+            exposes.text('schedule_monday', ea.STATE_SET),
+            exposes.text('schedule_tuesday', ea.STATE_SET),
+            exposes.text('schedule_wednesday', ea.STATE_SET),
+            exposes.text('schedule_thursday', ea.STATE_SET),
+            exposes.text('schedule_friday', ea.STATE_SET),
+            exposes.text('schedule_saturday', ea.STATE_SET),
+            exposes.text('schedule_sunday', ea.STATE_SET),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
         ],

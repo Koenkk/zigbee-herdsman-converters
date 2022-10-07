@@ -3453,7 +3453,8 @@ const converters = {
             'child_lock', 'open_window', 'open_window_temperature', 'frost_protection', 'system_mode',
             'current_heating_setpoint', 'local_temperature_calibration', 'preset', 'boost_timeset_countdown',
             'holiday_start_stop', 'holiday_temperature', 'comfort_temperature', 'eco_temperature',
-            'working_day', 'week_schedule_programming', 'online', 'holiday_mode_date',
+            'working_day', 'online', 'holiday_mode_date', 'schedule_monday', 'schedule_tuesday', 'schedule_wednesday',
+            'schedule_thursday', 'schedule_friday', 'schedule_saturday', 'schedule_sunday',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -3525,10 +3526,86 @@ const converters = {
                 await tuya.sendDataPointEnum(entity, tuya.dataPoints.tvWorkingDay, value);
                 break;
             }
-            case 'week_schedule_programming':
-                // DP-106, Send Only, raw, week_program3_day
-                await tuya.sendDataPointRaw(entity, tuya.dataPoints.tvWeekSchedule, value);
+            case 'schedule_monday':
+            case 'schedule_tuesday':
+            case 'schedule_wednesday':
+            case 'schedule_thursday':
+            case 'schedule_friday':
+            case 'schedule_saturday':
+            case 'schedule_sunday': {
+                const weekScheduleType = globalStore.getValue(entity, 'workingDay');
+
+                if (weekScheduleType === undefined) {
+                    throw new Error( 'Invalid `working_day` property, need to set it before' );
+                }
+
+                // day splitted to 10 min segments = total 144 segments
+                const maxPeriodsInDay = 10;
+                const schedule = value.split(' ');
+                const schedulePeriods = schedule.length;
+
+                if (schedulePeriods > 10) {
+                    throw new Error('There cannot be more than 10 periods in the schedule: ' + value);
+                }
+
+                if (schedulePeriods < 2) {
+                    throw new Error('There cannot be less than 1 period in the schedule: ' + value);
+                }
+
+                const payload = [];
+                const dayByte = {
+                    schedule_monday: 1,
+                    schedule_tuesday: 2,
+                    schedule_wednesday: 4,
+                    schedule_thursday: 8,
+                    schedule_friday: 16,
+                    schedule_saturday: 32,
+                    schedule_sunday: 64,
+                };
+
+                switch (weekScheduleType) {
+                case 0:
+                    payload.push(127);
+                    break;
+                case 1:
+                    if (['schedule_saturday', 'schedule_sunday'].indexOf(key) === -1) {
+                        payload.push(31);
+                        break;
+                    }
+
+                    payload.push(dayByte[key]);
+                    break;
+                case 2:
+                    payload.push(dayByte[key]);
+                    break;
+                default:
+                    throw new Error('Invalid `working_day` property, need to set it before');
+                }
+
+                for (const period of schedule) {
+                    const timeTemp = period.split('/');
+                    const hm = timeTemp[0].split(':', 2);
+                    const h = parseInt(hm[0]);
+                    const m = parseInt(hm[1]);
+                    const temp = parseFloat(timeTemp[1]);
+
+                    if (h < 0 || h > 24 || m < 0 || m >= 60 || m % 10 !== 0 || temp < 5 || temp > 30 || temp % 0.5 !== 0) {
+                        throw new Error('Invalid hour, minute or temperature of: ' + period);
+                    }
+
+                    const segment = (h * 60 + m) / 10;
+                    payload.push(segment, 0, temp * 10);
+                }
+
+                // Add 'technical' periods to be valid payload
+                for (let i = 0; i < maxPeriodsInDay - schedulePeriods; i++) {
+                    // by default it sends 9000b2, it's 24 hours and 18 degrees
+                    payload.push(144, 0, 180);
+                }
+
+                await tuya.sendDataPointRaw(entity, tuya.dataPoints.tvWeekSchedule, payload);
                 break;
+            }
 
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
