@@ -104,6 +104,8 @@ const tzLocal = {
                 const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
                 return [...header, integrity, action, 0x41, params.length];
             };
+            const sensor = Buffer.from('00158d00019d1b98', 'hex');
+            
             switch (key) {
             case 'state':
                 await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
@@ -134,7 +136,6 @@ const tzLocal = {
                 timestamp.writeUint32BE(Date.now()/1000);
 
                 if (value === 'external') {
-                    const sensor = Buffer.from('00158d00019d1b98', 'hex');
                     const params1 = [
                         ...timestamp,
                         0x3d, 0x04,
@@ -188,8 +189,7 @@ const tzLocal = {
                 break;
             }
             case 'sensor_temp':
-                if (meta.state['sensor_type'] === 'external') {
-                    const sensor = Buffer.from(meta.state['sensor'].substring(2), 'hex');
+                if (meta.state['sensor'] === 'external') {
                     const temperatureBuf = Buffer.allocUnsafe(4);
                     temperatureBuf.writeFloatBE(Math.round(value * 100));
 
