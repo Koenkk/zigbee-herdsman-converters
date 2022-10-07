@@ -1986,8 +1986,11 @@ module.exports = [
                     'pair button to cancel.'),
             exposes.numeric('holiday_temperature', ea.STATE_SET).withUnit('°C').withDescription('Holiday temperature')
                 .withValueMin(5).withValueMax(30),
-            exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
+            exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode will automatically start ' +
+                'at the set time starting point and run the holiday temperature. Can be defined in the following format: ' +
+                '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes`. ' +
+                'For example: `2022/10/01 16:30 | 2022/10/21 18:10`. After the end of holiday mode, it switches to "auto" ' +
+                'mode and uses schedule.'),
             // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
             exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
                 .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+

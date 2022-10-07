@@ -4097,13 +4097,19 @@ const converters = {
             case tuya.dataPoints.tvErrorStatus:
                 return {fault_alarm: value};
             case tuya.dataPoints.tvHolidayMode: {
-                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
-                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
-                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
-                const emi = value.slice(22, 24);
-                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
-                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
-                return {holiday_start_stop: hMode};
+                const start = {
+                    year: value.slice(0, 4), month: value.slice(4, 6), day: value.slice(6, 8),
+                    hours: value.slice(8, 10), minutes: value.slice(10, 12),
+                };
+                const end = {
+                    year: value.slice(12, 16), month: value.slice(16, 18), day: value.slice(18, 20),
+                    hours: value.slice(20, 22), minutes: value.slice(22, 24),
+                };
+
+                const startStr = `${start.year}/${start.month}/${start.day} ${start.hours}:${start.minutes}`;
+                const endStr = `${end.year}/${end.month}/${end.day} ${end.hours}:${end.minutes}`;
+                const str = `${startStr} | ${endStr}`;
+                return {holiday_start_stop: str};
             }
             case tuya.dataPoints.tvBoostMode:
                 // 115 online / Is the device online
