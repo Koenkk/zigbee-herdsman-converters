@@ -73,6 +73,9 @@ const fzLocal = {
                 case 0x027e:
                     result['sensor'] = {1: 'external', 0: 'internal'}[value];
                     break;
+                case 0x040a:
+                    result['battery'] = value;
+                    break;
                 case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
@@ -82,7 +85,6 @@ const fzLocal = {
                 case 0x027c: // 0x00
                 case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
-                case 0x040a: // 0x64 battery percent?
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
                 default:
@@ -2394,7 +2396,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
     },
 ];
