@@ -1951,15 +1951,15 @@ module.exports = [
                 .withFeature(exposes.text('holidays_schedule', ea.STATE_SET))],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lllliz3p'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_mudxchsu'}, /* model: 'TV05-ZG curve', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7yoranx2'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kds0pmmv'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_hue3yfsn', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
+            '_TZE200_e9ba97vf', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_husqqvux', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+            '_TZE200_lllliz3p', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
+            '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
+            '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_kds0pmmv', /* model: 'TV01-ZB', vendor: 'Moes' */
+        ]),
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
         description: 'Thermostat radiator valve',
@@ -1969,9 +1969,10 @@ module.exports = [
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
         ],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
-        toZigbee: [tz.tvtwo_thermostat],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
         onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(), e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(5).withValueMax(30),
             e.comfort_temperature().withValueMin(5).withValueMax(30), e.eco_temperature().withValueMin(5).withValueMax(30),
@@ -1998,7 +1999,9 @@ module.exports = [
                 '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
                 'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
                 '- schedule for each day is defined separately.'),
-            exposes.composite('schedule').withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
+            exposes.composite('schedule', 'schedule').withFeature(exposes.enum('week_day', ea.STATE_SET, ['monday', 'tuesday',
+                'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.STATE_SET))
+                .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
                 'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
                 'property. Each day can contain up to 10 segments. At least 1 segment should be defined. Different count of segments ' +
                 'can be defined for each day, e.g., 3 segments for Monday, 5 segments for Thursday, etc. It should be defined in the ' +
@@ -2018,6 +2021,37 @@ module.exports = [
                 'Setting this property doesn\'t turn on the display.'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': 0, 'manual': 1, 'holiday': 3}),
+                    {datatype: tuya.sendDataPointEnum}],
+                [8, 'open_window', tuya.valueConverter.onOff],
+                [10, 'frost_protection', tuya.valueConverter.onOff],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration],
+                [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': 0, 'mon_fri+sat+sun': 1, 'separate': 2}),
+                    {datatype: tuya.sendDataPointEnum}],
+                [32, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [35, 'battery', tuya.valueConverter.raw],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [45, 'error_status', tuya.valueConverter.raw],
+                [46, 'holiday_start_stop', tuya.valueConverter.thermostatHolidayStartStop],
+                [101, 'boost_timeset_countdown', tuya.valueConverter.raw],
+                [102, 'open_window_temperature', tuya.valueConverter.divideBy10],
+                [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [105, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [106, 'schedule', tuya.valueConverter.thermostatScheduleDay],
+                [107, 'system_mode', tuya.valueConverterBasic.lookup({'heat': false, 'off': true})],
+                [115, 'online', tuya.valueConverter.onOff],
+                [108, 'schedule_monday', tuya.valueConverter.thermostatScheduleDay],
+                [112, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDay],
+                [109, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDay],
+                [113, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDay],
+                [110, 'schedule_friday', tuya.valueConverter.thermostatScheduleDay],
+                [114, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDay],
+                [111, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDay],
+            ],
+        },
     },
     {
         fingerprint: [
