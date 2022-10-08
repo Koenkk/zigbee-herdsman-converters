@@ -81,7 +81,6 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_pfbzs1an'}],
-        zigbeeModel: ['TS011F'],
         model: 'SPUSB02',
         vendor: 'Mercator',
         description: 'Ikuü Double Power Point with USB',
@@ -106,8 +105,6 @@ module.exports = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint1);
             await reporting.onOff(endpoint1);
             await reporting.rmsVoltage(endpoint1, {change: 5});
             await reporting.rmsCurrent(endpoint1, {change: 50});
