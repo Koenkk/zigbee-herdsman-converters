@@ -54,7 +54,7 @@ module.exports = [
                 .withValueMin(5).withValueMax(35).withValueStep(0.5).withUnit('°C')
                 .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
                   'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
-                  '(More suitable for scheduled changes.)'),
+                  '(more suitable for scheduled changes)'),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
                 '5 minutes and 0.1 degrees difference. Resets every 35 minutes to standard. If `radiator_covered` is `false`: ' +
