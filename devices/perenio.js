@@ -254,6 +254,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['ZHA-DoorLockSensor'],
@@ -283,6 +284,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['PEHWE20', 'PEHWE2X'],
@@ -405,6 +407,7 @@ module.exports = [
             exposes.numeric('rssi', ea.STATE).withUnit('dB')
                 .withDescription('RSSI seen by the device').withValueMin(-128).withValueMax(127),
         ],
+        ota: ota.zigbeeOTA,
     },
 ];
 
