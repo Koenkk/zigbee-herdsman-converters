@@ -80,10 +80,7 @@ const fzLocal = {
                     result['window_open'] = {1: true, 0: false}[value];
                     break;
                 case 0x0275:
-                    result['valve_error_code'] = value;
-                    // TODO: add error codes
-                    // 0 - no operating errors
-                    // 1 - abnormal temperature
+                    result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
                 case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
