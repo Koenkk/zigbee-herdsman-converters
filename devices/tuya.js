@@ -2023,14 +2023,13 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': 0, 'manual': 1, 'holiday': 3}),
-                    {datatype: tuya.sendDataPointEnum}],
+                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'holiday': tuya.enum(3)})],
                 [8, 'open_window', tuya.valueConverter.onOff],
                 [10, 'frost_protection', tuya.valueConverter.onOff],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration],
-                [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': 0, 'mon_fri+sat+sun': 1, 'separate': 2}),
-                    {datatype: tuya.sendDataPointEnum}],
+                [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': tuya.enum(0), 'mon_fri+sat+sun': tuya.enum(1),
+                    'separate': tuya.enum(2)})],
                 [32, 'holiday_temperature', tuya.valueConverter.divideBy10],
                 [35, 'battery', tuya.valueConverter.raw],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
