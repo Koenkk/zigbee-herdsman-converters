@@ -30,8 +30,8 @@ module.exports = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(['heat', 'auto'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE)
-                .withSensor(['internal', 'external', 'both']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            e.temperature_sensor_select(['internal', 'external', 'both']),
             exposes.numeric('external_temperature', ea.STATE)
                 .withUnit('°C')
                 .withDescription('Current temperature measured on the external sensor (floor)'),

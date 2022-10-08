@@ -1508,24 +1508,6 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        zigbeeModel: ['TS0041'],
-        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
-        model: 'TS0041',
-        vendor: 'TuYa',
-        description: 'Wireless switch with 1 button',
-        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
-        fromZigbee: [fz.tuya_on_off_action, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/6313 */}
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
         model: 'TS011F_2_gang_2_usb_wall',
         vendor: 'TuYa',
@@ -1551,6 +1533,24 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TS0041'],
+        fingerprint: [{manufacturerName: '_TZ3000_tk3s5tyg'}],
+        model: 'TS0041',
+        vendor: 'TuYa',
+        description: 'Wireless switch with 1 button',
+        whiteLabel: [{vendor: 'Smart9', model: 'S9TSZGB'}, {vendor: 'Lonsonho', model: 'TS0041'}, {vendor: 'Benexmart', model: 'ZM-sui1'}],
+        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
+    },
+    {
         zigbeeModel: ['TS0042'],
         model: 'TS0042',
         vendor: 'TuYa',
@@ -1559,11 +1559,13 @@ module.exports = [
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
     },
     {
         zigbeeModel: ['TS0043'],
@@ -1575,13 +1577,13 @@ module.exports = [
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
-        },
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
     },
     {
         zigbeeModel: ['TS0044'],
@@ -1594,13 +1596,13 @@ module.exports = [
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            try {
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (error) {/* Fails for some*/}
-        },
+        configure: tuya.configureMagicPacket,
+        /*
+         * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
+         * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
+         * action to register: https://github.com/Koenkk/zigbee2mqtt/issues/8072
+         * Initially wrapped in a try catch: https://github.com/Koenkk/zigbee2mqtt/issues/6313
+         */
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_czuyt8lz'}],
@@ -1670,7 +1672,7 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE)],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -2783,7 +2785,8 @@ module.exports = [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(['manual', 'program']).withSensor(['internal', 'external', 'both'], ea.STATE_SET),
+                .withPreset(['manual', 'program']),
+            e.temperature_sensor_select(['internal', 'external', 'both']),
             exposes.text('schedule', ea.STATE_SET).withDescription('There are 8 periods in the schedule in total. ' +
                 '6 for workdays and 2 for holidays. It should be set in the following format for each of the periods: ' +
                 '`hours:minutes/temperature`. All periods should be set at once and delimited by the space symbol. ' +
