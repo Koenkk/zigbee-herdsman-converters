@@ -141,7 +141,7 @@ const tzLocal = {
                 break;
             case 'sensor': {
                 const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
-                const timestamp = Buffer.allocUnsafe(4);
+                const timestamp = Buffer.alloc(4);
                 timestamp.writeUint32BE(Date.now()/1000);
 
                 if (value === 'external') {
@@ -199,7 +199,7 @@ const tzLocal = {
             }
             case 'sensor_temp':
                 if (meta.state['sensor'] === 'external') {
-                    const temperatureBuf = Buffer.allocUnsafe(4);
+                    const temperatureBuf = Buffer.alloc(4);
                     temperatureBuf.writeFloatBE(Math.round(value * 100));
 
                     const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
