@@ -5,6 +5,7 @@ const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
 
 const switchTypeValues = [
     'maintained_state',
