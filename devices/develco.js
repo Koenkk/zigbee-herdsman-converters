@@ -190,7 +190,7 @@ const develco = {
                 return state;
             },
         },
-       input: {
+        input: {
             cluster: 'genBinaryInput',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -744,17 +744,17 @@ module.exports = [
         meta: {multiEndpoint: true},
 
         exposes: [
-            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('Reflects the state of input 1'),
-            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('Reflects the state of input 2'),
-            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l3').withDescription('Reflects the state of input 3'),
-            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l4').withDescription('Reflects the state of input 4'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('State of input 2'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l3').withDescription('State of input 3'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l4').withDescription('State of input 4'),
             exposes.switch().withState('state', true, 'On/off state of switch 1').withEndpoint('l11'),
             exposes.switch().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
-            const ep1 = device.getEndpoint(1);
+//            const ep1 = device.getEndpoint(1);
 
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
@@ -784,7 +784,7 @@ module.exports = [
         },
 
         endpoint: (device) => {
-            return { 'ep1':1,  'l1': 112, 'l2':113, 'l3':114, 'l4':115, 'l11':116, 'l12':117};
+            return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117};
         },
     },
 ];
