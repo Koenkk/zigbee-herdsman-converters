@@ -1994,7 +1994,7 @@ module.exports = [
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity_2, tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {
-                'default': 2, // default
+                'default': 4, // default
                 'ep1': 1,
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
@@ -2027,7 +2027,7 @@ module.exports = [
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity_2, tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {
-                'default': 2, // default
+                'default': 4, // default
                 'ep1': 1,
                 'ep2': 2, // e.g. for write to msOccupancySensing
             };
