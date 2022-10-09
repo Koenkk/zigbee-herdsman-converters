@@ -7044,7 +7044,7 @@ const converters = {
             }
         },
     },
-     hue_motion_sensitivity_2: {
+    hue_motion_sensitivity_2: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
