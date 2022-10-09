@@ -2126,7 +2126,7 @@ const converters = {
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
             // hue_sml:
-            // 0: very low, 1: low, 2: medium, 3: high (default), 4: very high
+            // 0: very low, 1: low, 2: medium, 3: high , 4: very high (default)
             // make sure you write to second endpoint!
             const lookup = {'very low': 0, 'low': 1, 'medium': 2, 'high': 3, 'very high': 4};
             value = value.toLowerCase();
