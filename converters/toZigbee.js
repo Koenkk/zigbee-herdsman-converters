@@ -2121,6 +2121,25 @@ const converters = {
             await entity.read('msOccupancySensing', [48], manufacturerOptions.hue);
         },
     },
+     hue_motion_sensitivity_2: {
+        // motion detect sensitivity, philips specific
+        key: ['motion_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            // hue_sml:
+            // 0: very low, 1: low, 2: medium, 3: high (default), 4: very high
+            // make sure you write to second endpoint!
+            const lookup = {'very low': 0, 'low': 1, 'medium': 2, 'high': 3, 'very high': 4};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+
+            const payload = {48: {value: lookup[value], type: 32}};
+            await entity.write('msOccupancySensing', payload, manufacturerOptions.hue);
+            return {state: {motion_sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', [48], manufacturerOptions.hue);
+        },
+    },
     hue_motion_led_indication: {
         key: ['led_indication'],
         convertSet: async (entity, key, value, meta) => {
