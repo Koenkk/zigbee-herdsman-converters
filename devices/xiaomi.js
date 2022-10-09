@@ -251,7 +251,7 @@ const tzLocal = {
                     throw new Error('the number of intervals must be equal to four');
                 }
 
-                if (value.repeat.length <= 1) {
+                if (value.repeat.length == 0) {
                     throw new Error('"repeat" must have at least one value');
                 }
 
