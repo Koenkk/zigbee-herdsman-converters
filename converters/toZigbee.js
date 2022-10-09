@@ -2121,7 +2121,7 @@ const converters = {
             await entity.read('msOccupancySensing', [48], manufacturerOptions.hue);
         },
     },
-     hue_motion_sensitivity_2: {
+    hue_motion_sensitivity_2: {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
