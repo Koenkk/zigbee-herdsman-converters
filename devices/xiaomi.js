@@ -318,7 +318,7 @@ const tzLocal = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            const dict = {'state': [0x0271], 'preset': [0x0272], 'window_detection': [0x0273], 'valve_detection': [0x0274],
+            const dict = {'system_mode': [0x0271], 'preset': [0x0272], 'window_detection': [0x0273], 'valve_detection': [0x0274],
                 'child_lock': [0x0277], 'away_preset_temperature': [0x0279], 'calibrated': [0x027b], 'sensor': [0x027e],
                 'schedule': [0x027d, 0x0276]};
 
