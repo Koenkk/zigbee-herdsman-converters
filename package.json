@@ -34,11 +34,11 @@
   },
   "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.1.2",
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^5.0.1",
     "tar-stream": "^2.2.0",
-    "zigbee-herdsman": "^0.14.63"
+    "zigbee-herdsman": "^0.14.64"
   },
   "devDependencies": {
     "eslint": "*",
