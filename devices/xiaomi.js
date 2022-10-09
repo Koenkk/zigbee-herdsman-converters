@@ -2494,7 +2494,7 @@ module.exports = [
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
             exposes.switch()
-                .withState('schedule', true, 'Turn on Schedule', ea.ALL, 'ON', 'OFF'),
+                .withState('schedule', true, 'Smart schedule', ea.ALL, 'ON', 'OFF'),
             e.battery_voltage(),
             e.battery(),
         ],
