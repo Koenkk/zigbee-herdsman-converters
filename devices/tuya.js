@@ -2062,7 +2062,7 @@ module.exports = [
                 [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': tuya.enum(0), 'mon_fri+sat+sun': tuya.enum(1),
                     'separate': tuya.enum(2)})],
                 [32, 'holiday_temperature', tuya.valueConverter.divideBy10],
-                [35, 'battery', tuya.valueConverter.raw],
+                [35, 'battery_low', tuya.valueConverter.true0ElseFalse],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
                 [45, 'error_status', tuya.valueConverter.raw],
                 [46, 'holiday_start_stop', tuya.valueConverter.thermostatHolidayStartStop],
