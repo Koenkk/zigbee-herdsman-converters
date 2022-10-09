@@ -1174,7 +1174,8 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.lightBrightnessWithMinMax, tuya.exposes.powerOnBehavior, tuya.exposes.countdown, tuya.exposes.lightType],
+        exposes: [tuya.exposes.lightBrightnessWithMinMax(), tuya.exposes.powerOnBehavior(), 
+            tuya.exposes.countdown(), tuya.exposes.lightType()],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
@@ -1304,11 +1305,11 @@ module.exports = [
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            tuya.exposes.switch.withEndpoint('l1'),
-            tuya.exposes.switch.withEndpoint('l2'),
-            tuya.exposes.switch.withEndpoint('l3'),
-            tuya.exposes.switch.withEndpoint('l4'),
-            tuya.exposes.switch.withEndpoint('l5'),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.switch().withEndpoint('l5'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1};
@@ -2311,7 +2312,7 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.switch, e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current()],
+        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current()],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
