@@ -1295,6 +1295,35 @@ module.exports = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jwsjbxjs']),
+        model: 'TS0601_switch_5_gang',
+        vendor: 'TuYa',
+        description: '5 gang switch',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch.withEndpoint('l1'),
+            tuya.exposes.switch.withEndpoint('l2'),
+            tuya.exposes.switch.withEndpoint('l3'),
+            tuya.exposes.switch.withEndpoint('l4'),
+            tuya.exposes.switch.withEndpoint('l5'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [5, 'state_l5', tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'}],
         model: 'TS0601_switch_2_gang',
         vendor: 'TuYa',
