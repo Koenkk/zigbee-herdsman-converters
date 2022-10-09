@@ -7044,6 +7044,16 @@ const converters = {
             }
         },
     },
+     hue_motion_sensitivity_2: {
+        cluster: 'msOccupancySensing',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('48')) {
+                const lookup = ['very low', 'low', 'medium', 'high', 'very high'];
+                return {motion_sensitivity: lookup[msg.data['48']]};
+            }
+        },
+    },
     hue_motion_led_indication: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
