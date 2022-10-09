@@ -82,12 +82,43 @@ const fzLocal = {
                 case 0x0275:
                     result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
+                case 0x00f7:
+                    result['valve_alarm'] ={1: true, 0: false}[value.readUInt32LE(36)];
+                    result['occupied_heating_setpoint'] = value.readUint16LE(32)/100;
+                    result['local_temperature'] = value.readUint16LE(28)/100;
+                    break;
+                case 0x027d:
+                    result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
+                    break;
+                case 0x0276: {
+                    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    const getTime = (offset) => {
+                        let totalMinutes = value.readUint16BE(offset);
+                        const nexDay = (totalMinutes>>15) % 2 != 0;
+                        totalMinutes = totalMinutes & ~(1<<15);
+                        return {hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60, nex_day: nexDay};
+                    };
+
+                    const schedule = {repeat: [], intervals: []};
+                    for (let i = 0; i < 7; i++) {
+                        if ((value[1]>>i+1) % 2 != 0) {
+                            schedule.repeat.push(dayNames[i]);
+                        }
+                    }
+
+                    for (let i = 0; i < 3; i++) {
+                        const from = getTime(2 + 6*i);
+                        const to = getTime(2 + 6*(i+1));
+                        schedule.intervals.push({from: from, to: to, temperature: value.readUint16BE(6 + 6*i)/100});
+                    }
+
+                    result['schedule_options'] = schedule;
+                    break;
+                }
                 case 0xfff2:
+                    break;
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
-                case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
-                case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
                 case 0x027c: // 0x00
-                case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
@@ -103,7 +134,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_options'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -211,16 +242,84 @@ const tzLocal = {
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
+            case 'schedule':
+                await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
+                break;
+            case 'schedule_options': {
+                if (value.intervals.length != 3) {
+                    throw new Error('the number of intervals must be equal to four');
+                }
+
+                if (value.repeat.length <= 1) {
+                    throw new Error('"repeat" must have at least one value');
+                }
+
+                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                let repeatRule = 254;
+                for (let i = 1; i <= 7; i++) {
+                    if (value.repeat.some((e)=>e.toUpperCase() == dayNames[i-1].toUpperCase()) == false) {
+                        repeatRule = repeatRule & ~(1<<i);
+                    }
+                }
+                const payload = [
+                    0x04,
+                    repeatRule,
+                ];
+
+                const getValue = (time, temperature) => {
+                    const val = Buffer.alloc(6);
+                    let totalMinutes = time.hours * 60 + time.minutes;
+                    if (time.nex_day) {
+                        totalMinutes = totalMinutes | 1<<15;
+                    }
+                    val.writeUint16BE(totalMinutes);
+                    val.writeUint16BE(temperature*100, 4);
+                    return val;
+                };
+                const getTime = (time) => {
+                    let totalMinutes = time.hours * 60 + time.minutes;
+                    if (time.nex_day) {
+                        totalMinutes = totalMinutes + 1440;
+                    }
+                    return totalMinutes;
+                };
+
+                for (let i = 0; i < 3; i++) {
+                    const startTime = getTime(value.intervals[i].from);
+                    const endTime = getTime(value.intervals[i].to);
+
+                    if (i !=0 && getTime(value.intervals[i-1].to) != startTime) {
+                        throw new Error(`The start time of the interval must be equal to the end time of the previous interval;
+                        (index: ${i})`);
+                    }
+
+                    if ((endTime - startTime) < 60) {
+                        throw new Error(`The end time must be greater than the start time, minimum duration is one hour;(index: ${i})`);
+                    }
+
+                    const temperature = value.intervals[i].temperature;
+                    payload.push(...getValue(value.intervals[i].from, temperature));
+
+                    if (i == 2) {
+                        payload.push(...getValue(value.intervals[i].to, temperature));
+                    }
+                }
+
+                await entity.write('aqaraOpple', {0x0276: {value: payload, type: 0x41}}, {manufacturerCode: 0x115f});
+                break;
+            }
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
             }
         },
         convertGet: async (entity, key, meta) => {
-            const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
-                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+            const dict = {'state': [0x0271], 'preset': [0x0272], 'window_detection': [0x0273], 'valve_detection': [0x0274],
+                'child_lock': [0x0277], 'away_preset_temperature': [0x0279], 'calibrated': [0x027b], 'sensor': [0x027e],
+                'schedule': [0x027d, 0x0276]};
 
             if (dict.hasOwnProperty(key)) {
-                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
+                await entity.read('aqaraOpple', dict[key], {manufacturerCode: 0x115F});
             }
         },
     },
@@ -2394,6 +2493,8 @@ module.exports = [
             exposes.binary('window_open', ea.STATE, true, false),
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
+            exposes.switch()
+                .withState('schedule', true, 'Turn on Schedule', ea.ALL, 'ON', 'OFF'),
             e.battery_voltage(),
             e.battery(),
         ],
