@@ -742,7 +742,6 @@ module.exports = [
         toZigbee: [tz.on_off, develco.tz.input],
 //      ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true},
-
         exposes: [
             exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
             exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('State of input 2'),
@@ -775,7 +774,7 @@ module.exports = [
 
             const ep6 = device.getEndpoint(116);
             await reporting.bind(ep6, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
-//        await ep6.read('genBinaryInput', [0x8000]);
+//            await ep6.read('genBinaryInput', [0x8000]);
             await reporting.onOff(ep6);
 
             const ep7 = device.getEndpoint(117);
