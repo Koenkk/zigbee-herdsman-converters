@@ -285,6 +285,10 @@ const tzLocal = {
                     return totalMinutes;
                 };
 
+                if (getTime(value.intervals[2].to) - getTime(value.intervals[0].from) < 240) {
+                    throw new Error(`Start and end time duration at least 4 hours`);
+                }
+
                 for (let i = 0; i < 3; i++) {
                     const startTime = getTime(value.intervals[i].from);
                     const endTime = getTime(value.intervals[i].to);
