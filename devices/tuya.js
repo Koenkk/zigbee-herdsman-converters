@@ -2058,6 +2058,7 @@ module.exports = [
                 [8, 'open_window', tuya.valueConverter.onOff],
                 [10, 'frost_protection', tuya.valueConverter.onOff],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration],
                 [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': tuya.enum(0), 'mon_fri+sat+sun': tuya.enum(1),
                     'separate': tuya.enum(2)})],
