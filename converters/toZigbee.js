@@ -3376,11 +3376,11 @@ const converters = {
                 meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: existing program state not set.`);
                 return;
             }
-    
+
             /* Merge modified value into existing state and send all over in one go */
             const newProgram = {
                 ...meta.state.program,
-                ...value
+                ...value,
             };
 
             const payload = [

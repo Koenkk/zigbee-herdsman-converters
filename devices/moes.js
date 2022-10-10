@@ -80,6 +80,13 @@ const tzLocal = {
     },
 };
 
+const exposesLocal = {
+    hour: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
+    minute: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59),
+    program_temperature: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('°C')
+        .withValueMin(5).withValueMax(35).withValueStep(0.5),
+};
+
 module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
@@ -190,42 +197,42 @@ module.exports = [
                 .withPreset(['hold', 'program']),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
             exposes.composite('program', 'program').withDescription('Time of day and setpoint to use when in program mode')
-                .withFeature(exposes.numeric('weekdays_p1_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('weekdays_p1_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('weekdays_p1_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('weekdays_p2_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('weekdays_p2_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('weekdays_p2_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('weekdays_p3_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('weekdays_p3_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('weekdays_p3_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('weekdays_p4_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('weekdays_p4_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('weekdays_p4_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('saturday_p1_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('saturday_p1_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('saturday_p1_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('saturday_p2_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('saturday_p2_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('saturday_p2_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('saturday_p3_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('saturday_p3_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('saturday_p3_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('saturday_p4_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('saturday_p4_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('saturday_p4_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('sunday_p1_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('sunday_p1_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('sunday_p1_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('sunday_p2_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('sunday_p2_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('sunday_p2_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('sunday_p3_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('sunday_p3_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('sunday_p3_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
-                .withFeature(exposes.numeric('sunday_p4_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23))
-                .withFeature(exposes.numeric('sunday_p4_minute', ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59))
-                .withFeature(exposes.numeric('sunday_p4_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35).withValueStep(0.5))
+                .withFeature(exposesLocal.hour('weekdays_p1_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p2_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p3_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p4_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p1_hour'))
+                .withFeature(exposesLocal.minute('saturday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p2_hour'))
+                .withFeature(exposesLocal.minute('saturday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p3_hour'))
+                .withFeature(exposesLocal.minute('saturday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p4_hour'))
+                .withFeature(exposesLocal.minute('saturday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p1_hour'))
+                .withFeature(exposesLocal.minute('sunday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p2_hour'))
+                .withFeature(exposesLocal.minute('sunday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p3_hour'))
+                .withFeature(exposesLocal.minute('sunday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p4_hour'))
+                .withFeature(exposesLocal.minute('sunday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
         ],
         onEvent: tuya.onEventSetLocalTime,
     },
