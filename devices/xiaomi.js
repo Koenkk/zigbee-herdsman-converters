@@ -50,7 +50,7 @@ const fzLocal = {
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                 case 0x0271:
-                    result['state'] = {1: 'ON', 0: 'OFF'}[value];
+                    result['system_mode'] = {1: 'heat', 0: 'off'}[value];
                     break;
                 case 0x0272:
                     result['preset'] = {2: 'away', 1: 'auto', 0: 'manual'}[value];
@@ -167,7 +167,7 @@ const fzLocal = {
 
 const tzLocal = {
     aqara_trv: {
-        key: ['state', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
+        key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'sensor_temp', 'identify'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
@@ -178,8 +178,8 @@ const tzLocal = {
             const sensor = Buffer.from('00158d00019d1b98', 'hex');
 
             switch (key) {
-            case 'state':
-                await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+            case 'system_mode':
+                await entity.write('aqaraOpple', {0x0271: {value: {'off': 0, 'heat': 1}[value], type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'preset':
@@ -281,7 +281,7 @@ const tzLocal = {
             }
         },
         convertGet: async (entity, key, meta) => {
-            const dict = {'state': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
+            const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
                 'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
 
             if (dict.hasOwnProperty(key)) {
@@ -2498,11 +2498,10 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
-            exposes.switch()
-                .withState('state', true, 'Turn off the thermostat', ea.ALL, 'OFF', 'ON'),
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'heat'], ea.ALL)
                 .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
             exposes.binary('calibrated', ea.STATE, true, false)
