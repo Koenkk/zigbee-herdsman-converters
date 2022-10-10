@@ -7039,7 +7039,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('48')) {
-                const lookup = ['low', 'medium', 'high', 'very high', 'max'];
+                const lookup = ['low', 'medium', 'high', 'very_high', 'max'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
         },
