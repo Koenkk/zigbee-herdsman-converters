@@ -2498,7 +2498,8 @@ module.exports = [
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
             exposes.switch()
-                .withState('schedule', true, 'Smart schedule', ea.ALL, 'ON', 'OFF'),
+                .withState('schedule', true, 'Smart schedule', ea.ALL, 'ON', 'OFF')
+                .withDescription('When being ON, the thermostat will change its state based on your settings'),
             e.battery_voltage(),
             e.battery(),
         ],
