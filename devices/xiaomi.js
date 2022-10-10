@@ -137,8 +137,8 @@ const fzLocal = {
                     case 0x04180055: // mode
                         result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
                         break;
-                    case 0x0e5c0055: // portion
-                        result['portion'] = val.readUInt8();
+                    case 0x0e5c0055: // serving
+                        result['serving'] = val.readUInt8();
                         break;
                     case 0x0e5f0055: // portion weight
                         result['portion_weight'] = val.readUInt8();
@@ -301,24 +301,29 @@ const tzLocal = {
         },
     },
     aqara_feeder: {
-        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'portion', 'portion_weight'],
+        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'serving', 'serving_weight'],
         convertSet: async (entity, key, value, meta) => {
-            const sendAttr = (attrCode, value, length) => {
-                const val = Buffer.from([0x00, 0x02, 0x04]).writeInt32BE(attrCode).writeUInt8(length);
+            const sendAttr = async (attrCode, value, length) => {
+                entity.sendSeq = ((entity.sendSeq || -1)+1) % 256;
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                const v = Buffer.alloc(length);
                 switch (length) {
                 case 1:
-                    val.writeUInt8(value);
+                    v.writeUInt8(value);
                     break;
                 case 2:
-                    val.writeUInt16BE(value);
+                    v.writeUInt16BE(value);
                     break;
                 case 4:
-                    val.writeUInt32BE(value);
+                    v.writeUInt32BE(value);
                     break;
                 default:
-                    val.write(value);
+                    v.write(value);
                 };
-                await entity.write('aqaraOpple', {0xfff1: {value: val, type: 0x41}}, {manufacturerCode: 0x115f});
+
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: 0x115f});
             };
             switch (key) {
             case 'feeding':
@@ -336,10 +341,10 @@ const tzLocal = {
             case 'mode':
                 sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
                 break;
-            case 'portion':
+            case 'serving':
                 sendAttr(0x0e5c0055, value, 4);
                 break;
-            case 'portion_weight':
+            case 'serving_weight':
                 sendAttr(0x0e5f0055, value, 4);
                 break;
             default: // Unknown key
@@ -2523,6 +2528,19 @@ module.exports = [
         description: 'Aqara Pet Feeder C1',
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
-        exposes: [],
+        exposes: [
+            exposes.switch().withState('feeding', true, 'Start feeding', ea.STATE_SET, 'OFF', 'ON'),
+            exposes.text('feeding_time', ea.STATE).withDescription('Feeding time'),
+            exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
+            exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
+            exposes.binary('alarm', ea.STATE, true, false).withDescription('Something wrong with feeder'),
+            exposes.text('schedule', ea.STATE_SET).withDescription('Schedule string'),
+            exposes.switch().withState('indicator', true, 'Indicator', ea.STATE_SET, 'OFF', 'ON'),
+            e.child_lock(),
+            exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
+            exposes.numeric('serving', ea.STATE_SET).withDescription('One serving size').withUnit('portion'),
+            exposes.numeric('portion_weight', ea.STATE_SET).withDescription('Portion weight').withUnit('g'),
+            
+        ],
     },
 ];
