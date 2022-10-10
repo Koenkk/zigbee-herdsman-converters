@@ -2106,10 +2106,8 @@ const converters = {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            // hue_sml:
-            // 0: low, 1: medium, 2: high (default)
             // make sure you write to second endpoint!
-            const lookup = {'low': 0, 'medium': 1, 'high': 2};
+            const lookup = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3, 'max': 4};
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
 
