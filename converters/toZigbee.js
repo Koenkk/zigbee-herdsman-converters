@@ -3612,6 +3612,44 @@ const converters = {
             await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeMinTemp, temp);
         },
     },
+    haozee_thermostat_schedule_days: {
+        key: Object.keys(tuya.haozeeThermostatScheduleLookup),
+        convertSet: async (entity, key, value, meta) => {
+            const dayData = tuya.haozeeThermostatScheduleLookup[key];
+            const payload = [];
+            // first is number of days
+            payload[0] = dayData.dayNumber;
+            // magic constants
+            payload[3] = payload[7] = payload[11] = payload[15] = 0;
+            const parts = value.split(',');
+            if (parts.length === 4) {
+                for (let i = 0; i < 4; i++) {
+                    const part = parts[i].trim();
+                    const timeTemperatures = part.split(' ');
+                    const time = timeTemperatures[0].split(':');
+                    const hours = parseInt(time[0].trim().substring(-1));
+                    const minutes = parseInt(time[1].trim().substring(-1));
+                    const temperature = parseInt(timeTemperatures[1].trim().substring(-2));
+                    meta.logger.info(`Time ${hours}:${minutes} ${temperature}`);
+                    payload[(i * 4) + 1] = hours;
+                    payload[(i * 4) + 2] = minutes;
+                    payload[(i * 4) + 4] = temperature * 10;
+                }
+                await tuya.sendDataPointRaw(entity, dayData.dpId, payload);
+            }
+        },
+    },
+    haozee_thermostat_programing_mode: {
+        key: ['programming_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            for (const dayKey in Object.keys(tuya.haozeeThermostatScheduleLookup)) {
+                if (dayKey in value) {
+                    const rawString = value[dayKey];
+                    await converters.haozee_thermostat_schedule_days.convertSet(entity, dayKey, rawString, meta);
+                }
+            }
+        },
+    },
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {

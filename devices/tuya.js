@@ -2097,13 +2097,12 @@ module.exports = [
             tz.haozee_thermostat_system_mode, tz.haozee_thermostat_current_heating_setpoint, tz.haozee_thermostat_boost_heating,
             tz.haozee_thermostat_boost_heating_countdown, tz.haozee_thermostat_window_detection,
             tz.haozee_thermostat_child_lock, tz.haozee_thermostat_temperature_calibration, tz.haozee_thermostat_max_temperature,
-            tz.haozee_thermostat_min_temperature,
+            tz.haozee_thermostat_min_temperature, tz.haozee_thermostat_schedule_days, tz.haozee_thermostat_programing_mode,
         ],
         exposes: [
             e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
             e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
-            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
@@ -2111,7 +2110,8 @@ module.exports = [
                     'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                     'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                     'ON - In this mode, the thermostat stays open ' +
-                    'OFF - In this mode, the thermostat stays closed'),
+                    'OFF - In this mode, the thermostat stays closed')
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('monday_schedule', ea.STATE))

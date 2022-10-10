@@ -4253,66 +4253,24 @@ const converters = {
             case tuya.dataPoints.haozeeFaultAlarm:
                 return {error: value ? 'ON': 'OFF'};
             case tuya.dataPoints.haozeeScheduleMonday:
-                // Monday
-                return {
-                    'monday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleTuesday:
-                // Tuesday
-                return {
-                    'tuesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleWednesday:
-                // wednesday
-                return {
-                    'wednesday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleThursday:
-                // Thursday
-                return {
-                    'thursday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleFriday:
-                // Friday
-                return {
-                    'friday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleSaturday:
-                // Saturday
-                return {
-                    'saturday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
-                };
             case tuya.dataPoints.haozeeScheduleSunday:
-
-                // Sunday
+                // eslint-disable-next-line no-case-declarations
+                const key = Object.keys(tuya.haozeeThermostatScheduleLookup)
+                    .find((k) => tuya.haozeeThermostatScheduleLookup[k].dpId === dp);
                 return {
-                    'sunday_schedule': ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
-                        ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
-                        ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
-                        ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
+                    [key]: ' ' + value[1] + 'h:' + value[2] + 'm ' + value[4] / 10 + '°C' +
+                    ',  ' + value[5] + 'h:' + value[6] + 'm ' + value[8] / 10 + '°C' +
+                    ',  ' + value[9] + 'h:' + value[10] + 'm ' + value[12] / 10 + '°C' +
+                    ',  ' + value[13] + 'h:' + value[14] + 'm ' + value[16] / 10 + '°C ',
                 };
-
             case tuya.dataPoints.haozeeRunningState:
                 // working status 0 - pause 1 -working
-                return {'heating': value ? 'ON' : 'OFF'};
+                return {'running_state': value ? 'heat' : 'idle'};
             case tuya.dataPoints.haozeeBoostHeating:
                 // rapid heating -> boolean - not supported by this device
                 return {'boost_heating': value ? 'ON' : 'OFF'};
