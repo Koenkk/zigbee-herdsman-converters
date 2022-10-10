@@ -98,6 +98,71 @@ const fzLocal = {
             return result;
         },
     },
+    aqara_feeder: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (parseInt(key)) {
+                case 0xfff1:
+                    const attr = value.slice(3, 7);
+                    const len = value.slice(7, 8);
+                    const val = value.slice(8, 8 + len);
+                    switch (attr.readInt32BE()) {
+                    case 0x04150055: // feeding
+                        result['feeding'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        break;
+                    case 0x041502bc: // feeding time ?
+                        result['feeding_time'] = val.toString();
+                        break;
+                    case 0x0d680055: // portions per day
+                        result['portions_per_day'] = val.readUInt16BE();
+                        break;
+                    case 0x0d690055: // weight per day
+                        result['weight_per_day'] = val.readUInt32BE();
+                        break;
+                    case 0x0d0b0055: // alarm ?
+                        result['alarm'] = {1: true, 0: false}[val.readUInt8()];
+                        break;
+                    case 0x080008c8: // schedule string
+                        result['schedule'] = val.toString();
+                        break;
+                    case 0x04170055: // indicator
+                        result['indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        break;
+                    case 0x04160055: // child lock
+                        result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[val.readUInt8()];
+                        break;
+                    case 0x04180055: // mode
+                        result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
+                        break;
+                    case 0x0e5c0055: // portion
+                        result['portion'] = val.readUInt8();
+                        break;
+                    case 0x0e5f0055: // portion weight
+                        result['portion_weight'] = val.readUInt8();
+                        break;
+                    case 0x0d090055: // ?
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr.toString(16)} = ${val}`);
+                        break;
+                    default:
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr.toString(16)} = ${val}`);
+                    }
+                    break;
+                case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                             // 24:4b:70:0f:e6:d5:b8:17:47:0e:28:ba:26:97:ec:1d
+                case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                }
+            });
+            return result;
+        },
+    },
 };
 
 const tzLocal = {
@@ -233,6 +298,53 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
+        },
+    },
+    aqara_feeder: {
+        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'portion', 'portion_weight'],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = (attrCode, value, length) => {
+                const val = Buffer.from([0x00, 0x02, 0x04]).writeInt32BE(attrCode).writeUInt8(length);
+                switch (length) {
+                case 1:
+                    val.writeUInt8(value);
+                    break;
+                case 2:
+                    val.writeUInt16BE(value);
+                    break;
+                case 4:
+                    val.writeUInt32BE(value);
+                    break;
+                default:
+                    val.write(value);
+                };
+                await entity.write('aqaraOpple', {0xfff1: {value: val, type: 0x41}}, {manufacturerCode: 0x115f});
+            };
+            switch (key) {
+            case 'feeding':
+                sendAttr(0x04150055, {'OFF': 0, 'ON': 1}[value], 1);
+                break;
+            case 'schedule':
+                sendAttr(0x080008c8, value, value.length);
+                break;
+            case 'indicator':
+                sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
+                break;
+            case 'child_lock':
+                sendAttr(0x04160055, {'UNLOCK': 0, 'LOCK': 1}[value], 1);
+                break;
+            case 'mode':
+                sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
+                break;
+            case 'portion':
+                sendAttr(0x0e5c0055, value, 4);
+                break;
+            case 'portion_weight':
+                sendAttr(0x0e5f0055, value, 4);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+            }
         },
     },
 };
@@ -2403,5 +2515,14 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
+    },
+    {
+        zigbeeModel: ['aqara.feeder.acn001'],
+        model: 'ZNCWWSQ01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Pet Feeder C1',
+        fromZigbee: [fzLocal.aqara_feeder],
+        toZigbee: [tzLocal.aqara_feeder],
+        exposes: [],
     },
 ];
