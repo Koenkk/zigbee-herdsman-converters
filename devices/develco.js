@@ -670,7 +670,7 @@ module.exports = [
     {
         zigbeeModel: ['SIRZB-110'],
         model: 'SIRZB-110',
-        vendor: 'Develco Products A/S',
+        vendor: 'Develco',
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, develco.fz.firmware_version, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
@@ -736,11 +736,10 @@ module.exports = [
     {
         zigbeeModel: ['IOMZB-110'],
         model: 'IOMZB-110',
-        vendor: 'Develco Products A/S',
-        description: 'Develco IO module',
+        vendor: 'Develco',
+        description: 'IO module',
         fromZigbee: [fz.on_off, develco.fz.input, develco.fz.firmware_version],
         toZigbee: [tz.on_off, develco.tz.input],
-//      ota: ota.zigbeeOTA,
         meta: {multiEndpoint: true},
         exposes: [
             exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
@@ -750,10 +749,8 @@ module.exports = [
             exposes.switch().withState('state', true, 'On/off state of switch 1').withEndpoint('l11'),
             exposes.switch().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
         ],
-
         configure: async (device, coordinatorEndpoint, logger) => {
             const options = {manufacturerCode: 4117};
-//            const ep1 = device.getEndpoint(1);
 
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
@@ -774,11 +771,10 @@ module.exports = [
 
             const ep6 = device.getEndpoint(116);
             await reporting.bind(ep6, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
-//            await ep6.read('genBinaryInput', [0x8000]);
             await reporting.onOff(ep6);
 
             const ep7 = device.getEndpoint(117);
-            await reporting.bind(ep7, coordinatorEndpoint, ['genOnOff']); // , 'genIdentify', 'genBinaryInput']);
+            await reporting.bind(ep7, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep7);
         },
 
