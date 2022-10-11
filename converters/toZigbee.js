@@ -3610,6 +3610,7 @@ const converters = {
                 await tuya.sendDataPointRaw(entity, tuya.dataPoints.tvWeekSchedule, payload);
                 break;
             }
+
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tvtwo_thermostat: Unhandled key ${key}`);
             }
