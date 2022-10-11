@@ -2676,7 +2676,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0006', manufacturerName: '_TYZB01_ltundz9m'}],
+        fingerprint: [{modelID: 'TS0006', manufacturerName: '_TYZB01_ltundz9m'},
+            {modelID: 'TS0006', manufacturerName: '_TZ3000_jyupj3fw'}],
         model: 'TS0006',
         vendor: 'TuYa',
         description: '6 gang switch module with neutral wire',
