@@ -2536,8 +2536,8 @@ module.exports = [
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
             exposes.enum('feeding', ea.STATE_SET, ['START']).withDescription('Start feeding'),
-            exposes.text('feeding_source', ea.STATE).withDescription('Feeding source'),
-            exposes.text('feeding_size', ea.STATE).withDescription('Feeding size'),
+            exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
+            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             exposes.binary('alarm', ea.STATE, true, false).withDescription('Something wrong with feeder'),
