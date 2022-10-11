@@ -2840,5 +2840,5 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white amboance Fair ceiling with Bluetooth white',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },    
+    },
 ];
