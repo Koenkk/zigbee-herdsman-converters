@@ -113,11 +113,12 @@ const fzLocal = {
                     case 0x04150055: // feeding
                         result['feed'] = '';
                         break;
-                    case 0x041502bc: // feeding report
+                    case 0x041502bc: { // feeding report
                         const report = val.toString();
                         result['feeding_source'] = {1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
                         result['feeding_size'] = parseInt(report.slice(3, 4));
                         break;
+                    }
                     case 0x0d680055: // portions per day
                         result['portions_per_day'] = val.readUInt16BE();
                         break;
