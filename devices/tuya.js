@@ -2004,10 +2004,10 @@ module.exports = [
         toZigbee: [tz.tvtwo_thermostat],
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
-            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
-            e.comfort_temperature().withValueMin(0).withValueMax(30), e.eco_temperature().withValueMin(0).withValueMax(30),
+            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(5).withValueMax(30),
+            e.comfort_temperature().withValueMin(5).withValueMax(30), e.eco_temperature().withValueMin(5).withValueMax(30),
             exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
@@ -2016,21 +2016,21 @@ module.exports = [
                     'pair button to cancel.'),
             exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged'+
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
-                    'heating stop, the device display "HS", press the pair button to cancel.'),
-            e.holiday_temperature(),
+                    'heating stop, the device display "HS", press the pair button to cancel.'), e.holiday_temperature(),
             exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
                     'automatically start at the set time starting point and run the holiday temperature.'),
-            // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
-            exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
-                .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
-                    'the device executes a preset week programming temperature time and temperature. '),
-            exposes.text('schedule_monday', ea.STATE),
-            exposes.text('schedule_tuesday', ea.STATE),
-            exposes.text('schedule_wednesday', ea.STATE),
-            exposes.text('schedule_thursday', ea.STATE),
-            exposes.text('schedule_friday', ea.STATE),
-            exposes.text('schedule_saturday', ea.STATE),
-            exposes.text('schedule_sunday', ea.STATE),
+            exposes.composite('schedule')
+                .withFeature(exposes.enum('week_programming_stage', ea.STATE_SET, ['week', 'working_week', 'single_days'])
+                    .withDescription('Select first before setting the time and degree.'))
+                .withDescription('Auto Mode ⏱ - In this mode, the device executes a preset week programming '+
+                    'temperature time and temperature. Only end time of segment is displayed. Example: 00:00 to 06:00/17 C°'),
+            exposes.text('schedule_monday', ea.STATE_SET),
+            exposes.text('schedule_tuesday', ea.STATE_SET),
+            exposes.text('schedule_wednesday', ea.STATE_SET),
+            exposes.text('schedule_thursday', ea.STATE_SET),
+            exposes.text('schedule_friday', ea.STATE_SET),
+            exposes.text('schedule_saturday', ea.STATE_SET),
+            exposes.text('schedule_sunday', ea.STATE_SET).withDescription('Example: 06:00/17 12:00/21 14:00/17 17:00/21 24:00/17'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
         ],
