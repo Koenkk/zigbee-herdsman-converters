@@ -2838,7 +2838,7 @@ module.exports = [
         zigbeeModel: ['929003054601'],
         model: '929003054601',
         vendor: 'Philips',
-        description: 'Hue white amboance Fair ceiling with Bluetooth white',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth white',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];
