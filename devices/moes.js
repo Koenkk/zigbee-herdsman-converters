@@ -80,6 +80,13 @@ const tzLocal = {
     },
 };
 
+const exposesLocal = {
+    hour: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
+    minute: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59),
+    program_temperature: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('°C')
+        .withValueMin(5).withValueMax(35).withValueStep(0.5),
+};
+
 module.exports = [
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_cymsnfvf'},
@@ -181,13 +188,52 @@ module.exports = [
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
-            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit, tz.moes_thermostat_min_temperature_limit],
+            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit, tz.moes_thermostat_min_temperature_limit,
+            tz.moes_thermostat_program_schedule],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']),
-            e.temperature_sensor_select(['IN', 'AL', 'OU'])],
+            e.temperature_sensor_select(['IN', 'AL', 'OU']),
+            exposes.composite('program', 'program').withDescription('Time of day and setpoint to use when in program mode')
+                .withFeature(exposesLocal.hour('weekdays_p1_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p2_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p3_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p4_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p1_hour'))
+                .withFeature(exposesLocal.minute('saturday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p2_hour'))
+                .withFeature(exposesLocal.minute('saturday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p3_hour'))
+                .withFeature(exposesLocal.minute('saturday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p4_hour'))
+                .withFeature(exposesLocal.minute('saturday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p1_hour'))
+                .withFeature(exposesLocal.minute('sunday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p2_hour'))
+                .withFeature(exposesLocal.minute('sunday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p3_hour'))
+                .withFeature(exposesLocal.minute('sunday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p4_hour'))
+                .withFeature(exposesLocal.minute('sunday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
+        ],
         onEvent: tuya.onEventSetLocalTime,
     },
     {
