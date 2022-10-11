@@ -105,13 +105,13 @@ const fzLocal = {
             const result = {};
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
-                case 0xfff1:
+                case 0xfff1: {
                     const attr = value.slice(3, 7);
                     const len = value.slice(7, 8).readUInt8();
                     const val = value.slice(8, 8 + len);
                     switch (attr.readInt32BE()) {
                     case 0x04150055: // feeding
-                        result['feeding'] = '';
+                        result['feed'] = '';
                         break;
                     case 0x041502bc: // feeding report
                         const report = val.toString();
@@ -124,14 +124,14 @@ const fzLocal = {
                     case 0x0d690055: // weight per day
                         result['weight_per_day'] = val.readUInt32BE();
                         break;
-                    case 0x0d0b0055: // alarm ?
-                        result['alarm'] = {1: true, 0: false}[val.readUInt8()];
+                    case 0x0d0b0055: // error ?
+                        result['error'] = {1: true, 0: false}[val.readUInt8()];
                         break;
                     case 0x080008c8: // schedule string
                         result['schedule'] = val.toString();
                         break;
                     case 0x04170055: // indicator
-                        result['indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
                         break;
                     case 0x04160055: // child lock
                         result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[val.readUInt8()];
@@ -145,7 +145,6 @@ const fzLocal = {
                     case 0x0e5f0055: // portion weight
                         result['portion_weight'] = val.readUInt8();
                         break;
-                    case 0x0d090055: // ?
                     case 0x080007d1: // ? 64
                     case 0x0d090055: // ? 00
                         meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
@@ -154,8 +153,8 @@ const fzLocal = {
                         meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
                     }
                     break;
+                }
                 case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
-                             // 24:4b:70:0f:e6:d5:b8:17:47:0e:28:ba:26:97:ec:1d
                 case 0x0007: // 00:00:00:00:1d:b5:a6:ed
                 case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
@@ -305,7 +304,7 @@ const tzLocal = {
         },
     },
     aqara_feeder: {
-        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
+        key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
             const sendAttr = async (attrCode, value, length) => {
                 entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
@@ -326,19 +325,18 @@ const tzLocal = {
                     break;
                 default:
                     v = value;
-                };
-
+                }
                 await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
                     {manufacturerCode: 0x115f});
             };
             switch (key) {
-            case 'feeding':
+            case 'feed':
                 sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule':
                 sendAttr(0x080008c8, Buffer.concat([Buffer.from(value), Buffer.from([0])]), value.length + 1);
                 break;
-            case 'indicator':
+            case 'led_indicator':
                 sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
                 break;
             case 'child_lock':
@@ -2535,19 +2533,20 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
-            exposes.enum('feeding', ea.STATE_SET, ['START']).withDescription('Start feeding'),
+            exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
             exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
             exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
-            exposes.binary('alarm', ea.STATE, true, false).withDescription('Something wrong with feeder'),
+            exposes.binary('error', ea.STATE, true, false).withDescription('Something wrong with feeder'),
             exposes.text('schedule', ea.STATE_SET).withDescription('Schedule string'),
-            exposes.switch().withState('indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
+            exposes.switch().withState('led_indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
             exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
-            exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size').withUnit('portion'),
-            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight').withUnit('g'),
-            
+            exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
+                .withUnit('portion'),
+            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
+                .withUnit('g'),
         ],
     },
     {
