@@ -107,14 +107,16 @@ const fzLocal = {
                 switch (parseInt(key)) {
                 case 0xfff1:
                     const attr = value.slice(3, 7);
-                    const len = value.slice(7, 8);
+                    const len = value.slice(7, 8).readUInt8();
                     const val = value.slice(8, 8 + len);
                     switch (attr.readInt32BE()) {
                     case 0x04150055: // feeding
-                        result['feeding'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        result['feeding'] = '';
                         break;
-                    case 0x041502bc: // feeding time ?
-                        result['feeding_time'] = val.toString();
+                    case 0x041502bc: // feeding report
+                        const report = val.toString();
+                        result['feeding_source'] = {1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_size'] = parseInt(report.slice(3, 4));
                         break;
                     case 0x0d680055: // portions per day
                         result['portions_per_day'] = val.readUInt16BE();
@@ -137,17 +139,19 @@ const fzLocal = {
                     case 0x04180055: // mode
                         result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
                         break;
-                    case 0x0e5c0055: // serving
-                        result['serving'] = val.readUInt8();
+                    case 0x0e5c0055: // serving size
+                        result['serving_size'] = val.readUInt8();
                         break;
                     case 0x0e5f0055: // portion weight
                         result['portion_weight'] = val.readUInt8();
                         break;
                     case 0x0d090055: // ?
-                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr.toString(16)} = ${val}`);
+                    case 0x080007d1: // ? 64
+                    case 0x0d090055: // ? 00
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
                         break;
                     default:
-                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr.toString(16)} = ${val}`);
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
                     }
                     break;
                 case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
@@ -301,14 +305,15 @@ const tzLocal = {
         },
     },
     aqara_feeder: {
-        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'serving', 'serving_weight'],
+        key: ['feeding', 'schedule', 'indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
         convertSet: async (entity, key, value, meta) => {
             const sendAttr = async (attrCode, value, length) => {
-                entity.sendSeq = ((entity.sendSeq || -1)+1) % 256;
+                entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
                 const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                entity.sendSeq += 1;
                 val.writeInt32BE(attrCode, 3);
                 val.writeUInt8(length, 7);
-                const v = Buffer.alloc(length);
+                let v = Buffer.alloc(length);
                 switch (length) {
                 case 1:
                     v.writeUInt8(value);
@@ -320,17 +325,18 @@ const tzLocal = {
                     v.writeUInt32BE(value);
                     break;
                 default:
-                    v.write(value);
+                    v = value;
                 };
 
-                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: 0x115f});
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: 0x115f});
             };
             switch (key) {
             case 'feeding':
-                sendAttr(0x04150055, {'OFF': 0, 'ON': 1}[value], 1);
+                sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule':
-                sendAttr(0x080008c8, value, value.length);
+                sendAttr(0x080008c8, Buffer.concat([Buffer.from(value), Buffer.from([0])]), value.length + 1);
                 break;
             case 'indicator':
                 sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
@@ -341,15 +347,16 @@ const tzLocal = {
             case 'mode':
                 sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
                 break;
-            case 'serving':
+            case 'serving_size':
                 sendAttr(0x0e5c0055, value, 4);
                 break;
-            case 'serving_weight':
+            case 'portion_weight':
                 sendAttr(0x0e5f0055, value, 4);
                 break;
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
             }
+            return {state: {[key]: value}};
         },
     },
 };
@@ -2528,16 +2535,17 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
-            exposes.switch().withState('feeding', true, 'Start feeding', ea.STATE_SET, 'OFF', 'ON'),
-            exposes.text('feeding_time', ea.STATE).withDescription('Feeding time'),
+            exposes.enum('feeding', ea.STATE_SET, ['START']).withDescription('Start feeding'),
+            exposes.text('feeding_source', ea.STATE).withDescription('Feeding source'),
+            exposes.text('feeding_size', ea.STATE).withDescription('Feeding size'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             exposes.binary('alarm', ea.STATE, true, false).withDescription('Something wrong with feeder'),
             exposes.text('schedule', ea.STATE_SET).withDescription('Schedule string'),
-            exposes.switch().withState('indicator', true, 'Indicator', ea.STATE_SET, 'OFF', 'ON'),
+            exposes.switch().withState('indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
             exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
-            exposes.numeric('serving', ea.STATE_SET).withDescription('One serving size').withUnit('portion'),
+            exposes.numeric('serving_size', ea.STATE_SET).withDescription('One serving size').withUnit('portion'),
             exposes.numeric('portion_weight', ea.STATE_SET).withDescription('Portion weight').withUnit('g'),
             
         ],
