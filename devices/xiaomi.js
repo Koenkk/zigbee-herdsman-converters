@@ -2546,7 +2546,7 @@ module.exports = [
             e.child_lock(),
             exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
             exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size').withUnit('portion'),
-            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMin(20).withDescription('Portion weight').withUnit('g'),
+            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight').withUnit('g'),
             
         ],
     },
