@@ -58,7 +58,6 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Water sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        meta: {battery: {dontDividePercentage: true}},
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -86,7 +85,6 @@ module.exports = [
         description: 'Door sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
