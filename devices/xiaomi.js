@@ -2403,4 +2403,15 @@ module.exports = [
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
     },
+    {
+        zigbeeModel: ['lumi.remote.acn007'],
+        model: 'WXKG20LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 wireless mini switch',
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']), 
+            e.device_temperature(), e.power_outage_count()],
+    },
 ];
