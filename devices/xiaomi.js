@@ -91,28 +91,31 @@ const fzLocal = {
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
                 case 0x0276: {
-                    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
                     const getTime = (offset) => {
                         let totalMinutes = value.readUint16BE(offset);
-                        const nexDay = (totalMinutes>>15) % 2 != 0;
                         totalMinutes = totalMinutes & ~(1<<15);
-                        return {hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60, nex_day: nexDay};
+                        return {hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60};
                     };
 
-                    const schedule = {repeat: [], intervals: []};
+                    const schedule = {
+                        repeat: [],
+                        start: getTime(2),
+                        end: getTime(20),
+                        values: [
+                            {time: getTime(2), temperature: value.readUint16BE(6)/100},
+                            {time: getTime(8), temperature: value.readUint16BE(12)/100},
+                            {time: getTime(14), temperature: value.readUint16BE(18)/100},
+                        ],
+                    };
+
                     for (let i = 0; i < 7; i++) {
                         if ((value[1]>>i+1) % 2 != 0) {
                             schedule.repeat.push(dayNames[i]);
                         }
                     }
 
-                    for (let i = 0; i < 3; i++) {
-                        const from = getTime(2 + 6*i);
-                        const to = getTime(2 + 6*(i+1));
-                        schedule.intervals.push({from: from, to: to, temperature: value.readUint16BE(6 + 6*i)/100});
-                    }
-
-                    result['schedule_options'] = schedule;
+                    result['schedule_settings'] = schedule;
                     break;
                 }
                 case 0xfff2:
@@ -134,7 +137,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_options'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -246,67 +249,99 @@ const tzLocal = {
                 await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
-            case 'schedule_options': {
-                if (value.intervals.length != 3) {
-                    throw new Error('the number of intervals must be equal to four');
+            case 'schedule_settings': {
+                if (value.values.length != 3) {
+                    throw new Error('Number of values must be equal to three');
                 }
 
                 if (value.repeat.length == 0) {
                     throw new Error('"repeat" must have at least one value');
                 }
 
-                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                let repeatRule = 254;
-                for (let i = 1; i <= 7; i++) {
-                    if (value.repeat.some((e)=>e.toUpperCase() == dayNames[i-1].toUpperCase()) == false) {
-                        repeatRule = repeatRule & ~(1<<i);
+                const startTime = {...value.values[0].time, next_day: false};
+
+                const getRepeat = () => {
+                    const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                    let repeat = 254;
+                    for (let i = 1; i <= 7; i++) {
+                        if (value.repeat.some((e) => e.toUpperCase() == dayNames[i - 1].toUpperCase()) == false) {
+                            repeat = repeat & ~(1 << i);
+                        }
                     }
-                }
-                const payload = [
-                    0x04,
-                    repeatRule,
-                ];
+                    return repeat;
+                };
 
                 const getValue = (time, temperature) => {
                     const val = Buffer.alloc(6);
                     let totalMinutes = time.hours * 60 + time.minutes;
-                    if (time.nex_day) {
-                        totalMinutes = totalMinutes | 1<<15;
+                    if (time.next_day) {
+                        totalMinutes = totalMinutes | 1 << 15;
                     }
-                    val.writeUint16BE(totalMinutes);
-                    val.writeUint16BE(temperature*100, 4);
+                    val.writeUint16BE(totalMinutes, 0);
+                    val.writeUint16BE(temperature * 100, 4);
                     return val;
                 };
-                const getTime = (time) => {
+
+                const nextDay = (time) => startTime.hours * 60 + startTime.minutes >= (time.hours * 60 + time.minutes);
+
+                const getTimeValue = (time) => {
                     let totalMinutes = time.hours * 60 + time.minutes;
-                    if (time.nex_day) {
-                        totalMinutes = totalMinutes + 1440;
+                    if (time.next_day) {
+                        const offset = 1440 - startTime.hours * 60 + startTime.minutes;
+                        totalMinutes = totalMinutes + offset;
                     }
                     return totalMinutes;
                 };
 
-                if (getTime(value.intervals[2].to) - getTime(value.intervals[0].from) < 240) {
+                const getTimeIntervalStr = (from, to) => {
+                    const getTimeStr = (time) => {
+                        const hours = time.hours < 10 ? `0${time.hours}` : `${time.hours}`;
+                        const minutes = time.minutes < 10 ? `0${time.minutes}` : `${time.minutes}`;
+
+                        return `${hours}:${minutes}${time.next_day ? '(+1)' : ''}`;
+                    };
+
+                    return `${getTimeStr(from)}-${getTimeStr(to)}`;
+                };
+
+                const endTime = {...value.end, next_day: nextDay(value.end)};
+                const startTimeValue = getTimeValue(startTime);
+                const endTimeValue = getTimeValue(endTime);
+
+                if ((endTimeValue - startTimeValue) < 240) {
                     throw new Error(`Start and end time duration at least 4 hours`);
                 }
 
-                for (let i = 0; i < 3; i++) {
-                    const startTime = getTime(value.intervals[i].from);
-                    const endTime = getTime(value.intervals[i].to);
+                const payload = [0x04, getRepeat()];
 
-                    if (i !=0 && getTime(value.intervals[i-1].to) != startTime) {
-                        throw new Error(`The start time of the interval must be equal to the end time of the previous interval;
-                        (index: ${i})`);
+                for (let i = 0; i < value.values.length; i++) {
+                    const isLast = i == value.values.length - 1;
+                    let fromTime = value.values[i].time;
+                    let toTime = isLast ? value.end : value.values[i + 1].time;
+
+                    const temperature = value.values[i].temperature;
+
+                    fromTime = i == 0 ? startTime : {...fromTime, next_day: nextDay(fromTime)};
+                    toTime = {...toTime, next_day: nextDay(toTime)};
+
+                    const fromTimeValue = getTimeValue(fromTime);
+                    const toTimeValue = getTimeValue(toTime);
+
+                    if ((toTimeValue - fromTimeValue) < 60) {
+                        throw new Error(`End time of interval [${getTimeIntervalStr(fromTime, toTime)}] should have been greater start time;
+                         minimum duration of interval is one hour`);
                     }
 
-                    if ((endTime - startTime) < 60) {
-                        throw new Error(`The end time must be greater than the start time, minimum duration is one hour;(index: ${i})`);
+                    if ((toTimeValue < startTimeValue || toTimeValue > endTimeValue) ||
+                        (fromTimeValue < startTimeValue || fromTimeValue > endTimeValue)) {
+                        throw new Error(`Interval '${getTimeIntervalStr(fromTime, toTime)}' should be included in 
+                        '${getTimeIntervalStr(startTime, endTime)}'`);
                     }
 
-                    const temperature = value.intervals[i].temperature;
-                    payload.push(...getValue(value.intervals[i].from, temperature));
+                    payload.push(...getValue(fromTime, temperature));
 
-                    if (i == 2) {
-                        payload.push(...getValue(value.intervals[i].to, temperature));
+                    if (isLast) {
+                        payload.push(...getValue(toTime, temperature));
                     }
                 }
 
@@ -2497,9 +2532,9 @@ module.exports = [
             exposes.binary('window_open', ea.STATE, true, false),
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
-            exposes.switch()
-                .withState('schedule', true, 'Smart schedule', ea.ALL, 'ON', 'OFF')
-                .withDescription('When being ON, the thermostat will change its state based on your settings'),
+            exposes.switch().withState('schedule', true,
+                'When being ON, the thermostat will change its state based on your settings',
+                ea.ALL, 'ON', 'OFF'),
             e.battery_voltage(),
             e.battery(),
         ],
