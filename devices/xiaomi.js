@@ -2411,7 +2411,7 @@ module.exports = [
         fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']), 
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
     },
 ];
