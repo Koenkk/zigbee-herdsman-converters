@@ -2106,10 +2106,8 @@ const converters = {
         // motion detect sensitivity, philips specific
         key: ['motion_sensitivity'],
         convertSet: async (entity, key, value, meta) => {
-            // hue_sml:
-            // 0: low, 1: medium, 2: high (default)
             // make sure you write to second endpoint!
-            const lookup = {'low': 0, 'medium': 1, 'high': 2};
+            const lookup = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3, 'max': 4};
             value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
 
@@ -2839,7 +2837,24 @@ const converters = {
         key: ['occupied_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
+                // 1: "User Interaction" Changes occupied heating setpoint and triggers an aggressive reaction
+                //   of the actuator as soon as control SW runs, to replicate the behavior of turning the dial on the eTRV.
                 setpointType: 1,
+                setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
+            };
+            await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['occupiedHeatingSetpoint']);
+        },
+    },
+    danfoss_thermostat_occupied_heating_setpoint_scheduled: {
+        key: ['occupied_heating_setpoint_scheduled'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {
+                // 0: "Schedule Change" Just changes occupied heating setpoint. No special behavior,
+                //   the PID control setpoint will be update with the new setpoint.
+                setpointType: 0,
                 setpoint: (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100,
             };
             await entity.command('hvacThermostat', 'danfossSetpointCommand', payload, manufacturerOptions.danfoss);
@@ -3325,6 +3340,12 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             if (value < 0) value = 4096 + value;
             await tuya.sendDataPointValue(entity, tuya.dataPoints.moesTempCalibration, value);
+        },
+    },
+    moes_thermostat_min_temperature_limit: {
+        key: ['min_temperature_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesMinTempLimit, value);
         },
     },
     moes_thermostat_max_temperature_limit: {

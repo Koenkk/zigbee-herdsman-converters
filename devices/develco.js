@@ -190,6 +190,18 @@ const develco = {
                 return state;
             },
         },
+        input: {
+            cluster: 'genBinaryInput',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+                if (msg.data.hasOwnProperty('presentValue')) {
+                    const value = msg.data['presentValue'];
+                    result[utils.postfixWithEndpointName('input', msg, model, meta)] = value == 1;
+                }
+                return result;
+            },
+        },
     },
     tz: {
         pulse_configuration: {
@@ -244,6 +256,12 @@ const develco = {
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            },
+        },
+        input: {
+            key: ['input'],
+            convertGet: async (entity, key, meta) => {
+                await entity.read('genBinaryInput', ['presentValue']);
             },
         },
     },
@@ -516,20 +534,23 @@ module.exports = [
             return {default: 35};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(35);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint1, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-            await endpoint1.read('genPowerCfg', ['batteryVoltage']);
-            await endpoint1.read('genBasic', ['develcoLedControl'], manufacturerOptions);
-            await endpoint1.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+            try {
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            } catch (error) {/* some reports of timeouts on reading these */}
 
-            const endpoint2 = device.getEndpoint(38);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
-            await reporting.temperature(endpoint2);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint38,
+                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 100});
 
-            const endpoint3 = device.getEndpoint(39);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint3);
+            const endpoint39 = device.getEndpoint(39);
+            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint39,
+                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500});
         },
     },
     {
@@ -652,7 +673,7 @@ module.exports = [
     {
         zigbeeModel: ['SIRZB-110'],
         model: 'SIRZB-110',
-        vendor: 'Develco Products A/S',
+        vendor: 'Develco',
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, develco.fz.firmware_version, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
@@ -713,6 +734,55 @@ module.exports = [
                     'ssIasAce', 'getPanelStatusRsp', payload, {}, data.meta.zclTransactionSequenceNumber,
                 );
             }
+        },
+    },
+    {
+        zigbeeModel: ['IOMZB-110'],
+        model: 'IOMZB-110',
+        vendor: 'Develco',
+        description: 'IO module',
+        fromZigbee: [fz.on_off, develco.fz.input, develco.fz.firmware_version],
+        toZigbee: [tz.on_off, develco.tz.input],
+        meta: {multiEndpoint: true},
+        exposes: [
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l2').withDescription('State of input 2'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l3').withDescription('State of input 3'),
+            exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l4').withDescription('State of input 4'),
+            exposes.switch().withState('state', true, 'On/off state of switch 1').withEndpoint('l11'),
+            exposes.switch().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 4117};
+
+            const ep2 = device.getEndpoint(112);
+            await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
+            await reporting.presentValue(ep2, {min: 0});
+            await ep2.read('genBasic', [0x8000, 0x8010, 0x8020], options);
+
+            const ep3 = device.getEndpoint(113);
+            await reporting.bind(ep3, coordinatorEndpoint, ['genBinaryInput']);
+            await reporting.presentValue(ep3, {min: 0});
+
+            const ep4 = device.getEndpoint(114);
+            await reporting.bind(ep4, coordinatorEndpoint, ['genBinaryInput']);
+            await reporting.presentValue(ep4, {min: 0});
+
+            const ep5 = device.getEndpoint(115);
+            await reporting.bind(ep5, coordinatorEndpoint, ['genBinaryInput']);
+            await reporting.presentValue(ep5, {min: 0});
+
+            const ep6 = device.getEndpoint(116);
+            await reporting.bind(ep6, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
+            await reporting.onOff(ep6);
+
+            const ep7 = device.getEndpoint(117);
+            await reporting.bind(ep7, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(ep7);
+        },
+
+        endpoint: (device) => {
+            return {'l1': 112, 'l2': 113, 'l3': 114, 'l4': 115, 'l11': 116, 'l12': 117};
         },
     },
 ];

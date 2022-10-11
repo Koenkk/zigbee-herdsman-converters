@@ -3563,6 +3563,18 @@ const converters = {
             return result;
         },
     },
+    danfoss_thermostat_setpoint_scheduled: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+                result[postfixWithEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta)] =
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            return result;
+        },
+    },
     danfoss_icon_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -7027,7 +7039,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('48')) {
-                const lookup = ['low', 'medium', 'high'];
+                const lookup = ['low', 'medium', 'high', 'very_high', 'max'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
         },
