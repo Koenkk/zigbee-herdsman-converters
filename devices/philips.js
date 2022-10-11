@@ -2834,4 +2834,11 @@ module.exports = [
         description: 'Hue white ambiance pendant white Enrave',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['929003054601'],
+        model: '929003054601',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth white',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
