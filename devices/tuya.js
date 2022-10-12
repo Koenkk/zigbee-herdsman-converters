@@ -3222,6 +3222,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_jva8ink8'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_holel4dk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presense_sensor',
