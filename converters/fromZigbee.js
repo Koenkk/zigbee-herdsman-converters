@@ -1218,9 +1218,12 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
+                const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
+                const delta_property = postfixWithEndpointName('delta', msg, model, meta);
+                payload[delta_property] = msg.data.level - currentBrightness;
             }
 
             return payload;
@@ -1252,7 +1255,8 @@ const converters = {
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                         const property = postfixWithEndpointName('brightness', msg, model, meta);
-                        publish({[property]: brightness});
+                        const delta_property = postfixWithEndpointName('delta', msg, model, meta);
+                        publish({[property]: brightness, [delta_property]: delta});
                     }, intervalOpts);
 
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
@@ -1284,6 +1288,8 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
+                const delta_property = postfixWithEndpointName('delta', msg, model, meta);
+                payload[delta_property] = delta;
             }
 
             return payload;
@@ -7279,6 +7285,7 @@ const converters = {
                 const delta = button === 'up' ? deltaOpts : deltaOpts * -1;
                 const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                 payload.brightness = numberWithinRange(brightness, 0, 255);
+                payload.delta = delta;
                 globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
             }
 
