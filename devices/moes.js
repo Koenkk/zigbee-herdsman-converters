@@ -392,19 +392,6 @@ module.exports = [
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
-        model: 'MS-105Z',
-        vendor: 'Moes',
-        description: '1 gang 2 way Zigbee dimmer switch',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105_dimmer],
-        meta: {turnsOffAtBrightness1: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
         model: 'ZS-EUD',
         vendor: 'Moes',

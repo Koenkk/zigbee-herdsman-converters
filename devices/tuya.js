@@ -1169,7 +1169,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
@@ -1189,6 +1189,10 @@ module.exports = [
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
             ],
         },
+        whiteLabel: [
+            {vendor: 'Moes', model: 'MS-105Z'},
+            {vendor: 'Lerlink', model: 'X706U'},
+        ],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
