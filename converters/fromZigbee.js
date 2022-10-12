@@ -1222,8 +1222,8 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
-                const delta_property = postfixWithEndpointName('delta', msg, model, meta);
-                payload[delta_property] = msg.data.level - currentBrightness;
+                const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                payload[deltaProperty] = msg.data.level - currentBrightness;
             }
 
             return payload;
@@ -1255,8 +1255,8 @@ const converters = {
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                         const property = postfixWithEndpointName('brightness', msg, model, meta);
-                        const delta_property = postfixWithEndpointName('delta', msg, model, meta);
-                        publish({[property]: brightness, [delta_property]: delta});
+                        const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                        publish({[property]: brightness, [deltaProperty]: delta});
                     }, intervalOpts);
 
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
@@ -1288,8 +1288,8 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
-                const delta_property = postfixWithEndpointName('delta', msg, model, meta);
-                payload[delta_property] = delta;
+                const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                payload[deltaProperty] = delta;
             }
 
             return payload;
