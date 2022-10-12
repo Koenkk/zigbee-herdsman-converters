@@ -2841,4 +2841,11 @@ module.exports = [
         description: 'Hue white ambiance Fair ceiling with Bluetooth white',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['929003048301'],
+        model: '8719514339163',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Buckram quadruple spotlight with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
