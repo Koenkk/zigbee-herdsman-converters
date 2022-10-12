@@ -2316,19 +2316,20 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current()],
+        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current(), 
+            e.produced_energy()],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseA], // voltage and current
                 [16, 'state', tuya.valueConverter.onOff],
+                [102, 'produced_energy', tuya.valueConverter.divideBy100],
                 [103, 'power', tuya.valueConverter.raw],
                 [105, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [111, 'power_factor', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean
                 [109, null, null], // reactive_power in VArh, ignored for now
                 [101, null, null], // total active power (translated from chinese) - same as energy dp 1??
-                [102, null, null], // Reverse active power (translated from chinese), produced power? (e.g. if solar panels are connected)
                 [9, null, null], // Fault - we don't know the possible values here
                 [110, null, null], // total reactive power (translated from chinese) - value is 0.03kvar, we already have kvarh on dp 109
                 [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
