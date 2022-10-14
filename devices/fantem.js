@@ -13,7 +13,7 @@ module.exports = [
             {modelID: 'TS110F', manufacturerName: '_TZ3210_ebbfkvoy'}],
         model: 'ZB006-X',
         vendor: 'Fantem',
-        description: 'Smart dimmer module (optional neutral)',
+        description: 'Smart dimmer module',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ZB006X_settings],
