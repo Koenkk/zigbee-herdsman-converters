@@ -10,7 +10,7 @@ const tuya = require('../lib/tuya');
 module.exports = [
     {
         fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'},
-        {modelID: 'TS110F', manufacturerName: '_TZ3210_ebbfkvoy'}],
+            {modelID: 'TS110F', manufacturerName: '_TZ3210_ebbfkvoy'}],
         model: 'ZB006-X',
         vendor: 'Fantem',
         description: 'Smart dimmer module (optional neutral)',
