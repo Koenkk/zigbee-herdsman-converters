@@ -2027,6 +2027,7 @@ module.exports = [
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
                     ' is activated, the temperature in the house is kept at 8 °C, the device display "AF".press the '+
                     'pair button to cancel.'),
+            exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Same as `system_mode`. Left for compatibility.'),
             exposes.numeric('holiday_temperature', ea.STATE_SET).withUnit('°C').withDescription('Holiday temperature')
                 .withValueMin(5).withValueMax(30),
             exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode will automatically start ' +
@@ -2081,7 +2082,9 @@ module.exports = [
                 [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
                 [105, 'eco_temperature', tuya.valueConverter.divideBy10],
                 [106, 'schedule', tuya.valueConverter.thermostatScheduleDay],
+                [107, null, tuya.valueConverter.TV02SystemMode],
                 [107, 'system_mode', tuya.valueConverterBasic.lookup({'heat': false, 'off': true})],
+                [107, 'heating_stop', tuya.valueConverter.onOff],
                 [115, 'online', tuya.valueConverter.onOff],
                 [108, 'schedule_monday', tuya.valueConverter.thermostatScheduleDay],
                 [112, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDay],
