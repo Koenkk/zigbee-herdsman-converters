@@ -150,7 +150,8 @@ module.exports = [
         exposes: [e.light_brightness().withMinBrightness()],
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_pagajpog'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_pagajpog'},
+            {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
