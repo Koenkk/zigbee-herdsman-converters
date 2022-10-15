@@ -2039,8 +2039,8 @@ module.exports = [
                 '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
                 'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
                 '- schedule for each day is defined separately.'),
-            exposes.composite('schedule', 'schedule').withFeature(exposes.enum('week_day', ea.STATE_SET, ['monday', 'tuesday',
-                'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.STATE_SET))
+            exposes.composite('schedule', 'schedule').withFeature(exposes.enum('week_day', ea.SET, ['monday', 'tuesday',
+                'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.SET))
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
                 'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
                 'property. Each day can contain up to 10 segments. At least 1 segment should be defined. Different count of segments ' +
