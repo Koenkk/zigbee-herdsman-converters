@@ -1760,8 +1760,7 @@ const converters = {
                 result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
-                const lookup = {0: 'enabled', 1: 'disabled'};
-                result.display_auto_off_enabled = lookup[data[0x100B]];
+                result.display_auto_off_enabled = data[0x100B] ? 'enabled' : 'disabled';
             }
             if (data.hasOwnProperty(0x2001)) { // AlarmAirTempOverValue
                 result.alarm_airtemp_overvalue = data[0x2001];
@@ -3937,20 +3936,44 @@ const converters = {
             switch (dp) {
             case tuya.dataPoints.moesSchedule:
                 return {
-                    program: [
-                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
-                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
-                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
-                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
-                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
-                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
-                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
-                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
-                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
-                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
-                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
-                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
-                    ],
+                    program: {
+                        weekdays_p1_hour: value[0],
+                        weekdays_p1_minute: value[1],
+                        weekdays_p1_temperature: value[2] / 2,
+                        weekdays_p2_hour: value[3],
+                        weekdays_p2_minute: value[4],
+                        weekdays_p2_temperature: value[5] / 2,
+                        weekdays_p3_hour: value[6],
+                        weekdays_p3_minute: value[7],
+                        weekdays_p3_temperature: value[8] / 2,
+                        weekdays_p4_hour: value[9],
+                        weekdays_p4_minute: value[10],
+                        weekdays_p4_temperature: value[11] / 2,
+                        saturday_p1_hour: value[12],
+                        saturday_p1_minute: value[13],
+                        saturday_p1_temperature: value[14] / 2,
+                        saturday_p2_hour: value[15],
+                        saturday_p2_minute: value[16],
+                        saturday_p2_temperature: value[17] / 2,
+                        saturday_p3_hour: value[18],
+                        saturday_p3_minute: value[19],
+                        saturday_p3_temperature: value[20] / 2,
+                        saturday_p4_hour: value[21],
+                        saturday_p4_minute: value[22],
+                        saturday_p4_temperature: value[23] / 2,
+                        sunday_p1_hour: value[24],
+                        sunday_p1_minute: value[25],
+                        sunday_p1_temperature: value[26] / 2,
+                        sunday_p2_hour: value[27],
+                        sunday_p2_minute: value[28],
+                        sunday_p2_temperature: value[29] / 2,
+                        sunday_p3_hour: value[30],
+                        sunday_p3_minute: value[31],
+                        sunday_p3_temperature: value[32] / 2,
+                        sunday_p4_hour: value[33],
+                        sunday_p4_minute: value[34],
+                        sunday_p4_temperature: value[35] / 2,
+                    },
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {

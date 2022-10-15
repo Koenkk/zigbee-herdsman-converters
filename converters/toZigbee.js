@@ -3182,7 +3182,7 @@ const converters = {
                 const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='display_auto_off_enabled') {
-                const lookup = {'enabled': 0, 'disabled': 1};
+                const lookup = {'disabled': 0, 'enabled': 1};
                 const payload = {0x100B: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, manufacturerOptions.sunricher);
             } else if (key==='alarm_airtemp_overvalue') {
@@ -3367,6 +3367,61 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'heat');
+        },
+    },
+    moes_thermostat_program_schedule: {
+        key: ['program'],
+        convertSet: async (entity, key, value, meta) => {
+            if (!meta.state.program) {
+                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: existing program state not set.`);
+                return;
+            }
+
+            /* Merge modified value into existing state and send all over in one go */
+            const newProgram = {
+                ...meta.state.program,
+                ...value,
+            };
+
+            const payload = [
+                Math.floor(newProgram.weekdays_p1_hour),
+                Math.floor(newProgram.weekdays_p1_minute),
+                Math.round(newProgram.weekdays_p1_temperature * 2),
+                Math.floor(newProgram.weekdays_p2_hour),
+                Math.floor(newProgram.weekdays_p2_minute),
+                Math.round(newProgram.weekdays_p2_temperature * 2),
+                Math.floor(newProgram.weekdays_p3_hour),
+                Math.floor(newProgram.weekdays_p3_minute),
+                Math.round(newProgram.weekdays_p3_temperature * 2),
+                Math.floor(newProgram.weekdays_p4_hour),
+                Math.floor(newProgram.weekdays_p4_minute),
+                Math.round(newProgram.weekdays_p4_temperature * 2),
+                Math.floor(newProgram.saturday_p1_hour),
+                Math.floor(newProgram.saturday_p1_minute),
+                Math.round(newProgram.saturday_p1_temperature * 2),
+                Math.floor(newProgram.saturday_p2_hour),
+                Math.floor(newProgram.saturday_p2_minute),
+                Math.round(newProgram.saturday_p2_temperature * 2),
+                Math.floor(newProgram.saturday_p3_hour),
+                Math.floor(newProgram.saturday_p3_minute),
+                Math.round(newProgram.saturday_p3_temperature * 2),
+                Math.floor(newProgram.saturday_p4_hour),
+                Math.floor(newProgram.saturday_p4_minute),
+                Math.round(newProgram.saturday_p4_temperature * 2),
+                Math.floor(newProgram.sunday_p1_hour),
+                Math.floor(newProgram.sunday_p1_minute),
+                Math.round(newProgram.sunday_p1_temperature * 2),
+                Math.floor(newProgram.sunday_p2_hour),
+                Math.floor(newProgram.sunday_p2_minute),
+                Math.round(newProgram.sunday_p2_temperature * 2),
+                Math.floor(newProgram.sunday_p3_hour),
+                Math.floor(newProgram.sunday_p3_minute),
+                Math.round(newProgram.sunday_p3_temperature * 2),
+                Math.floor(newProgram.sunday_p4_hour),
+                Math.floor(newProgram.sunday_p4_minute),
+                Math.round(newProgram.sunday_p4_temperature * 2),
+            ];
+            return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
     moesS_thermostat_system_mode: {

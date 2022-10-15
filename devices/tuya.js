@@ -793,6 +793,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
+            {modelID: 'TS000F', manufacturerName: '_TZ3000_xkap8wtb'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
@@ -1168,7 +1169,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
@@ -1188,6 +1189,10 @@ module.exports = [
                 [14, 'power_on_behavior', tuya.valueConverter.powerOnBehavior],
             ],
         },
+        whiteLabel: [
+            {vendor: 'Moes', model: 'MS-105Z'},
+            {vendor: 'Lerlink', model: 'X706U'},
+        ],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
@@ -2365,19 +2370,20 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current()],
+        exposes: [tuya.exposes.switch(), e.ac_frequency(), e.energy(), e.power(), e.power_factor(), e.voltage(), e.current(),
+            e.produced_energy()],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseA], // voltage and current
                 [16, 'state', tuya.valueConverter.onOff],
+                [102, 'produced_energy', tuya.valueConverter.divideBy100],
                 [103, 'power', tuya.valueConverter.raw],
                 [105, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [111, 'power_factor', tuya.valueConverter.divideBy10],
                 // Ignored for now; we don't know what the values mean
                 [109, null, null], // reactive_power in VArh, ignored for now
                 [101, null, null], // total active power (translated from chinese) - same as energy dp 1??
-                [102, null, null], // Reverse active power (translated from chinese), produced power? (e.g. if solar panels are connected)
                 [9, null, null], // Fault - we don't know the possible values here
                 [110, null, null], // total reactive power (translated from chinese) - value is 0.03kvar, we already have kvarh on dp 109
                 [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
@@ -3271,6 +3277,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_jva8ink8'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_holel4dk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
         model: 'TS0601_smart_human_presense_sensor',
