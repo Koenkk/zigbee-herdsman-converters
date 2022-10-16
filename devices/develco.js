@@ -519,7 +519,7 @@ module.exports = [
         description: 'Motion sensor',
         fromZigbee: [
             fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
-            develco.fz.led_control, develco.fz.ias_occupancy_timeout,
+            develco.fz.led_control, develco.fz.ias_occupancy_timeout, develco.fz.firmware_version,
         ],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: [
@@ -538,6 +538,7 @@ module.exports = [
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
             try {
+                await endpoint35.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             } catch (error) {/* some reports of timeouts on reading these */}
