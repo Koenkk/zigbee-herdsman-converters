@@ -91,14 +91,14 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result = {};
-                if (0x8000 in msg.data) {
-                    const firmware = msg.data[0x8000].join('.');
+                if (msg.data.hasOwnProperty('develcoPrimarySwVersion')) {
+                    const firmware = msg.data.develcoPrimarySwVersion.join('.');
                     result.current_firmware = firmware;
                     meta.device.softwareBuildID = firmware;
                 }
 
-                if (0x8020 in msg.data) {
-                    meta.device.hardwareVersion = msg.data[0x8020].join('.');
+                if (msg.data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                    meta.device.hardwareVersion = msg.data.develcoPrimaryHwVersion.join('.');
                 }
 
                 return result;
@@ -379,7 +379,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], manufacturerOptions);
+            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
             try {
@@ -424,7 +424,7 @@ module.exports = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000, 0x8010, 0x8020], manufacturerOptions);
+            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -457,7 +457,7 @@ module.exports = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000], manufacturerOptions);
+            await endpoint.read('genBasic', ['develcoPrimarySwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -682,7 +682,7 @@ module.exports = [
             const endpoint = device.getEndpoint(43);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', [0x8000], manufacturerOptions);
+            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
@@ -758,7 +758,7 @@ module.exports = [
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
             await reporting.presentValue(ep2, {min: 0});
-            await ep2.read('genBasic', [0x8000, 0x8010, 0x8020], options);
+            await ep2.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], options);
 
             const ep3 = device.getEndpoint(113);
             await reporting.bind(ep3, coordinatorEndpoint, ['genBinaryInput']);
