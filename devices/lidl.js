@@ -8,6 +8,7 @@ const ea = exposes.access;
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const tuyaLocal = {
     dataPoints: {
