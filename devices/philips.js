@@ -2842,10 +2842,17 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['929003048301'],
+        zigbeeModel: ['929003048301', '929003048301_01', '929003048301_02', '929003048301_03', '929003048301_04'],
         model: '8719514339163',
         vendor: 'Philips',
         description: 'Hue white ambiance Buckram quadruple spotlight with Bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['929003048101', '929003048101_01', '929003048101_02', '929003048101_03'],
+        model: '8719514339125',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Buckram triple spotlight with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },    
 ];
