@@ -2854,5 +2854,5 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white ambiance Buckram triple spotlight with Bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },    
+    },
 ];
