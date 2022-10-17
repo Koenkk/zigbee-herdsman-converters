@@ -218,7 +218,7 @@ const develco = {
             key: ['interface_mode'],
             convertSet: async (entity, key, value, meta) => {
                 const payload = {'develcoInterfaceMode': utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
-                await entity.write('seMetering', payload, manufacturerOptions.develco);
+                await entity.write('seMetering', payload, manufacturerOptions);
                 return {readAfterWriteTime: 200, state: {'interface_mode': value}};
             },
             convertGet: async (entity, key, meta) => {
