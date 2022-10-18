@@ -1521,9 +1521,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0201', manufacturerName: '_TZ3000_dowj6gyi'},
-        ],
+        fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']),
         model: 'IH-K009',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
