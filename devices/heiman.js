@@ -104,7 +104,7 @@ module.exports = [
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
+        fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
