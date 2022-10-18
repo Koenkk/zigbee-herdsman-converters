@@ -123,7 +123,7 @@ module.exports = [
     {
         zigbeeModel: ['SZ-PIR04N', 'SZ-PIR04N_EU'],
         model: 'SZ-PIR04N',
-        vendor: 'Sercomm Corp.',
+        vendor: 'Sercomm',
         description: 'PIR motion & temperature sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.battery],
         toZigbee: [],
