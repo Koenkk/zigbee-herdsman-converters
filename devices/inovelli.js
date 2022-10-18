@@ -25,25 +25,26 @@ const buttonLookup = {
 };
 
 const ledEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'open_close': 6,
-    'small_to_big': 7,
-    'clear_effect': 255,
+    'Off': 0,
+    'Solid': 1,
+    'Fast Blink': 2,
+    'Slow Blink': 3,
+    'Pulse': 4,
+    'Chase': 5,
+    'Open/Close': 6,
+    'Small to Big': 7,
+    'Aurora': 8,
+    'Clear Notification': 255,
 };
 
 const individualLedEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'clear_effect': 255,
+    'Off': 0,
+    'Solid': 1,
+    'Fast Blink': 2,
+    'Slow Blink': 3,
+    'Pulse': 4,
+    'Chase': 5,
+    'Clear Notification': 255,
 };
 
 const UINT8 = 32;
@@ -225,12 +226,11 @@ const ATTRIBUTES = {
     },
     activePowerReports: {
         ID: 18,
-        dataType: UINT16,
+        dataType: UINT8,
         min: 0,
-        max: 32767,
+        max: 100,
         description:
-      'Power level change that will result in a new power report being sent. The value is a percentage of the previous report.' +
-      '0 = disabled, 1-32767 = 0.1W-3276.7W.',
+      'Percent power level change that will result in a new power report being sent. 0 = Disabled',
     },
     periodicPowerAndEnergyReports: {
         ID: 19,
@@ -256,6 +256,7 @@ const ATTRIBUTES = {
         values: {'Non Neutral': 0, 'Neutral': 1},
         min: 0,
         max: 1,
+        readOnly: true,
         description: 'Set the power type for the device.',
     },
     switchType: {
@@ -267,7 +268,7 @@ const ATTRIBUTES = {
         max: 2,
         description: 'Set the switch configuration.',
     },
-    physicalOnOffDelay: {
+    buttonDelay: {
         ID: 50,
         dataType: UINT8,
         values: {
@@ -285,7 +286,7 @@ const ATTRIBUTES = {
         max: 9,
         description:
       'This will set the button press delay. 0 = no delay (Disables Button Press Events),' +
-      ' 1 = 100ms, 2 = 200ms, 3 = 300ms, etc. up to 900ms. Default = 500ms.',
+      'Default = 500ms.',
     },
     smartBulbMode: {
         ID: 52,
@@ -610,7 +611,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    doubleTapUpEvent: {
+    doubleTapUpForFullBrightness: {
         ID: 53,
         dataType: BOOLEAN,
         min: 0,
@@ -620,12 +621,20 @@ const ATTRIBUTES = {
             'Button Press Event Only': 0,
             'Button Press Event + Set Load to 100%': 1,
         },
+        displayType: 'enum',
+    },
+    relayClick: {
+        ID: 261,
+        dataType: BOOLEAN,
+        min: 0,
+        max: 1,
+        description: 'Audible Click in On/Off mode.',
+        values: {'Enabled (Default)': 1, 'Disabled': 0},
+        displayType: 'enum',
     },
 };
 
 const tzLocal = {};
-
-// Generate toZigbee items from attribute list.
 
 tzLocal.inovelli_vzw31sn_parameters = {
     key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
@@ -644,11 +653,12 @@ tzLocal.inovelli_vzw31sn_parameters = {
             manufacturerCode: INOVELLI,
         });
 
-        meta.state[key] = value;
-
         return {
             state: {
-                [key]: value,
+                [key]:
+          ATTRIBUTES[key].displayType === 'enum' ?
+              ATTRIBUTES[key].values[value] :
+              value,
             },
         };
     },
@@ -807,7 +817,6 @@ const inovelliOnOffConvertSet = async (entity, key, value, meta) => {
  */
 tzLocal.light_onoff_brightness_inovelli = {
     key: ['state', 'brightness', 'brightness_percent'],
-    // options: [exposes.options.transition()], this is a setting on the device
     convertSet: async (entity, key, value, meta) => {
         const {message} = meta;
         const transition = utils.getTransition(entity, 'brightness', meta);
@@ -1039,19 +1048,20 @@ const exposesList = [
     e.power(),
     e.energy(),
     exposes
-        .composite('led_effect', 'led_effect')
+        .composite('ledEffect', 'ledEffect')
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'off',
-                    'solid',
-                    'chase',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'open_close',
-                    'small_to_big',
-                    'clear_effect',
+                    'Off',
+                    'Solid',
+                    'Chase',
+                    'Fast Blink',
+                    'Slow Blink',
+                    'Pulse',
+                    'Open/Close',
+                    'Small to Big',
+                    'Aurora',
+                    'Clear Notification',
                 ])
                 .withDescription('Animation Effect to use for the LEDs'),
         )
@@ -1083,7 +1093,7 @@ const exposesList = [
                 ),
         ),
     exposes
-        .composite('individual_led_effect', 'individual_led_effect')
+        .composite('individualLedEffect', 'individualLedEffect')
         .withFeature(
             exposes
                 .enum('led', ea.SET_STATE, ['1', '2', '3', '4', '5', '6', '7'])
@@ -1092,13 +1102,13 @@ const exposesList = [
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'off',
-                    'solid',
-                    'fast_blink',
-                    'slow_blink',
-                    'pulse',
-                    'chase',
-                    'clear_effect',
+                    'Off',
+                    'Solid',
+                    'Fast Blink',
+                    'Slow Blink',
+                    'Pulse',
+                    'Chase',
+                    'Clear Notification',
                 ])
                 .withDescription('Animation Effect to use for the LED'),
         )
@@ -1146,7 +1156,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         const enumE = exposes
             .enum(
                 key,
-                ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
+                ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
                 Object.keys(ATTRIBUTES[key].values),
             )
             .withDescription(ATTRIBUTES[key].description);
@@ -1159,7 +1169,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
             exposes
                 .binary(
                     key,
-                    ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
+                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -1167,7 +1177,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         );
     } else {
         const numeric = exposes
-            .numeric(key, ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL)
+            .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
             .withValueMin(ATTRIBUTES[key].min)
             .withValueMax(ATTRIBUTES[key].max);
 
@@ -1189,7 +1199,7 @@ module.exports = [
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
         vendor: 'Inovelli',
-        description: 'Inovelli 2-in-1 switch + dimmer',
+        description: 'Inovelli 2-in-1 Switch + Dimmer',
         exposes: exposesList,
         toZigbee: toZigbee,
         fromZigbee: [
@@ -1220,11 +1230,7 @@ module.exports = [
             ]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
 
-            await reporting.activePower(endpoint, {
-                min: 1,
-                max: 3600,
-                change: 1,
-            });
+            await reporting.activePower(endpoint, {min: 1, max: 3600, change: 1});
             await reporting.currentSummDelivered(endpoint, {
                 min: 1,
                 max: 3600,
