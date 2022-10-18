@@ -1206,20 +1206,30 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'genLevelCtrl',
+                'seMetering',
+                'haElectricalMeasurement',
             ]);
-
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
                 'manuSpecificInovelliVZM31SN',
             ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'acPowerMultiplier',
+                'acPowerDivisor',
+            ]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
 
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            await reporting.activePower(endpoint, {
+                min: 1,
+                max: 3600,
+                change: 1,
+            });
+            await reporting.currentSummDelivered(endpoint, {
+                min: 1,
+                max: 3600,
+                change: 0,
+            });
         },
     },
 ];
