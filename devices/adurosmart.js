@@ -63,7 +63,7 @@ module.exports = [
         zigbeeModel: ['AD-DimmableLight3001'],
         model: '81810',
         vendor: 'AduroSmart',
-        description: 'Zigbee Aduro Eria B22 Bulb - Warm White',
+        description: 'Zigbee Aduro Eria B22 bulb - warm white',
         extend: extend.light_onoff_brightness(),
     },
     {
