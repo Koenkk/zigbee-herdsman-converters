@@ -25,26 +25,25 @@ const buttonLookup = {
 };
 
 const ledEffects = {
-    'Off': 0,
-    'Solid': 1,
-    'Fast Blink': 2,
-    'Slow Blink': 3,
-    'Pulse': 4,
-    'Chase': 5,
-    'Open/Close': 6,
-    'Small to Big': 7,
-    'Aurora': 8,
-    'Clear Notification': 255,
+    'off': 0,
+    'solid': 1,
+    'fast_blink': 2,
+    'slow_blink': 3,
+    'pulse': 4,
+    'chase': 5,
+    'open_close': 6,
+    'small_to_big': 7,
+    'clear_effect': 255,
 };
 
 const individualLedEffects = {
-    'Off': 0,
-    'Solid': 1,
-    'Fast Blink': 2,
-    'Slow Blink': 3,
-    'Pulse': 4,
-    'Chase': 5,
-    'Clear Notification': 255,
+    'off': 0,
+    'solid': 1,
+    'fast_blink': 2,
+    'slow_blink': 3,
+    'pulse': 4,
+    'chase': 5,
+    'clear_effect': 255,
 };
 
 const UINT8 = 32;
@@ -636,6 +635,8 @@ const ATTRIBUTES = {
 
 const tzLocal = {};
 
+// Generate toZigbee items from attribute list.
+
 tzLocal.inovelli_vzw31sn_parameters = {
     key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
     convertSet: async (entity, key, value, meta) => {
@@ -1048,20 +1049,19 @@ const exposesList = [
     e.power(),
     e.energy(),
     exposes
-        .composite('ledEffect', 'ledEffect')
+        .composite('led_effect', 'led_effect')
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'Off',
-                    'Solid',
-                    'Chase',
-                    'Fast Blink',
-                    'Slow Blink',
-                    'Pulse',
-                    'Open/Close',
-                    'Small to Big',
-                    'Aurora',
-                    'Clear Notification',
+                    'off',
+                    'solid',
+                    'chase',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'open_close',
+                    'small_to_big',
+                    'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LEDs'),
         )
@@ -1093,7 +1093,7 @@ const exposesList = [
                 ),
         ),
     exposes
-        .composite('individualLedEffect', 'individualLedEffect')
+        .composite('individual_led_effect', 'individual_led_effect')
         .withFeature(
             exposes
                 .enum('led', ea.SET_STATE, ['1', '2', '3', '4', '5', '6', '7'])
@@ -1102,13 +1102,13 @@ const exposesList = [
         .withFeature(
             exposes
                 .enum('effect', ea.SET_STATE, [
-                    'Off',
-                    'Solid',
-                    'Fast Blink',
-                    'Slow Blink',
-                    'Pulse',
-                    'Chase',
-                    'Clear Notification',
+                    'off',
+                    'solid',
+                    'fast_blink',
+                    'slow_blink',
+                    'pulse',
+                    'chase',
+                    'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LED'),
         )
@@ -1199,7 +1199,7 @@ module.exports = [
         zigbeeModel: ['VZM31-SN'],
         model: 'VZM31-SN',
         vendor: 'Inovelli',
-        description: 'Inovelli 2-in-1 Switch + Dimmer',
+        description: 'Inovelli 2-in-1 switch + dimmer',
         exposes: exposesList,
         toZigbee: toZigbee,
         fromZigbee: [
