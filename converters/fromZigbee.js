@@ -7498,10 +7498,19 @@ const converters = {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_gas');
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
+            const resultlookup = {'0': 'checking', '1': 'check_success', '2': 'check_failure', '3': 'others'};
 
             switch (dp) {
             case tuya.dataPoints.state:
-                return {gas: value === 0 ? true : false};
+                return {gas: value === 0};
+            case tuya.dataPoints.selfTest:
+                return {self_test: value};
+            case tuya.dataPoints.selfTestResult:
+                return {self_test_result: resultlookup[value]};
+            case tuya.dataPoints.faultAlarm:
+                return {fault_alarm: value === 1};
+            case tuya.dataPoints.muffling:
+                return {muffling: value};
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:tuya_gas: Unrecognized DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);

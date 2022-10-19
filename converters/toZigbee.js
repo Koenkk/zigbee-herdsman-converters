@@ -4001,6 +4001,18 @@ const converters = {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
     },
+    tuya_gas_muffling: {
+        key: ['muffling'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.muffling, value);
+        },
+    },
+    tuya_gas_self_test: {
+        key: ['self_test'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.selfTest, value);
+        },
+    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {

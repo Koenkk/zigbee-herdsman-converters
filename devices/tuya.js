@@ -781,13 +781,14 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.co()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_u319yc66'}],
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',
         description: 'gas sensor',
         fromZigbee: [fz.tuya_gas],
-        toZigbee: [],
-        exposes: [e.gas()],
+        toZigbee: [tz.tuya_gas_muffling, tz.tuya_gas_self_test],
+        exposes: [e.gas(), e.self_test(), e.self_test_result(), e.muffling()],
     },
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
