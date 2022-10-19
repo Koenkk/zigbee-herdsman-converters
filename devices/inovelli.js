@@ -177,19 +177,19 @@ const ATTRIBUTES = {
         ID: 13,
         dataType: UINT8,
         min: 0,
-        max: 100,
+        max: 255,
         description:
       'Default level for the dimmer when it is turned on at the switch.' +
-      ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
+      ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     defaultLevelRemote: {
         ID: 14,
         dataType: UINT8,
         min: 0,
-        max: 100,
+        max: 255,
         description:
       'Default level for the dimmer when it is turned on from the hub.' +
-      ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
+      ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     stateAfterPowerRestored: {
         ID: 15,
@@ -197,7 +197,7 @@ const ATTRIBUTES = {
         min: 0,
         max: 255,
         description:
-      'The state the switch should return to when power is restored after power failure. 0 = off, 1-100 = level, 101 = previous.',
+      'The state the switch should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
     loadLevelIndicatorTimeout: {
         ID: 17,
@@ -272,6 +272,8 @@ const ATTRIBUTES = {
         dataType: UINT8,
         values: {
             '0ms': 0,
+            '100ms': 1,
+            '200ms': 2,
             '300ms': 3,
             '400ms': 4,
             '500ms': 5,
