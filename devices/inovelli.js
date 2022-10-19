@@ -700,7 +700,7 @@ tzLocal.inovelli_vzw31sn_parameters_readOnly = {
 };
 
 tzLocal.inovelli_led_effect = {
-    key: ['ledEffect'],
+    key: ['led_effect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
@@ -718,7 +718,7 @@ tzLocal.inovelli_led_effect = {
 };
 
 tzLocal.inovelli_individual_led_effect = {
-    key: ['individualLedEffect'],
+    key: ['individual_led_effect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
