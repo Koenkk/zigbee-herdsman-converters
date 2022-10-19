@@ -159,6 +159,7 @@ module.exports = [
         whiteLabel: [{vendor: 'EGLO', model: '12239'}],
     },
     {
+        zigbeeModel: ['EGLO_ZM_TW'],
         fingerprint: [
             {
                 type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
