@@ -8,77 +8,9 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const zosung = require('../lib/zosung');
-const utils = require('../lib/utils');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
-
-const fzLocal = {
-    ZSEUD: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: async (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case 1:
-                    result.state_l1 = value ? 'ON' : 'OFF';
-                    break;
-                case 2:
-                    result.brightness_l1 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                case 7:
-                    result.state_l2 = value ? 'ON' : 'OFF';
-                    break;
-                case 8:
-                    result.brightness_l2 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:ZSEUD: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-};
-
-const tzLocal = {
-    ZSEUD_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 7};
-            const dp = lookup[meta.endpoint_name];
-            await tuya.sendDataPointBool(entity, dp, value === 'ON');
-        },
-    },
-    ZSEUD_brightness: {
-        key: ['brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 2, l2: 8};
-            const dp = lookup[meta.endpoint_name];
-
-            if (key == 'brightness') {
-                // upscale to 1000
-                if (value >= 0 && value <= 254) {
-                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-                    // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-                    if (meta.state[`state_${meta.endpoint_name}`] === 'ON') {
-                        await tuya.sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
-                    } else {
-                        await tuya.sendDataPoints(entity, [tuya.dpValueFromBool(dp-1, true), tuya.dpValueFromIntValue(dp, newValue)],
-                            'dataRequest', 1);
-                    }
-                } else {
-                    throw new Error('Dimmer brightness is out of range 0..254');
-                }
-            } else {
-                meta.logger.warn(`ZSEUD TZ unsupported key=${key} value=${value}`);
-            }
-        },
-    },
-};
 
 const exposesLocal = {
     hour: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
@@ -390,24 +322,6 @@ module.exports = [
                 .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
-        model: 'ZS-EUD',
-        vendor: 'Moes',
-        description: '2 gang light dimmer switch',
-        fromZigbee: [fzLocal.ZSEUD, fz.ignore_basic_report],
-        toZigbee: [tzLocal.ZSEUD_brightness, tzLocal.ZSEUD_state],
-        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
