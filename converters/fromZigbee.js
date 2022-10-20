@@ -7337,23 +7337,6 @@ const converters = {
             return result;
         },
     },
-    tuya_gas: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_gas');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {gas: value === 0 ? true : false};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_gas: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     idlock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],

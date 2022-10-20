@@ -22,7 +22,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx',
     '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3', '_TZ3000_7dndcnnb', '_TZ3000_waho4jtj', '_TZ3000_nmsciidq', '_TZ3000_jtgxgmks',
-    '_TZ3000_rdfh8cfs'];
+    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz'];
 
 const tzLocal = {
     SA12IZL_silence_siren: {
@@ -781,13 +781,23 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.co()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ggev5fsl', '_TZE200_u319yc66']),
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',
         description: 'gas sensor',
-        fromZigbee: [fz.tuya_gas],
-        toZigbee: [],
-        exposes: [e.gas()],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.true0ElseFalse],
+                [8, 'self_test', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
@@ -2004,6 +2014,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
             {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bvu2wnxz'}, /* model: 'TRV06', vendor: 'AVATTO' */
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
@@ -2056,7 +2067,6 @@ module.exports = [
             '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
             '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
             '_TZE200_kds0pmmv', /* model: 'TV01-ZB', vendor: 'Moes' */
-            '_TZE200_bvu2wnxz', /* model: 'TRV06', vendor: 'AVATTO' */
         ]),
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
