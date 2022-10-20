@@ -458,4 +458,12 @@ module.exports = [
             }
         },
     },
+    {
+        zigbeeModel: ['LIGHTIFY Under Cabinet TW'],
+        model: '71150',
+        vendor: 'OSRAM',
+        description: 'Lightify under cabinet tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
 ];
