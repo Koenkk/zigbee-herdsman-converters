@@ -2155,7 +2155,7 @@ module.exports = [
                 [107, null, tuya.valueConverter.TV02SystemMode],
                 [107, 'system_mode', tuya.valueConverterBasic.lookup({'heat': false, 'off': true})],
                 [107, 'heating_stop', tuya.valueConverter.onOff],
-                [115, 'online', tuya.valueConverter.onOff],
+                [115, 'online', tuya.valueConverter.onOffNotStrict],
                 [108, 'schedule_monday', tuya.valueConverter.thermostatScheduleDay],
                 [112, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDay],
                 [109, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDay],
