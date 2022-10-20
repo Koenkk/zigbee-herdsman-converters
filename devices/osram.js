@@ -458,4 +458,12 @@ module.exports = [
             }
         },
     },
+    {
+        zigbeeModel: ['LIGHTIFY Under Cabinet TW'],
+        model: 'LIGHTIFY Under Cabinet TW',
+        vendor: 'OSRAM',
+        description: 'LIGHTIFY Under Cabinet TW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance
+    },
 ];
