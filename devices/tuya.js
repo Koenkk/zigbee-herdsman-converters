@@ -1202,7 +1202,6 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Moes', model: 'MS-105Z'},
             {vendor: 'Lerlink', model: 'X706U'},
-            {vendor: 'Moes', model: 'ZS-EUD_1gang'},
         ],
     },
     {
