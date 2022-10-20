@@ -781,13 +781,23 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.co()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ggev5fsl'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ggev5fsl', '_TZE200_u319yc66']),
         model: 'TS0601_gas_sensor',
         vendor: 'TuYa',
         description: 'gas sensor',
-        fromZigbee: [fz.tuya_gas],
-        toZigbee: [],
-        exposes: [e.gas()],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.true0ElseFalse],
+                [8, 'self_test', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
