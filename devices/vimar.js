@@ -58,13 +58,13 @@ module.exports = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_system_mode
+            tz.thermostat_system_mode,
         ],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
                 .withLocalTemperature()
-                .withSystemMode(['heat', 'cool'])
+                .withSystemMode(['heat', 'cool']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
