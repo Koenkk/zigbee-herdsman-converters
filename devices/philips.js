@@ -813,7 +813,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['LTA001', '4080130P6'],
+        zigbeeModel: ['LTA001', '4080130P6', '4300631P6'],
         model: '9290022169',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
