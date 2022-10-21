@@ -54,7 +54,12 @@ module.exports = [
         vendor: 'Vimar',
         description: 'Vimar IoT Thermostat',
         fromZigbee: [fz.thermostat],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint, tz.thermostat_system_mode],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_system_mode
+        ],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 40, 0.1)
                 .withSetpoint('occupied_cooling_setpoint', 4, 40, 0.1)
