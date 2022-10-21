@@ -62,10 +62,10 @@ module.exports = [
                 .withSystemMode(['heat', 'cool'])
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-           const endpoint = device.getEndpoint(10);
-           const binds = ['genBasic', 'genIdentify', 'hvacThermostat'];
-           await reporting.bind(endpoint, coordinatorEndpoint, binds);
-           await reporting.thermostatTemperature(endpoint);
+            const endpoint = device.getEndpoint(10);
+            const binds = ['genBasic', 'genIdentify', 'hvacThermostat'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
         },
     },
 ];
