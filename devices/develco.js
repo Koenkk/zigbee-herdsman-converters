@@ -535,7 +535,7 @@ module.exports = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
                 dynExposes.push(exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').
                     withValueMin(20).withValueMax(65535));
             }
@@ -544,10 +544,11 @@ module.exports = [
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
             dynExposes.push(e.battery());
-            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
                 dynExposes.push(exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
                     withDescription('Control LED indicator usage.'));
             }
+            dynExposes.push(e.linkquality());
             return dynExposes;
         },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -570,10 +571,10 @@ module.exports = [
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
 
             // zigbee2mqtt#14277 some features are not available on older firmwares
-            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
-            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
             }
         },
