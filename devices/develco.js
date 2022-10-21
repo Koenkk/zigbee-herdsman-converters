@@ -38,7 +38,9 @@ const fwOnEvent = async (type, data, device, options, state) => {
      */
     if (type === 'deviceInterview') { // WARN: also reading on deviceAnnounce hits a timeout!
         try {
-            const data = await device.endpoints[0].read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
+            const data = await device.endpoints[0].read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
+                manufacturerOptions);
+
             if (data.hasOwnProperty('develcoPrimarySwVersion')) {
                 device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
             }
@@ -530,13 +532,24 @@ module.exports = [
         ],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         onEvent: fwOnEvent,
-        exposes: [
-            e.occupancy(), e.battery(), e.battery_low(),
-            e.tamper(), e.temperature(), e.illuminance_lux(),
-            exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
-                withDescription('Control LED indicator usage.'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(20).withValueMax(65535),
-        ],
+        exposes: (device, options) => {
+            const dynExposes = [];
+            dynExposes.push(e.occupancy());
+            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
+                dynExposes.push(exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').
+                    withValueMin(20).withValueMax(65535));
+            }
+            dynExposes.push(e.temperature());
+            dynExposes.push(e.illuminance_lux());
+            dynExposes.push(e.tamper());
+            dynExposes.push(e.battery_low());
+            dynExposes.push(e.battery());
+            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
+                dynExposes.push(exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
+                    withDescription('Control LED indicator usage.'));
+            }
+            return dynExposes;
+        },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
             return {default: 35};
@@ -556,10 +569,13 @@ module.exports = [
             await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
 
-            try {
+            // zigbee2mqtt#14277 some features are not available on older firmwares
+            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            }
+            if (device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
                 await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
-            } catch (error) {/* some reports of timeouts on reading these */}
+            }
         },
     },
     {
@@ -763,8 +779,6 @@ module.exports = [
             exposes.switch().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4117};
-
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
             await reporting.presentValue(ep2, {min: 0});
