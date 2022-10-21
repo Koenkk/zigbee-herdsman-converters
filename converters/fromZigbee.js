@@ -5047,11 +5047,8 @@ const converters = {
                 0x63: 'release_2_and_4', 0x22: 'press_energy_bar',
             };
 
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`PTM 215Z: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
+            const action = lookup.hasOwnProperty(commandID) ? lookup[commandID] : `unknown_${commandID}`;
+            return {action};
         },
     },
     enocean_ptm215ze: {
