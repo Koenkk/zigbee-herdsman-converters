@@ -52,7 +52,7 @@ module.exports = [
         zigbeeModel: ['Thermostat_v0.1'],
         model: '02973.B',
         vendor: 'Vimar',
-        description: 'Vimar IoT Thermostat',
+        description: 'Vimar IoT thermostat',
         fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
