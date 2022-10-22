@@ -120,4 +120,21 @@ module.exports = [
         },
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
+    {
+        zigbeeModel: ['SZ-PIR04N', 'SZ-PIR04N_EU'],
+        model: 'SZ-PIR04N',
+        vendor: 'Sercomm',
+        description: 'PIR motion & temperature sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.illuminance, fz.temperature, fz.battery],
+        toZigbee: [],
+        meta: {battery: {voltageToPercent: '3V_2500_3200'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.illuminance(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.occupancy(), e.tamper(), e.illuminance(), e.temperature(), e.battery(), e.battery_voltage()],
+    },
 ];

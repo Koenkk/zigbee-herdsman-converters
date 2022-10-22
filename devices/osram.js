@@ -227,7 +227,7 @@ module.exports = [
         model: '4052899926110',
         vendor: 'OSRAM',
         description: 'Flex RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666], supportsHS: true, preferHS: true}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [125, 666], supportsHS: true}),
         ota: ota.ledvance,
     },
     {
@@ -457,5 +457,13 @@ module.exports = [
                 device.getEndpoint(25).addBinding('genLevelCtrl', device.getEndpoint(10));
             }
         },
+    },
+    {
+        zigbeeModel: ['LIGHTIFY Under Cabinet TW'],
+        model: '71150',
+        vendor: 'OSRAM',
+        description: 'Lightify under cabinet tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
     },
 ];

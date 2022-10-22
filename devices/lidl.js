@@ -407,6 +407,11 @@ module.exports = [
         description: 'Silvercrest smart button',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
         exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']), e.battery()],
     },
     {
@@ -711,7 +716,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'}],
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'},
+            {modelID: 'TS0502A', manufacturerName: '_TZ3000_5fkufhn1'}],
         model: '14147206L',
         vendor: 'Lidl',
         description: 'Livarno Lux ceiling light',

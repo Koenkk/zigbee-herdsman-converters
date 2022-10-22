@@ -48,7 +48,7 @@ const fzLocal = {
 
             for (const at of elements) {
                 const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
-                if (msg.data[at]) {
+                if (msg.data[at] != null) {
                     result[at_snake] = msg.data[at];
                 }
             }
@@ -104,7 +104,7 @@ const fzLocal = {
             for (const at of elements) {
                 const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 let val = msg.data[at];
-                if (val) {
+                if (val != null) {
                     if (val.hasOwnProperty('type') && val.type === 'Buffer') {
                         val = Buffer.from(val.data);
                     }
@@ -155,7 +155,7 @@ const fzLocal = {
             for (const at of elements) {
                 const at_snake = at.split(/(?=[A-Z])/).join('_').toLowerCase();
                 const val = msg.data[at];
-                if (val) {
+                if (val != null) {
                     result[at_snake] = val; // By default we assign raw value
                     switch (at) {
                     // If we receive a Buffer, transform to human readable text

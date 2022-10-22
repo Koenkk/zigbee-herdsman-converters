@@ -7,6 +7,13 @@ const extend = require('..//lib/extend');
 
 module.exports = [
     {
+        zigbeeModel: ['ZBT-CCTLight-GU100001'],
+        model: '8718801528273',
+        vendor: 'Ynoa',
+        description: 'Smart LED GU10 CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['ZBT-DIMSwitch-D0000'],
         model: '8718801528334',
         vendor: 'Ynoa',

@@ -59,7 +59,7 @@ const fzLocal = {
 
 const tzLocal = {
     CSM300_SETUP: {
-        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
+        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transaction', 'fast_in', 'fast_out'],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
@@ -91,7 +91,7 @@ const tzLocal = {
                     payload = {'presentValue': 89};
                 }
                 break;
-            case 'transation':
+            case 'transaction':
                 if (value === '0ms') {
                     payload = {'presentValue': 90};
                 } else if (value === '200ms') {
@@ -216,8 +216,8 @@ module.exports = [
             exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
             exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
             exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
-            exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
-                .withDescription('Transation interval, default : 400ms'),
+            exposes.enum('transaction', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
+                .withDescription('Transaction interval, default : 400ms'),
             exposes.binary('fast_in', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
             exposes.binary('fast_out', ea.SET, 'enable', 'disable')

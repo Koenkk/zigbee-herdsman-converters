@@ -136,4 +136,13 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['3RTHS24BZ'],
+        model: '3RTHS24BZ',
+        vendor: 'Third Reality',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+    },
 ];

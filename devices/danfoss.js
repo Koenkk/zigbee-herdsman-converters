@@ -17,7 +17,8 @@ module.exports = [
         description: 'Ally thermostat',
         whiteLabel: [{vendor: 'Danfoss', model: '014G2463'}],
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface, fz.danfoss_thermostat],
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, fz.hvac_user_interface,
+            fz.danfoss_thermostat, fz.danfoss_thermostat_setpoint_scheduled],
         toZigbee: [tz.danfoss_thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature, tz.danfoss_mounted_mode_active,
             tz.danfoss_mounted_mode_control, tz.danfoss_thermostat_vertical_orientation, tz.danfoss_algorithm_scale_factor,
             tz.danfoss_heat_available, tz.danfoss_heat_required, tz.danfoss_day_of_week, tz.danfoss_trigger_time,
@@ -26,7 +27,8 @@ module.exports = [
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.danfoss_load_balancing_enable, tz.danfoss_load_room_mean,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule, tz.thermostat_programming_operation_mode,
             tz.danfoss_window_open_feature, tz.danfoss_preheat_status, tz.danfoss_adaptation_status, tz.danfoss_adaptation_settings,
-            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset],
+            tz.danfoss_adaptation_control, tz.danfoss_regulation_setpoint_offset,
+            tz.danfoss_thermostat_occupied_heating_setpoint_scheduled],
         exposes: [e.battery(), e.keypad_lockout(), e.programming_operation_mode(),
             exposes.binary('mounted_mode_active', ea.STATE_GET, true, false)
                 .withDescription('Is the unit in mounting mode. This is set to `false` for mounted (already on ' +
@@ -37,7 +39,7 @@ module.exports = [
                 .withDescription('Thermostat Orientation. This is important for the PID in how it assesses temperature. ' +
                     '`false` Horizontal or `true` Vertical'),
             exposes.binary('viewing_direction', ea.ALL, true, false)
-                .withDescription('Viewing/Display Direction. `false` Horizontal or `true` Vertical'),
+                .withDescription('Viewing/display direction, `false` normal or `true` upside-down'),
             exposes.binary('heat_available', ea.ALL, true, false)
                 .withDescription('Not clear how this affects operation. However, it would appear that the device does not execute any ' +
                     'motor functions if this is set to false. This may be a means to conserve battery during periods that the heating ' +
@@ -48,6 +50,11 @@ module.exports = [
                 .withDescription('Values observed are `0` (manual), `1` (schedule) or `2` (externally)'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 35, 0.5).withLocalTemperature().withPiHeatingDemand()
                 .withSystemMode(['heat']).withRunningState(['idle', 'heat'], ea.STATE),
+            exposes.numeric('occupied_heating_setpoint_scheduled', ea.ALL)
+                .withValueMin(5).withValueMax(35).withValueStep(0.5).withUnit('°C')
+                .withDescription('Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite ' +
+                  'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
+                  '(more suitable for scheduled changes)'),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
                 .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
                 '5 minutes and 0.1 degrees difference. Resets every 35 minutes to standard. If `radiator_covered` is `false`: ' +
