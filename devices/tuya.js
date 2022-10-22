@@ -2058,16 +2058,16 @@ module.exports = [
                 .withFeature(exposes.text('holidays_schedule', ea.STATE_SET))],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hue3yfsn'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_e9ba97vf'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_husqqvux'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lnbfnyxd'}, /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lllliz3p'}, /* model: 'TV02-Zigbee', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_mudxchsu'}, /* model: 'TV05-ZG curve', vendor: 'TuYa' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_7yoranx2'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kds0pmmv'}, /* model: 'TV01-ZB', vendor: 'Moes' */
-        ],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_hue3yfsn', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
+            '_TZE200_e9ba97vf', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_husqqvux', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+            '_TZE200_lnbfnyxd', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+            '_TZE200_lllliz3p', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
+            '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
+            '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
+            '_TZE200_kds0pmmv', /* model: 'TV01-ZB', vendor: 'Moes' */
+        ]),
         model: 'TV02-Zigbee',
         vendor: 'TuYa',
         description: 'Thermostat radiator valve',
@@ -2078,30 +2078,49 @@ module.exports = [
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
         ],
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.tvtwo_thermostat],
-        toZigbee: [tz.tvtwo_thermostat],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
         onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
         exposes: [
-            e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(0).withValueMax(30),
-            e.comfort_temperature().withValueMin(0).withValueMax(30), e.eco_temperature().withValueMin(0).withValueMax(30),
-            exposes.climate().withPreset(['auto', 'manual', 'holiday']).withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET),
+            e.battery(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(5).withValueMax(30),
+            e.comfort_temperature().withValueMin(5).withValueMax(30), e.eco_temperature().withValueMin(5).withValueMax(30),
+            exposes.climate().withSystemMode(['off', 'heat'], ea.STATE_SET, 'When switched to the "off" mode, the device will display ' +
+                '"HS" and the valve will be fully closed. Press the pair button to cancel or switch back to "heat" mode. Battery life ' +
+                'can be prolonged by switching the heating off. After switching to `heat` mode, `preset` will be reset to `auto` and ' +
+                'after changing `preset` to `manual` temperature setpoint will be 20 degrees.').withPreset(['auto', 'manual', 'holiday'],
+                '`auto` uses schedule properties, check them. `manual` allows you to control the device, `holiday` uses ' +
+                '`holiday_start_stop` and `holiday_temperature` properties.').withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
                     'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When Anti-Freezing function'+
                     ' is activated, the temperature in the house is kept at 8 °C, the device display "AF".press the '+
                     'pair button to cancel.'),
-            exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Battery life can be prolonged'+
-                    ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
-                    'heating stop, the device display "HS", press the pair button to cancel.'),
-            e.holiday_temperature(),
-            exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode( ⛱ ) will '+
-                    'automatically start at the set time starting point and run the holiday temperature.'),
-            // exposes.enum('working_day', ea.STATE_SET, ['0', '1', '2', '3']),
-            exposes.composite('schedule')/* .withFeature(exposes.text('week_schedule_programming', ea.STATE_SET)) */
-                .withDescription('week_schedule').withDescription('Auto Mode ⏱ - In this mode, '+
-                    'the device executes a preset week programming temperature time and temperature. '),
+            exposes.binary('heating_stop', ea.STATE_SET, 'ON', 'OFF').withDescription('Same as `system_mode`. Left for compatibility.'),
+            exposes.numeric('holiday_temperature', ea.STATE_SET).withUnit('°C').withDescription('Holiday temperature')
+                .withValueMin(5).withValueMax(30),
+            exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode will automatically start ' +
+                'at the set time starting point and run the holiday temperature. Can be defined in the following format: ' +
+                '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes`. ' +
+                'For example: `2022/10/01 16:30 | 2022/10/21 18:10`. After the end of holiday mode, it switches to "auto" ' +
+                'mode and uses schedule.'),
+            exposes.enum('working_day', ea.STATE_SET, ['mon_sun', 'mon_fri+sat+sun', 'separate']).withDescription('`mon_sun` ' +
+                '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
+                'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
+                '- schedule for each day is defined separately.'),
+            exposes.composite('schedule', 'schedule').withFeature(exposes.enum('week_day', ea.SET, ['monday', 'tuesday',
+                'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.SET))
+                .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
+                'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
+                'property. Each day can contain up to 10 segments. At least 1 segment should be defined. Different count of segments ' +
+                'can be defined for each day, e.g., 3 segments for Monday, 5 segments for Thursday, etc. It should be defined in the ' +
+                'following format: `hours:minutes/temperature`. Minutes can be only tens, i.e., 00, 10, 20, 30, 40, 50. Segments should ' +
+                'be divided by space symbol. Each day should end with the last segment of 24:00. Examples: `04:00/20 08:30/22 10:10/18 ' +
+                '18:40/24 22:50/19.5`; `06:00/21.5 17:20/26 24:00/18`. The temperature will be set from the beginning/start of one ' +
+                'period and until the next period, e.g., `04:00/20 24:00/22` means that from 00:00 to 04:00 temperature will be 20 ' +
+                'degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
             exposes.text('schedule_monday', ea.STATE),
             exposes.text('schedule_tuesday', ea.STATE),
             exposes.text('schedule_wednesday', ea.STATE),
@@ -2109,9 +2128,44 @@ module.exports = [
             exposes.text('schedule_friday', ea.STATE),
             exposes.text('schedule_saturday', ea.STATE),
             exposes.text('schedule_sunday', ea.STATE),
-            exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Is the device online'),
+            exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn on this property to poll current data from the ' +
+                'device. It can be used to periodically fetch a new local temperature since the device doesn\'t update itself. ' +
+                'Setting this property doesn\'t turn on the display.'),
             exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [2, 'preset', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'manual': tuya.enum(1), 'holiday': tuya.enum(3)})],
+                [8, 'open_window', tuya.valueConverter.onOff],
+                [10, 'frost_protection', tuya.valueConverter.onOff],
+                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration],
+                [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': tuya.enum(0), 'mon_fri+sat+sun': tuya.enum(1),
+                    'separate': tuya.enum(2)})],
+                [32, 'holiday_temperature', tuya.valueConverter.divideBy10],
+                [35, 'battery_low', tuya.valueConverter.true0ElseFalse],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [45, 'error_status', tuya.valueConverter.raw],
+                [46, 'holiday_start_stop', tuya.valueConverter.thermostatHolidayStartStop],
+                [101, 'boost_timeset_countdown', tuya.valueConverter.raw],
+                [102, 'open_window_temperature', tuya.valueConverter.divideBy10],
+                [104, 'comfort_temperature', tuya.valueConverter.divideBy10],
+                [105, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [106, 'schedule', tuya.valueConverter.thermostatScheduleDay],
+                [107, null, tuya.valueConverter.TV02SystemMode],
+                [107, 'system_mode', tuya.valueConverterBasic.lookup({'heat': false, 'off': true})],
+                [107, 'heating_stop', tuya.valueConverter.onOff],
+                [115, 'online', tuya.valueConverter.onOffNotStrict],
+                [108, 'schedule_monday', tuya.valueConverter.thermostatScheduleDay],
+                [112, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDay],
+                [109, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDay],
+                [113, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDay],
+                [110, 'schedule_friday', tuya.valueConverter.thermostatScheduleDay],
+                [114, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDay],
+                [111, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDay],
+            ],
+        },
     },
     {
         fingerprint: [
