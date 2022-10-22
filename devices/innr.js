@@ -160,6 +160,14 @@ module.exports = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 279 T'],
+        model: 'RB 279 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['RB 285 C'],
         model: 'RB 285 C',
         vendor: 'Innr',

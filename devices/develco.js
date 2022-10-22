@@ -25,6 +25,33 @@ const develcoLedControlMap = {
     0xFF: 'both',
 };
 
+
+const fwOnEvent = async (type, data, device, options, state) => {
+    /**
+     * Develco devices have a manufacturer specific field on genBasic
+     *   for sw and hw versions.
+     *
+     * We read those during deviceInterview
+     *   so that this information is usable during configure() calls
+     *   to skip some features on older devices that might cause
+     *   timeouts and other issues.
+     */
+    if (type === 'deviceInterview') { // WARN: also reading on deviceAnnounce hits a timeout!
+        try {
+            const data = await device.endpoints[0].read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
+                manufacturerOptions);
+
+            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+            }
+
+            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+            }
+        } catch (error) {/* catch timeouts of sleeping devices */}
+    }
+};
+
 // develco specific convertors
 const develco = {
     fz: {
@@ -81,24 +108,6 @@ const develco = {
                 if (msg.data.hasOwnProperty('status')) {
                     result['battery_low'] = (msg.data.status & 2) > 0;
                     result['check_meter'] = (msg.data.status & 1) > 0;
-                }
-
-                return result;
-            },
-        },
-        firmware_version: {
-            cluster: 'genBasic',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                const result = {};
-                if (msg.data.hasOwnProperty('develcoPrimarySwVersion')) {
-                    const firmware = msg.data.develcoPrimarySwVersion.join('.');
-                    result.current_firmware = firmware;
-                    meta.device.softwareBuildID = firmware;
-                }
-
-                if (msg.data.hasOwnProperty('develcoPrimaryHwVersion')) {
-                    meta.device.hardwareVersion = msg.data.develcoPrimaryHwVersion.join('.');
                 }
 
                 return result;
@@ -374,12 +383,11 @@ module.exports = [
         model: 'EMIZB-132',
         vendor: 'Develco',
         description: 'Wattle AMS HAN power-meter sensor',
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.firmware_version],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement],
         toZigbee: [tz.EMIZB_132_mode],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
-            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
 
             try {
@@ -402,6 +410,7 @@ module.exports = [
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c()],
         onEvent: async (type, data, device) => {
+            fwOnEvent(type, data, device);
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
                 // Device sends wrong divisior (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
@@ -415,16 +424,16 @@ module.exports = [
         vendor: 'Develco',
         description: 'Smoke detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            develco.fz.firmware_version, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+            fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
+        onEvent: fwOnEvent,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -449,15 +458,15 @@ module.exports = [
         vendor: 'Develco',
         description: 'Fire detector with siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
-            develco.fz.firmware_version, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+            fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        onEvent: fwOnEvent,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic', 'genBinaryInput']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', ['develcoPrimarySwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('genBinaryInput', ['reliability', 'statusFlags']);
             await endpoint.read('ssIasWd', ['maxDuration']);
@@ -519,39 +528,55 @@ module.exports = [
         description: 'Motion sensor',
         fromZigbee: [
             fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
-            develco.fz.led_control, develco.fz.ias_occupancy_timeout, develco.fz.firmware_version,
+            develco.fz.led_control, develco.fz.ias_occupancy_timeout,
         ],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
-        exposes: [
-            e.occupancy(), e.battery(), e.battery_low(),
-            e.tamper(), e.temperature(), e.illuminance_lux(),
-            exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
-                withDescription('Control LED indicator usage.'),
-            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(20).withValueMax(65535),
-        ],
+        onEvent: fwOnEvent,
+        exposes: (device, options) => {
+            const dynExposes = [];
+            dynExposes.push(e.occupancy());
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
+                dynExposes.push(exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').
+                    withValueMin(20).withValueMax(65535));
+            }
+            dynExposes.push(e.temperature());
+            dynExposes.push(e.illuminance_lux());
+            dynExposes.push(e.tamper());
+            dynExposes.push(e.battery_low());
+            dynExposes.push(e.battery());
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
+                dynExposes.push(exposes.enum('led_control', ea.ALL, ['off', 'fault_only', 'motion_only', 'both']).
+                    withDescription('Control LED indicator usage.'));
+            }
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
             return {default: 35};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint35 = device.getEndpoint(35);
-            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
-            try {
-                await endpoint35.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
-                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
-                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
-            } catch (error) {/* some reports of timeouts on reading these */}
+            const endpoint39 = device.getEndpoint(39);
+            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+            await reporting.illuminance(endpoint39,
+                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500});
 
             const endpoint38 = device.getEndpoint(38);
             await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint38,
                 {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 100});
 
-            const endpoint39 = device.getEndpoint(39);
-            await reporting.bind(endpoint39, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint39,
-                {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 500});
+            const endpoint35 = device.getEndpoint(35);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+
+            // zigbee2mqtt#14277 some features are not available on older firmwares
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
+                await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
+            }
+            if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 4) {
+                await endpoint35.read('genBasic', ['develcoLedControl'], manufacturerOptions);
+            }
         },
     },
     {
@@ -676,14 +701,14 @@ module.exports = [
         model: 'SIRZB-110',
         vendor: 'Develco',
         description: 'Customizable siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, develco.fz.firmware_version, fz.ias_siren],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
+        onEvent: fwOnEvent,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(43);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone', 'ssIasWd', 'genBasic']);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
 
@@ -742,8 +767,9 @@ module.exports = [
         model: 'IOMZB-110',
         vendor: 'Develco',
         description: 'IO module',
-        fromZigbee: [fz.on_off, develco.fz.input, develco.fz.firmware_version],
+        fromZigbee: [fz.on_off, develco.fz.input],
         toZigbee: [tz.on_off, develco.tz.input],
+        onEvent: fwOnEvent,
         meta: {multiEndpoint: true},
         exposes: [
             exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
@@ -754,12 +780,9 @@ module.exports = [
             exposes.switch().withState('state', true, 'On/off state of switch 2').withEndpoint('l12'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const options = {manufacturerCode: 4117};
-
             const ep2 = device.getEndpoint(112);
             await reporting.bind(ep2, coordinatorEndpoint, ['genBinaryInput', 'genBasic']);
             await reporting.presentValue(ep2, {min: 0});
-            await ep2.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], options);
 
             const ep3 = device.getEndpoint(113);
             await reporting.bind(ep3, coordinatorEndpoint, ['genBinaryInput']);

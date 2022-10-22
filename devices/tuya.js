@@ -2014,7 +2014,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
             {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bvu2wnxz'}, /* model: 'TRV06', vendor: 'AVATTO' */
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
@@ -2063,6 +2062,7 @@ module.exports = [
             '_TZE200_hue3yfsn', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
             '_TZE200_e9ba97vf', /* model: 'TV01-ZB', vendor: 'Moes' */
             '_TZE200_husqqvux', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
+            '_TZE200_lnbfnyxd', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
             '_TZE200_lllliz3p', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
             '_TZE200_mudxchsu', /* model: 'TV05-ZG curve', vendor: 'TuYa' */
             '_TZE200_7yoranx2', /* model: 'TV01-ZB', vendor: 'Moes' */
