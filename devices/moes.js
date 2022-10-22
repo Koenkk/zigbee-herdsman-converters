@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
@@ -32,7 +32,7 @@ module.exports = [
             exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
-            .withDescription('Plug LED indicator mode'), e.child_lock()],
+                .withDescription('Plug LED indicator mode'), e.child_lock()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -52,8 +52,8 @@ module.exports = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior,tz.ts011f_plug_indicator_mod]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, tz.ts011f_plug_indicator_mode]),
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
         extend: extend.switch(),
         exposes: [e.switch(),
             exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
