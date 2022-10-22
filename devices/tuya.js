@@ -2014,7 +2014,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
             {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bvu2wnxz'}, /* model: 'TRV06', vendor: 'AVATTO' */
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
