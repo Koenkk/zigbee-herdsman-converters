@@ -76,6 +76,18 @@ module.exports = [
         meta: {enhancedHue: (entity) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
     },
     {
+        zigbeeModel: ['GU10 white+color'],
+        model: '404005C',
+        vendor: 'Müller Licht',
+        description: 'Tint LED bulb GU10 lumen, dimmable, color, opal white',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}).toZigbee
+            .concat([tz.tint_scene]),
+        // GU10 bulb does not support enhancedHue,
+        // we can identify these based on the presense of haDiagnostic input cluster
+        meta: {enhancedHue: (entity) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
+    },
+    {
         zigbeeModel: ['ZBT-ColorTemperature'],
         model: '404006/404008/404004',
         vendor: 'Müller Licht',
