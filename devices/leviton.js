@@ -100,11 +100,7 @@ module.exports = [
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
             exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"'),
-            exposes.numeric('ballast_physical_minimum_level', ea.STATE_GET).withValueMin(0).withValueMax(255)
-                .withDescription('Specifies the minimum light output the ballast can achieve.'),
-            exposes.numeric('ballast_physical_maximum_level', ea.STATE_GET).withValueMin(0).withValueMax(255)
-                .withDescription('Specifies the maximum light output the ballast can achieve.')],
+                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
