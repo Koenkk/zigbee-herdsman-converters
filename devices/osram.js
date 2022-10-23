@@ -403,13 +403,13 @@ module.exports = [
         model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
-        fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
+        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee, fz.command_toggle, fz.command_move, fz.command_stop],
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
+        exposes: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).exposes,
+            e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
-            await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
             await reporting.bind(device.getEndpoint(25), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
         },
         onEvent: async (type, data, device) => {
@@ -443,10 +443,10 @@ module.exports = [
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
-        fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
+        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee, fz.command_toggle, fz.command_move, fz.command_stop],
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2'),
-            e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
+        exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+            e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11, 's1': 25};
