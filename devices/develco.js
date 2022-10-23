@@ -31,24 +31,28 @@ const fwOnEvent = async (type, data, device, options, state) => {
      * Develco devices have a manufacturer specific field on genBasic
      *   for sw and hw versions.
      *
-     * We read those during deviceInterview
+     * We read those during deviceInterview and deviceAnnounce
      *   so that this information is usable during configure() calls
      *   to skip some features on older devices that might cause
      *   timeouts and other issues.
      */
-    if (type === 'deviceInterview') { // WARN: also reading on deviceAnnounce hits a timeout!
-        try {
-            const data = await device.endpoints[0].read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
-                manufacturerOptions);
+    if (['deviceInterview', 'deviceAnnounce'].includes(type) && device && device.interviewCompleted) {
+        for (const ep of device.endpoints) {
+            if (ep.getClusterAttributeValue('genBasic', 'modelId')) {
+                try {
+                    const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
+                        manufacturerOptions);
 
-            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
-                device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
-            }
+                    if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                        device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+                    }
 
-            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
-                device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                    if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                        device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                    }
+                } catch (error) {/* catch timeouts of sleeping devices */}
             }
-        } catch (error) {/* catch timeouts of sleeping devices */}
+        }
     }
 };
 
