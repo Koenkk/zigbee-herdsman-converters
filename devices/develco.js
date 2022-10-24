@@ -25,35 +25,29 @@ const develcoLedControlMap = {
     0xFF: 'both',
 };
 
-
-const fwOnEvent = async (type, data, device, options, state) => {
-    /**
-     * Develco devices have a manufacturer specific field on genBasic
-     *   for sw and hw versions.
-     *
-     * We read those during deviceInterview
-     *   so that this information is usable during configure() calls
-     *   to skip some features on older devices that might cause
-     *   timeouts and other issues.
-     */
-    if (type === 'deviceInterview') { // WARN: also reading on deviceAnnounce hits a timeout!
-        try {
-            const data = await device.endpoints[0].read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
-                manufacturerOptions);
-
-            if (data.hasOwnProperty('develcoPrimarySwVersion')) {
-                device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
-            }
-
-            if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
-                device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
-            }
-        } catch (error) {/* catch timeouts of sleeping devices */}
-    }
-};
-
 // develco specific convertors
 const develco = {
+    configure: {
+        read_sw_hw_version: async (device, logger) => {
+            for (const ep of device.endpoints) {
+                if (ep.supportsInputCluster('genBasic')) {
+                    try {
+                        const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
+                            manufacturerOptions);
+
+                        if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                            device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+                        }
+
+                        if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                            device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                        }
+                    } catch (error) {/* catch timeouts of sleeping devices */}
+                    break;
+                }
+            }
+        },
+    },
     fz: {
         // SPLZB-134 and SPLZB-131 reports strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
@@ -406,11 +400,11 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             await reporting.currentSummReceived(endpoint);
+            await develco.configure.read_sw_hw_version(device, logger);
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c()],
         onEvent: async (type, data, device) => {
-            fwOnEvent(type, data, device);
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'seMetering' && data.data['divisor']) {
                 // Device sends wrong divisior (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
@@ -427,7 +421,6 @@ module.exports = [
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
-        onEvent: fwOnEvent,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
@@ -441,6 +434,8 @@ module.exports = [
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
         endpoint: (device) => {
             return {default: 35};
@@ -461,7 +456,6 @@ module.exports = [
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        onEvent: fwOnEvent,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(35);
 
@@ -474,6 +468,8 @@ module.exports = [
             const endpoint2 = device.getEndpoint(38);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.temperature(endpoint2, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
         endpoint: (device) => {
             return {default: 35};
@@ -501,6 +497,8 @@ module.exports = [
             await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
             await reporting.batteryVoltage(endpoint35);
             await reporting.temperature(endpoint38);
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
     },
     {
@@ -531,7 +529,6 @@ module.exports = [
             develco.fz.led_control, develco.fz.ias_occupancy_timeout,
         ],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
-        onEvent: fwOnEvent,
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
@@ -571,6 +568,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint35, {min: constants.repInterval.HOUR, max: 43200, change: 100});
 
             // zigbee2mqtt#14277 some features are not available on older firmwares
+            await develco.configure.read_sw_hw_version(device, logger);
             if (device && device.softwareBuildID && device.softwareBuildID.split('.')[0] >= 3) {
                 await endpoint35.read('ssIasZone', ['develcoAlarmOffDelay'], manufacturerOptions);
             }
@@ -694,6 +692,8 @@ module.exports = [
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
             await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
     },
     {
@@ -703,7 +703,6 @@ module.exports = [
         description: 'Customizable siren',
         fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
-        onEvent: fwOnEvent,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(43);
@@ -714,6 +713,8 @@ module.exports = [
 
             const endpoint2 = device.getEndpoint(1);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
         endpoint: (device) => {
             return {default: 43};
@@ -769,7 +770,6 @@ module.exports = [
         description: 'IO module',
         fromZigbee: [fz.on_off, develco.fz.input],
         toZigbee: [tz.on_off, develco.tz.input],
-        onEvent: fwOnEvent,
         meta: {multiEndpoint: true},
         exposes: [
             exposes.binary('input', ea.STATE_GET, true, false).withEndpoint('l1').withDescription('State of input 1'),
@@ -803,6 +803,8 @@ module.exports = [
             const ep7 = device.getEndpoint(117);
             await reporting.bind(ep7, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep7);
+
+            await develco.configure.read_sw_hw_version(device, logger);
         },
 
         endpoint: (device) => {
