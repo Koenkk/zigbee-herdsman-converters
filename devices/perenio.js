@@ -247,7 +247,6 @@ module.exports = [
         vendor: 'Perenio',
         description: 'Flood alarm device',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
-        meta: {battery: {dontDividePercentage: true}},
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
