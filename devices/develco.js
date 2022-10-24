@@ -29,28 +29,23 @@ const develcoLedControlMap = {
 const develco = {
     configure: {
         read_sw_hw_version: async (device, logger) => {
-	    logger.warn("MOSZB-140 develcoConfigureReadVersion: BEGIN");
-	    for (const ep of device.endpoints) {
-		logger.warn(`MOSZB-140 develcoConfigureReadVersion: checking ep ${ep.ID} for genBasic cluster '${ep.supportsInputCluster('genBasic')}' ...`);
-		if (ep.supportsInputCluster('genBasic')) {
-		    logger.warn(`MOSZB-140 develcoConfigureReadVersion: read genBasic.develcoPrimarySwVersion and genBasic.develcoPrimaryHwVersion from ${ep.ID} ...`);
-		    try {
-			const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
-			    manufacturerOptions);
-			logger.warn(`MOSZB-140 develcoConfigureReadVersion: readResponse ${JSON.stringify(data)}`);
+            for (const ep of device.endpoints) {
+                if (ep.supportsInputCluster('genBasic')) {
+                    try {
+                        const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'],
+                            manufacturerOptions);
 
-			if (data.hasOwnProperty('develcoPrimarySwVersion')) {
-			    device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
-			}
+                        if (data.hasOwnProperty('develcoPrimarySwVersion')) {
+                            device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+                        }
 
-			if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
-			    device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
-			}
-		    } catch (error) {/* catch timeouts of sleeping devices */}
-		    break;
-		}
-	    }
-	    logger.warn("MOSZB-140 develcoConfigureReadVersion: END");
+                        if (data.hasOwnProperty('develcoPrimaryHwVersion')) {
+                            device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                        }
+                    } catch (error) {/* catch timeouts of sleeping devices */}
+                    break;
+                }
+            }
         },
     },
     fz: {
