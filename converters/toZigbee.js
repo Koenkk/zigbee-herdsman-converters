@@ -4261,6 +4261,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4000: {value, type: 0x30}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
