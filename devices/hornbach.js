@@ -20,7 +20,7 @@ module.exports = [
         model: '10011723',
         vendor: 'HORNBACH',
         description: 'FLAIR Viyu Smart LED bulb CCT E27',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['VIYU-C35-470-CCT-10011722'],
