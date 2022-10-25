@@ -5449,8 +5449,8 @@ const converters = {
     },
     nous_lcd_temperature_humidity_sensor: {
         key: [
-            'min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert',
-            'min_humidity', 'max_humidity', 'report_interval',
+            'min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert', 'temperature_report_interval',
+            'min_humidity', 'max_humidity', 'humidity_sensitivity', 'humidity_report_interval',
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
@@ -5466,14 +5466,20 @@ const converters = {
             case 'temperature_sensitivity':
                 await tuya.sendDataPointValue(entity, tuya.dataPoints.nousTempSensitivity, Math.round(value * 10));
                 break;
+            case 'humidity_sensitivity':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousHumiSensitivity, value);
+                break;
             case 'min_humidity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinHumi, Math.round(value * 10));
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMinHumi, Math.round(value));
                 break;
             case 'max_humidity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxHumi, Math.round(value * 10));
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousMaxHumi, Math.round(value));
                 break;
-            case 'report_interval':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousReportInterval, value);
+            case 'temperature_report_interval':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousTempReportInterval, value);
+                break;
+            case 'humidity_report_interval':
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.nousHumiReportInterval, value);
                 break;
             default: // Unknown key
                 meta.logger.warn(`Unhandled key ${key}`);
