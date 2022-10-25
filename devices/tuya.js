@@ -3393,8 +3393,8 @@ module.exports = [
         },
         exposes: [
             e.temperature(), e.humidity(), e.battery(),
-            exposes.numeric('report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withValueStep(5)
-                .withDescription('Report interval'),
+            exposes.numeric('temperature_report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withValueStep(5)
+                .withDescription('Temperature Report interval'),
             exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
