@@ -1961,10 +1961,10 @@ const converters = {
                     result.min_temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
                 case tuya.dataPoints.nousMaxHumi:
-                    result.max_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.max_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousMinHumi:
-                    result.min_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.min_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousTempAlarm:
                     result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
@@ -1975,8 +1975,14 @@ const converters = {
                 case tuya.dataPoints.nousTempSensitivity:
                     result.temperature_sensitivity = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
-                case tuya.dataPoints.nousReportInterval:
-                    result.report_interval = value;
+                case tuya.dataPoints.nousHumiSensitivity:
+                    result.humidity_sensitivity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousTempReportInterval:
+                    result.temperature_report_interval = value;
+                    break;
+                case tuya.dataPoints.nousHumiReportInterval:
+                    result.humidity_report_interval = value;
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
