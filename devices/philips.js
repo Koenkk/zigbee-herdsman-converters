@@ -2862,4 +2862,11 @@ module.exports = [
         description: 'Hue white ambiance Buckram double spotlight with Bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['4090131P9'],
+        model: '8718696174548',
+        vendor: 'Philips',
+        description: ' Hue Sana wall lamp with Bluetooth white',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
 ];
