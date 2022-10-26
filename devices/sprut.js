@@ -273,10 +273,10 @@ module.exports = [
                 .withDescription('The minimum noise level at which the detector will work (default: 50)'),
             e.enum('co2_autocalibration', ea.ALL, switchActionValues)
                 .withDescription('Automatic calibration of the CO2 sensor. If ON, the CO2 sensor will automatically calibrate '+
-                    'every 7 days. (MH-Z19B)'),
+                    'every 7 days. (MH-Z19B sensor)'),
             e.enum('co2_manual_calibration', ea.ALL, switchActionValues)
                 .withDescription('Ventilate the room for 20 minutes, turn on manual calibration, and turn it off after one second. '+
-                    'After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed. (MH-Z19B)'),
+                    'After about 5 minutes the CO2 sensor will show 400ppm. Calibration completed. (MH-Z19B sensor)'),
             e.enum('th_heater', ea.ALL, switchActionValues)
                 .withDescription('Turn on when working in conditions of high humidity (more than 70 %, RH) or condensation, '+
                     'if the sensor shows 0 or 100 %.'),
