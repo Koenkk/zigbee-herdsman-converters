@@ -1588,12 +1588,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            if (msg.data.hasOwnProperty('physicalMinLevel')) {
-                result['ballast_physical_minimum_level'] = msg.data.physicalMinLevel;
-            }
-            if (msg.data.hasOwnProperty('physicalMaxLevel')) {
-                result['ballast_physical_maximum_level'] = msg.data.physicalMaxLevel;
-            }
             if (msg.data.hasOwnProperty('ballastStatus')) {
                 const ballastStatus = msg.data.ballastStatus;
                 result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;

@@ -578,8 +578,6 @@ const converters = {
     },
     ballast_config: {
         key: ['ballast_config',
-            'ballast_physical_minimum_level',
-            'ballast_physical_maximum_level',
             'ballast_minimum_level',
             'ballast_maximum_level',
             'ballast_power_on_level'],
@@ -607,8 +605,6 @@ const converters = {
         convertGet: async (entity, key, meta) => {
             let result = {};
             for (const attrName of [
-                'physical_min_level',
-                'physical_max_level',
                 'ballast_status',
                 'min_level',
                 'max_level',
