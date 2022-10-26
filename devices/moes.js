@@ -431,8 +431,8 @@ module.exports = [
         model: 'ZS-EUB_2gang',
         vendor: 'Moes',
         description: 'Wall light switch (2 gang)',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_state, tz.tuya_switch_type, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, tz.tuya_switch_state, fz.tuya_switch_type, fz.tuya_backlight_mode]),
         exposes: [
             e.switch().withEndpoint('left').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('right').setAccess('state', ea.STATE_SET),
