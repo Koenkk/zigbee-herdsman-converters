@@ -451,9 +451,9 @@ module.exports = [
             e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
-             return {'l1': 10, 'l2': 11, 's1': 25};
-         },
-         meta: {multiEndpoint: true},
+            return {'l1': 10, 'l2': 11, 's1': 25};
+        },
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
