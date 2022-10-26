@@ -434,8 +434,8 @@ module.exports = [
         toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
         exposes: [
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
+            e.switch().withEndpoint('left').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('right').setAccess('state', ea.STATE_SET),
             exposes.presets.power_on_behavior(),
             exposes.presets.switch_type_2(),
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
