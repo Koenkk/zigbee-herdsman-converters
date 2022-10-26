@@ -47,7 +47,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_zmy1waw6'},
+        fingerprint: [{modelID: 'TS0121', manufacturerName: '_TYZB01_iuepbmpv'}, {
+            modelID: 'TS011F',
+            manufacturerName: '_TZ3000_zmy1waw6'
+        },
             {modelID: 'TS011F', manufacturerName: '_TZ3000_bkfe0bab'}],
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
@@ -171,7 +174,10 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}, {modelID: 'TS0601', manufacturerName: '_TZE200_tviaymwx'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_amp6tsvy'}, {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE200_tviaymwx'
+        }],
         model: 'ZTS-EU_1gang',
         vendor: 'Moes',
         description: 'Wall touch light switch (1 gang)',
@@ -278,7 +284,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}, {modelID: 'TS0222', manufacturerName: '_TYZB01_ftdkanlj'}],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_kvwjujy9'}, {
+            modelID: 'TS0222',
+            manufacturerName: '_TYZB01_ftdkanlj'
+        }],
         model: 'ZSS-ZK-THL',
         vendor: 'Moes',
         description: 'Smart temperature and humidity meter with display',
@@ -308,7 +317,7 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
-                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
+                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
                     'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                     'PROGRAMMING MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                     'HOLIDAY MODE ⛱ - In this mode, for example, the vacation mode is set for 10 days and the temperature is set' +
@@ -354,7 +363,10 @@ module.exports = [
         ]),
         meta: {applyRedFix: true, enhancedHue: false},
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}).exposes.concat([
+        exposes: extend.light_onoff_brightness_colortemp_color({
+            colorTempRange: [153, 500],
+            disableColorTempStartup: true
+        }).exposes.concat([
             exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
                 .withDescription('Do not disturb mode'),
             exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
@@ -446,7 +458,7 @@ module.exports = [
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            if(device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
