@@ -91,10 +91,12 @@ module.exports = [
         model: 'ZS057-D0Z',
         vendor: 'Leviton',
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
-        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        fromZigbee: [fz.brightness, fz.identify, fz.lighting_ballast_configuration, fz.level_config],
-        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config],
-        exposes: [e.light_brightness(),
+        // Do not use extend.light_onoff_brightness because that has fz.ignore_basic_report,
+        // which is what tells us when the physical switch is used
+        fromZigbee: [fz.on_off, fz.on_off_via_brightness, fz.brightness, fz.level_config, fz.identify,
+            fz.lighting_ballast_configuration],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.ballast_config, tz.level_config],
+        exposes: [e.light_brightness().withLevelConfig(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -102,10 +104,10 @@ module.exports = [
             exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
         },
     },
 ];
