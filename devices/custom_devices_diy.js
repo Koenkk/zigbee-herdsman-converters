@@ -824,5 +824,5 @@ module.exports = [
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
-    },        
+    },
 ];
