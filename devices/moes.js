@@ -446,6 +446,7 @@ module.exports = [
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            if(device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
