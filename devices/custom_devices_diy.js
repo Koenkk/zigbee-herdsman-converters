@@ -817,12 +817,12 @@ module.exports = [
                 .withValueMin(0).withValueMax(99)],
     },
     {
-	zigbeeModel: ['UT-02'],
+        zigbeeModel: ['UT-02'],
         model: 'EFR32MG21.Router',
         vendor: 'Custom devices (DiY)',
-        description: 'EFR32MG21 Router',
-        fromZigbee: [],
-        toZigbee: [],
+        description: 'EFR32MG21 Route',
+	fromZigbee: [],
+	toZigbee: [],
         exposes: [],
-		},
+    },
 ];
