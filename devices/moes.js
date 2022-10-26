@@ -309,12 +309,12 @@ module.exports = [
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
-                'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                'PROGRAMMING MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
-                'HOLIDAY MODE ⛱ - In this mode, for example, the vacation mode is set for 10 days and the temperature is set' +
-                'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
-                'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set ' +
-                'temperature and returns to the weekly programming mode in the next time period. '),
+                    'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                    'PROGRAMMING MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                    'HOLIDAY MODE ⛱ - In this mode, for example, the vacation mode is set for 10 days and the temperature is set' +
+                    'to 15 degrees Celsius. After 10 days, the device will automatically switch to programming mode. ' +
+                    'TEMPORARY MANUAL MODE - In this mode, ☝ icon will flash. At this time, the device executes the manually set ' +
+                    'temperature and returns to the weekly programming mode in the next time period. '),
             exposes.text('programming_mode', ea.STATE_SET).withDescription('PROGRAMMING MODE ⏱ - In this mode, ' +
                 'the device executes a preset week programming temperature time and temperature. ' +
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
@@ -420,6 +420,30 @@ module.exports = [
             exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
                 .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
         ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_18ejxno0'}],
+        model: 'ZS-EUB_2gang',
+        vendor: 'Moes',
+        description: 'Wall light switch (2 gang)',
+        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
+        exposes: [
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('right'),
+            exposes.presets.power_on_behavior(),
+            exposes.presets.switch_type_2(),
+            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
+                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'right': 2};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
