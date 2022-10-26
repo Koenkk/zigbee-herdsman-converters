@@ -821,8 +821,5 @@ module.exports = [
         model: 'EFR32MG21.Router',
         vendor: 'Custom devices (DiY)',
         description: 'EFR32MG21 Route',
-	fromZigbee: [],
-	toZigbee: [],
-        exposes: [],
     },
 ];
