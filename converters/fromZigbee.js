@@ -1961,10 +1961,10 @@ const converters = {
                     result.min_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousTempAlarm:
-                    result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousHumiAlarm:
-                    result.humidity_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousTempSensitivity:
                     result.temperature_sensitivity = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
