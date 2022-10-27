@@ -447,7 +447,7 @@ module.exports = [
         fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_toggle, fz.command_move, fz.command_stop],
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+        exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1']),
             e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
         ota: ota.zigbeeOTA,
         endpoint: (device) => {
