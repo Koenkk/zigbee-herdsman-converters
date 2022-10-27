@@ -820,7 +820,7 @@ module.exports = [
         zigbeeModel: ['UT-02'],
         model: 'EFR32MG21.Router',
         vendor: 'Custom devices (DiY)',
-        description: 'EFR32MG21 Router',
+        description: 'EFR32MG21 router',
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
