@@ -4039,7 +4039,7 @@ const converters = {
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
             case tuya.dataPoints.moesSsystemMode:
-                return {preset: presetLookup[value]};
+                return {preset: presetLookup[value], system_mode: 'heat'};
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:

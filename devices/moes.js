@@ -299,7 +299,7 @@ module.exports = [
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
             e.valve_state(), e.position(), e.window_detection(),
@@ -307,6 +307,7 @@ module.exports = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSystemMode(['heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
