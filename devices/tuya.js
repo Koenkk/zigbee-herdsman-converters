@@ -1047,7 +1047,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'}],
+        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'}, {modelID: 'TS0202', manufacturerName: '_TZ3040_fwxuzcf4'}],
         model: 'ZM-35H-Q',
         vendor: 'TuYa',
         description: 'Motion sensor',
