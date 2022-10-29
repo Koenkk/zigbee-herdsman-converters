@@ -116,11 +116,12 @@ module.exports = [
         model: '106-03',
         vendor: 'Plugwise',
         description: 'Tom thermostatic radiator valve',
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
+        //fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
+        fromZigbee: [fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
         toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_pi_heating_demand,
+            //tz.thermostat_system_mode,
+            //tz.thermostat_occupied_heating_setpoint,
+            //tz.thermostat_pi_heating_demand,
             tzLocal.plugwise_valve_position,
             tzLocal.plugwise_push_force,
             tzLocal.plugwise_radio_strength,
@@ -135,8 +136,8 @@ module.exports = [
         },
         exposes: [e.battery(),
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL).withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'auto'], ea.ALL)
+                .withLocalTemperature(ea.STATE)
+                //.withSystemMode(['off', 'auto'], ea.ALL)
                 .withPiHeatingDemand(ea.STATE_GET),
             exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
