@@ -301,7 +301,8 @@ module.exports = [
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
             tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
+            e.battery(), e.child_lock(), e.eco_mode(),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
             e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             exposes.climate()
