@@ -15,6 +15,14 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['Retro Bulb Gold XXL white+ambiance'],
+        model: '404065',
+        vendor: 'Müller Licht',
+        description: 'tint LED-Globe Retro Gold XXL E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-A4700001'],
         model: '404023',
         vendor: 'Müller Licht',
@@ -149,12 +157,13 @@ module.exports = [
     },
     {
         zigbeeModel: ['tint-Remote-white'],
-        model: '404022',
+        model: '404022/404049C',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp,
+            fz.command_move_to_color, fz.tint_scene],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'color_temperature_move'])],
+            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';

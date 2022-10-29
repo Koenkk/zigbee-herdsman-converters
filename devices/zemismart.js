@@ -202,6 +202,15 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_7eue9vhc'}],
+        model: 'ZM25RX-08/30',
+        vendor: 'Zemismart',
+        description: 'Tubular motor',
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}],
         model: 'TB26-4',
         vendor: 'Zemismart',
@@ -226,7 +235,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}, {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'}],
         model: 'TB26-6',
         vendor: 'Zemismart',
         description: '6-gang smart wall switch',

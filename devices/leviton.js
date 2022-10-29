@@ -3,6 +3,8 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -82,5 +84,28 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat', 'cool']).withFanMode(['auto', 'on', 'smart'])
                 .withSetpoint('occupied_cooling_setpoint', 10, 30, 1)
                 .withLocalTemperatureCalibration(-30, 30, 0.1).withPiHeatingDemand()],
+    },
+    {
+        // Reference from a similar switch: https://gist.github.com/nebhead/dc5a0a827ec14eef6196ded4be6e2dd0
+        zigbeeModel: ['ZS057'],
+        model: 'ZS057-D0Z',
+        vendor: 'Leviton',
+        description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        fromZigbee: [fz.brightness, fz.identify, fz.lighting_ballast_configuration, fz.level_config],
+        toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value'),
+            exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+        },
     },
 ];

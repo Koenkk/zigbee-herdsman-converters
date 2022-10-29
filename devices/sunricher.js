@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const globalStore = require('../lib/store');
 const constants = require('../lib/constants');
 const extend = require('../lib/extend');
 const utils = require('../lib/utils');
@@ -39,6 +40,14 @@ const fzLocal = {
         },
     },
 };
+
+function syncTime(endpoint) {
+    try {
+        const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
+        const values = {time: time};
+        endpoint.write('genTime', values);
+    } catch (error) {/* Do nothing*/}
+}
 
 module.exports = [
     {
@@ -180,7 +189,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A'],
+        zigbeeModel: ['Micro Smart Dimmer', 'SM311', 'HK-SL-RDIM-A', 'HK-SL-DIM-EU-A'],
         model: 'ZG2835RAC',
         vendor: 'Sunricher',
         description: 'ZigBee knob smart dimmer',
@@ -351,13 +360,12 @@ module.exports = [
         model: 'SR-ZG9092A',
         vendor: 'Sunricher',
         description: 'Touch thermostat',
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement],
+        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupancy,
             tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature, tz.thermostat_outdoor_temperature,
             tz.thermostat_system_mode, tz.thermostat_control_sequence_of_operation, tz.thermostat_running_state,
-            tz.namron_thermostat],
+            tz.namron_thermostat, tz.namron_thermostat_child_lock],
         exposes: [
-            e.local_temperature(),
             exposes.numeric('outdoor_temperature', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
             exposes.climate()
@@ -369,7 +377,11 @@ module.exports = [
                 .withRunningState(['idle', 'heat']),
             exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),
+            exposes.binary('child_lock', ea.ALL, 'UNLOCK', 'LOCK')
+                .withDescription('Enables/disables physical input on the device'),
             e.power(), e.current(), e.voltage(), e.energy(),
+            exposes.enum('lcd_brightness', ea.ALL, ['low', 'mid', 'high'])
+                .withDescription('OLED brightness when operating the buttons.  Default: Medium.'),
             exposes.enum('button_vibration_level', ea.ALL, ['off', 'low', 'high'])
                 .withDescription('Key beep volume and vibration level.  Default: Low.'),
             exposes.enum('floor_sensor_type', ea.ALL, ['10k', '15k', '50k', '100k', '12k'])
@@ -398,11 +410,24 @@ module.exports = [
                 .withUnit('°C')
                 .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
                 .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
+            exposes.enum('display_auto_off_enabled', ea.ALL, ['disabled', 'enabled']),
             exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(20).withValueMax(60)
                 .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
         ],
+        onEvent: async (type, data, device, options) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'time'));
+                globalStore.clearValue(device, 'time');
+            } else if (!globalStore.hasValue(device, 'time')) {
+                const endpoint = device.getEndpoint(1);
+                const hours24 = 1000 * 60 * 60 * 24;
+                // Device does not ask for the time with binding, therefore we write the time every 24 hours
+                const interval = setInterval(async () => syncTime(endpoint), hours24);
+                globalStore.putValue(device, 'time', interval);
+            }
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -415,6 +440,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
 
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: 'ocupancy',
@@ -425,16 +451,24 @@ module.exports = [
 
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
 
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.activePower(endpoint, {min: 30, change: 10}); // Min report change 10W
+            await reporting.rmsCurrent(endpoint, {min: 30, change: 50}); // Min report change 0.05A
+            await reporting.rmsVoltage(endpoint, {min: 30, change: 20}); // Min report change 2V
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint);
 
             // Custom attributes
             const options = {manufacturerCode: 0x1224}; // Sunricher Manufacturer Code
 
-            // OperateDisplayLcdBrightnesss - removed as it has no effect
+            // OperateDisplayLcdBrightnesss
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x1000, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
             // ButtonVibrationLevel
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x1001, type: 0x30},
@@ -507,6 +541,14 @@ module.exports = [
                 reportableChange: 0}],
             options);
 
+            // DisplayAutoOffEnable
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x100B, type: 0x30},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: null}],
+            options);
+
             // AlarmAirTempOverValue
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x2001, type: 0x20},
@@ -523,12 +565,13 @@ module.exports = [
             options);
 
             // Device does not asks for the time with binding, we need to write time during configure
+            syncTime(endpoint);
 
             // Trigger initial read
             await endpoint.read('hvacThermostat', ['systemMode', 'runningState', 'occupiedHeatingSetpoint']);
-            await endpoint.read('hvacThermostat', [0x1001, 0x1002, 0x1003], options);
+            await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1002, 0x1003], options);
             await endpoint.read('hvacThermostat', [0x1004, 0x1005, 0x1006, 0x1007], options);
-            await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A], options);
+            await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A, 0x100B], options);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
     },

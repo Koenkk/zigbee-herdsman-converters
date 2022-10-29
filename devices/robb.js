@@ -105,12 +105,22 @@ module.exports = [
         model: 'ROB_200-014-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut rotary dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
+        exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy()],
+        whiteLabel: [{vendor: 'YPHIX', model: '50208695'}, {vendor: 'Samotech', model: 'SM311'}],
         configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const binds = ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
     {
@@ -199,18 +209,22 @@ module.exports = [
         model: 'ROB_200-017-0',
         vendor: 'ROBB',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering],
+        fromZigbee: [fz.electrical_measurement, fz.on_off, fz.ignore_genLevelCtrl_report, fz.metering, fz.temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint,
+                ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
+        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy(), e.temperature()],
     },
     {
         zigbeeModel: ['ROB_200-017-1'],

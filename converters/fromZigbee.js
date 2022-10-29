@@ -706,30 +706,6 @@ const converters = {
             return result;
         },
     },
-    develco_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
-                result[postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
-                    msg.data['develcoPulseConfiguration'];
-            }
-
-            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                result[postfixWithEndpointName('interface_mode', msg, model, meta)] =
-                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
-                        msg.data['develcoInterfaceMode'];
-            }
-            if (msg.data.hasOwnProperty('status')) {
-                result['battery_low'] = (msg.data.status & 2) > 0;
-                result['check_meter'] = (msg.data.status & 1) > 0;
-            }
-
-            return result;
-        },
-    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -782,6 +758,20 @@ const converters = {
             if (msg.data.hasOwnProperty('onOff')) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    on_off_force_multiendpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // This converted is need instead of `fz.on_off` when no meta: {multiEndpoint: true} can be defined for this device
+            // but it is needed for the `state`. E.g. when a switch has 3 channels (state_l1, state_l2, state_l3) but
+            // has combined power measurements (power, energy))
+            if (msg.data.hasOwnProperty('onOff')) {
+                const endpointName = model.hasOwnProperty('endpoint') ?
+                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
     },
@@ -1598,12 +1588,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            if (msg.data.hasOwnProperty('physicalMinLevel')) {
-                result['ballast_physical_minimum_level'] = msg.data.physicalMinLevel;
-            }
-            if (msg.data.hasOwnProperty('physicalMaxLevel')) {
-                result['ballast_physical_maximum_level'] = msg.data.physicalMaxLevel;
-            }
             if (msg.data.hasOwnProperty('ballastStatus')) {
                 const ballastStatus = msg.data.ballastStatus;
                 result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;
@@ -1770,8 +1754,7 @@ const converters = {
                 result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
-                const lookup = {0: 'enabled', 1: 'disabled'};
-                result.display_auto_off_enabled = lookup[data[0x100B]];
+                result.display_auto_off_enabled = data[0x100B] ? 'enabled' : 'disabled';
             }
             if (data.hasOwnProperty(0x2001)) { // AlarmAirTempOverValue
                 result.alarm_airtemp_overvalue = data[0x2001];
@@ -1913,49 +1896,6 @@ const converters = {
             return {...payload1, ...payload2};
         },
     },
-    develco_voc: {
-        cluster: 'develcoSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
-        convert: (model, msg, publish, options, meta) => {
-            const voc = parseFloat(msg.data['measuredValue']);
-            const vocProperty = postfixWithEndpointName('voc', msg, model, meta);
-
-            let airQuality;
-            const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
-            if (voc <= 65) {
-                airQuality = 'excellent';
-            } else if (voc <= 220) {
-                airQuality = 'good';
-            } else if (voc <= 660) {
-                airQuality = 'moderate';
-            } else if (voc <= 2200) {
-                airQuality = 'poor';
-            } else if (voc <= 5500) {
-                airQuality = 'unhealthy';
-            } else if (voc > 5500) {
-                airQuality = 'out_of_range';
-            } else {
-                airQuality = 'unknown';
-            }
-            return {[vocProperty]: calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
-        },
-    },
-    develco_voc_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-             * Per the technical documentation for AQSZB-110:
-             * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
-             * When a voltage of 2.5V is measured the battery should be replaced.
-             * Low batt LED indication–RED LED will blink twice every 60 second.
-             */
-            const result = converters.battery.convert(model, msg, publish, options, meta);
-            result.battery_low = (result.voltage <= 2500);
-            return result;
-        },
-    },
     tuya_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
@@ -2015,22 +1955,28 @@ const converters = {
                     result.min_temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
                 case tuya.dataPoints.nousMaxHumi:
-                    result.max_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.max_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousMinHumi:
-                    result.min_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.min_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousTempAlarm:
-                    result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousHumiAlarm:
-                    result.humidity_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousTempSensitivity:
                     result.temperature_sensitivity = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
-                case tuya.dataPoints.nousReportInterval:
-                    result.report_interval = value;
+                case tuya.dataPoints.nousHumiSensitivity:
+                    result.humidity_sensitivity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousTempReportInterval:
+                    result.temperature_report_interval = value;
+                    break;
+                case tuya.dataPoints.nousHumiReportInterval:
+                    result.humidity_report_interval = value;
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
@@ -3616,6 +3562,18 @@ const converters = {
             return result;
         },
     },
+    danfoss_thermostat_setpoint_scheduled: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+                result[postfixWithEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta)] =
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            return result;
+        },
+    },
     danfoss_icon_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -3978,20 +3936,44 @@ const converters = {
             switch (dp) {
             case tuya.dataPoints.moesSchedule:
                 return {
-                    program: [
-                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
-                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
-                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
-                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
-                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
-                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
-                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
-                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
-                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
-                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
-                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
-                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
-                    ],
+                    program: {
+                        weekdays_p1_hour: value[0],
+                        weekdays_p1_minute: value[1],
+                        weekdays_p1_temperature: value[2] / 2,
+                        weekdays_p2_hour: value[3],
+                        weekdays_p2_minute: value[4],
+                        weekdays_p2_temperature: value[5] / 2,
+                        weekdays_p3_hour: value[6],
+                        weekdays_p3_minute: value[7],
+                        weekdays_p3_temperature: value[8] / 2,
+                        weekdays_p4_hour: value[9],
+                        weekdays_p4_minute: value[10],
+                        weekdays_p4_temperature: value[11] / 2,
+                        saturday_p1_hour: value[12],
+                        saturday_p1_minute: value[13],
+                        saturday_p1_temperature: value[14] / 2,
+                        saturday_p2_hour: value[15],
+                        saturday_p2_minute: value[16],
+                        saturday_p2_temperature: value[17] / 2,
+                        saturday_p3_hour: value[18],
+                        saturday_p3_minute: value[19],
+                        saturday_p3_temperature: value[20] / 2,
+                        saturday_p4_hour: value[21],
+                        saturday_p4_minute: value[22],
+                        saturday_p4_temperature: value[23] / 2,
+                        sunday_p1_hour: value[24],
+                        sunday_p1_minute: value[25],
+                        sunday_p1_temperature: value[26] / 2,
+                        sunday_p2_hour: value[27],
+                        sunday_p2_minute: value[28],
+                        sunday_p2_temperature: value[29] / 2,
+                        sunday_p3_hour: value[30],
+                        sunday_p3_minute: value[31],
+                        sunday_p3_temperature: value[32] / 2,
+                        sunday_p4_hour: value[33],
+                        sunday_p4_minute: value[34],
+                        sunday_p4_temperature: value[35] / 2,
+                    },
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
@@ -4104,160 +4086,6 @@ const converters = {
             }
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-    tvtwo_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tvtwo_thermostat');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            const presetLookup = {0: 'auto', 1: 'manual', 2: 'holiday'};
-            switch (dp) {
-            case tuya.dataPoints.tvMode:
-                return {preset: presetLookup[value]};
-            case tuya.dataPoints.tvChildLock:
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            case tuya.dataPoints.tvHolidayTemp:
-                return {holiday_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvHeatingSetpoint:
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvFrostDetection:
-                return {frost_protection: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvWindowDetection:
-                return {open_window: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvHeatingStop:
-                return {heating_stop: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvLocalTemp:
-                return {local_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvBattery:
-                return {battery_low: value === 0 ? true : false};
-            case tuya.dataPoints.tvTempCalibration:
-                return {local_temperature_calibration: value > 55 ?
-                    ((value - 0x100000000)/10).toFixed(1): (value/ 10).toFixed(1)};
-            case tuya.dataPoints.tvBoostTime:
-                // Setting minimum 0 - maximum 465 seconds
-                return {boost_timeset_countdown: value};
-            case tuya.dataPoints.tvComfortTemp:
-                return {comfort_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvEcoTemp:
-                return {eco_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvOpenWindowTemp:
-                return {open_window_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvErrorStatus:
-                return {fault_alarm: value};
-            case tuya.dataPoints.tvHolidayMode: {
-                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
-                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
-                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
-                const emi = value.slice(22, 24);
-                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
-                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
-                return {holiday_start_stop: hMode};
-            }
-            case tuya.dataPoints.tvBoostMode:
-                // 115 online / Is the device online
-                return {online: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvWorkingDay:
-                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {working_day: value};
-            case tuya.dataPoints.tvMondaySchedule:
-                return {schedule_monday:
-                        '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                        ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                        ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                        ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                        ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                        ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                        ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                        ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                        ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvTuesdaySchedule:
-                return {schedule_tuesday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvWednesdaySchedule:
-                return {schedule_wednesday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvThursdaySchedule:
-                return {schedule_thursday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvFridaySchedule:
-                return {schedule_friday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvSaturdaySchedule:
-                return {schedule_saturday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvSundaySchedule:
-                return {schedule_sunday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tvtwo_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
@@ -5065,11 +4893,8 @@ const converters = {
                 0x63: 'release_2_and_4', 0x22: 'press_energy_bar',
             };
 
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`PTM 215Z: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
+            const action = lookup.hasOwnProperty(commandID) ? lookup[commandID] : `unknown_${commandID}`;
+            return {action};
         },
     },
     enocean_ptm215ze: {
@@ -5119,7 +4944,7 @@ const converters = {
                 '105_14': 'press_2_and_3_and_4', '105_15': 'press_all', '105_16': 'press_energy_bar', '106_0': 'release',
             };
 
-            const ID = `${commandID}_${msg.data.commandFrame.raw.join('_')}`;
+            const ID = `${commandID}_${msg.data.commandFrame.raw.slice(0, 1).join('_')}`;
             if (!lookup.hasOwnProperty(ID)) {
                 meta.logger.error(`PTM 216Z: missing command '${ID}'`);
             } else {
@@ -7080,7 +6905,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('48')) {
-                const lookup = ['low', 'medium', 'high'];
+                const lookup = ['low', 'medium', 'high', 'very_high', 'max'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
         },
@@ -7509,23 +7334,6 @@ const converters = {
             return result;
         },
     },
-    tuya_gas: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_gas');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {gas: value === 0 ? true : false};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_gas: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     idlock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -7804,39 +7612,6 @@ const converters = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     },
-    develco_fw: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (0x8000 in msg.data) {
-                const firmware = msg.data[0x8000].join('.');
-                result.current_firmware = firmware;
-                meta.device.softwareBuildID = firmware;
-            }
-
-            if (0x8020 in msg.data) {
-                meta.device.hardwareVersion = msg.data[0x8020].join('.');
-            }
-
-            return result;
-        },
-    },
-    develco_genbinaryinput: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('reliability')) {
-                const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
-                result.reliability = lookup[msg.data['reliability']];
-            }
-            if (msg.data.hasOwnProperty('statusFlags')) {
-                result.fault = (msg.data['statusFlags']===1);
-            }
-            return result;
-        },
-    },
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -8022,7 +7797,7 @@ const converters = {
                 const value = tuya.getDataValue(dpValue);
                 switch (dpValue.dp) {
                 case tuya.dataPoints.state:
-                    result.contact = Boolean(value);
+                    result.contact = !value;
                     break;
                 case tuya.dataPoints.thitBatteryPercentage:
                     result.battery = value;
@@ -8155,9 +7930,12 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const lookup = {'0': 'idle', '1': 'in', '2': 'out'};
             const value = precisionRound(parseFloat(msg.data['presentValue']), 1);
+            const people = precisionRound(msg.data.presentValue, 0);
             let result = null;
-            result = {people: precisionRound(msg.data.presentValue, 0), status: lookup[value*10%10]};
-            return result;
+            if (value <= 80) {
+                result = {people: people, status: lookup[value*10%10]};
+                return result;
+            }
         },
     },
     sihas_action: {

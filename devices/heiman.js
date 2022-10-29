@@ -11,7 +11,7 @@ const tuya = require('../lib/tuya');
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
-        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba'],
+        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
         vendor: 'HEIMAN',
@@ -104,7 +104,7 @@ module.exports = [
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
+        fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
@@ -445,6 +445,35 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TempDimmerSw-EM-3.0'],
+        model: 'HS2WDSC-E',
+        vendor: 'HEIMAN',
+        description: 'Remote dimmer and temperature control',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color,
+            fz.command_move_to_color_temp],
+        exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move', 'color_temperature_move'])],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'ColorDimmerSw-EM-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS2WDSR-E',
+        vendor: 'HEIMAN',
+        description: 'Remote dimmer and color control',
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color],
+        exposes: [e.battery(), e.action(['on', 'off', 'move', 'stop', 'color_move'])],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+        },
+    },
+    {
         zigbeeModel: ['GASSensor-EM'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
@@ -652,6 +681,13 @@ module.exports = [
         },
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.device_temperature()],
+    },
+    {
+        zigbeeModel: ['TemperLight'],
+        model: 'HS2WDS',
+        vendor: 'HEIMAN',
+        description: 'LED 9W CCT E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['CurtainMo-EF-3.0', 'CurtainMo-EF'],

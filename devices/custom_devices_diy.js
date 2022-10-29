@@ -772,9 +772,9 @@ module.exports = [
             exposes.binary('factory_reset_co2', ea.STATE_SET, 'ON', 'OFF').withDescription('Factory Reset CO2 sensor'),
             exposes.binary('enable_gas', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable CO2 Gas Control'),
             exposes.numeric('high_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting High CO2 Gas Border')
-                .withValueMin(0).withValueMax(99),
+                .withValueMin(400).withValueMax(2000),
             exposes.numeric('low_gas', ea.STATE_SET).withUnit('ppm').withDescription('Setting Low CO2 Gas Border')
-                .withValueMin(0).withValueMax(99),
+                .withValueMin(400).withValueMax(2000),
             exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
             exposes.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
                 .withValueMin(-5).withValueMax(50),
@@ -785,5 +785,44 @@ module.exports = [
                 .withValueMin(0).withValueMax(99),
             exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
+    },
+    {
+        zigbeeModel: ['SNZB-02_EFEKTA'],
+        model: 'SNZB-02_EFEKTA',
+        vendor: 'Custom devices (DiY)',
+        description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.node_config],
+        toZigbee: [tz.factory_reset, tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                'genPowerCfg', 'msTemperatureMeasurement', 'msRelativeHumidity']);
+            const overides = {min: 0, max: 21600, change: 0};
+            await reporting.batteryVoltage(endpoint, overides);
+            await reporting.batteryPercentageRemaining(endpoint, overides);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity(),
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes')
+                .withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
+                .withValueMin(1).withValueMax(60),
+            exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),
+            exposes.numeric('high_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting High Temperature Border')
+                .withValueMin(-5).withValueMax(50),
+            exposes.numeric('low_temperature', ea.STATE_SET).withUnit('C').withDescription('Setting Low Temperature Border')
+                .withValueMin(-5).withValueMax(50),
+            exposes.binary('enable_humidity', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Humidity Control'),
+            exposes.numeric('high_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting High Humidity Border')
+                .withValueMin(0).withValueMax(99),
+            exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
+                .withValueMin(0).withValueMax(99)],
+    },
+    {
+        zigbeeModel: ['UT-02'],
+        model: 'EFR32MG21.Router',
+        vendor: 'Custom devices (DiY)',
+        description: 'EFR32MG21 router',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
     },
 ];

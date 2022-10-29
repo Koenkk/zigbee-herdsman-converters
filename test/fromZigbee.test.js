@@ -45,7 +45,7 @@ describe('converters/fromZigbee', () => {
                 [
                     'no contact',
                     [tuya.dpValueFromBool(tuya.dataPoints.state, false)],
-                    {contact: false},
+                    {contact: true},
                 ],
                 [
                     'no vibration',
@@ -59,7 +59,7 @@ describe('converters/fromZigbee', () => {
                         tuya.dpValueFromEnum(tuya.dataPoints.tuyaVibration, 1),
                         tuya.dpValueFromIntValue(tuya.dataPoints.thitBatteryPercentage, 97),
                     ],
-                    {contact: true, battery: 97, vibration: true},
+                    {contact: false, battery: 97, vibration: true},
                 ],
             ])
             ("Receives '%s' indication", (_name, dpValues, result) => {

@@ -83,7 +83,7 @@ module.exports = [
                 {ID: 242, profileID: 41440, deviceID: 97},
             ]},
         ],
-        zigbeeModel: ['57004000'],
+        zigbeeModel: ['NEXENTRO Pushbutton Interface', '57004000'],
         model: '57004000',
         vendor: 'Insta',
         description: 'Pushbutton Interface 2-gang 230V',

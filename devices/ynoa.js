@@ -1,10 +1,18 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const extend = require('..//lib/extend');
 
 module.exports = [
+    {
+        zigbeeModel: ['ZBT-CCTLight-GU100001'],
+        model: '8718801528273',
+        vendor: 'Ynoa',
+        description: 'Smart LED GU10 CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
     {
         zigbeeModel: ['ZBT-DIMSwitch-D0000'],
         model: '8718801528334',
@@ -40,6 +48,21 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['ZBT-ONOFFPlug-D0009'],
+        model: 'LA-PLUG-10Amp',
+        vendor: 'Ynoa',
+        description: 'Smart plug Zigbee 3.0',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint);
         },
     },
 ];
