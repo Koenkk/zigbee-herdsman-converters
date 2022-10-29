@@ -26,6 +26,17 @@ const fzLocal = {
             return payload;
         },
     },
+    command_toggle: {
+        cluster: 'genOnOff',
+        type: 'commandToggle',
+        convert: (model, msg, publish, options, meta) => {
+            // Re-uses transactions sequence number so hasAlreadyProcessedMessage(msg) suppresess actions
+            // https://github.com/Koenkk/zigbee2mqtt/issues/14256
+            const payload = {action: utils.postfixWithEndpointName('toggle', msg, model, meta)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
 };
 
 module.exports = [
@@ -122,7 +133,7 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fzLocal.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
             fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
@@ -132,14 +143,13 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
-        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Double gangs remote switch\u0000\u0000\u0000\u0000'],
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fzLocal.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -153,7 +163,6 @@ module.exports = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
