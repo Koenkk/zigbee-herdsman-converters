@@ -121,7 +121,7 @@ module.exports = [
         toZigbee: [
             //tz.thermostat_system_mode,
             //tz.thermostat_occupied_heating_setpoint,
-            //tz.thermostat_pi_heating_demand,
+            tz.thermostat_pi_heating_demand,
             tzLocal.plugwise_valve_position,
             tzLocal.plugwise_push_force,
             tzLocal.plugwise_radio_strength,
