@@ -1757,7 +1757,7 @@ module.exports = [
         exposes: [e.battery(), e.water_leak()],
     },
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_xkap8wtb'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_qnejhcsu'}],
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_xkap8wtb', '_TZ3000_qnejhcsu', '_TZ3000_x3ewpzyr']),
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
