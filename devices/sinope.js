@@ -240,7 +240,6 @@ module.exports = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        extend: extend.switch(),
         exposes: [e.switch(),
             exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
@@ -270,7 +269,6 @@ module.exports = [
         model: 'DM2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness(),
             exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED when load ON'),
