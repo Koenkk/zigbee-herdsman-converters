@@ -107,8 +107,10 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
+            // This device doesn't reliably report state changes - make it chatty to compensate for that
+            // This feels like a hack - hopefully there is a better fix at some point
+            await reporting.onOff(endpoint, { max: 5 });
+            await reporting.brightness(endpoint, { max: 5 });
         },
     },
 ];
