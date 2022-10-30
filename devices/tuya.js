@@ -995,6 +995,28 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
+        model: 'TS0202_2',
+        vendor: 'TuYa',
+        description: 'Motion sensor with scene switch',
+        fromZigbee: [tuya.fzDataPoints, fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [tuya.tzDataPoints],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        whiteLabel: [{vendor: 'Linkoze', model: 'LKMSZ001'}],
+        exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.action(['single', 'double', 'hold']),
+            exposes.enum('light', ea.STATE, ['dark', 'bright'])],
+        meta: {
+            tuyaDatapoints: [
+                [102, 'light', tuya.valueConverterBasic.lookup({'dark': true, 'bright': false})],
+                [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'hold': 1, 'double': 2})],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'}],
