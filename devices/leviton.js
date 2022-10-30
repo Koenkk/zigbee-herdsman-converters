@@ -93,7 +93,7 @@ module.exports = [
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         // Do not use extend.light_onoff_brightness because that has fz.ignore_basic_report,
         // which is what tells us when the physical switch is used
-        meta: { disableDefaultResponse: true },
+        meta: {disableDefaultResponse: true},
         fromZigbee: [fz.on_off, fz.brightness, fz.on_off_via_brightness, fz.identify,
             fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
@@ -109,8 +109,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
             // This device doesn't reliably report state changes - make it chatty to compensate for that
             // This feels like a hack - hopefully there is a better fix at some point
-            await reporting.onOff(endpoint, { max: 5 });
-            await reporting.brightness(endpoint, { max: 5 });
+            await reporting.onOff(endpoint, {max: 5});
+            await reporting.brightness(endpoint, {max: 5});
         },
     },
 ];
