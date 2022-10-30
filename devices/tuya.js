@@ -960,6 +960,7 @@ module.exports = [
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_i2i0bsnv'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_elzv6aia'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'},
+            {modelID: 'TS0504B', manufacturerName: '_TZB210_5jn6an2y'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_onejz0gt'}],
         model: 'TS0504B',
         vendor: 'TuYa',
