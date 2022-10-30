@@ -3531,7 +3531,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_v6ossqfy'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_v6ossqfy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_mx6u6l4y'}],
         model: 'TS0601_human_presence_sensor',
         vendor: 'TuYa',
         description: 'Human presence sensor Zigbee',
