@@ -2869,4 +2869,11 @@ module.exports = [
         description: ' Hue Sana wall lamp with Bluetooth white',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['LTD007'],
+        model: '5110731H5',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Garnea downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
