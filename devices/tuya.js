@@ -375,14 +375,14 @@ const fzLocal = {
     metering_skip_duplicate: {
         ...fz.metering,
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             return fz.metering.convert(model, msg, publish, options, meta);
         },
     },
     electrical_measurement_skip_duplicate: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
     },
