@@ -98,12 +98,12 @@ module.exports = [
             fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
         exposes: [e.light_brightness(),
+            // Note: ballast_power_on_level used to be here, but it does't appear to work properly with this device
+            // If set, it's reset back to 0 when the device is turned off then back to 32 when turned on
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum brightness value'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum brightness value'),
-            exposes.numeric('ballast_power_on_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the initialisation light level. Can not be set lower than "ballast_minimum_level"')],
+                .withDescription('Specifies the maximum brightness value')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
