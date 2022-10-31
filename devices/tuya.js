@@ -375,14 +375,14 @@ const fzLocal = {
     metering_skip_duplicate: {
         ...fz.metering,
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             return fz.metering.convert(model, msg, publish, options, meta);
         },
     },
     electrical_measurement_skip_duplicate: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
     },
@@ -923,7 +923,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_xr5m6kfg'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bf175wi4'},
-            {modelID: 'TS0505B', manufacturerName: '_TZB210_3zfp8mki'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZB210_3zfp8mki'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_y1vbo44x'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -3148,26 +3149,9 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
         model: 'MIR-HE200-TY',
-        vendor: 'TuYa',
-        description: 'Human presence sensor',
-        fromZigbee: [fz.tuya_radar_sensor],
-        toZigbee: [tz.tuya_radar_sensor],
-        exposes: [
-            e.illuminance_lux(), e.presence(), e.occupancy(),
-            exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, Object.values(tuya.tuyaRadar.motionDirection))
-                .withDescription('direction of movement from the point of view of the radar'),
-            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
-                .withDescription('sensitivity of the radar'),
-            exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene))
-                .withDescription('presets for sensitivity for presence and movement'),
-        ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'}],
-        model: 'MIR-HE200-TY_fall',
         vendor: 'TuYa',
         description: 'Human presence sensor with fall function',
         fromZigbee: [fz.tuya_radar_sensor_fall],

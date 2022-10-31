@@ -6869,21 +6869,6 @@ const converters = {
             }
         },
     },
-    tuya_radar_sensor: {
-        key: ['radar_scene', 'radar_sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'radar_scene':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
-                break;
-            case 'radar_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
-                break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
-            }
-        },
-    },
     tuya_radar_sensor_fall: {
         key: ['radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity'],
         convertSet: async (entity, key, value, meta) => {

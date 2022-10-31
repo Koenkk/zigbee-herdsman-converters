@@ -92,7 +92,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
             if (arrowReleaseAgo > 700) {
                 return {action: 'on'};
@@ -104,7 +104,7 @@ const fzLocal = {
         type: 'commandTradfriArrowRelease',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {

@@ -10,7 +10,7 @@ const fzLocal = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {0x13: 'press_1', 0x14: 'press_2', 0x15: 'press_3', 0x16: 'press_4',
                 0x1B: 'hold_1', 0x1C: 'hold_2', 0x1D: 'hold_3', 0x1E: 'hold_4'};
