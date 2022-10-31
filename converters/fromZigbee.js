@@ -4039,7 +4039,7 @@ const converters = {
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
             case tuya.dataPoints.moesSsystemMode:
-                return {preset: presetLookup[value]};
+                return {preset: presetLookup[value], system_mode: 'heat'};
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:
@@ -4049,7 +4049,7 @@ const converters = {
             case tuya.dataPoints.moesSboostHeatingCountdown:
                 return {boost_heating_countdown: value};
             case tuya.dataPoints.moesSreset:
-                return {valve_state: value ? 'CLOSED' : 'OPEN'};
+                return {running_state: value ? 'idle' : 'heat', valve_state: value ? 'CLOSED' : 'OPEN'};
             case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSwindowDetection:

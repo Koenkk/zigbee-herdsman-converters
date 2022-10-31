@@ -913,6 +913,7 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_awrucboq'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_ijczzg9h'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_qxenlrin'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_vaiyrvd1'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_iwbaamgh'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_klv2wul0'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_s6zec0of'},
@@ -959,6 +960,7 @@ module.exports = [
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_i2i0bsnv'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_elzv6aia'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_1elppmba'},
+            {modelID: 'TS0504B', manufacturerName: '_TZB210_5jn6an2y'},
             {modelID: 'TS0504B', manufacturerName: '_TZ3210_onejz0gt'}],
         model: 'TS0504B',
         vendor: 'TuYa',
@@ -991,6 +993,28 @@ module.exports = [
         description: 'Zigbee light',
         vendor: 'TuYa',
         extend: extend.light_onoff_brightness(),
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
+        model: 'TS0202_2',
+        vendor: 'TuYa',
+        description: 'Motion sensor with scene switch',
+        fromZigbee: [tuya.fzDataPoints, fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [tuya.tzDataPoints],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        whiteLabel: [{vendor: 'Linkoze', model: 'LKMSZ001'}],
+        exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.action(['single', 'double', 'hold']),
+            exposes.enum('light', ea.STATE, ['dark', 'bright'])],
+        meta: {
+            tuyaDatapoints: [
+                [102, 'light', tuya.valueConverterBasic.lookup({'dark': true, 'bright': false})],
+                [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'hold': 1, 'double': 2})],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
@@ -3530,7 +3554,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_0u3bj3rc'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_v6ossqfy'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_v6ossqfy'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_mx6u6l4y'}],
         model: 'TS0601_human_presence_sensor',
         vendor: 'TuYa',
         description: 'Human presence sensor Zigbee',
