@@ -4,27 +4,6 @@ const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
-const utils = require('../lib/utils');
-
-const fzLocal = {
-    battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {};
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
-                const voltage = msg.data['batteryVoltage'] * 100;
-                const percentage = utils.toPercentage(voltage, 1900, 3000);
-                payload.voltage = voltage;
-                payload.battery = Math.round(percentage);
-            }
-            if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                payload.battery_low = (msg.data.batteryAlarmState & 1<<3) > 0;
-            }
-            return payload;
-        },
-    },
-};
 
 module.exports = [
     {
@@ -323,8 +302,9 @@ module.exports = [
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fzLocal.battery],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: 'CR2_1900_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
