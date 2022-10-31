@@ -7699,44 +7699,6 @@ const converters = {
             return result;
         },
     },
-    tuya_radar_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            let result = null;
-            switch (dp) {
-            case tuya.dataPoints.trsPresenceState:
-                result = {presence: {0: false, 1: true}[value]};
-                break;
-            case tuya.dataPoints.trsMotionState:
-                result = {occupancy: {1: false, 2: true}[value]};
-                break;
-            case tuya.dataPoints.trsMotionSpeed:
-                result = {motion_speed: value};
-                break;
-            case tuya.dataPoints.trsMotionDirection:
-                result = {motion_direction: tuya.tuyaRadar.motionDirection[value]};
-                break;
-            case tuya.dataPoints.trsScene:
-                result = {radar_scene: tuya.tuyaRadar.radarScene[value]};
-                break;
-            case tuya.dataPoints.trsSensitivity:
-                result = {radar_sensitivity: value};
-                break;
-            case tuya.dataPoints.trsIlluminanceLux:
-                result = {illuminance_lux: value};
-                break;
-            case tuya.dataPoints.trsDetectionData: // Ignore this, function of this DP is unknown at the moment!
-                break;
-            default:
-                meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-            return result;
-        },
-    },
     tuya_radar_sensor_fall: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
