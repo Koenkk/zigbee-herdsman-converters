@@ -2876,4 +2876,11 @@ module.exports = [
         description: 'Hue white ambiance Garnea downlight',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['929003045801'],
+        model: '929003045801',
+        vendor: 'Philips',
+        description: 'Runner Single spot (white)',
+        extend: extend.light_onoff_brightness_colortemp(),
+    }
 ];
