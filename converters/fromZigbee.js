@@ -343,7 +343,7 @@ const converters = {
                     msg.data.batteryAlarmState & 1<<1 ||
                     msg.data.batteryAlarmState & 1<<2 ||
                     msg.data.batteryAlarmState & 1<<3
-                 ) > 0;
+                ) > 0;
                 const battery2Low = (
                     msg.data.batteryAlarmState & 1<<9 ||
                     msg.data.batteryAlarmState & 1<<10 ||
