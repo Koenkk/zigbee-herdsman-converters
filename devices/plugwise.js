@@ -133,9 +133,9 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
         },
         exposes: [e.battery(),
-            exposes.climate()
-                .withLocalTemperature(ea.STATE)
-                .withPiHeatingDemand(ea.STATE_GET),
+            exposes.numeric('pi_heating_demand', ea.STATE_GET).withValueMin(0).withValueMax(100).withUnit('%')
+                .withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'),
+            exposes.numeric('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
             exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
                     'closed) to 100 (valve fully open)'),
