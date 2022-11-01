@@ -116,11 +116,9 @@ module.exports = [
         model: '106-03',
         vendor: 'Plugwise',
         description: 'Tom thermostatic radiator valve',
-        // fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
         fromZigbee: [fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
+        // sytem_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
         toZigbee: [
-            // tz.thermostat_system_mode,
-            // tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_pi_heating_demand,
             tzLocal.plugwise_valve_position,
             tzLocal.plugwise_push_force,
@@ -137,7 +135,6 @@ module.exports = [
         exposes: [e.battery(),
             exposes.climate()
                 .withLocalTemperature(ea.STATE)
-                // .withSystemMode(['off', 'auto'], ea.ALL)
                 .withPiHeatingDemand(ea.STATE_GET),
             exposes.numeric('valve_position', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Directly control the radiator valve. The values range from 0 (valve ' +
