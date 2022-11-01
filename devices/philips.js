@@ -2881,6 +2881,6 @@ module.exports = [
         model: '929003045801',
         vendor: 'Philips',
         description: 'Runner Single spot (white)',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp(),
     }
 ];
