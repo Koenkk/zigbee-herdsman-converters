@@ -1494,10 +1494,16 @@ module.exports = [
         model: 'ZNCZ12LM',
         description: 'Mi power plug ZigBee US',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE)],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection],
+        exposes: [
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.led_disabled_night(),
+            e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
+                .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
+                .withDescription('Maximum allowed load, turns off if exceeded')],
         ota: ota.zigbeeOTA,
     },
     {

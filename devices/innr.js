@@ -8,6 +8,21 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['RC 250'],
+        model: 'RC 250',
+        vendor: 'Innr',
+        description: 'Remote control',
+        fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down',
+            'brightness_move_to_level', 'color_temperature_move'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genGroups', 'genScenes',
+                'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+        },
+    },
+    {
         zigbeeModel: ['RCL 240 T'],
         model: 'RCL 240 T',
         vendor: 'Innr',
@@ -139,6 +154,14 @@ module.exports = [
     {
         zigbeeModel: ['RB 278 T'],
         model: 'RB 278 T',
+        vendor: 'Innr',
+        description: 'Smart bulb tunable white E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['RB 279 T'],
+        model: 'RB 279 T',
         vendor: 'Innr',
         description: 'Smart bulb tunable white E27',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),

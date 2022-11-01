@@ -235,7 +235,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'}, {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'}],
         model: 'TB26-6',
         vendor: 'Zemismart',
         description: '6-gang smart wall switch',

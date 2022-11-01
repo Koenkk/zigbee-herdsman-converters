@@ -81,7 +81,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_pfbzs1an'}],
-        model: 'SPUSB02',
+        model: 'SPPUSB02',
         vendor: 'Mercator',
         description: 'Ikuü double power point with USB',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],

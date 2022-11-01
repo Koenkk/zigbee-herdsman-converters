@@ -538,6 +538,40 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['PMM-300Z3'],
+        model: 'PMM-300Z3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS 3phase energy monitor',
+        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
+        toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
+            e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
+            exposes.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor']);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+            // await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
+            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
+            await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
+            await endpoint.configureReporting('haElectricalMeasurement', [{
+                attribute: 'acFrequency',
+                minimumReportInterval: 10,
+                maximumReportInterval: 600,
+                reportableChange: 3,
+            }]);
+        },
+    },
+    {
         zigbeeModel: ['DLM-300Z'],
         model: 'DLM-300Z',
         vendor: 'ShinaSystem',

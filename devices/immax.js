@@ -23,7 +23,7 @@ module.exports = [
         model: '07089L',
         vendor: 'Immax',
         description: 'NEO SMART LED E27 5W',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['E27-filament-Dim-ZB3.0'],
@@ -92,7 +92,7 @@ module.exports = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint);
-            await reporting.activePower(endpoint);
+            await reporting.activePower(endpoint, {change: 5});
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },

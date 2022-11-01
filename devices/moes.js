@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
@@ -8,77 +8,9 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const zosung = require('../lib/zosung');
-const utils = require('../lib/utils');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
-
-const fzLocal = {
-    ZSEUD: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: async (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case 1:
-                    result.state_l1 = value ? 'ON' : 'OFF';
-                    break;
-                case 2:
-                    result.brightness_l1 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                case 7:
-                    result.state_l2 = value ? 'ON' : 'OFF';
-                    break;
-                case 8:
-                    result.brightness_l2 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:ZSEUD: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-};
-
-const tzLocal = {
-    ZSEUD_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 7};
-            const dp = lookup[meta.endpoint_name];
-            await tuya.sendDataPointBool(entity, dp, value === 'ON');
-        },
-    },
-    ZSEUD_brightness: {
-        key: ['brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 2, l2: 8};
-            const dp = lookup[meta.endpoint_name];
-
-            if (key == 'brightness') {
-                // upscale to 1000
-                if (value >= 0 && value <= 254) {
-                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-                    // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-                    if (meta.state[`state_${meta.endpoint_name}`] === 'ON') {
-                        await tuya.sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
-                    } else {
-                        await tuya.sendDataPoints(entity, [tuya.dpValueFromBool(dp-1, true), tuya.dpValueFromIntValue(dp, newValue)],
-                            'dataRequest', 1);
-                    }
-                } else {
-                    throw new Error('Dimmer brightness is out of range 0..254');
-                }
-            } else {
-                meta.logger.warn(`ZSEUD TZ unsupported key=${key} value=${value}`);
-            }
-        },
-    },
-};
 
 const exposesLocal = {
     hour: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
@@ -94,11 +26,13 @@ module.exports = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_child_mode],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_child_mode],
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage'), e.child_lock()],
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
+                .withDescription('Plug LED indicator mode'), e.child_lock()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -365,14 +299,17 @@ module.exports = [
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
+            e.battery(), e.child_lock(), e.eco_mode(),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
             e.valve_state(), e.position(), e.window_detection(),
-            exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             exposes.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSystemMode(['heat'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
@@ -390,37 +327,6 @@ module.exports = [
                 .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
-        model: 'MS-105Z',
-        vendor: 'Moes',
-        description: '1 gang 2 way Zigbee dimmer switch',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105_dimmer],
-        meta: {turnsOffAtBrightness1: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
-        model: 'ZS-EUD',
-        vendor: 'Moes',
-        description: '2 gang light dimmer switch',
-        fromZigbee: [fzLocal.ZSEUD, fz.ignore_basic_report],
-        toZigbee: [tzLocal.ZSEUD_brightness, tzLocal.ZSEUD_state],
-        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],

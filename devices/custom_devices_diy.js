@@ -816,4 +816,13 @@ module.exports = [
             exposes.numeric('low_humidity', ea.STATE_SET).withUnit('C').withDescription('Setting Low Humidity Border')
                 .withValueMin(0).withValueMax(99)],
     },
+    {
+        zigbeeModel: ['UT-02'],
+        model: 'EFR32MG21.Router',
+        vendor: 'Custom devices (DiY)',
+        description: 'EFR32MG21 router',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
 ];
