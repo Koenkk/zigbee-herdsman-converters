@@ -3514,10 +3514,21 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSschedule, payload);
         },
     },
-    haozee_thermostat_system_mode: {
+    haozee_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'auto': 0, 'manual': 1, 'off': 2, 'on': 3};
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
+        },
+    },
+    haozee_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // mapping 'heat' system mode to 100% heating (same as preset 'ON'),
+            // mapping 'auto' system mode to heating up to the set point temperature (same as preset 'MANUAL')
+            // mapping 'off' system mode to idle (same as preset 'OFF')
+            // programmed schedule can be enabled by using preset mode 'AUTO' instead of 'MANUAL'
+            const lookup = {'auto': 1, 'off': 2, 'heat': 3};
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
         },
     },
