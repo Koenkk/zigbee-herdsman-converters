@@ -304,7 +304,7 @@ module.exports = [
         description: 'SMART+ Motion Sensor',
         fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: 'CR2_1900_3000'}},
+        meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
