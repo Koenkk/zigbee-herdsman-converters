@@ -2686,6 +2686,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
