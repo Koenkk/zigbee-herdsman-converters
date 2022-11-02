@@ -64,7 +64,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tint_scene]),
     },
     {
-        zigbeeModel: ['ZBT-ExtendedColor'],
+        zigbeeModel: ['ZBT-ExtendedColor', 'Bulb white+color'],
         model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
