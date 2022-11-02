@@ -10,6 +10,16 @@ const {calibrateAndPrecisionRoundOptions} = require('../lib/utils');
 
 
 const tzLocal = {
+    tirouter: {
+        key: ['transmit_power'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genBasic', {0x1337: {value, type: 0x28}});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0x1337]);
+        },
+    },
     node_config: {
         key: ['report_delay'],
         convertSet: async (entity, key, rawValue, meta) => {
@@ -133,6 +143,15 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    tirouter: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {linkquality: msg.linkquality};
+            if (msg.data['4919']) result['transmit_power'] = msg.data['4919'] + 1;
+            return result;
+        },
+    },
     node_config: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -267,9 +286,11 @@ module.exports = [
         model: 'ti.router',
         vendor: 'Custom devices (DiY)',
         description: 'Texas Instruments router',
-        fromZigbee: [fz.linkquality_from_basic],
-        toZigbee: [],
-        exposes: [],
+        fromZigbee: [fzLocal.tirouter],
+        toZigbee: [tzLocal.tirouter],
+        exposes: [exposes.numeric('transmit_power', ea.ALL).withValueMin(-20).withValueMax(20).withValueStep(1).withUnit('dBm')
+            .withDescription('Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652' +
+                            ' (any higher value is converted to 5dBm)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(8);
             const payload = [{attribute: 'zclVersion', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
