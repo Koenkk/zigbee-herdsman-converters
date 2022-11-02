@@ -14,10 +14,23 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SM309-S'],
+        model: 'SM309-S',
+        vendor: 'Samotech',
+        description: 'Zigbee dimmer 400W',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SM309'],
         model: 'SM309',
         vendor: 'Samotech',
-        description: 'ZigBee dimmer 400W',
+        description: 'Zigbee dimmer 400W',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
