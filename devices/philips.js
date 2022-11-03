@@ -2883,4 +2883,11 @@ module.exports = [
         description: 'Hue white ambiance Garnea downlight',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['LTE005'],
+        model: '9290031452',
+        vendor: 'Philips',
+        description: 'Hue white ambiance filament E14 (with Bluetooth)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
 ];
