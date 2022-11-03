@@ -121,25 +121,21 @@ const fzLocal = {
 const tradfriExtend = {
     light_onoff_brightness: (options = {}) => ({
         ...extend.light_onoff_brightness(options),
-        exposes: extend.light_onoff_brightness(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp: (options = {colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
-        exposes: extend.light_onoff_brightness_colortemp(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
-        exposes: extend.light_onoff_brightness_colortemp_color(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_color: (options = {}) => ({
         ...extend.light_onoff_brightness_color(options),
-        exposes: extend.light_onoff_brightness_color(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),

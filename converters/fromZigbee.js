@@ -338,9 +338,24 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                const battery1Low = (msg.data.batteryAlarmState & 1<<0) > 0;
-                const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
-                const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
+                const battery1Low = (
+                    msg.data.batteryAlarmState & 1<<0 ||
+                    msg.data.batteryAlarmState & 1<<1 ||
+                    msg.data.batteryAlarmState & 1<<2 ||
+                    msg.data.batteryAlarmState & 1<<3
+                ) > 0;
+                const battery2Low = (
+                    msg.data.batteryAlarmState & 1<<9 ||
+                    msg.data.batteryAlarmState & 1<<10 ||
+                    msg.data.batteryAlarmState & 1<<11 ||
+                    msg.data.batteryAlarmState & 1<<12
+                ) > 0;
+                const battery3Low = (
+                    msg.data.batteryAlarmState & 1<<19 ||
+                    msg.data.batteryAlarmState & 1<<20 ||
+                    msg.data.batteryAlarmState & 1<<21 ||
+                    msg.data.batteryAlarmState & 1<<22
+                ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
