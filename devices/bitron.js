@@ -185,7 +185,7 @@ module.exports = [
         model: 'AV2010/32',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [fz.legacy.bitron_thermostat_att_report, fz.battery, fz.hvac_user_interface],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
