@@ -609,8 +609,8 @@ module.exports = [
                 .withDescription('Enables/disables physical input on the device'),
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(5).withValueMax(50).withValueStep(0.1)
-                .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C. Default: 0.5.'),
+                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
+                .withDescription('Hysteresis setting, default: 0.5'),
             exposes.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
                 .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
