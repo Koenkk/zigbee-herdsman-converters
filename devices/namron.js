@@ -610,7 +610,7 @@ module.exports = [
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
                 .withValueMin(5).withValueMax(50).withValueStep(0.1)
-                .withDescription('Hysterersis setting, range is 5-50, unit is 0.1oC,  Default: 5.'),
+                .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C. Default: 0.5.'),
             exposes.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
                 .withDescription('Adjust brightness of display values 1(Low)-7(High)'),
