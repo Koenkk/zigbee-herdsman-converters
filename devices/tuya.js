@@ -759,7 +759,7 @@ module.exports = [
         description: 'Smart air house keeper',
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd().withUnit('ppm'),
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('µg/m³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
