@@ -1196,6 +1196,33 @@ Object.keys(ATTRIBUTES).forEach((key) => {
     }
 });
 
+// Put actions at the bottom of ui
+exposesList.push(
+    e.action([
+        'down_single',
+        'up_single',
+        'config_single',
+        'down_release',
+        'up_release',
+        'config_release',
+        'down_held',
+        'up_held',
+        'config_held',
+        'down_double',
+        'up_double',
+        'config_double',
+        'down_triple',
+        'up_triple',
+        'config_triple',
+        'down_quadruple',
+        'up_quadruple',
+        'config_quadruple',
+        'down_quintuple',
+        'up_quintuple',
+        'config_quintuple',
+    ]),
+);
+
 module.exports = [
     {
         zigbeeModel: ['VZM31-SN'],

@@ -92,7 +92,7 @@ module.exports = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint);
-            await reporting.activePower(endpoint);
+            await reporting.activePower(endpoint, {change: 5});
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },

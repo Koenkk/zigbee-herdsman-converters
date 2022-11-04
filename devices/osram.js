@@ -302,15 +302,17 @@ module.exports = [
         model: 'AC01353010G',
         vendor: 'OSRAM',
         description: 'SMART+ Motion Sensor',
-        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await reporting.batteryAlarmState(endpoint);
         },
-        exposes: [e.temperature(), e.occupancy()],
+        exposes: [e.temperature(), e.occupancy(), e.battery(), e.battery_voltage(), e.battery_low()],
     },
     {
         zigbeeModel: ['MR16 TW OSRAM'],
@@ -395,6 +397,7 @@ module.exports = [
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
         extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
     },
     {
         fingerprint: [{modelID: 'Zigbee 3.0 DALI CONV LI', endpoints: [{ID: 10}, {ID: 25}, {ID: 242}]},
@@ -402,7 +405,16 @@ module.exports = [
         model: '4062172044776_2',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (one device and pushbutton)',
-        extend: extend.ledvance.light_onoff_brightness(),
+        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee,
+            fz.command_toggle, fz.command_move, fz.command_stop],
+        extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
+        exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
+            ...extend.ledvance.light_onoff_brightness({noConfigure: true}).exposes],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+            await reporting.bind(device.getEndpoint(25), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
+        },
         onEvent: async (type, data, device) => {
             if (type === 'deviceInterview') {
                 device.getEndpoint(25).addBinding('genOnOff', device.getEndpoint(10));
@@ -418,6 +430,7 @@ module.exports = [
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices)',
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
             return {'l1': 10, 'l2': 11};
         },
@@ -425,10 +438,6 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
-            await reporting.onOff(device.getEndpoint(10));
-            await reporting.brightness(device.getEndpoint(10));
-            await reporting.onOff(device.getEndpoint(11));
-            await reporting.brightness(device.getEndpoint(11));
         },
     },
     {
@@ -437,19 +446,20 @@ module.exports = [
         model: '4062172044776_4',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (with two devices and pushbutton)',
+        fromZigbee: [...extend.ledvance.light_onoff_brightness({noConfigure: true}).fromZigbee,
+            fz.command_toggle, fz.command_move, fz.command_stop],
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
-        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        exposes: [e.action(['toggle_s1', 'brightness_move_up_s1', 'brightness_move_down_s1', 'brightness_stop_s1']),
+            e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
+        ota: ota.zigbeeOTA,
         endpoint: (device) => {
-            return {'l1': 10, 'l2': 11};
+            return {'l1': 10, 'l2': 11, 's1': 25};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
             await reporting.bind(device.getEndpoint(11), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
-            await reporting.onOff(device.getEndpoint(10));
-            await reporting.brightness(device.getEndpoint(10));
-            await reporting.onOff(device.getEndpoint(11));
-            await reporting.brightness(device.getEndpoint(11));
+            await reporting.bind(device.getEndpoint(25), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
         },
         onEvent: async (type, data, device) => {
             if (type === 'deviceInterview') {
