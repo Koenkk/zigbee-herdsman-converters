@@ -803,7 +803,6 @@ module.exports = [
         fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_hktqahrq'}, {manufacturerName: '_TZ3000_hktqahrq'},
             {manufacturerName: '_TZ3000_q6a3tepg'}, {modelID: 'TS000F', manufacturerName: '_TZ3000_m9af2l6g'},
             {modelID: 'TS000F', manufacturerName: '_TZ3000_mx3vgyea'},
-            {modelID: 'TS000F', manufacturerName: '_TZ3000_xkap8wtb'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_npzfdcof'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_5ng23zjs'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_rmjr4ufz'},
@@ -1804,6 +1803,26 @@ module.exports = [
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy(),
             exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_xkap8wtb']),
+        model: 'TS000F_power',
+        description: 'Switch with power monitoring',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        whiteLabel: [{vendor: 'Aubess', model: 'WDH02'}],
+        exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy()],
     },
     {
         zigbeeModel: ['TS0001'],
