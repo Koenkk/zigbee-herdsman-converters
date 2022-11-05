@@ -3420,7 +3420,7 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
-    moesS_thermostat_system_mode: {
+    moesS_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'programming': 0, 'manual': 1, 'temporary_manual': 2, 'holiday': 3};
@@ -3514,10 +3514,21 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSschedule, payload);
         },
     },
-    haozee_thermostat_system_mode: {
+    haozee_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'auto': 0, 'manual': 1, 'off': 2, 'on': 3};
+            await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
+        },
+    },
+    haozee_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // mapping 'heat' system mode to 100% heating (same as preset 'ON'),
+            // mapping 'auto' system mode to heating up to the set point temperature (same as preset 'MANUAL')
+            // mapping 'off' system mode to idle (same as preset 'OFF')
+            // programmed schedule can be enabled by using preset mode 'AUTO' instead of 'MANUAL'
+            const lookup = {'auto': 1, 'off': 2, 'heat': 3};
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
         },
     },
@@ -4403,6 +4414,30 @@ const converters = {
             if (value >= 0 && value <= 100) {
                 await entity.write('manuSpecificSinope', {ledIntensityOff: value});
             }
+        },
+    },
+    sinope_led_color_on: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_color_on'],
+        convertSet: async (entity, key, value, meta) => {
+            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
+            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
+            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
+
+            const valueHex = r + g * 256 + (b * 256 ** 2);
+            await entity.write('manuSpecificSinope', {ledColorOn: valueHex});
+        },
+    },
+    sinope_led_color_off: {
+        // DM2500ZB and SW2500ZB
+        key: ['led_color_off'],
+        convertSet: async (entity, key, value, meta) => {
+            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
+            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
+            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
+
+            const valueHex = r + g * 256 + b * 256 ** 2;
+            await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
         },
     },
     sinope_minimum_brightness: {
@@ -6842,21 +6877,6 @@ const converters = {
                 break;
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
-            }
-        },
-    },
-    tuya_radar_sensor: {
-        key: ['radar_scene', 'radar_sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'radar_scene':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
-                break;
-            case 'radar_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsSensitivity, value);
-                break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.tuya_radar_sensor: Unhandled Key ${key}`);
             }
         },
     },

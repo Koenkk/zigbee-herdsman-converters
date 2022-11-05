@@ -64,7 +64,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tint_scene]),
     },
     {
-        zigbeeModel: ['ZBT-ExtendedColor'],
+        zigbeeModel: ['ZBT-ExtendedColor', 'Bulb white+color'],
         model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
@@ -125,8 +125,8 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
             fz.legacy.tint404011_move_to_color_temp, fz.legacy.tint404011_move_to_color, fz.tint_scene,
             fz.legacy.tint404011_brightness_updown_release, fz.legacy.tint404011_brightness_updown_hold],
-        exposes: [e.action(['on', 'off', 'toggle', 'brightness_down_click', 'brightness_up_click', 'color_temp', 'color_wheel',
-            'brightness_0_release', 'brightness_1_release', 'brightness_0_hold', 'brightness_1_hold'])],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
     {
