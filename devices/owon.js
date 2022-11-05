@@ -181,7 +181,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
+            const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
