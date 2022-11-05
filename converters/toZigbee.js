@@ -3524,11 +3524,11 @@ const converters = {
     haozee_thermostat_system_mode: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
-            // mapping 'heat' system mode to 100% heating (same as preset 'ON'),
-            // mapping 'auto' system mode to heating up to the set point temperature (same as preset 'MANUAL')
-            // mapping 'off' system mode to idle (same as preset 'OFF')
-            // programmed schedule can be enabled by using preset mode 'AUTO' instead of 'MANUAL'
-            const lookup = {'auto': 1, 'off': 2, 'heat': 3};
+            // mapping 'heat' system mode to manual (same as preset 'MANUAL')
+            // mapping 'auto' system mode to auto (same as preset 'AUTO')
+            // mapping 'off' system mode to off (same as preset 'OFF')
+            // mapping 'emergency_heating' system mode to on (same as preset 'ON')
+            const lookup = {'auto': 0, 'heat': 1, 'off': 2, 'emergency_heating': 3};
             await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
         },
     },
