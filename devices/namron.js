@@ -383,7 +383,7 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
-                .withSystemMode(['off', 'auto', 'heat'])
+                .withSystemMode(['off', 'auto', 'dry', 'heat'])
                 .withRunningState(['idle', 'heat']),
             exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),
