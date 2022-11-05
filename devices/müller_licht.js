@@ -192,4 +192,12 @@ module.exports = [
         description: 'Tint Armaro',
         extend: extend.light_onoff_brightness_colortemp(),
     },
+    {
+        zigbeeModel: ['Bulb white'],
+        model: '45727',
+        vendor: 'Müller Licht',
+        description: 'Tint Amela 42cm, white+ambiance (1800-6500K)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
 ];
