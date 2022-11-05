@@ -4113,7 +4113,7 @@ const converters = {
             const dp = dpValue.dp; // First we get the data point ID
             const value = tuya.getDataValue(dpValue);
             const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-            const systemModeLookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+            const systemModeLookup = {0: 'auto', 1: 'heat', 2: 'off', 3: 'emergency_heating'};
             switch (dp) {
             case tuya.dataPoints.haozeeSystemMode:
                 return {preset: presetLookup[value], system_mode: systemModeLookup[value]};
