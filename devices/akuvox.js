@@ -11,7 +11,7 @@ const tuya = require('../lib/tuya');
 module.exports = [
 {
     fingerprint: [{modelID: 'TS0201', manufacturerName: '_TYZB01_ujfk3xd9'}],
-    zigbeeModel: ['TS0201'],
+    zigbeeModel: ['M423-9E'],
     model: 'M423-9E',
     vendor: 'Akuvox',
     description: 'Smart temperature & humidity Sensor',
