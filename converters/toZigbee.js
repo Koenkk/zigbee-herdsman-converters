@@ -4840,6 +4840,21 @@ const converters = {
             }
         },
     },
+    tcp_thermostat_setup_mode: {
+        key: ['setup_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'ON':
+                await tuya.sendDataPointBool(entity, tuya.dataPoints.state, true);
+                await utils.sleep(5000);
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 3 /* setup */);
+                break;
+            case 'OFF':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.mode, 0 /* manual */);
+                break;
+            }
+        },
+    },
     tuya_thermostat_weekly_schedule: {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {

@@ -4766,13 +4766,13 @@ const converters = {
             case tuya.dataPoints.mode:
                 switch (value) {
                 case 0: // manual
-                    return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
+                    return {system_mode: 'heat', away_mode: 'OFF', setup_mode: 'OFF', preset: 'none'};
                 case 1: // away
-                    return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
+                    return {system_mode: 'heat', away_mode: 'ON', setup_mode: 'OFF', preset: 'away'};
                 case 2: // auto
-                    return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
-                case 3: // setup - report as off - not clear what to do otherwise
-                    return {system_mode: 'off', away_mode: 'OFF', preset: 'none'};
+                    return {system_mode: 'auto', away_mode: 'OFF', setup_mode: 'OFF', preset: 'none'};
+                case 3: // setup
+                    return {system_mode: 'off', away_mode: 'OFF', setup_mode: 'ON', preset: 'none'};
                 default:
                     meta.logger.warn('zigbee-herdsman-converters:eThermostat: ' +
                         `preset ${value} is not recognized.`);
