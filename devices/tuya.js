@@ -935,7 +935,7 @@ module.exports = [
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
             {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
-            {vendor: 'Feconn', model: 'FE-GU10-5W', description: 'Zigbee GU10 5W Smart Bulb'},
+            {vendor: 'Feconn', model: 'FE-GU10-5W', description: 'Zigbee GU10 5W smart bulb'},
         ],
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
         meta: {applyRedFix: true, enhancedHue: false},
