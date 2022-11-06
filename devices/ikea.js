@@ -45,6 +45,18 @@ const bulbOnEvent = async (type, data, device, options, state) => {
         if (state !== undefined && state.level_config !== undefined && state.level_config.execute_if_off === true) {
             device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
+        if (state !== undefined && state.level_config !== undefined && state.level_config.on_level !== undefined) {
+            let onLevel = state.level_config.on_level;
+            if (typeof onLevel === 'string' && onLevel.toLowerCase() == 'previous') {
+                onLevel = 255;
+            } else {
+                onLevel = Number(onLevel);
+            }
+            if (onLevel > 255) onLevel = 254;
+            if (onLevel < 1) onLevel = 1;
+
+            device.endpoints[0].write('genLevelCtrl', {onLevel});
+        }
     }
 };
 
