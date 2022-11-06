@@ -2896,5 +2896,5 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance BR30 E26',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    }   
+    },
 ];
