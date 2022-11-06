@@ -193,7 +193,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['Bulb white'],
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white'}],
         model: '45727',
         vendor: 'Müller Licht',
         description: 'Tint Amela 42cm, white+ambiance (1800-6500K)',
