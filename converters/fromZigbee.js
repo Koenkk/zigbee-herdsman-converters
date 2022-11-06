@@ -22,6 +22,8 @@ const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const xiaomi = require('../lib/xiaomi');
 
+const DEFAULT_SIMULATED_BRIGHTNESS_BRIGHTNESS = 255;
+
 const converters = {
     // #region Generic/recommended converters
     fan: {
@@ -1218,7 +1220,7 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
-                const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', DEFAULT_SIMULATED_BRIGHTNESS_BRIGHTNESS);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
@@ -1248,7 +1250,7 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                     const timer = setInterval(() => {
-                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', DEFAULT_SIMULATED_BRIGHTNESS_BRIGHTNESS);
                         const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
                             deltaOpts : -1 * deltaOpts;
                         brightness += delta;
@@ -1281,7 +1283,7 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
-                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', DEFAULT_SIMULATED_BRIGHTNESS_BRIGHTNESS);
                 const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
