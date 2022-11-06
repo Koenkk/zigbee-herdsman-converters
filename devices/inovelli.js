@@ -645,7 +645,7 @@ const ATTRIBUTES = {
         min: 0,
         max: 1,
         description: 'Audible Click in On/Off mode.',
-        values: {'Enabled (Default)': 1, 'Disabled': 0},
+        values: {'Enabled (Default)': 0, 'Disabled': 1},
         displayType: 'enum',
     },
     doubleTapClearNotifications: {
