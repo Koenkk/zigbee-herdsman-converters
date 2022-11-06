@@ -21,7 +21,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
             await reporting.fanMode(endpoint);
-            
+
             // Has Unknown power source, force it here.
             device.powerSource = 'Mains (single phase)';
             device.save();
