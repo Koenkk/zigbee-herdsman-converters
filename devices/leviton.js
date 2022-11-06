@@ -91,11 +91,9 @@ module.exports = [
         model: 'ZS057-D0Z',
         vendor: 'Leviton',
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
-        // Do not use extend.light_onoff_brightness because that has fz.ignore_basic_report,
-        // which is what tells us when the physical switch is used
         meta: {disableDefaultResponse: true},
-        fromZigbee: [fz.on_off, fz.brightness, fz.on_off_via_brightness, fz.identify,
-            fz.lighting_ballast_configuration],
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        fromZigbee: [fz.on_off, fz.on_off_via_brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
         exposes: [e.light_brightness(),
             // Note: ballast_power_on_level used to be here, but it does't appear to work properly with this device
