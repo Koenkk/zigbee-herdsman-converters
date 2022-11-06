@@ -2890,4 +2890,11 @@ module.exports = [
         description: 'Hue white ambiance filament E14 (with Bluetooth)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
+    {
+        zigbeeModel: ['LTB003'],
+        model: '046677578138',
+        vendor: 'Philips',
+        description: 'Hue White ambiance BR30 E26',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    }   
 ];
