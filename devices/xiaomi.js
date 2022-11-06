@@ -9,6 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
+const utils = require('../lib/utils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -39,6 +40,23 @@ const preventReset = async (type, data, device) => {
     }};
     await device.getEndpoint(1).write('genBasic', payload, options);
 };
+
+const daysLookup = {
+    0x7f: 'everyday',
+    0x1f: 'workdays',
+    0x60: 'weekend',
+    0x01: 'mon',
+    0x02: 'tue',
+    0x04: 'wed',
+    0x08: 'thu',
+    0x10: 'fri',
+    0x20: 'sat',
+    0x40: 'sun',
+    0x55: 'mon-wed-fri-sun',
+    0x2a: 'tue-thu-sat'
+};
+
+
 
 
 const fzLocal = {
@@ -129,7 +147,18 @@ const fzLocal = {
                         result['error'] = {1: true, 0: false}[val.readUInt8()];
                         break;
                     case 0x080008c8: // schedule string
-                        result['schedule'] = val.toString();
+                        const schList = val.toString().split(',');
+                        const schedule = [];
+                        schList.forEach((str) => { // 7f13000100
+                            const feedtime = Buffer.from(str, 'hex');
+                            schedule.push({
+                                "days": daysLookup[feedtime[0]],
+                                "hour": feedtime[1],
+                                "minute": feedtime[2],
+                                "size": feedtime[3],
+                            });
+                        });
+                        result['schedule'] = schedule;
                         break;
                     case 0x04170055: // indicator
                         result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
@@ -335,7 +364,27 @@ const tzLocal = {
                 sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule':
-                sendAttr(0x080008c8, Buffer.concat([Buffer.from(value), Buffer.from([0])]), value.length + 1);
+                // parse payload to grab the keys
+                if (typeof value === 'string') {
+                    try {
+                        value = JSON.parse(value);
+                    } catch (e) {
+                        throw new Error('Payload is not valid JSON');
+                    }
+                }
+                const schedule = [];
+                value.forEach((item) => {
+                    const schedItem = Buffer.from([
+                        utils.getKey(daysLookup, item.days, 0x7f),
+                        item.hour,
+                        item.minute,
+                        item.size,
+                        0
+                    ]);
+                    schedule.push(schedItem.toString('hex'));
+                });
+
+                sendAttr(0x080008c8, Buffer.concat([schedule.join(','), Buffer.from([0])]), value.length + 1);
                 break;
             case 'led_indicator':
                 sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
@@ -2546,7 +2595,14 @@ module.exports = [
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             exposes.binary('error', ea.STATE, true, false).withDescription('Something wrong with feeder'),
-            exposes.text('schedule', ea.STATE_SET).withDescription('Schedule string'),
+            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
+                .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
+                    'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 
+                    'mon-wed-fri-sun', 'tue-thu-sat']))
+                .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('size', exposes.access.STATE_SET))
+            ).withDescription('Schedule'),
             exposes.switch().withState('led_indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
             exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
