@@ -759,7 +759,7 @@ module.exports = [
         description: 'Smart air house keeper',
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc(), e.formaldehyd().withUnit('ppm'),
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('µg/m³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
@@ -924,7 +924,8 @@ module.exports = [
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_xr5m6kfg'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_bf175wi4'},
             {modelID: 'TS0505B', manufacturerName: '_TZB210_3zfp8mki'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_y1vbo44x'}],
+            {modelID: 'TS0505B', manufacturerName: '_TZ3000_y1vbo44x'},
+            {modelID: 'TS0505B', manufacturerName: '_TZ3210_mny0zvkm'}],
         model: 'TS0505B',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
@@ -1043,6 +1044,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_dl7cejts'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_nss8amz9'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_mmtwjmaq'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_zwvaj5wy'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_bsvqrxru'},
@@ -1786,8 +1788,8 @@ module.exports = [
         model: 'TS0001_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
@@ -1800,7 +1802,8 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy(),
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -2258,7 +2261,7 @@ module.exports = [
             tz.haozee_thermostat_system_mode, tz.haozee_thermostat_current_heating_setpoint, tz.haozee_thermostat_boost_heating,
             tz.haozee_thermostat_boost_heating_countdown, tz.haozee_thermostat_window_detection,
             tz.haozee_thermostat_child_lock, tz.haozee_thermostat_temperature_calibration, tz.haozee_thermostat_max_temperature,
-            tz.haozee_thermostat_min_temperature,
+            tz.haozee_thermostat_min_temperature, tz.haozee_thermostat_preset,
         ],
         exposes: [
             e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
@@ -2272,7 +2275,8 @@ module.exports = [
                     'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
                     'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                     'ON - In this mode, the thermostat stays open ' +
-                    'OFF - In this mode, the thermostat stays closed'),
+                    'OFF - In this mode, the thermostat stays closed')
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET),
             exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('monday_schedule', ea.STATE))
@@ -2683,6 +2687,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

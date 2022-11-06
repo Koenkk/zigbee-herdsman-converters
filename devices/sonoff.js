@@ -195,6 +195,7 @@ module.exports = [
         description: '15A Zigbee smart plug',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
