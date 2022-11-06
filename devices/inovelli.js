@@ -25,25 +25,40 @@ const buttonLookup = {
 };
 
 const ledEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'open_close': 6,
-    'small_to_big': 7,
-    'clear_effect': 255,
+    off: 0,
+    solid: 1,
+    fast_blink: 2,
+    slow_blink: 3,
+    pulse: 4,
+    chase: 5,
+    open_close: 6,
+    small_to_big: 7,
+    aurora: 8,
+    slow_falling: 9,
+    medium_falling: 10,
+    fast_falling: 11,
+    slow_rising: 12,
+    medium_rising: 13,
+    fast_rising: 14,
+    medium_blink: 15,
+    slow_chase: 16,
+    fast_chase: 17,
+    fast_siren: 18,
+    slow_siren: 19,
+    clear_effect: 255,
 };
 
 const individualLedEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'clear_effect': 255,
+    off: 0,
+    solid: 1,
+    fast_blink: 2,
+    slow_blink: 3,
+    pulse: 4,
+    chase: 5,
+    falling: 6,
+    rising: 7,
+    aurora: 8,
+    clear_effect: 255,
 };
 
 const UINT8 = 32;
@@ -633,6 +648,15 @@ const ATTRIBUTES = {
         values: {'Enabled (Default)': 1, 'Disabled': 0},
         displayType: 'enum',
     },
+    doubleTapClearNotifications: {
+        ID: 262,
+        dataType: BOOLEAN,
+        min: 0,
+        max: 1,
+        description: 'Double-Tap the Config button to clear notifications.',
+        values: {'Enabled (Default)': 0, 'Disabled': 1},
+        displayType: 'enum',
+    },
 };
 
 const tzLocal = {};
@@ -656,12 +680,11 @@ tzLocal.inovelli_vzw31sn_parameters = {
             manufacturerCode: INOVELLI,
         });
 
+        meta.state[key] = value;
+
         return {
             state: {
-                [key]:
-          ATTRIBUTES[key].displayType === 'enum' ?
-              ATTRIBUTES[key].values[value] :
-              value,
+                [key]: value,
             },
         };
     },
@@ -1057,12 +1080,24 @@ const exposesList = [
                 .enum('effect', ea.SET_STATE, [
                     'off',
                     'solid',
-                    'chase',
                     'fast_blink',
                     'slow_blink',
                     'pulse',
+                    'chase',
                     'open_close',
                     'small_to_big',
+                    'aurora',
+                    'slow_falling',
+                    'medium_falling',
+                    'fast_falling',
+                    'slow_rising',
+                    'medium_rising',
+                    'fast_rising',
+                    'medium_blink',
+                    'slow_chase',
+                    'fast_chase',
+                    'fast_siren',
+                    'slow_siren',
                     'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LEDs'),
@@ -1110,6 +1145,9 @@ const exposesList = [
                     'slow_blink',
                     'pulse',
                     'chase',
+                    'falling',
+                    'rising',
+                    'aurora',
                     'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LED'),
@@ -1247,7 +1285,11 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'seMetering',
                 'haElectricalMeasurement',
+                'genOnOff',
+                'genLevelCtrl',
             ]);
+            await reporting.onOff(endpoint);
+
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
