@@ -53,10 +53,8 @@ const daysLookup = {
     0x20: 'sat',
     0x40: 'sun',
     0x55: 'mon-wed-fri-sun',
-    0x2a: 'tue-thu-sat'
+    0x2a: 'tue-thu-sat',
 };
-
-
 
 
 const fzLocal = {
@@ -146,20 +144,21 @@ const fzLocal = {
                     case 0x0d0b0055: // error ?
                         result['error'] = {1: true, 0: false}[val.readUInt8()];
                         break;
-                    case 0x080008c8: // schedule string
-                        const schList = val.toString().split(',');
+                    case 0x080008c8: { // schedule string
+                        const schlist = val.toString().split(',');
                         const schedule = [];
-                        schList.forEach((str) => { // 7f13000100
+                        schlist.forEach((str) => { // 7f13000100
                             const feedtime = Buffer.from(str, 'hex');
                             schedule.push({
-                                "days": daysLookup[feedtime[0]],
-                                "hour": feedtime[1],
-                                "minute": feedtime[2],
-                                "size": feedtime[3],
+                                'days': daysLookup[feedtime[0]],
+                                'hour': feedtime[1],
+                                'minute': feedtime[2],
+                                'size': feedtime[3],
                             });
                         });
                         result['schedule'] = schedule;
                         break;
+                    }
                     case 0x04170055: // indicator
                         result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
                         break;
@@ -363,7 +362,7 @@ const tzLocal = {
             case 'feed':
                 sendAttr(0x04150055, 1, 1);
                 break;
-            case 'schedule':
+            case 'schedule': {
                 // parse payload to grab the keys
                 if (typeof value === 'string') {
                     try {
@@ -379,13 +378,14 @@ const tzLocal = {
                         item.hour,
                         item.minute,
                         item.size,
-                        0
+                        0,
                     ]);
                     schedule.push(schedItem.toString('hex'));
                 });
 
                 sendAttr(0x080008c8, Buffer.concat([schedule.join(','), Buffer.from([0])]), value.length + 1);
                 break;
+            }
             case 'led_indicator':
                 sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
                 break;
@@ -2597,11 +2597,11 @@ module.exports = [
             exposes.binary('error', ea.STATE, true, false).withDescription('Something wrong with feeder'),
             exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
                 .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
-                    'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 
+                    'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
                     'mon-wed-fri-sun', 'tue-thu-sat']))
                 .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
                 .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
-                .withFeature(exposes.numeric('size', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('size', exposes.access.STATE_SET)),
             ).withDescription('Schedule'),
             exposes.switch().withState('led_indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
