@@ -3046,8 +3046,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_ky0fq4ho'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_qeuvnohg'}],
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ky0fq4ho'}],
         model: 'TS011F_din_smart_relay',
         description: 'Din smart relay (with power monitoring)',
         vendor: 'TuYa',
@@ -3072,6 +3071,40 @@ module.exports = [
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_qeuvnohg'}],
+        model: 'TS011F_din_smart_relay',
+        description: 'Din smart relay (with power monitoring polling)',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory,
+            fz.tuya_relay_din_led_indicator],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.tuya_relay_din_led_indicator],
+        whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            } catch (e) {
+                // Sometimes can fail: https://github.com/Koenkk/zigbee2mqtt/issues/12760#issuecomment-1165435220
+            }
+            //await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            //await reporting.rmsVoltage(endpoint, {change: 5});
+            //await reporting.rmsCurrent(endpoint, {change: 50});
+            //await reporting.activePower(endpoint, {change: 10});
+            //await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
+                .withDescription('Relay LED indicator mode')],
+        onEvent: tuya.onEventMeasurementPoll,
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_7issjl2q'}],
