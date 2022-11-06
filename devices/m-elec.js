@@ -12,7 +12,7 @@ module.exports = [
         zigbeeModel: ['ML-ST-BP-DIM'],
         model: 'ML-ST-BP-DIM',
         vendor: 'M-ELEC',
-        description: 'Stitchy Dim Mechanism',
+        description: 'Stitchy dim mechanism',
         extend: extend.light_onoff_brightness({disableEffect: true}),
     },
 ];
