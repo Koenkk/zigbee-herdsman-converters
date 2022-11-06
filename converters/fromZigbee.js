@@ -1222,7 +1222,7 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
-                const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                 payload[deltaProperty] = msg.data.level - currentBrightness;
             }
 
@@ -1255,7 +1255,7 @@ const converters = {
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                         const property = postfixWithEndpointName('brightness', msg, model, meta);
-                        const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                        const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                         publish({[property]: brightness, [deltaProperty]: delta});
                     }, intervalOpts);
 
@@ -1288,7 +1288,7 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
-                const deltaProperty = postfixWithEndpointName('delta', msg, model, meta);
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                 payload[deltaProperty] = delta;
             }
 
