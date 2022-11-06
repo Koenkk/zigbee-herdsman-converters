@@ -14,8 +14,15 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.temperature(endpoint1);
+            await reporting.humidity(endpoint2);
+            await reporting.batteryVoltage(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
         },
     },
 ];
