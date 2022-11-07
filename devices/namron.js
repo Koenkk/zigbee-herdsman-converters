@@ -383,7 +383,7 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
-                .withSystemMode(['off', 'auto', 'heat'])
+                .withSystemMode(['off', 'auto', 'dry', 'heat'])
                 .withRunningState(['idle', 'heat']),
             exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),
@@ -588,7 +588,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399'],
+        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399', '5401395'],
         model: '540139X',
         vendor: 'Namron',
         description: 'Panel heater 400/600/800/1000 W',
@@ -609,8 +609,8 @@ module.exports = [
                 .withDescription('Enables/disables physical input on the device'),
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(5).withValueMax(50).withValueStep(0.1)
-                .withDescription('Hysterersis setting, range is 5-50, unit is 0.1oC,  Default: 5.'),
+                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
+                .withDescription('Hysteresis setting, default: 0.5'),
             exposes.numeric('display_brightnesss', ea.ALL)
                 .withValueMin(1).withValueMax(7).withValueStep(1)
                 .withDescription('Adjust brightness of display values 1(Low)-7(High)'),

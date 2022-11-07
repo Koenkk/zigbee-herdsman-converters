@@ -60,6 +60,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['AD-DimmableLight3001'],
+        model: '81810',
+        vendor: 'AduroSmart',
+        description: 'Zigbee Aduro Eria B22 bulb - warm white',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['Adurolight_NCC'],
         model: '81825',
         vendor: 'AduroSmart',

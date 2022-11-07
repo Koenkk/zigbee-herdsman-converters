@@ -177,19 +177,19 @@ const ATTRIBUTES = {
         ID: 13,
         dataType: UINT8,
         min: 0,
-        max: 100,
+        max: 255,
         description:
       'Default level for the dimmer when it is turned on at the switch.' +
-      ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
+      ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     defaultLevelRemote: {
         ID: 14,
         dataType: UINT8,
         min: 0,
-        max: 100,
+        max: 255,
         description:
       'Default level for the dimmer when it is turned on from the hub.' +
-      ' A setting of 0 means that the switch will return to the level that it was on before it was turned off.',
+      ' A setting of 255 means that the switch will return to the level that it was on before it was turned off.',
     },
     stateAfterPowerRestored: {
         ID: 15,
@@ -197,7 +197,7 @@ const ATTRIBUTES = {
         min: 0,
         max: 255,
         description:
-      'The state the switch should return to when power is restored after power failure. 0 = off, 1-100 = level, 101 = previous.',
+      'The state the switch should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.',
     },
     loadLevelIndicatorTimeout: {
         ID: 17,
@@ -225,12 +225,11 @@ const ATTRIBUTES = {
     },
     activePowerReports: {
         ID: 18,
-        dataType: UINT16,
+        dataType: UINT8,
         min: 0,
-        max: 32767,
+        max: 100,
         description:
-      'Power level change that will result in a new power report being sent. The value is a percentage of the previous report.' +
-      '0 = disabled, 1-32767 = 0.1W-3276.7W.',
+      'Percent power level change that will result in a new power report being sent. 0 = Disabled',
     },
     periodicPowerAndEnergyReports: {
         ID: 19,
@@ -256,6 +255,7 @@ const ATTRIBUTES = {
         values: {'Non Neutral': 0, 'Neutral': 1},
         min: 0,
         max: 1,
+        readOnly: true,
         description: 'Set the power type for the device.',
     },
     switchType: {
@@ -267,11 +267,13 @@ const ATTRIBUTES = {
         max: 2,
         description: 'Set the switch configuration.',
     },
-    physicalOnOffDelay: {
+    buttonDelay: {
         ID: 50,
         dataType: UINT8,
         values: {
             '0ms': 0,
+            '100ms': 1,
+            '200ms': 2,
             '300ms': 3,
             '400ms': 4,
             '500ms': 5,
@@ -285,7 +287,7 @@ const ATTRIBUTES = {
         max: 9,
         description:
       'This will set the button press delay. 0 = no delay (Disables Button Press Events),' +
-      ' 1 = 100ms, 2 = 200ms, 3 = 300ms, etc. up to 900ms. Default = 500ms.',
+      'Default = 500ms.',
     },
     smartBulbMode: {
         ID: 52,
@@ -610,7 +612,7 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    doubleTapUpEvent: {
+    doubleTapUpForFullBrightness: {
         ID: 53,
         dataType: BOOLEAN,
         min: 0,
@@ -620,6 +622,16 @@ const ATTRIBUTES = {
             'Button Press Event Only': 0,
             'Button Press Event + Set Load to 100%': 1,
         },
+        displayType: 'enum',
+    },
+    relayClick: {
+        ID: 261,
+        dataType: BOOLEAN,
+        min: 0,
+        max: 1,
+        description: 'Audible Click in On/Off mode.',
+        values: {'Enabled (Default)': 1, 'Disabled': 0},
+        displayType: 'enum',
     },
 };
 
@@ -644,11 +656,12 @@ tzLocal.inovelli_vzw31sn_parameters = {
             manufacturerCode: INOVELLI,
         });
 
-        meta.state[key] = value;
-
         return {
             state: {
-                [key]: value,
+                [key]:
+          ATTRIBUTES[key].displayType === 'enum' ?
+              ATTRIBUTES[key].values[value] :
+              value,
             },
         };
     },
@@ -700,7 +713,7 @@ tzLocal.inovelli_vzw31sn_parameters_readOnly = {
 };
 
 tzLocal.inovelli_led_effect = {
-    key: ['ledEffect'],
+    key: ['led_effect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
@@ -718,7 +731,7 @@ tzLocal.inovelli_led_effect = {
 };
 
 tzLocal.inovelli_individual_led_effect = {
-    key: ['individualLedEffect'],
+    key: ['individual_led_effect'],
     convertSet: async (entity, key, values, meta) => {
         await entity.command(
             'manuSpecificInovelliVZM31SN',
@@ -807,7 +820,6 @@ const inovelliOnOffConvertSet = async (entity, key, value, meta) => {
  */
 tzLocal.light_onoff_brightness_inovelli = {
     key: ['state', 'brightness', 'brightness_percent'],
-    // options: [exposes.options.transition()], this is a setting on the device
     convertSet: async (entity, key, value, meta) => {
         const {message} = meta;
         const transition = utils.getTransition(entity, 'brightness', meta);
@@ -1146,7 +1158,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         const enumE = exposes
             .enum(
                 key,
-                ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
+                ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
                 Object.keys(ATTRIBUTES[key].values),
             )
             .withDescription(ATTRIBUTES[key].description);
@@ -1159,7 +1171,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
             exposes
                 .binary(
                     key,
-                    ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL,
+                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
                     ATTRIBUTES[key].values.Enabled,
                     ATTRIBUTES[key].values.Disabled,
                 )
@@ -1167,7 +1179,7 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         );
     } else {
         const numeric = exposes
-            .numeric(key, ATTRIBUTES[key].readOnly ? ea.GET : ea.ALL)
+            .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
             .withValueMin(ATTRIBUTES[key].min)
             .withValueMax(ATTRIBUTES[key].max);
 
@@ -1183,6 +1195,33 @@ Object.keys(ATTRIBUTES).forEach((key) => {
         exposesList.push(numeric);
     }
 });
+
+// Put actions at the bottom of ui
+exposesList.push(
+    e.action([
+        'down_single',
+        'up_single',
+        'config_single',
+        'down_release',
+        'up_release',
+        'config_release',
+        'down_held',
+        'up_held',
+        'config_held',
+        'down_double',
+        'up_double',
+        'config_double',
+        'down_triple',
+        'up_triple',
+        'config_triple',
+        'down_quadruple',
+        'up_quadruple',
+        'config_quadruple',
+        'down_quintuple',
+        'up_quintuple',
+        'config_quintuple',
+    ]),
+);
 
 module.exports = [
     {
@@ -1206,20 +1245,26 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genOnOff',
-                'genLevelCtrl',
+                'seMetering',
+                'haElectricalMeasurement',
             ]);
-
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
                 'manuSpecificInovelliVZM31SN',
             ]);
+            await endpoint.read('haElectricalMeasurement', [
+                'acPowerMultiplier',
+                'acPowerDivisor',
+            ]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
 
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.currentSummDelivered(endpoint);
+            await reporting.activePower(endpoint, {min: 1, max: 3600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {
+                min: 1,
+                max: 3600,
+                change: 0,
+            });
         },
     },
 ];

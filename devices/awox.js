@@ -155,10 +155,11 @@ module.exports = [
         model: '33957',
         vendor: 'AwoX',
         description: 'LED light with color temperature',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         whiteLabel: [{vendor: 'EGLO', model: '12239'}],
     },
     {
+        zigbeeModel: ['EGLO_ZM_TW'],
         fingerprint: [
             {
                 type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [

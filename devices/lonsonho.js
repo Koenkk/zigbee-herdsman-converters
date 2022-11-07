@@ -84,7 +84,10 @@ module.exports = [
         exposes: [
             exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('left'),
             exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']).withEndpoint('right'),
-            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time'),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+                .withEndpoint('left'),
+            exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')
+                .withEndpoint('right'),
             e.cover_position().withEndpoint('left'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
                 .withEndpoint('left'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF').withEndpoint('left'),
             e.cover_position().withEndpoint('right'), exposes.binary('calibration', ea.ALL, 'ON', 'OFF')
@@ -205,7 +208,8 @@ module.exports = [
     {
         zigbeeModel: ['ZB-RGBCW'],
         fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLink'},
-            {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLi\u0001\u0000\u0010'}],
+            {modelID: 'ZB-CL02', manufacturerName: 'eWeLight'}, {modelID: 'ZB-CL01', manufacturerName: 'eWeLi\u0001\u0000\u0010'},
+            {modelID: 'Z102LG03-1', manufacturerName: 'eWeLink'}],
         model: 'ZB-RGBCW',
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
@@ -260,7 +264,7 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}],
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'}],
         model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
