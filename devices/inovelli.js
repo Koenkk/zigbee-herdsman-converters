@@ -645,8 +645,8 @@ const ATTRIBUTES = {
         min: 0,
         max: 1,
         description:
-      'In neutral on/off setups, the default is to have a clicking sound to notify you that the relay ' + 
-      'is open or closed. You may disable this sound by creating a, “simulated” on/off where the switch ' + 
+      'In neutral on/off setups, the default is to have a clicking sound to notify you that the relay ' +
+      'is open or closed. You may disable this sound by creating a, “simulated” on/off where the switch ' +
       'only will turn onto 100 or off to 0.',
         values: {'Disabled (Click Sound On)': 0, 'Enabled (Click Sound Off)': 1},
         displayType: 'enum',
