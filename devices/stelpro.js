@@ -55,7 +55,8 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
         },
-
+    },
+    {
         zigbeeModel: ['ST218'],
         model: 'ST218',
         vendor: 'Stelpro',
