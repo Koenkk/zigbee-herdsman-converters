@@ -32,7 +32,7 @@ const stello = {
     },
 };
 
-const definition = {
+module.exports = [{
 	zigbeeModel: ['HT402'], 
 	model: 'HT402', 
 	vendor: 'Stello', 
@@ -54,6 +54,5 @@ const definition = {
 		await reporting.thermostatPIHeatingDemand(endpoint);
 		await reporting.thermostatKeypadLockMode(endpoint);
 	},
-};
-
-module.exports = definition;
+},
+];
