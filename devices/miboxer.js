@@ -50,8 +50,11 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'},
-            {modelID: 'TS0502B', manufacturerName: '_TZ3210_jtifm80b'}],
+        fingerprint: [
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_jtifm80b'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_xwqng7ol'},
+        ],
         model: 'FUT035Z',
         description: 'Dual white LED controller',
         vendor: 'Miboxer',
