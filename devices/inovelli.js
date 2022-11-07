@@ -630,7 +630,7 @@ const ATTRIBUTES = {
         min: 0,
         max: 1,
         description: 'Disable Audible Click in On/Off mode.',
-        values: { 'Disabled (Click Sound On) (Default)': 0, 'Enabled (Click Sound Off)': 1},
+        values: {'Disabled (Click Sound On) (Default)': 0, 'Enabled (Click Sound Off)': 1},
         displayType: 'enum',
     },
 };
