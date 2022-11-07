@@ -624,13 +624,13 @@ const ATTRIBUTES = {
         },
         displayType: 'enum',
     },
-    relayClick: {
+    disableRelayClick: {
         ID: 261,
         dataType: BOOLEAN,
         min: 0,
         max: 1,
-        description: 'Audible Click in On/Off mode.',
-        values: {'Enabled (Default)': 1, 'Disabled': 0},
+        description: 'Disable Audible Click in On/Off mode.',
+        values: { 'Disabled (Click Sound On) (Default)': 0, 'Enabled (Click Sound Off)': 1},
         displayType: 'enum',
     },
 };
