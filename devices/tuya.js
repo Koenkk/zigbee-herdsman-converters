@@ -1812,7 +1812,7 @@ module.exports = [
         model: 'TS000F_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.moes_power_on_behavior, 
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.moes_power_on_behavior,
             fz.tuya_switch_type],
         toZigbee: [tz.on_off, tz.moes_power_on_behavior, tz.tuya_switch_type],
         configure: async (device, coordinatorEndpoint, logger) => {
