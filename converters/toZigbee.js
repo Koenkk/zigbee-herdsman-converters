@@ -3420,6 +3420,12 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {system_mode: 'heat'}};
+        },
+    },
     moesS_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {

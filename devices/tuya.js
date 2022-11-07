@@ -840,10 +840,7 @@ module.exports = [
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
@@ -1085,10 +1082,7 @@ module.exports = [
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3040_msl6wxk9'}],
@@ -1101,10 +1095,7 @@ module.exports = [
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3040_6ygjfyll']),
@@ -1593,10 +1584,7 @@ module.exports = [
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fzLocal.TS0201_humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [
@@ -1611,10 +1599,7 @@ module.exports = [
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS0201', ['_TZ3000_dowj6gyi', '_TZ3000_8ybe88nf']),
@@ -1624,10 +1609,7 @@ module.exports = [
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
@@ -1653,9 +1635,8 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const endpointID of [1, 2, 3, 4]) {
                 const endpoint = device.getEndpoint(endpointID);
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -1793,8 +1774,8 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
         configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -1812,20 +1793,22 @@ module.exports = [
         model: 'TS000F_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.moes_power_on_behavior,
+            fz.tuya_switch_type],
+        toZigbee: [tz.on_off, tz.moes_power_on_behavior, tz.tuya_switch_type],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
+        options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
         whiteLabel: [{vendor: 'Aubess', model: 'WDH02'}],
-        exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy()],
+        exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy(), e.power_on_behavior(), e.switch_type_2()],
     },
     {
         zigbeeModel: ['TS0001'],
@@ -1898,8 +1881,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
@@ -1946,8 +1928,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -1974,8 +1955,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -2375,8 +2355,8 @@ module.exports = [
             fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
@@ -2429,14 +2409,8 @@ module.exports = [
             fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            // Enables reporting of physical state changes
-            // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
-            try {
-                await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-            } catch (e) {
-                // Sometimes can fail: https://github.com/Koenkk/zigbee2mqtt/issues/12760#issuecomment-1165435220
-            }
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
@@ -2680,8 +2654,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
@@ -2734,8 +2707,7 @@ module.exports = [
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-03TZXD'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             try {
                 for (const ID of [1, 2, 3]) {
                     const endpoint = device.getEndpoint(ID);
@@ -2856,8 +2828,7 @@ module.exports = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
@@ -3027,10 +2998,7 @@ module.exports = [
         fromZigbee: [fz.battery, fz.illuminance, fzLocal.TS0222],
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: [{modelID: 'TS0210', manufacturerName: '_TYZB01_3zv6oleo'},
@@ -3132,7 +3100,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             // Enables reporting of measurement state changes
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg',
                 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity', 'manuSpecificTuya_2']);
         },
