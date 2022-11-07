@@ -68,7 +68,7 @@ module.exports = [
         model: 'AC33905',
         vendor: 'LEDVANCE',
         description: 'SMART+ spot GU10 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -84,6 +84,14 @@ module.exports = [
         model: 'AC33903',
         vendor: 'LEDVANCE',
         description: 'SMART+ classic P 40 E14 tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['B40S TW'],
+        model: 'AC33901',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Classic B40 E14 Tunable white',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
