@@ -1635,6 +1635,16 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005987601'],
+        model: '915005987601',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (black)',
+        toZigbee: [tzLocal.gradient_scene, ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee],
+        exposes: [exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes],
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCT020'],
         model: '4080148P7',
         vendor: 'Philips',
