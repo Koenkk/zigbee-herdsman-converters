@@ -1,3 +1,6 @@
+const {
+    precisionRound,
+} = require('../lib/utils');
 const herdsman = require('zigbee-herdsman');
 const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
@@ -34,7 +37,7 @@ const fzLocal = {
                 result.window_open_check = lookup[data[0x1009]];
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = data[0x100A];
+                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             return result;
         },
@@ -64,7 +67,7 @@ const tzLocal = {
                 const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='hysterersis') {
-                const payload = {0x100A: {value: value, type: 0x20}};
+                const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             }
         },
