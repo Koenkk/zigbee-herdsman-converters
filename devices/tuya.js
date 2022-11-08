@@ -2759,8 +2759,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [1, 'system_mode', tuya.valueConverter.heatOff],
-                [2, 'preset', tuya.valueConverterBasic.lookup(
-                    {'manual': tuya.enum(0), 'program': tuya.enum(1), 'temporary_pattern': tuya.enum(3)})], // check temporary_pattern
+                [2, 'preset', tuya.valueConverterBasic.lookup({'manual': tuya.enum(0), 'program': tuya.enum(1)})],
                 [3, 'running_state', tuya.valueConverter.heatIdle],
                 [7, 'sound', tuya.valueConverter.onOff],
                 [10, 'frost_protection', tuya.valueConverter.onOff],
