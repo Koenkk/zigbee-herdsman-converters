@@ -3551,4 +3551,31 @@ module.exports = [
                 .withDescription('Turns the onboard LED on or off'),
         ],
     },
+    {
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_qoy0ekbd' },
+        { modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5' },
+        { modelID: 'TS0601', manufacturerName: '_TZE200_a8sdabtg' }],
+        model: 'ZG-227ZL',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity LCD sensor',
+        fromZigbee: [fz.ZG227ZL_lms],
+        toZigbee: [tz.ZG227ZL_lms],
+        onEvent: tuya.onEventSetTime,
+        exposes: [e.temperature(), e.humidity(), e.battery(),
+        exposes.enum('temperature_unit', ea.STATE_SET, ['Celsius', 'Fahrenheit']).withDescription('Current display unit'),
+        exposes.numeric('temp_calibration', ea.STATE_SET).withValueMin(-2.0).withValueMax(2.0).withValueStep(0.1).withUnit('°C')
+            .withDescription('Temperature calibration'),
+        exposes.numeric('hum_calibration', ea.STATE_SET).withValueMin(-30).withValueMax(30).withValueStep(1).withUnit('%')
+            .withDescription('Humidity calibration'),
+        ],
+    },
+    {
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_n8dljorx' }, { modelID: 'TS0601', manufacturerName: '_TZE200_pay2byax' }],
+        model: 'ZG-102ZL',
+        vendor: 'TuYa',
+        description: 'Luminance door sensor',
+        fromZigbee: [fz.ZG102ZL],
+        toZigbee: [],
+        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery()],
+    },
 ];
