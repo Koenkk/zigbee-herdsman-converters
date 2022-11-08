@@ -2753,7 +2753,7 @@ module.exports = [
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
             exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
                 .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
-            exposes.numeric('error', ea.STATE).withDescription('Shows an error with the thermostat. A value of 0 or 1 may appear if you ' +
+            exposes.numeric('error', ea.STATE).withDescription('Shows an error with the thermostat. A value of "1" may appear if you ' +
                 'choose "external" or "both" sensor, whereas an external sensor is not connected to your thermostat.'),
         ],
         meta: {
