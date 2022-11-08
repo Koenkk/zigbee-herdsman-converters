@@ -788,17 +788,6 @@ const converters = {
             }
         },
     },
-    on_off_via_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentLevel')) {
-                const currentLevel = Number(msg.data['currentLevel']);
-                const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
-            }
-        },
-    },
     power_on_behavior: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
