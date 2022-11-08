@@ -3,8 +3,23 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    on_off_via_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                const currentLevel = Number(msg.data['currentLevel']);
+                const property = utils.postfixWithEndpointName('state', msg, model, meta);
+                return {[property]: currentLevel > 0 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+};
 
 module.exports = [
     {
@@ -93,7 +108,7 @@ module.exports = [
         description: 'Wall switch, 0-10V dimmer, 120-277V, Lumina™ RF',
         meta: {disableDefaultResponse: true},
         extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
-        fromZigbee: [fz.on_off, fz.on_off_via_brightness, fz.lighting_ballast_configuration],
+        fromZigbee: [fz.on_off, fzLocal.on_off_via_brightness, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config],
         exposes: [e.light_brightness(),
             // Note: ballast_power_on_level used to be here, but it does't appear to work properly with this device
