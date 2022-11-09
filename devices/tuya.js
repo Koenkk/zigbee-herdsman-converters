@@ -3364,7 +3364,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_wukb7rhc'},
             {modelID: 'TS0601', manufacturerName: '_TZE204_ztc6ggyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztc6ggyl'}],
-        model: 'TS0601_smart_human_presense_sensor',
+        model: 'TS0601_smart_human_presence_sensor',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',
         fromZigbee: [fz.tuya_smart_human_presense_sensor],
