@@ -2752,7 +2752,9 @@ module.exports = [
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
             exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
-                .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
+                .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value')
+                .withDescription('Changes the upper temperature limit. Attention! Changing this property overwrites ' +
+                '`current_heating_setpoint`, so it needs to be updated.'),
             exposes.numeric('error', ea.STATE).withDescription('Shows an error with the thermostat. A value of "1" may appear if you ' +
                 'choose "external" or "both" sensor, whereas an external sensor is not connected to your thermostat.'),
         ],
