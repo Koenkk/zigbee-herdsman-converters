@@ -2768,8 +2768,8 @@ module.exports = [
                 [10, 'frost_protection', tuya.valueConverter.onOff],
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [19, 'upper_temp', tuya.valueConverter.raw],
-                [24, 'local_temperature', tuya.valueConverter.divideBy10], // test
-                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration], // test
+                [24, 'local_temperature', tuya.valueConverter.divideBy10],
+                [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration],
                 [30, 'schedule', tuya.valueConverter.schedule(
                     8, tuya.valueConverter.scheduleHoursMinutes, tuya.valueConverter.scheduleTemp)],
                 [31, 'week', tuya.valueConverter.weekFormat],
