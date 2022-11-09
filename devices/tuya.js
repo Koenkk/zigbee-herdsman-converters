@@ -2770,7 +2770,8 @@ module.exports = [
                 [19, 'upper_temp', tuya.valueConverter.raw],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10], // test
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration], // test
-                [30, 'schedule', tuya.valueConverter.schedule],
+                [30, 'schedule', tuya.valueConverter.schedule(
+                    8, tuya.valueConverter.scheduleHoursMinutes, tuya.valueConverter.scheduleTemp)],
                 [31, 'week', tuya.valueConverter.weekFormat],
                 [39, 'factory_reset', tuya.valueConverter.onOff],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
