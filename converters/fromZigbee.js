@@ -4088,6 +4088,8 @@ const converters = {
             case tuya.dataPoints.moesScompensationTempSet:
                 return {
                     local_temperature_calibration: value,
+                    // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
+                    // so update local_temperature by subtracting the old calibration and adding the new one
                     ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) ?
                         {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)} :
                         {},
