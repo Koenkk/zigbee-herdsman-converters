@@ -2755,6 +2755,7 @@ module.exports = [
                 .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value')
                 .withDescription('Changes the upper temperature limit. Attention! Changing this property overwrites ' +
                 '`current_heating_setpoint`, so it needs to be updated.'),
+            exposes.binary('output_reverse', ea.STATE_SET, 'ON', 'OFF'),
             exposes.numeric('error', ea.STATE).withDescription('Shows an error with the thermostat. A value of "1" may appear if you ' +
                 'choose "external" or "both" sensor, whereas an external sensor is not connected to your thermostat.'),
         ],
