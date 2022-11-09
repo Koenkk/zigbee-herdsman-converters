@@ -1,6 +1,3 @@
-const {
-    precisionRound,
-} = require('../lib/utils');
 const herdsman = require('zigbee-herdsman');
 const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
@@ -8,6 +5,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
+const utils = require('../lib/utils');
 const extend = require('../lib/extend');
 const ea = exposes.access;
 const e = exposes.presets;
@@ -37,7 +35,7 @@ const fzLocal = {
                 result.window_open_check = lookup[data[0x1009]];
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = precisionRound(data[0x100A], 2) / 10;
+                result.hysterersis = utils.precisionRound(data[0x100A], 2) / 10;
             }
             return result;
         },
