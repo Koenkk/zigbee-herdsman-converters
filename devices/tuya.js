@@ -1479,7 +1479,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_p6ju8myv'},
             {modelID: 'TS0215A', manufacturerName: '_TZ3000_0zrccfgx'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'}],
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_fsiepnrh'},
+            {modelID: 'TS0215A', manufacturerName: '_TZ3000_ug1vtuzn'}],
         model: 'TS0215A_remote',
         vendor: 'TuYa',
         description: 'Security remote control',
