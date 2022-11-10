@@ -347,16 +347,16 @@ const converters = {
                     msg.data.batteryAlarmState & 1<<3
                 ) > 0;
                 const battery2Low = (
-                    msg.data.batteryAlarmState & 1<<9 ||
                     msg.data.batteryAlarmState & 1<<10 ||
                     msg.data.batteryAlarmState & 1<<11 ||
-                    msg.data.batteryAlarmState & 1<<12
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
                 ) > 0;
                 const battery3Low = (
-                    msg.data.batteryAlarmState & 1<<19 ||
                     msg.data.batteryAlarmState & 1<<20 ||
                     msg.data.batteryAlarmState & 1<<21 ||
-                    msg.data.batteryAlarmState & 1<<22
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
                 ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
