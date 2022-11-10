@@ -1701,6 +1701,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['5060831P7_01', '5060831P7_02', '5060831P7_03', '5060831P7_04'],
+        model: '5060831P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (3 spots)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['5061031P7_01', '5061031P7_02', '5061031P7_03'],
         model: '5061031P7',
         vendor: 'Philips',
