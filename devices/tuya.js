@@ -3552,9 +3552,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_qoy0ekbd' },
-        { modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5' },
-        { modelID: 'TS0601', manufacturerName: '_TZE200_a8sdabtg' }],
+        tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5','_TZE200_a8sdabtg']), 
         model: 'ZG-227ZL',
         vendor: 'TuYa',
         description: 'Temperature & humidity LCD sensor',
@@ -3570,7 +3568,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_n8dljorx' }, { modelID: 'TS0601', manufacturerName: '_TZE200_pay2byax' }],
+        tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']), 
         model: 'ZG-102ZL',
         vendor: 'TuYa',
         description: 'Luminance door sensor',
