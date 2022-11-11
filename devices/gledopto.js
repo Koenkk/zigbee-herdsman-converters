@@ -695,7 +695,7 @@ module.exports = [
         model: 'GL-G-101P',
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
-        description: 'Zigbee 12W Garden Lamp RGB+CCT (pro) (updated version)',
+        description: 'Zigbee 12W garden lamp RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
