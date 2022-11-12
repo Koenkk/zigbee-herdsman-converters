@@ -5,6 +5,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
+const utils = require('../lib/utils');
 const extend = require('../lib/extend');
 const ea = exposes.access;
 const e = exposes.presets;
@@ -34,7 +35,7 @@ const fzLocal = {
                 result.window_open_check = lookup[data[0x1009]];
             }
             if (data.hasOwnProperty(0x100A)) { // Hysterersis
-                result.hysterersis = data[0x100A];
+                result.hysterersis = utils.precisionRound(data[0x100A], 2) / 10;
             }
             return result;
         },
@@ -64,7 +65,7 @@ const tzLocal = {
                 const payload = {0x1009: {value: lookup[value], type: herdsman.Zcl.DataType.enum8}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             } else if (key==='hysterersis') {
-                const payload = {0x100A: {value: value, type: 0x20}};
+                const payload = {0x100A: {value: value * 10, type: 0x20}};
                 await entity.write('hvacThermostat', payload, sunricherManufacturer);
             }
         },
@@ -383,7 +384,7 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 0, 40, 0.1)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
-                .withSystemMode(['off', 'auto', 'heat'])
+                .withSystemMode(['off', 'auto', 'dry', 'heat'])
                 .withRunningState(['idle', 'heat']),
             exposes.binary('away_mode', ea.ALL, 'ON', 'OFF')
                 .withDescription('Enable/disable away mode'),

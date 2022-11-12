@@ -675,6 +675,7 @@ module.exports = [
         description: 'Air quality sensor',
         fromZigbee: [develco.fz.voc, develco.fz.voc_battery, fz.temperature, fz.humidity],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [
             e.voc(), e.temperature(), e.humidity(),
             e.battery(), e.battery_low(),
