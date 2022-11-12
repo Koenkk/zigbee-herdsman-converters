@@ -2510,39 +2510,40 @@ module.exports = [
             e.power(),
             e.voltage(),
             e.current(),
-            exposes.enum('fault',ea.STATE,['clear', 'over current threshold', 'over power threshold', 
-                  'over voltage threshold', 'wrong frequency threshold'])
-                  .withDescription('Text of fault'),
+            exposes.enum('fault', ea.STATE, ['clear', 'over current threshold', 'over power threshold',
+                'over voltage threshold', 'wrong frequency threshold'])
+                .withDescription('Text of fault'),
             exposes.text('threshold1_state', ea.STATE)
-                  .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
+                .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold1_description', ea.STATE),
             exposes.text('threshold1_value', ea.STATE)
-                  .withDescription('Setup value on the device'),
+                .withDescription('Setup value on the device'),
             exposes.text('threshold2_state', ea.STATE)
-                  .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
+                .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold2_description', ea.STATE),
             exposes.text('threshold2_value', ea.STATE)
-                  .withDescription('Setup value on the device'),
+                .withDescription('Setup value on the device'),
             exposes.binary('clear_event', ea.STATE_SET, 'ON', 'OFF')
-                  .withDescription('Clear event'),
-            exposes.text('meterid', ea.STATE).withDescription('Meter ID')
-                 ],
+                .withDescription('Clear event'),
+            exposes.text('meterid', ea.STATE).withDescription('Meter ID'),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, 'energy', tuya.valueConverter.divideBy100],
-                [3, null, null], //Monthly, but sends data only after request
-                [4, null, null], //Dayly, but sends data only after request
+                [3, null, null], // Monthly, but sends data only after request
+                [4, null, null], // Dayly, but sends data only after request
                 [6, null, tuya.valueConverter.phaseB], // voltage and current
-                [10, 'fault', tuya.valueConverterBasic.lookup({'clear': 0, 'over current threshold': 1, 'over power threshold': 2, 'over voltage threshold': 4, 'wrong frequency threshold':8})], 
-                [11, null, null], //Frozen - strange function, in native app - nothing is clear
+                [10, 'fault', tuya.valueConverterBasic.lookup({'clear': 0, 'over current threshold': 1,
+                    'over power threshold': 2, 'over voltage threshold': 4, 'wrong frequency threshold': 8})], 
+                [11, null, null], // Frozen - strange function, in native app - nothing is clear
                 [16, 'state', tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.alarm], //It's settable, but can't write converter
                 [18, 'meterid', tuya.valueConverter.raw],
                 [20, 'clear_event', tuya.valueConverter.onOff], //Clear event
-                [21, null, null], //Forward Energy T1 - don't know what this
-                [22, null, null], //Forward Energy T2 - don't know what this
-                [23, null, null], //Forward Energy T3 - don't know what this
-                [24, null, null], //Forward Energy T4 - don't know what this
+                [21, null, null], // Forward Energy T1 - don't know what this
+                [22, null, null], // Forward Energy T2 - don't know what this
+                [23, null, null], // Forward Energy T3 - don't know what this
+                [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
         whiteLabel: [{vendor: 'Hiking', model: 'DDS238-2'}, {vendor: 'TuYa', model: 'RC-MCB'}],
