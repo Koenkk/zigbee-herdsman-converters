@@ -2534,12 +2534,12 @@ module.exports = [
                 [4, null, null], // Dayly, but sends data only after request
                 [6, null, tuya.valueConverter.phaseB], // voltage and current
                 [10, 'fault', tuya.valueConverterBasic.lookup({'clear': 0, 'over current threshold': 1,
-                    'over power threshold': 2, 'over voltage threshold': 4, 'wrong frequency threshold': 8})], 
+                'over power threshold': 2, 'over voltage threshold': 4, 'wrong frequency threshold': 8})], 
                 [11, null, null], // Frozen - strange function, in native app - nothing is clear
                 [16, 'state', tuya.valueConverter.onOff],
-                [17, null, tuya.valueConverter.alarm], //It's settable, but can't write converter
+                [17, null, tuya.valueConverter.alarm], // It's settable, but can't write converter
                 [18, 'meterid', tuya.valueConverter.raw],
-                [20, 'clear_event', tuya.valueConverter.onOff], //Clear event
+                [20, 'clear_event', tuya.valueConverter.onOff], // Clear event
                 [21, null, null], // Forward Energy T1 - don't know what this
                 [22, null, null], // Forward Energy T2 - don't know what this
                 [23, null, null], // Forward Energy T3 - don't know what this
