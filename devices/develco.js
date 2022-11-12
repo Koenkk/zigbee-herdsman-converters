@@ -600,7 +600,8 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
             await reporting.temperature(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 10});
             await reporting.humidity(endpoint, {min: constants.repInterval.MINUTE, max: constants.repInterval.MINUTES_10, change: 300});
-            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 100});
+            await develco.configure.read_sw_hw_version(device, logger);
         },
     },
     {
@@ -674,6 +675,7 @@ module.exports = [
         description: 'Air quality sensor',
         fromZigbee: [develco.fz.voc, develco.fz.voc_battery, fz.temperature, fz.humidity],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [
             e.voc(), e.temperature(), e.humidity(),
             e.battery(), e.battery_low(),

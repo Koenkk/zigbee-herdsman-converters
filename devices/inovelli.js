@@ -25,25 +25,40 @@ const buttonLookup = {
 };
 
 const ledEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'open_close': 6,
-    'small_to_big': 7,
-    'clear_effect': 255,
+    off: 0,
+    solid: 1,
+    fast_blink: 2,
+    slow_blink: 3,
+    pulse: 4,
+    chase: 5,
+    open_close: 6,
+    small_to_big: 7,
+    aurora: 8,
+    slow_falling: 9,
+    medium_falling: 10,
+    fast_falling: 11,
+    slow_rising: 12,
+    medium_rising: 13,
+    fast_rising: 14,
+    medium_blink: 15,
+    slow_chase: 16,
+    fast_chase: 17,
+    fast_siren: 18,
+    slow_siren: 19,
+    clear_effect: 255,
 };
 
 const individualLedEffects = {
-    'off': 0,
-    'solid': 1,
-    'fast_blink': 2,
-    'slow_blink': 3,
-    'pulse': 4,
-    'chase': 5,
-    'clear_effect': 255,
+    off: 0,
+    solid: 1,
+    fast_blink: 2,
+    slow_blink: 3,
+    pulse: 4,
+    chase: 5,
+    falling: 6,
+    rising: 7,
+    aurora: 8,
+    clear_effect: 255,
 };
 
 const UINT8 = 32;
@@ -629,8 +644,20 @@ const ATTRIBUTES = {
         dataType: BOOLEAN,
         min: 0,
         max: 1,
-        description: 'Audible Click in On/Off mode.',
-        values: {'Enabled (Default)': 1, 'Disabled': 0},
+        description:
+      'In neutral on/off setups, the default is to have a clicking sound to notify you that the relay ' +
+      'is open or closed. You may disable this sound by creating a, “simulated” on/off where the switch ' +
+      'only will turn onto 100 or off to 0.',
+        values: {'Disabled (Click Sound On)': 0, 'Enabled (Click Sound Off)': 1},
+        displayType: 'enum',
+    },
+    doubleTapClearNotifications: {
+        ID: 262,
+        dataType: BOOLEAN,
+        min: 0,
+        max: 1,
+        description: 'Double-Tap the Config button to clear notifications.',
+        values: {'Enabled (Default)': 0, 'Disabled': 1},
         displayType: 'enum',
     },
 };
@@ -656,12 +683,11 @@ tzLocal.inovelli_vzw31sn_parameters = {
             manufacturerCode: INOVELLI,
         });
 
+        meta.state[key] = value;
+
         return {
             state: {
-                [key]:
-          ATTRIBUTES[key].displayType === 'enum' ?
-              ATTRIBUTES[key].values[value] :
-              value,
+                [key]: value,
             },
         };
     },
@@ -1057,12 +1083,24 @@ const exposesList = [
                 .enum('effect', ea.SET_STATE, [
                     'off',
                     'solid',
-                    'chase',
                     'fast_blink',
                     'slow_blink',
                     'pulse',
+                    'chase',
                     'open_close',
                     'small_to_big',
+                    'aurora',
+                    'slow_falling',
+                    'medium_falling',
+                    'fast_falling',
+                    'slow_rising',
+                    'medium_rising',
+                    'fast_rising',
+                    'medium_blink',
+                    'slow_chase',
+                    'fast_chase',
+                    'fast_siren',
+                    'slow_siren',
                     'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LEDs'),
@@ -1110,6 +1148,9 @@ const exposesList = [
                     'slow_blink',
                     'pulse',
                     'chase',
+                    'falling',
+                    'rising',
+                    'aurora',
                     'clear_effect',
                 ])
                 .withDescription('Animation Effect to use for the LED'),
@@ -1196,6 +1237,33 @@ Object.keys(ATTRIBUTES).forEach((key) => {
     }
 });
 
+// Put actions at the bottom of ui
+exposesList.push(
+    e.action([
+        'down_single',
+        'up_single',
+        'config_single',
+        'down_release',
+        'up_release',
+        'config_release',
+        'down_held',
+        'up_held',
+        'config_held',
+        'down_double',
+        'up_double',
+        'config_double',
+        'down_triple',
+        'up_triple',
+        'config_triple',
+        'down_quadruple',
+        'up_quadruple',
+        'config_quadruple',
+        'down_quintuple',
+        'up_quintuple',
+        'config_quintuple',
+    ]),
+);
+
 module.exports = [
     {
         zigbeeModel: ['VZM31-SN'],
@@ -1220,7 +1288,11 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 'seMetering',
                 'haElectricalMeasurement',
+                'genOnOff',
+                'genLevelCtrl',
             ]);
+            await reporting.onOff(endpoint);
+
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, [
