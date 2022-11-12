@@ -118,7 +118,7 @@ module.exports = [
         model: '500.44',
         vendor: 'Paulmann',
         description: 'URail Power supply Smart Home Zigbee',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_color(),
     },
     {
         zigbeeModel: ['500.45'],
