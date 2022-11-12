@@ -1812,6 +1812,29 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy(), e.power_on_behavior(), e.switch_type_2()],
     },
     {
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_mkhkxx1p']),
+        model: 'TS0001_switch_module_power',
+        description: '1 gang switch module with power monitoring',
+        vendor: 'TuYa',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
+		    fz.tuya_switch_power_outage_memory, fz.tuya_switch_type],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.tuya_switch_type],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy(), e.switch_type_2(),
+            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
+    }
+    {
         zigbeeModel: ['TS0001'],
         model: 'TS0001',
         vendor: 'TuYa',
