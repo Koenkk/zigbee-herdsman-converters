@@ -2155,7 +2155,7 @@ module.exports = [
                 '18:40/24 22:50/19.5`; `06:00/21.5 17:20/26 24:00/18`. The temperature will be set from the beginning/start of one ' +
                 'period and until the next period, e.g., `04:00/20 24:00/22` means that from 00:00 to 04:00 temperature will be 20 ' +
                 'degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C'),
+            ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn on this property to poll current data from the ' +
                 'device. It can be used to periodically fetch a new local temperature since the device doesn\'t update itself. ' +
                 'Setting this property doesn\'t turn on the display.'),
