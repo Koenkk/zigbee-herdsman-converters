@@ -2510,21 +2510,22 @@ module.exports = [
             e.power(),
             e.voltage(),
             e.current(),
-            exposes.enum('fault',ea.STATE,['clear', 'over current threshold', 'over power threshold', 'over voltage threshold','wrong frequency threshold'])
+            exposes.enum('fault',ea.STATE,['clear', 'over current threshold', 'over power threshold', 
+                  'over voltage threshold', 'wrong frequency threshold'])
                   .withDescription('Text of fault'),
-            exposes.text('threshold1_state',ea.STATE)
+            exposes.text('threshold1_state', ea.STATE)
                   .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold1_description', ea.STATE),
             exposes.text('threshold1_value', ea.STATE)
                   .withDescription('Setup value on the device'),
-            exposes.text('threshold2_state',ea.STATE)
+            exposes.text('threshold2_state', ea.STATE)
                   .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold2_description', ea.STATE),
             exposes.text('threshold2_value', ea.STATE)
                   .withDescription('Setup value on the device'),
             exposes.binary('clear_event', ea.STATE_SET, 'ON', 'OFF')
                   .withDescription('Clear event'),
-            exposes.text('meterid',ea.STATE).withDescription('Meter ID')
+            exposes.text('meterid', ea.STATE).withDescription('Meter ID')
                  ],
         meta: {
             tuyaDatapoints: [
