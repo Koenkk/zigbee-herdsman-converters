@@ -2513,18 +2513,18 @@ module.exports = [
             exposes.enum('fault', ea.STATE, ['clear', 'over current threshold', 'over power threshold',
                 'over voltage threshold', 'wrong frequency threshold'])
                 .withDescription('Text of fault'),
-            exposes.text('threshold1_state', ea.STATE)
+            exposes.binary('threshold1_state', ea.STATE, 'ON', 'OFF')
                 .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold1_description', ea.STATE),
-            exposes.text('threshold1_value', ea.STATE)
+            exposes.numeric('threshold1_value', ea.STATE)
                 .withDescription('Setup value on the device'),
-            exposes.text('threshold2_state', ea.STATE)
+            exposes.binary('threshold2_state', ea.STATE, 'ON', 'OFF')
                 .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold2_description', ea.STATE),
-            exposes.text('threshold2_value', ea.STATE)
+            exposes.numeric('threshold2_value', ea.STATE)
                 .withDescription('Setup value on the device'),
-            exposes.binary('clear_event', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Clear event'),
+            exposes.binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Clear the fault'),
             exposes.text('meterid', ea.STATE).withDescription('Meter ID'),
         ],
         meta: {
@@ -2539,7 +2539,7 @@ module.exports = [
                 [16, 'state', tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.alarm], // It's settable, but can't write converter
                 [18, 'meterid', tuya.valueConverter.raw],
-                [20, 'clear_event', tuya.valueConverter.onOff], // Clear event
+                [20, 'clear_fault', tuya.valueConverter.onOff], // Clear fault
                 [21, null, null], // Forward Energy T1 - don't know what this
                 [22, null, null], // Forward Energy T2 - don't know what this
                 [23, null, null], // Forward Energy T3 - don't know what this
