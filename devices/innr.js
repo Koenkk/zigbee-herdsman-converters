@@ -591,6 +591,7 @@ module.exports = [
             await reporting.rmsVoltage(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
+            await reporting.currentSummDelivered(endpoint);
         },
         ota: ota.zigbeeOTA,
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
