@@ -2117,7 +2117,7 @@ module.exports = [
         exposes: [
             e.battery_low(), e.child_lock(), e.open_window(), e.open_window_temperature().withValueMin(5).withValueMax(30),
             e.comfort_temperature().withValueMin(5).withValueMax(30), e.eco_temperature().withValueMin(5).withValueMax(30),
-            tuya.exposes.errorStatus(), tuya.exposes.frostProtection(),
+            tuya.exposes.errorStatus(), tuya.exposes.frostProtection('The device display "AF", press the pair button to cancel.'),
             exposes.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET, 'When switched to the "off" mode, the device will display ' +
                     '"HS" and the valve will be fully closed. Press the pair button to cancel or switch back to "heat" mode. Battery life' +
@@ -2181,7 +2181,7 @@ module.exports = [
                 [105, 'eco_temperature', tuya.valueConverter.divideBy10],
                 [106, 'schedule', tuya.valueConverter.thermostatScheduleDaySingleDP],
                 [107, null, tuya.valueConverter.TV02SystemMode],
-                [107, 'system_mode', tuya.valueConverter.systemMode],
+                [107, 'system_mode', tuya.valueConverterBasic.lookup({'heat': false, 'off': true})],
                 [107, 'heating_stop', tuya.valueConverter.onOff],
                 [115, 'online', tuya.valueConverter.onOffNotStrict],
                 [108, 'schedule_monday', tuya.valueConverter.thermostatScheduleDaySingleDP],
@@ -2210,7 +2210,7 @@ module.exports = [
         configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverter.systemMode],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'heat': true, 'off': false})],
                 [2, 'preset', tuya.valueConverterBasic.lookup({'manual': tuya.enum(0), 'holiday': tuya.enum(1), 'program': tuya.enum(2)})],
                 [3, null, null], // TODO: Unknown DP
                 [8, 'open_window', tuya.valueConverter.onOff],
