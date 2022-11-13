@@ -1308,7 +1308,7 @@ const converters = {
     thermostat_occupancy: {
         key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ocupancy']);
+            await entity.read('hvacThermostat', ['occupancy']);
         },
     },
     thermostat_clear_weekly_schedule: {
