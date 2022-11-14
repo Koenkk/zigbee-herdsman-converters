@@ -14,6 +14,17 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SM308-S'],
+        model: 'SM308-S',
+        vendor: 'Samotech',
+        description: 'Zigbee in wall smart switch',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['SM309-S'],
         model: 'SM309-S',
         vendor: 'Samotech',

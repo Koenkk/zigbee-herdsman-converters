@@ -1308,7 +1308,7 @@ const converters = {
     thermostat_occupancy: {
         key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ocupancy']);
+            await entity.read('hvacThermostat', ['occupancy']);
         },
     },
     thermostat_clear_weekly_schedule: {
@@ -3418,6 +3418,12 @@ const converters = {
                 Math.round(newProgram.sunday_p4_temperature * 2),
             ];
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
+        },
+    },
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {system_mode: 'heat'}};
         },
     },
     moesS_thermostat_preset: {
