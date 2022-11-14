@@ -249,7 +249,7 @@ module.exports = [
                 .withFeature(exposes.numeric('r', ea.ALL))
                 .withFeature(exposes.numeric('g', ea.ALL))
                 .withFeature(exposes.numeric('b', ea.ALL))
-                .withDescription('Control status LED intensity when load ON'),
+                .withDescription('Control status LED color when load ON'),
             exposes.composite('led_color_off', 'led_color_off')
                 .withFeature(exposes.numeric('r', ea.ALL))
                 .withFeature(exposes.numeric('g', ea.ALL))
@@ -280,7 +280,7 @@ module.exports = [
                 .withFeature(exposes.numeric('r', ea.ALL))
                 .withFeature(exposes.numeric('g', ea.ALL))
                 .withFeature(exposes.numeric('b', ea.ALL))
-                .withDescription('Control status LED intensity when load ON'),
+                .withDescription('Control status LED color when load ON'),
             exposes.composite('led_color_off', 'led_color_off')
                 .withFeature(exposes.numeric('r', ea.ALL))
                 .withFeature(exposes.numeric('g', ea.ALL))

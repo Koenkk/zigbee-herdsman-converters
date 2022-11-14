@@ -80,8 +80,8 @@ const ubisys = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result = {};
-                if (msg.data.hasOwnProperty('input_configurations')) {
-                    result['input_configurations'] = msg.data['input_configurations'];
+                if (msg.data.hasOwnProperty('inputConfigurations')) {
+                    result['input_configurations'] = msg.data['inputConfigurations'];
                 }
                 if (msg.data.hasOwnProperty('inputActions')) {
                     result['input_actions'] = msg.data['inputActions'].map(function(el) {

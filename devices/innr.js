@@ -1,10 +1,11 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -590,7 +591,9 @@ module.exports = [
             await reporting.rmsVoltage(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
+            await reporting.currentSummDelivered(endpoint);
         },
+        ota: ota.zigbeeOTA,
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
     },
     {

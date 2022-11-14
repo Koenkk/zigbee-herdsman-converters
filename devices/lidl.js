@@ -399,27 +399,29 @@ module.exports = [
         model: 'HG08673-FR',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug FR with power monitoring',
-        ota: ota.zigbeeOTA, // Even though it's a Lidl Device it supports Tuya OTA
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fzLocal.electrical_measurement_skip_duplicate, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
             fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
         toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.rmsCurrent(endpoint, {change: 50});
             await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
+            // Energy reporting (currentSummDelivered) doesn't work; requires polling: https://github.com/Koenkk/zigbee2mqtt/issues/14356
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
+        options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
         exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
             e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],

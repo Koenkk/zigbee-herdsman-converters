@@ -22,6 +22,8 @@ const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const xiaomi = require('../lib/xiaomi');
 
+const defaultSimulatedBrightness = 255;
+
 const converters = {
     // #region Generic/recommended converters
     fan: {
@@ -345,16 +347,16 @@ const converters = {
                     msg.data.batteryAlarmState & 1<<3
                 ) > 0;
                 const battery2Low = (
-                    msg.data.batteryAlarmState & 1<<9 ||
                     msg.data.batteryAlarmState & 1<<10 ||
                     msg.data.batteryAlarmState & 1<<11 ||
-                    msg.data.batteryAlarmState & 1<<12
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
                 ) > 0;
                 const battery3Low = (
-                    msg.data.batteryAlarmState & 1<<19 ||
                     msg.data.batteryAlarmState & 1<<20 ||
                     msg.data.batteryAlarmState & 1<<21 ||
-                    msg.data.batteryAlarmState & 1<<22
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
                 ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
@@ -1233,9 +1235,12 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
+                const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                payload[deltaProperty] = msg.data.level - currentBrightness;
             }
 
             return payload;
@@ -1260,14 +1265,15 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                     const timer = setInterval(() => {
-                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                         const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
                             deltaOpts : -1 * deltaOpts;
                         brightness += delta;
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                         const property = postfixWithEndpointName('brightness', msg, model, meta);
-                        publish({[property]: brightness});
+                        const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                        publish({[property]: brightness, [deltaProperty]: delta});
                     }, intervalOpts);
 
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
@@ -1292,13 +1298,15 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
-                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                 const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                payload[deltaProperty] = delta;
             }
 
             return payload;
@@ -4078,7 +4086,14 @@ const converters = {
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
             case tuya.dataPoints.moesScompensationTempSet:
-                return {local_temperature_calibration: value};
+                return {
+                    local_temperature_calibration: value,
+                    // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
+                    // so update local_temperature by subtracting the old calibration and adding the new one
+                    ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) ?
+                        {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)} :
+                        {},
+                };
             case tuya.dataPoints.moesSecoMode:
                 return {eco_mode: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSecoModeTempSet:
@@ -7137,6 +7152,7 @@ const converters = {
                 const delta = button === 'up' ? deltaOpts : deltaOpts * -1;
                 const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                 payload.brightness = numberWithinRange(brightness, 0, 255);
+                payload.action_brightness_delta = delta;
                 globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
             }
 

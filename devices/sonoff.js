@@ -61,6 +61,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['ZBMINIL2'],
+        model: 'ZBMINIL2',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart switch (no neutral)',
+        ota: ota.zigbeeOTA,
+        extend: extend.switch(),
+        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            // Unbind genPollCtrl to prevent device from sending checkin message.
+            // Zigbee-herdsmans responds to the checkin message which causes the device
+            // to poll slower.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/11676
+            await device.getEndpoint(1).unbind('genPollCtrl', coordinatorEndpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
+    },
+    {
         zigbeeModel: ['01MINIZB'],
         model: 'ZBMINI',
         vendor: 'SONOFF',
@@ -195,6 +215,7 @@ module.exports = [
         description: '15A Zigbee smart plug',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
