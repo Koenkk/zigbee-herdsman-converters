@@ -27,7 +27,9 @@ module.exports = [
         toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
             e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
-                .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
+                .withDescription('switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak electricity rates'),
+                exposes.enum('auto_mode', ea.ALL, ['off', 'auto', 'on_override'])
+                .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
