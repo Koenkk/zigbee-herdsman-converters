@@ -180,4 +180,5 @@ module.exports = [
         description: 'ST64 Adjustable White Filament Bulb', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         whiteLabel: [{vendor: 'EGLO', model: '12242'}],
+    }
 ];
