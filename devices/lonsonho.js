@@ -148,8 +148,10 @@ module.exports = [
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.tuya_min_brightness]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tuya_min_brightness]),
+        fromZigbee: extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true})
+            .fromZigbee.concat([fz.tuya_min_brightness]),
+        toZigbee: extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true})
+            .toZigbee.concat([tz.tuya_min_brightness]),
         exposes: [e.light_brightness().withMinBrightness()],
     },
     {
@@ -268,10 +270,10 @@ module.exports = [
         model: 'TS110E_2gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 2 gang with neutral',
-        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).fromZigbee.concat([
-            fz.tuya_switch_power_outage_memory, fzLocal.TS110E_switch_type]),
-        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true}).toZigbee.concat([
-            tz.tuya_switch_power_outage_memory, tzLocal.TS110E_switch_type]),
+        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+            .fromZigbee.concat([fz.tuya_switch_power_outage_memory, fzLocal.TS110E_switch_type]),
+        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+            .toZigbee.concat([tz.tuya_switch_power_outage_memory, tzLocal.TS110E_switch_type]),
         meta: {multiEndpoint: true},
         exposes: [
             e.light_brightness().withEndpoint('l1'),
