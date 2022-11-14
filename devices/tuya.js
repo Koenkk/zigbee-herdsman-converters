@@ -288,6 +288,22 @@ const tzLocal = {
             }
         },
     },
+    // for HC-020-ZB, we must use different data points depending on thermostat_unit
+    hc020_temperatures: {
+        key: ['current_heating_setpoint', 'max_temperature', 'min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            // dps[key] = [celsius data point, fahrenheit data point]
+            const dps = {
+                'current_heating_setpoint': [16, 17],
+                'max_temperature': [19, 18],
+                'min_temperature': [26, 20],
+            };
+            const fahrenheit = meta.state.thermostat_unit === 'fahrenheit' ? 1 : 0;
+            const temp = fahrenheit ?
+                utils.mapNumberRange(value, 0, 100, 32, 212) : value;
+            await tuya.sendDataPointValue(entity, dps[key][fahrenheit], temp);
+        },
+    },
 };
 
 const fzLocal = {
@@ -3594,5 +3610,127 @@ module.exports = [
             exposes.binary('led_state', ea.STATE_SET, true, false)
                 .withDescription('Turns the onboard LED on or off'),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'}],
+        model: 'HC-020-ZB',
+        vendor: 'TuYa',
+        description: 'Thermostat',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [
+            tzLocal.hc020_temperatures,
+            tuya.tzDataPoints,
+        ],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+        },
+        exposes: [
+            exposes.climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withPreset(['program', 'manual', 'eco'], 'Mode switch among “Manual/Programmable/ECO” ' +
+                    'In the manual mode, “☝” will display in the bottom of the screen. ' +
+                    'In programmable mode, “⏱” will display in the bottom of the screen. ' +
+                    'In ECO mode, “🍃” will display in the right side.',
+                )
+                .withSetpoint('current_heating_setpoint', 0, 45, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            exposes.text('schedule', ea.STATE_SET).withDescription(
+                'In programmable mode, “⏱” will display in the bottom of the screen. ' +
+                'You can set it on weekdays (Monday to Friday), and then set the time / temperature ' +
+                'and adjust it according to your work schedule. You can set 6 periods (time and temperature). ' +
+                'On days off (Saturday and Sunday) you can set 2 periods.'),
+            e.child_lock(),
+            e.eco_mode().withDescription('The ECO mode is disabled by default, if the user wants to use this function, please enable it. ' +
+                'Then touch the “Ⓜ️” key on the thermostat to switch among “Manual/Programmable/ECO” modes.'),
+            exposes.enum('countdown', ea.STATE_SET, ['cancel', '1h', '2h', '3h', '4h', '5h', '6h', '7h', '8h', '9h', '10h', '11h', '12h',
+                '13h', '14h', '15h', '16h', '17h', '18h', '19h', '20h', '21h', '22h', '23h', '24h']),
+            exposes.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(0).withValueMax(1440).withValueStep(1),
+            e.temperature_sensor_select(['internal', 'external', 'internal/external']),
+            e.min_temperature().withValueMin(0), e.max_temperature().withValueMax(45),
+            exposes.options.thermostat_unit().withAccess(ea.STATE_SET),
+            exposes.enum('fault', ea.STATE, ['no fault', 'E1', 'E2', 'E3'])
+                .withDescription('E2 indicates a problem with the external sensor.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({
+                    'heat': true,
+                    'off': false,
+                })],
+                [2, 'preset', tuya.valueConverterBasic.lookup({
+                    'manual': tuya.enum(0),
+                    'program': tuya.enum(1),
+                    'eco': tuya.enum(2),
+                })],
+                // data point 3 is always 0 when system_mode is off
+                [3, 'running_state', {
+                    from: (v, meta) => (v || (meta.state && meta.state.system_mode === 'off')) ? 'idle' : 'heat',
+                }],
+                [4, 'eco_mode', tuya.valueConverter.onOff],
+                [16, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [17, 'current_heating_setpoint', tuya.valueConverter.fahrenheitToCelsius],
+                [18, 'max_temperature', tuya.valueConverter.fahrenheitToCelsius],
+                [19, 'max_temperature', tuya.valueConverter.raw],
+                [20, 'min_temperature', tuya.valueConverter.fahrenheitToCelsius],
+                [23, 'thermostat_unit', tuya.valueConverterBasic.lookup({
+                    'fahrenheit': tuya.enum(1),
+                    'celsius': tuya.enum(0),
+                })],
+                [24, 'local_temperature', tuya.valueConverter.raw],
+                [26, 'min_temperature', tuya.valueConverter.raw],
+                [27, 'local_temperature_calibration', tuya.valueConverter.raw],
+                [29, 'local_temperature', tuya.valueConverter.fahrenheitToCelsius],
+                [30, 'schedule', {
+                    to: (v, meta) => {
+                        const payload = [];
+                        const periods = v.split(' ').filter((p) => p);
+                        if (periods.length != 8) {
+                            throw new Error('Invalid number of periods in: ' + v);
+                        }
+                        for (let i = 0; i < 8; i++) {
+                            const [time, tempString] = periods[i].split('/');
+                            const [hh, mm] = time.split(':', 2);
+                            const h = parseInt(hh);
+                            const m = parseInt(mm);
+                            const temp = parseInt(tempString);
+                            const [min, max] = (meta.state.thermostat_unit === 'fahrenheit') ? [32, 113] : [0, 45];
+                            if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < min || temp >= max) {
+                                throw new Error('Invalid hour, minute or temperature in: ' + periods[i]);
+                            }
+                            payload.push(h, m, 0, temp);
+                        }
+                        return payload;
+                    },
+                    from: (v, meta) => {
+                        const periods = [];
+                        const unit = (meta.state.thermostat_unit === 'fahrenheit' ? 'F' : 'C');
+                        for (let i = 0; i < 32; i += 4) {
+                            // payload: [hh, mm, 0, temp, hh, mm, 0, temp, ...]
+                            // the third value seems to be ignored and always returns 0
+                            const time = Array.from(v.subarray(i, i + 2)).map((t) => t.toString().padStart(2, '0')).join(':');
+                            const temp = v[i + 3];
+                            periods.push(`${time}/${temp}˚${unit}`);
+                        }
+                        return periods.join(' ');
+                    },
+                }],
+                [40, 'child_lock', tuya.valueConverter.lockUnlock],
+                [41, 'countdown', {
+                    to: (v) => v === 'cancel' ? tuya.enum(0) : tuya.enum(parseInt(v)),
+                    from: (v) => v ? `${v}h` : 'cancel',
+                }],
+                [42, 'countdown_left', tuya.valueConverterBasic.divideBy(60)],
+                [43, 'sensor', tuya.valueConverterBasic.lookup({
+                    'internal': tuya.enum(0),
+                    'external': tuya.enum(1),
+                    'internal/external': tuya.enum(2),
+                })],
+                [45, 'fault', tuya.valueConverterBasic.lookup({'no fault': 0, 'E1': 1, 'E2': 2, 'E3': 3})],
+            ],
+        },
     },
 ];

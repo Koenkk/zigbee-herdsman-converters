@@ -113,7 +113,6 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
