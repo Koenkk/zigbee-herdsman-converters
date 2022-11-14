@@ -3476,7 +3476,7 @@ const converters = {
             return result;
         },
     },
-     sinope_thermostat: {
+    sinope_thermostat: {
         cluster: 'hvacThermostat',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
