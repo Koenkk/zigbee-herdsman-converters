@@ -277,15 +277,16 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
+            const endpoint11 = device.getEndpoint(11);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint1);
             await reporting.onOff(endpoint2);
-            await endpoint1.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
-            await reporting.activePower(endpoint1);
-            await reporting.readMeteringMultiplierDivisor(endpoint1);
-            await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
+            await endpoint11.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.bind(endpoint11, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.activePower(endpoint11);
+            await reporting.readMeteringMultiplierDivisor(endpoint11);
+            await reporting.currentSummDelivered(endpoint11, {min: 60, change: 1});
         },
     },
     {
