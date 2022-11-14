@@ -4752,22 +4752,6 @@ const converters = {
             await entity.read('manuSpecificLegrandDevices2', [0x0000], manufacturerOptions.legrand);
         },
     },
-    legrand_autoMode: {
-        key: ['auto_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const mode = {
-                'off': 0x00,
-                'auto': 0x02,
-                'on_override': 0x03
-            };
-            const payload = {data: Buffer.from([mode[value]])};
-            await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
-            return {state: {'auto_mode': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLegrandDevices3', [0x0000], manufacturerOptions.legrand);
-        },
-    },
     legrand_powerAlarm: {
         key: ['power_alarm'],
         convertSet: async (entity, key, value, meta) => {
