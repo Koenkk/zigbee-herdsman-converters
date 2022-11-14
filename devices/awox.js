@@ -174,10 +174,10 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
-        zigbeeModel: ['ESMLFzm_w6_TW'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'ESMLFzm_w6_TW', // Vendor model number, look on the device for a model number
-        vendor: 'AwoX', // Vendor of the device (only used for documentation and startup logging)
-        description: 'ST64 Adjustable White Filament Bulb', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        zigbeeModel: ['ESMLFzm_w6_TW'],
+        model: 'ESMLFzm_w6_TW',
+        vendor: 'AwoX',
+        description: 'ST64 Adjustable White Filament Bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
         whiteLabel: [{vendor: 'EGLO', model: '12242'}],
     }
