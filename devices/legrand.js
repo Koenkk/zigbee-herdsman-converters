@@ -6,6 +6,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const ota = require('../lib/ota');
+const herdsman = require('zigbee-herdsman');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -13,6 +14,23 @@ const readInitialBatteryState = async (type, data, device) => {
         const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
         await endpoint.read('genPowerCfg', ['batteryVoltage'], options);
     }
+};
+
+const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true};
+
+const tzLocal = {
+    auto_mode: {
+        key: ['auto_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {'off': 0x00, 'auto': 0x02, 'on_override': 0x03};
+            const payload = {data: Buffer.from([mode[value]])};
+            await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
+            return {state: {'auto_mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificLegrandDevices3', [0x0000], manufacturerOptions);
+        },
+    },
 };
 
 module.exports = [
@@ -24,11 +42,13 @@ module.exports = [
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
-        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
         exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
-            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
-                .withDescription('switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak electricity rates'),
-                exposes.enum('auto_mode', ea.ALL, ['off', 'auto', 'on_override'])
+            e.power().withAccess(ea.STATE_GET),
+            exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+                .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak ' +
+                    'electricity rates'),
+            exposes.enum('auto_mode', ea.ALL, ['off', 'auto', 'on_override'])
                 .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
