@@ -2517,7 +2517,7 @@ module.exports = [
                 .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold1_description', ea.STATE),
             exposes.numeric('threshold1_value', ea.STATE)
-                .withDescription('Setup value on the device'),
+                .withDescription('Can be in volts or amps depending on threshold setting. Setup the value on the device'),
             exposes.binary('threshold2_state', ea.STATE, 'ON', 'OFF')
                 .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
             exposes.text('threshold2_description', ea.STATE),
