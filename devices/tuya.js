@@ -2524,7 +2524,7 @@ module.exports = [
             exposes.numeric('threshold2_value', ea.STATE)
                 .withDescription('Setup value on the device'),
             exposes.binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Clear the fault'),
+                .withDescription('Turn ON  to clear last the fault'),
             exposes.text('meterid', ea.STATE).withDescription('Meter ID'),
         ],
         meta: {
@@ -2533,8 +2533,8 @@ module.exports = [
                 [3, null, null], // Monthly, but sends data only after request
                 [4, null, null], // Dayly, but sends data only after request
                 [6, null, tuya.valueConverter.phaseB], // voltage and current
-                [10, 'fault', tuya.valueConverterBasic.lookup({'clear': 0, 'over current threshold': 1,
-                    'over power threshold': 2, 'over voltage threshold': 4, 'wrong frequency threshold': 8})],
+                [10, 'fault', tuya.valueConverterBasic.lookup({'clear': 0, 'over_current_threshold': 1,
+                    'over_power_threshold': 2, 'over_voltage_threshold': 4, 'wrong_frequency_threshold': 8})],
                 [11, null, null], // Frozen - strange function, in native app - nothing is clear
                 [16, 'state', tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.alarm], // It's settable, but can't write converter
