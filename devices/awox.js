@@ -169,7 +169,7 @@ module.exports = [
             },
         ],
         model: '33955',
-        vendor: 'Eglo',
+        vendor: 'AwoX',
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
