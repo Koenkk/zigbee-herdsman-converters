@@ -1,6 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
-const utils = require('../lib/utils');
+const tuya = require('../lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -375,6 +375,9 @@ describe('index.js', () => {
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
+                // tuya.tzDataPoints is generic, keys cannot be used to determine expose access
+                if (device.toZigbee.includes(tuya.tzDataPoints)) return;
+
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
