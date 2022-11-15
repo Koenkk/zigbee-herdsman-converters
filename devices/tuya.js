@@ -665,6 +665,7 @@ module.exports = [
         model: 'TS0204',
         vendor: 'TuYa',
         description: 'Gas sensor',
+        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-SEN-GAS'}],
         fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.gas(), e.tamper()],
@@ -674,6 +675,7 @@ module.exports = [
         model: 'TS0205',
         vendor: 'TuYa',
         description: 'Smoke sensor',
+        whiteLabel: [{vendor: 'Tesla Smart', model: 'TSL-SEN-SMOKE'}],
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
@@ -702,7 +704,11 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
-        whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0203'}, {vendor: 'TuYa', model: 'iH-F001'}],
+        whiteLabel: [
+            {vendor: 'CR Smart Home', model: 'TS0203'},
+            {vendor: 'TuYa', model: 'iH-F001'},
+            {vendor: 'Tesla Smart', model: 'TSL-SEN-DOOR'},
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
                 const endpoint = device.getEndpoint(1);
