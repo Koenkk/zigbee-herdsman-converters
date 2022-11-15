@@ -32,7 +32,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint)
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
