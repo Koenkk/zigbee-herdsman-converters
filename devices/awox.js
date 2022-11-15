@@ -169,16 +169,8 @@ module.exports = [
             },
         ],
         model: '33955',
-        vendor: 'Eglo',
+        vendor: 'AwoX',
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
-    },
-    {
-        zigbeeModel: ['ESMLFzm_w6_TW'],
-        model: 'ESMLFzm_w6_TW',
-        vendor: 'AwoX',
-        description: 'ST64 Adjustable White Filament Bulb',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-        whiteLabel: [{vendor: 'EGLO', model: '12242'}],
     },
 ];
