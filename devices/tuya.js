@@ -2504,28 +2504,22 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.switch(),
-            e.energy(),
-            e.power(),
-            e.voltage(),
-            e.current(),
-            exposes.enum('fault', ea.STATE, ['clear', 'over current threshold', 'over power threshold',
-                'over voltage threshold', 'wrong frequency threshold'])
-                .withDescription('Text of fault'),
-            exposes.binary('threshold1_state', ea.STATE, 'ON', 'OFF')
-                .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
-            exposes.text('threshold1_description', ea.STATE),
-            exposes.numeric('threshold1_value', ea.STATE)
-                .withDescription('Can be in volts or amps depending on threshold setting. Setup the value on the device'),
-            exposes.binary('threshold2_state', ea.STATE, 'ON', 'OFF')
-                .withDescription('null - not set, OFF - just alarm, ON - relay will be off when threshold reached'),
-            exposes.text('threshold2_description', ea.STATE),
-            exposes.numeric('threshold2_value', ea.STATE)
+        exposes: [tuya.exposes.switch(), e.energy(), e.power(), e.voltage(), e.current(),
+            exposes.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
+                'over_voltage threshold', 'wrong_frequency_threshold']).withDescription('Fault status of the device (clear = nothing)'),
+            exposes.binary('threshold_1_state', ea.STATE, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
+            exposes.text('threshold_1_description', ea.STATE), // TODO: what is this?
+            exposes.numeric('threshold_1_value', ea.STATE)
+                .withDescription('Can be in Volt or Ampere depending on threshold setting. Setup the value on the device'),
+            exposes.binary('threshold_2_state', ea.STATE, 'ON', 'OFF')
+                .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
+            exposes.text('threshold_2_description', ea.STATE),
+            exposes.numeric('threshold_2_value', ea.STATE)
                 .withDescription('Setup value on the device'),
             exposes.binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Turn ON  to clear last the fault'),
-            exposes.text('meterid', ea.STATE).withDescription('Meter ID'),
+                .withDescription('Turn ON to clear last the fault'),
+            exposes.text('meterid', ea.STATE).withDescription('Meter ID'), // TODO: update description
         ],
         meta: {
             tuyaDatapoints: [
@@ -2546,7 +2540,6 @@ module.exports = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
-        whiteLabel: [{vendor: 'Hiking', model: 'DDS238-2'}, {vendor: 'TuYa', model: 'RC-MCB'}],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_byzdayie'},
