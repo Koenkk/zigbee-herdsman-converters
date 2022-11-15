@@ -2521,7 +2521,7 @@ module.exports = [
                 .withDescription('Setup value on the device'),
             exposes.binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Turn ON to clear last the fault'),
-            exposes.text('meterid', ea.STATE).withDescription('Meter ID'), // TODO: update description
+            exposes.text('meterid', ea.STATE).withDescription('Meter ID (ID of device)'), // TODO: update description
         ],
         meta: {
             tuyaDatapoints: [
