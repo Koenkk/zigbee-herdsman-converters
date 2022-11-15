@@ -95,8 +95,8 @@ const ubisys = {
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('ocupancy')) {
-                    return {vacation_mode: msg.data.ocupancy === 0};
+                if (msg.data.hasOwnProperty('occupancy')) {
+                    return {vacation_mode: msg.data.occupancy === 0};
                 }
             },
         },
@@ -516,7 +516,7 @@ const ubisys = {
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
             convertGet: async (entity, key, meta) => {
-                await entity.read('hvacThermostat', ['ocupancy']);
+                await entity.read('hvacThermostat', ['occupancy']);
             },
         },
     },

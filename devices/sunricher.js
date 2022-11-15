@@ -465,7 +465,7 @@ module.exports = [
             await reporting.thermostatKeypadLockMode(endpoint);
 
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'ocupancy',
+                attribute: 'occupancy',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,
