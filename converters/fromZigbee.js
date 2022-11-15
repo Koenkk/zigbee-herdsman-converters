@@ -3476,6 +3476,22 @@ const converters = {
             return result;
         },
     },
+    sinope_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'unoccupied', 1: 'occupied'};
+            const lookup1 = {0: 'on_demand', 1: 'sensing'};
+            const result = {};
+            if (msg.data.hasOwnProperty('1024')) {
+                result.thermostat_occupancy = lookup[msg.data['1024']];
+            }
+            if (msg.data.hasOwnProperty('1026')) {
+                result.backlight_auto_dim = lookup1[msg.data['1026']];
+            }
+            return result;
+        },
+    },
     danfoss_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
