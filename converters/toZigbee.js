@@ -4286,17 +4286,16 @@ const converters = {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
             await entity.write('hvacThermostat', {SinopeOccupancy});
+            return {state: {'thermostat_occupancy': value}};
         },
     },
     sinope_thermostat_backlight_autodim_param: {
         key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {
-                0: 'on demand',
-                1: 'sensing',
-            };
+            const sinopeBacklightParam = {0: 'on demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight});
+            return {state: {'backlight_auto_dim': value}};
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
