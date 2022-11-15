@@ -2564,7 +2564,7 @@ module.exports = [
                 .withDescription('Setup value on the device'),
             exposes.binary('clear_fault', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Turn ON to clear last the fault'),
-            exposes.text('meterid', ea.STATE).withDescription('Meter ID (ID of device)'), // TODO: update description
+            exposes.text('meter_id', ea.STATE).withDescription('Meter ID (ID of device)'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -2577,7 +2577,7 @@ module.exports = [
                 [11, null, null], // Frozen - strange function, in native app - nothing is clear
                 [16, 'state', tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold], // It's settable, but can't write converter
-                [18, 'meterid', tuya.valueConverter.raw],
+                [18, 'meter_id', tuya.valueConverter.raw],
                 [20, 'clear_fault', tuya.valueConverter.onOff], // Clear fault
                 [21, null, null], // Forward Energy T1 - don't know what this
                 [22, null, null], // Forward Energy T2 - don't know what this
