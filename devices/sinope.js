@@ -22,17 +22,17 @@ module.exports = [
             tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature, tz.sinope_time_format],
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+            exposes.enum('thermostat_occupancy', ea.SET, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement',
                 'haElectricalMeasurement', 'seMetering', 'manuSpecificSinope'];
-
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint)
 
             try {
                 await reporting.thermostatSystemMode(endpoint);
@@ -80,6 +80,7 @@ module.exports = [
         exposes: [e.local_temperature(), e.keypad_lockout(), e.power(), e.current(), e.voltage(), e.energy(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
                 .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand(),
+            exposes.enum('thermostat_occupancy', ea.SET, ['unoccupied', 'occupied']).withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing']).withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
