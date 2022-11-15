@@ -17,6 +17,28 @@ const readInitialBatteryState = async (type, data, device) => {
 
 module.exports = [
     {
+        zigbeeModel: [' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '412173',
+        description: 'DIN dry contactor module',
+        vendor: 'Legrand',
+        extend: extend.switch(),
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power],
+        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET), exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+                .withDescription('switch: allow on/off, auto will use wired action via C1/C2 on contactor for example with HC/HP')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
+        },
+    },
+    {
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412171',
