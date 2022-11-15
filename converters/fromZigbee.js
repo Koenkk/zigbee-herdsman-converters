@@ -3481,13 +3481,13 @@ const converters = {
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const lookup = {0: 'unoccupied', 1: 'occupied'};
-            const lookup1 = {0: 'off', 1: 'on'};
+            const lookup1 = {0: 'on demand', 1: 'sensing'};
             const result = {};
             if (msg.data.hasOwnProperty('1024')) {
-                result.sinope_occupancy = lookup[msg.data['1024']];
+                result.thermostat_occupancy = lookup[msg.data['1024']];
             }
             if (msg.data.hasOwnProperty('1026')) {
-                result.sinope_backlight = lookup1[msg.data['1026']];
+                result.backlight_auto_dim = lookup1[msg.data['1026']];
             }
             return result;
         },
