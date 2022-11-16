@@ -1,7 +1,7 @@
 const extend = require('../lib/extend');
 
 module.exports = [
-	{
+    {
         zigbeeModel: ['RH0030'],
         model: 'RH0030',
         vendor: 'Rexense',
