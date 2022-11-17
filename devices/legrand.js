@@ -254,6 +254,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
+        whiteLabel: [{vendor: 'Bticino', model: '3584C'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
