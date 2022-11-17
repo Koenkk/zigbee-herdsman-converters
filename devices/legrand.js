@@ -6,7 +6,6 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const ota = require('../lib/ota');
-const herdsman = require('zigbee-herdsman');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -16,8 +15,6 @@ const readInitialBatteryState = async (type, data, device) => {
     }
 };
 
-const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.VANTAGE, disableDefaultResponse: true};
-
 const tzLocal = {
     auto_mode: {
         key: ['auto_mode'],
@@ -26,9 +23,6 @@ const tzLocal = {
             const payload = {data: Buffer.from([mode[value]])};
             await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
             return {state: {'auto_mode': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificLegrandDevices3', [0x0000], manufacturerOptions);
         },
     },
 };
@@ -70,7 +64,7 @@ module.exports = [
             exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
                 .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak ' +
                     'electricity rates'),
-            exposes.enum('auto_mode', ea.ALL, ['off', 'auto', 'on_override'])
+            exposes.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
                 .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
