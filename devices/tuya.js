@@ -2465,7 +2465,8 @@ module.exports = [
                 .withDescription('Recover state after power outage'),
             exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
                 .withDescription('Plug LED indicator mode'), e.child_lock()],
-        onEvent: tuya.onEventMeasurementPoll,
+        onEvent: (type, data, device, options) =>
+            tuya.onEventMeasurementPoll(type, data, device, options, true, device.applicationVersion === 160),
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
