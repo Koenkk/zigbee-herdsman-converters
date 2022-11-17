@@ -2914,4 +2914,11 @@ module.exports = [
         description: 'Hue White ambiance BR30 E26',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['LCX012'],
+        model: '929003535301',
+        vendor: 'Philips',
+        description: 'Hue Festivia gradient light string 250',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
 ];
