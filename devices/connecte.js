@@ -14,11 +14,7 @@ module.exports = [
         fromZigbee: [fz.connecte_thermostat],
         toZigbee: [tz.connecte_thermostat],
         onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            // Do a "magic" read on the basic cluster to trigger the thermostat start reporting.
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-        },
+        configure: tuya.configureMagicPacket,
         exposes: [
             exposes.binary('state', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('On/off state of the switch'),
