@@ -22,7 +22,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx',
     '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3', '_TZ3000_7dndcnnb', '_TZ3000_waho4jtj', '_TZ3000_nmsciidq', '_TZ3000_jtgxgmks',
-    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg'];
+    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg', '_TZ3000_rul9yxcc'];
 
 const tzLocal = {
     SA12IZL_silence_siren: {
