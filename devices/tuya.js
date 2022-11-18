@@ -957,6 +957,7 @@ module.exports = [
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
+        whiteLabel: [{vendor: 'BTF-Lighting', model: 'C03Z'}],
         extend: extend.light_onoff_brightness_color(),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
         meta: {applyRedFix: true, enhancedHue: false},
