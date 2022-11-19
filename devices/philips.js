@@ -505,7 +505,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['7602031N6'],
+        zigbeeModel: ['7602031N6', '7602031J6'],
         model: '7602031N6',
         vendor: 'Philips',
         description: 'Hue Go portable light',
