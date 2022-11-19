@@ -7,21 +7,21 @@ const ota = require('zigbee-herdsman-converters/lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definition = {
-    zigbeeModel: ['TWV'],
-    model: 'TWV',
-    vendor: 'KDE',
-    description: 'UHome Smart Valve',
-    ota: ota.zigbeeOTA,
-    fromZigbee: [fz.on_off, fz.battery],
-    toZigbee: [tz.on_off],
-    exposes: [e.battery(), e.switch()],
-        configure: async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg','genOnOff']);
-        await reporting.batteryPercentageRemaining(endpoint);
-        await reporting.onOff(endpoint);
-    },
-};
-
-module.exports = definition;
+module.exports = [
+	{
+		zigbeeModel: ['TWV'],
+		model: 'TWV',
+		vendor: 'KDE',
+		description: 'UHome Smart Valve',
+		ota: ota.zigbeeOTA,
+		fromZigbee: [fz.on_off, fz.battery],
+		toZigbee: [tz.on_off],
+		exposes: [e.battery(), e.switch()],
+			configure: async (device, coordinatorEndpoint) => {
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg','genOnOff']);
+			await reporting.batteryPercentageRemaining(endpoint);
+			await reporting.onOff(endpoint);
+		},
+	},
+];
