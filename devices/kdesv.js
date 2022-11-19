@@ -7,14 +7,14 @@ const e = exposes.presets;
 
 module.exports = [
     {
-     zigbeeModel: ['TWV'],
-     model: 'TWV',
-     vendor: 'KDE',
-     description: 'UHome Smart Valve',
-     ota: ota.zigbeeOTA,
-     fromZigbee: [fz.on_off, fz.battery],
-     toZigbee: [tz.on_off],
-     exposes: [e.battery(), e.switch()],
+        zigbeeModel: ['TWV'],
+        model: 'TWV',
+        vendor: 'KDE',
+        description: 'UHome Smart Valve',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fz.battery],
+        toZigbee: [tz.on_off],
+        exposes: [e.battery(), e.switch()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff']);
