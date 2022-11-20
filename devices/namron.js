@@ -196,9 +196,9 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature, fz.command_recall,
             fz.command_move_to_color_temp, fz.battery, fz.command_move_to_hue],
         exposes: [e.battery(), e.action([
-          'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up',
-          'color_temperature_step_down', 'recall_*', 'color_temperature_move',
-          'move_to_hue_l1', 'move_to_hue_l2', 'move_to_hue_l3', 'move_to_hue_l4'])],
+            'on', 'off', 'brightness_step_up', 'brightness_step_down', 'color_temperature_step_up',
+            'color_temperature_step_down', 'recall_*', 'color_temperature_move',
+            'move_to_hue_l1', 'move_to_hue_l2', 'move_to_hue_l3', 'move_to_hue_l4'])],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
