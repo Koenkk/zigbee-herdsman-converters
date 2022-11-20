@@ -9,7 +9,7 @@ module.exports = [
     {
         zigbeeModel: ['TWV'],
         model: 'TWV',
-        vendor: 'KDE',
+        vendor: 'UHome',
         description: 'UHome Smart Valve',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
