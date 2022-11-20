@@ -50,7 +50,7 @@ module.exports = [
         exposes: [
             e.battery(),
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withLocalTemperatureCalibration(-30, 30, 0.1),
         ],
