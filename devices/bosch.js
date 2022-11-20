@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -42,9 +42,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['RBSH-TRV0-ZB-EU'],
-        model: 'Radiator Thermostat II',
+        model: 'BTH-RA',
         vendor: 'Bosch',
-        description: 'Radiator Thermostat',
+        description: 'Radiator thermostat II',
         fromZigbee: [fz.thermostat, fz.battery],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature],
         exposes: [
