@@ -1149,11 +1149,11 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TYZB01_ijihzffk'}],
+        fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq']),
         model: 'TS0101',
         vendor: 'TuYa',
         description: 'Zigbee Socket',
-        whiteLabel: [{vendor: 'Larkkey', model: 'PS080'}],
+        whiteLabel: [{vendor: 'Larkkey', model: 'PS080'}, {vendor: 'Mercator', model: 'SPBS01G'}],
         extend: extend.switch(),
         meta: {disableDefaultResponse: true},
     },
