@@ -49,7 +49,7 @@ const develco = {
         },
     },
     fz: {
-        // SPLZB-134 and SPLZB-131 reports strange values sometimes
+        // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
             ...fz.electrical_measurement,
@@ -64,6 +64,14 @@ const develco = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.currentTemperature !== -0x8000) {
                     return fz.device_temperature.convert(model, msg, publish, options, meta);
+                }
+            },
+        },
+        temperature: {
+            ...fz.temperature,
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.measuredValue !== -0x8000 && msg.data.measuredValue !== 0xFFFF) {
+                    return fz.temperature.convert(model, msg, publish, options, meta);
                 }
             },
         },
@@ -299,7 +307,7 @@ module.exports = [
         model: 'SPLZB-132',
         vendor: 'Develco',
         description: 'Power plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature(), e.ac_frequency()],
         options: [exposes.options.precision(`ac_frequency`)],
@@ -352,7 +360,7 @@ module.exports = [
         model: 'SMRZB-143',
         vendor: 'Develco',
         description: 'Smart cable',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature],
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering, develco.fz.device_temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -417,7 +425,7 @@ module.exports = [
         model: 'SMSZB-120',
         vendor: 'Develco',
         description: 'Smoke detector with siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
+        fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: ota.zigbeeOTA,
@@ -452,7 +460,7 @@ module.exports = [
         model: 'HESZB-120',
         vendor: 'Develco',
         description: 'Fire detector with siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
+        fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report,
             fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -486,7 +494,7 @@ module.exports = [
         model: 'WISZB-120',
         vendor: 'Develco',
         description: 'Window sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.temperature],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, develco.fz.temperature],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -525,7 +533,7 @@ module.exports = [
         vendor: 'Develco',
         description: 'Motion sensor',
         fromZigbee: [
-            fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
+            develco.fz.temperature, fz.illuminance, fz.ias_occupancy_alarm_1, fz.battery,
             develco.fz.led_control, develco.fz.ias_occupancy_timeout,
         ],
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
@@ -591,7 +599,7 @@ module.exports = [
         model: 'HMSZB-110',
         vendor: 'Develco',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
+        fromZigbee: [fz.battery, develco.fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.battery_low(), e.temperature(), e.humidity()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
@@ -609,7 +617,7 @@ module.exports = [
         model: 'ZHEMI101',
         vendor: 'Develco',
         description: 'Energy meter',
-        fromZigbee: [fz.metering, develco.fz.pulse_configuration, develco.fz.interface_mode],
+        fromZigbee: [develco.fz.metering, develco.fz.pulse_configuration, develco.fz.interface_mode],
         toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode, develco.tz.current_summation],
         endpoint: (device) => {
             return {'default': 2};
@@ -640,7 +648,7 @@ module.exports = [
         model: 'SMRZB-332',
         vendor: 'Develco',
         description: 'Smart relay DIN',
-        fromZigbee: [fz.on_off, fz.metering],
+        fromZigbee: [fz.on_off, develco.fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.power(), e.energy(), e.switch()],
         endpoint: (device) => {
@@ -658,7 +666,7 @@ module.exports = [
         model: 'FLSZB-110',
         vendor: 'Develco',
         description: 'Flood alarm device ',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.temperature, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, develco.fz.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.tamper(), e.water_leak(), e.temperature(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -673,7 +681,7 @@ module.exports = [
         model: 'AQSZB-110',
         vendor: 'Develco',
         description: 'Air quality sensor',
-        fromZigbee: [develco.fz.voc, develco.fz.voc_battery, fz.temperature, fz.humidity],
+        fromZigbee: [develco.fz.voc, develco.fz.voc_battery, develco.fz.temperature, fz.humidity],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [
@@ -703,7 +711,7 @@ module.exports = [
         model: 'SIRZB-110',
         vendor: 'Develco',
         description: 'Customizable siren',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        fromZigbee: [develco.fz.temperature, fz.battery, fz.ias_enroll, fz.ias_wd, fz.ias_siren],
         toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
