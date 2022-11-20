@@ -211,7 +211,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['LWA018'],
+        zigbeeModel: ['LWA018', 'LWA028'],
         model: '9290024693',
         vendor: 'Philips',
         description: 'Hue white A60 bulb B22 1055lm with Bluetooth',
