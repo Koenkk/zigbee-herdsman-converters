@@ -952,10 +952,12 @@ module.exports = [
             {modelID: 'TS0503B', manufacturerName: '_TZ3210_odlghna1'},
             {modelID: 'TS0503B', manufacturerName: '_TZB210_nfzrlz29'},
             {modelID: 'TS0503B', manufacturerName: '_TZ3220_wp1k8xws'},
-            {modelID: 'TS0503B', manufacturerName: '_TZ3210_wp1k8xws'}],
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_wp1k8xws'},
+            {modelID: 'TS0503B', manufacturerName: '_TZ3210_g0qr1fqo'}],
         model: 'TS0503B',
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
+        whiteLabel: [{vendor: 'BTF-Lighting', model: 'C03Z'}],
         extend: extend.light_onoff_brightness_color(),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
         meta: {applyRedFix: true, enhancedHue: false},
