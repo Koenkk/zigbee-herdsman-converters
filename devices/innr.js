@@ -572,6 +572,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
