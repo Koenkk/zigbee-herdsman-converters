@@ -363,14 +363,6 @@ const tzLocal = {
                 sendAttr(0x04150055, 1, 1);
                 break;
             case 'schedule': {
-                // parse payload to grab the keys
-                if (typeof value === 'string') {
-                    try {
-                        value = JSON.parse(value);
-                    } catch (e) {
-                        throw new Error('Payload is not valid JSON');
-                    }
-                }
                 const schedule = [];
                 value.forEach((item) => {
                     const schedItem = Buffer.from([
@@ -382,8 +374,8 @@ const tzLocal = {
                     ]);
                     schedule.push(schedItem.toString('hex'));
                 });
-
-                sendAttr(0x080008c8, Buffer.concat([schedule.join(','), Buffer.from([0])]), value.length + 1);
+                const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                sendAttr(0x080008c8, val, val.length);
                 break;
             }
             case 'led_indicator':
