@@ -22,7 +22,7 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
     '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx',
     '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3', '_TZ3000_7dndcnnb', '_TZ3000_waho4jtj', '_TZ3000_nmsciidq', '_TZ3000_jtgxgmks',
-    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg'];
+    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg', '_TZ3000_rul9yxcc'];
 
 const tzLocal = {
     SA12IZL_silence_siren: {
@@ -2396,7 +2396,8 @@ module.exports = [
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
             {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'},
-            {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'}],
+            {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'},
+            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}],
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fzLocal.electrical_measurement_skip_duplicate, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
             fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
