@@ -1810,14 +1810,13 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.currentSummDelivered(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
         whiteLabel: [{vendor: 'Aubess', model: 'WDH02'}],
         exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy(), e.power_on_behavior(), e.switch_type_2()],
     },
