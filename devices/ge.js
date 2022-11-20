@@ -67,6 +67,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
