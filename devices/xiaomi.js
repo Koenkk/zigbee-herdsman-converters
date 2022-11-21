@@ -2577,13 +2577,13 @@ module.exports = [
         zigbeeModel: ['aqara.feeder.acn001'],
         model: 'ZNCWWSQ01LM',
         vendor: 'Xiaomi',
-        description: 'Aqara Pet Feeder C1',
+        description: 'Aqara pet feeder C1',
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
             exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
             exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
-            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit(''),
+            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             exposes.binary('error', ea.STATE, true, false)
