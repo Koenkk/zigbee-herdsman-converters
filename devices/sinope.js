@@ -33,7 +33,7 @@ module.exports = [
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
-            e.keypad_lockout(),e.energy(), e.power(), e.current(), e.voltage()], 
+            e.keypad_lockout(), e.energy(), e.power(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
