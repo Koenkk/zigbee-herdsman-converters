@@ -2583,10 +2583,11 @@ module.exports = [
         exposes: [
             exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
             exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
-            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size'),
+            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit(''),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
-            exposes.binary('error', ea.STATE, true, false).withDescription('Something wrong with feeder'),
+            exposes.binary('error', ea.STATE, true, false)
+                .withDescription('Indicates wether there is an error with the feeder'),
             exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
                 .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
                     'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
@@ -2594,8 +2595,8 @@ module.exports = [
                 .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
                 .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
                 .withFeature(exposes.numeric('size', exposes.access.STATE_SET)),
-            ).withDescription('Schedule'),
-            exposes.switch().withState('led_indicator', true, 'Indicator', ea.STATE_SET, 'ON', 'OFF'),
+            ).withDescription('Feeding schedule'),
+            exposes.switch().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
             e.child_lock(),
             exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
             exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
