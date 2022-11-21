@@ -33,12 +33,12 @@ module.exports = [
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
-            e.keypad_lockout(),e.energy(), e.power(), e.current(), e.voltage()],
+            e.keypad_lockout(),e.energy(), e.power(), e.current(), e.voltage()], 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement','haElectricalMeasurement', 'seMetering',
+                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
@@ -106,7 +106,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'msTemperatureMeasurement','haElectricalMeasurement', 'seMetering',
+                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
@@ -205,10 +205,10 @@ module.exports = [
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
 
-            await endpoint.configureReporting('manuSpecificSinope', [
-                {attribute: 'GFCiStatus', minimumReportInterval: 1,maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
-            await endpoint.configureReporting('manuSpecificSinope', [
-                {attribute: 'floorLimitStatus', minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'GFCiStatus', minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
+            await endpoint.configureReporting('manuSpecificSinope', [{attribute: 'floorLimitStatus', minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
         },
     },
@@ -231,7 +231,7 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat'])
-                .withPiHeatingDemand(), 
+                .withPiHeatingDemand(),
             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -268,13 +268,13 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
-             exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                  'genBasic', 'genIdentify', 'genGroups',
-                  'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
+                'genBasic', 'genIdentify', 'genGroups',
+                'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
