@@ -465,6 +465,18 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['1GANG/SWITCH/1'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
+        model: 'MEG5113-0300/MEG5165-0000', // Vendor model number, look on the device for a model number
+        vendor: 'Schneider Electric', // Vendor of the device (only used for documentation and startup logging)
+        description: 'Merten MEG5165 PlusLink switch insert with Merten Wiser System M Push Button (1fold)', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        }
+    },
+    {
         zigbeeModel: ['LK Switch'],
         model: '545D6514',
         vendor: 'Schneider Electric',
