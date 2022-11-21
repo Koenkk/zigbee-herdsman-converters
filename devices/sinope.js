@@ -114,11 +114,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-
-            try {
-                await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
-
+            
             try {
                 await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
