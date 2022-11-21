@@ -27,7 +27,8 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withSystemMode(['off', 'heat'])
+                .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
             exposes.enum('thermostat_occupancy', ea.SET, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
@@ -95,7 +96,8 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
+                .withSystemMode(['off', 'heat'])
+                .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
             exposes.enum('thermostat_occupancy', ea.SET, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
