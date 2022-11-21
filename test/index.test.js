@@ -496,4 +496,61 @@ describe('index.js', () => {
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
     });
+
+    it('List expose number', () => {
+        // Example payload:
+        // {"temperatures": [19,21,30]}
+        const itemType = exposes.numeric('temperature', exposes.access.STATE_SET);
+        const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
+        expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
+            "access": 3, 
+            "item_type": {"access": 3, "name": "temperature", "type": "numeric"}, 
+            "name": "temperatures", 
+            "property": "temperatures", 
+            "type": "list"
+        });
+    });
+
+    it('List expose composite', () => {
+        // Example payload:
+        // {"schedule": [{"day":"monday","hour":13,"minute":37}, {"day":"tuesday","hour":14,"minute":59}]}
+
+        const itemType = exposes.composite('dayTime', exposes.access.STATE_SET)
+            .withFeature(exposes.enum('day', exposes.access.STATE_SET, ['monday', 'tuesday', 'wednesday']))
+            .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
+            .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
+
+        const list = exposes.list('schedule', exposes.access.STATE_SET, itemType);
+        expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
+            type: 'list',
+            name: 'schedule',
+            property: 'schedule',
+            access: 3,
+            item_type: {
+                type: 'composite',
+                name: 'dayTime',
+                features: [
+                    {
+                        access: 3, 
+                        name: "day", 
+                        property: "day", 
+                        type: "enum",
+                        values: ['monday', 'tuesday', 'wednesday'],
+                    },
+                    {
+                        access: 3, 
+                        name: "hour", 
+                        property: "hour", 
+                        type: "numeric",
+                    },
+                    {
+                        access: 3, 
+                        name: "minute", 
+                        property: "minute", 
+                        type: "numeric",
+                    },
+                ]
+            }
+        });
+    });
 });
