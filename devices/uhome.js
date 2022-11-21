@@ -10,7 +10,7 @@ module.exports = [
         zigbeeModel: ['TWV'],
         model: 'TWV',
         vendor: 'UHome',
-        description: 'UHome Smart Valve',
+        description: 'Smart valve',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
