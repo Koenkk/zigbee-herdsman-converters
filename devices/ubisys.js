@@ -825,7 +825,7 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint,
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOcupancy(endpoint);
+            await reporting.thermostatOccupancy(endpoint);
             await reporting.batteryPercentageRemaining(endpoint,
                 {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
