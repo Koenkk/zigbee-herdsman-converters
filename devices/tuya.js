@@ -3557,7 +3557,8 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.humidity(), e.temperatureUnit(), e.temperatureCalibration(), e.humidityCalibration(), e.battery()],
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(), e.battery()],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
