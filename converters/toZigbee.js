@@ -3420,12 +3420,6 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
-    moesS_thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            return {state: {system_mode: 'heat'}};
-        },
-    },
     moesS_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -7406,39 +7400,6 @@ const converters = {
                 }*/
             } else {
                 throw new Error(`Not supported: '${key}'`);
-            }
-        },
-    },
-    ZG227ZL_lms: {
-        key: ['temperature_unit', 'temp_calibration', 'hum_calibration'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-                case 'temperature_unit':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.ZG_temp_unit_convert, { 'Celsius': 0, 'Fahrenheit': 1 }[value]);
-                    break;
-                case 'temp_calibration':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.ZG_temp_calibration, value * 10);
-                    break;
-                case 'hum_calibration':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.ZG_hum_calibration, value);
-                    break;
-                default: // Unknown key
-                    meta.logger.warn(`toZigbee.ZG227ZL_lms: Unhandled key ${key}`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-                case 'temp_unit_convert':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.ZG_temp_unit_convert, 0, 'dataQuery');
-                    break;
-                case 'temp_calibration':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.ZG_temp_calibration, 0, 'dataQuery');
-                    break;
-                case 'hum_calibration':
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.ZG_hum_calibration, 0, 'dataQuery');
-                    break;
-                default: // Unknown key
-                    meta.logger.warn(`Unhandled key toZigbee.ZG227ZL_lms.convertGet ${key}`);
             }
         },
     },
