@@ -3417,8 +3417,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qoy0ekbd'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5'}],
         model: 'CX-0726',
         vendor: 'TuYa',
         description: 'Temperature & humidity LCD sensor',
