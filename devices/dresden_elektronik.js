@@ -31,4 +31,17 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
         ota: ota.zigbeeOTA,
     },
+    {
+        zigbeeModel: ['FLS-A lp (1-10V)'],
+        model: 'BN-600078',
+        vendor: 'Dresden Elektronik',
+        description: 'Zigbee controller for 1-10V/PWM',
+        extend: extend.light_onoff_brightness(),
+        exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2'),
+            e.light_brightness().withEndpoint('l3'), e.light_brightness().withEndpoint('l4')],
+        endpoint: (device) => {
+            return {'l1': 11, 'l2': 12, 'l3': 13, 'l4': 14};
+        },
+        meta: {multiEndpoint: true, disableDefaultResponse: true},
+    },
 ];

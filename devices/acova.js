@@ -5,7 +5,7 @@ const reporting = require('../lib/reporting');
 
 module.exports = [
     {
-        zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00'],
+        zigbeeModel: ['PERCALE2 D1.00P1.01Z1.00', 'PERCALE2 D1.00P1.02Z1.00', 'PERCALE2 D1.00P1.03Z1.00'],
         model: 'PERCALE2',
         vendor: 'Acova',
         description: 'Percale 2 heater',
@@ -21,6 +21,7 @@ module.exports = [
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat']),
@@ -50,6 +51,7 @@ module.exports = [
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat']),
@@ -81,6 +83,7 @@ module.exports = [
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 28, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 7, 28, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withRunningState(['idle', 'heat']),

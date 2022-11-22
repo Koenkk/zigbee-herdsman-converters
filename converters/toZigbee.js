@@ -884,17 +884,28 @@ const converters = {
                 // TODO: same problem as above.
                 // TODO: if transition is not specified, should use device default (OnTransitionTime), not 0.
                 if (transition.specified || globalStore.getValue(entity, 'turnedOffWithTransition') === true) {
-                    const current = utils.getObjectProperty(meta.state, 'brightness', 254);
-                    brightness = globalStore.getValue(entity, 'brightness', current);
-                    try {
-                        const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
-                        // TODO: for groups, `read` does not wait for responses. If it did, we could still issue a single
-                        //  command if all values of `OnLevel` are equal, or split into one command per device if not.
-                        if (attributeRead !== undefined && attributeRead['onLevel'] != 255) {
-                            brightness = attributeRead['onLevel'];
+                    const levelConfig = utils.getObjectProperty(meta.state, 'level_config', {});
+                    let onLevel = utils.getObjectProperty(levelConfig, 'on_level', 0);
+                    if (onLevel === 0 && entity.meta.onLevelSupported !== false) {
+                        try {
+                            const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
+                            if (attributeRead !== undefined) {
+                                onLevel = attributeRead['onLevel'];
+                            }
+                        } catch (e) {
+                            // OnLevel not supported
                         }
-                    } catch (e) {
-                        // OnLevel not supported
+                    }
+                    if (onLevel === 0) {
+                        onLevel = 'previous';
+                        entity.meta.onLevelSupported = false;
+                        entity.save();
+                    }
+                    if (onLevel === 255 || onLevel === 'previous') {
+                        const current = utils.getObjectProperty(meta.state, 'brightness', 254);
+                        brightness = globalStore.getValue(entity, 'brightness', current);
+                    } else {
+                        brightness = onLevel;
                     }
                     // Published state might have gotten clobbered by reporting.
                     publishBrightness = true;
@@ -1308,7 +1319,7 @@ const converters = {
     thermostat_occupancy: {
         key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ocupancy']);
+            await entity.read('hvacThermostat', ['occupancy']);
         },
     },
     thermostat_clear_weekly_schedule: {
@@ -1359,6 +1370,7 @@ const converters = {
             }
             const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
+            return {state: {unoccupied_heating_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['unoccupiedHeatingSetpoint']);
@@ -1394,6 +1406,7 @@ const converters = {
             }
             const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
+            return {state: {unoccupied_cooling_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['unoccupiedCoolingSetpoint']);
@@ -3420,6 +3433,12 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {system_mode: 'heat'}};
+        },
+    },
     moesS_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -4280,17 +4299,16 @@ const converters = {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
             await entity.write('hvacThermostat', {SinopeOccupancy});
+            return {state: {'thermostat_occupancy': value}};
         },
     },
     sinope_thermostat_backlight_autodim_param: {
         key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {
-                0: 'on demand',
-                1: 'sensing',
-            };
+            const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight});
+            return {state: {'backlight_auto_dim': value}};
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {

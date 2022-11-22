@@ -347,16 +347,16 @@ const converters = {
                     msg.data.batteryAlarmState & 1<<3
                 ) > 0;
                 const battery2Low = (
-                    msg.data.batteryAlarmState & 1<<9 ||
                     msg.data.batteryAlarmState & 1<<10 ||
                     msg.data.batteryAlarmState & 1<<11 ||
-                    msg.data.batteryAlarmState & 1<<12
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
                 ) > 0;
                 const battery3Low = (
-                    msg.data.batteryAlarmState & 1<<19 ||
                     msg.data.batteryAlarmState & 1<<20 ||
                     msg.data.batteryAlarmState & 1<<21 ||
-                    msg.data.batteryAlarmState & 1<<22
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
                 ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
@@ -3476,6 +3476,22 @@ const converters = {
             return result;
         },
     },
+    sinope_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'unoccupied', 1: 'occupied'};
+            const lookup1 = {0: 'on_demand', 1: 'sensing'};
+            const result = {};
+            if (msg.data.hasOwnProperty('1024')) {
+                result.thermostat_occupancy = lookup[msg.data['1024']];
+            }
+            if (msg.data.hasOwnProperty('1026')) {
+                result.backlight_auto_dim = lookup1[msg.data['1026']];
+            }
+            return result;
+        },
+    },
     danfoss_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -4086,7 +4102,14 @@ const converters = {
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
             case tuya.dataPoints.moesScompensationTempSet:
-                return {local_temperature_calibration: value};
+                return {
+                    local_temperature_calibration: value,
+                    // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
+                    // so update local_temperature by subtracting the old calibration and adding the new one
+                    ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) ?
+                        {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)} :
+                        {},
+                };
             case tuya.dataPoints.moesSecoMode:
                 return {eco_mode: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSecoModeTempSet:
