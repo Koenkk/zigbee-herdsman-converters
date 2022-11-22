@@ -71,12 +71,10 @@ const tzLocal = {
                 if (value.toLowerCase() === 'on') {
                     payload = {'presentValue': 82};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'counting_freeze', 'ON');
                     return {state: {counting_freeze: 'ON'}};
                 } else if (value.toLowerCase() === 'off') {
                     payload = {'presentValue': 84};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'counting_freeze', 'OFF');
                     return {state: {counting_freeze: 'OFF'}};
                 }
                 break;
@@ -87,12 +85,10 @@ const tzLocal = {
                 if (value === 'enable') {
                     payload = {'presentValue': 86};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'led_state', 'enable');
                     return {state: {led_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 87};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'led_state', 'disable');
                     return {state: {led_state: 'disable'}};
                 }
                 break;
@@ -100,12 +96,10 @@ const tzLocal = {
                 if (value === 'enable') {
                     payload = {'presentValue': 88};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'rf_state', 'enable');
                     return {state: {rf_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 89};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'rf_state', 'disable');
                     return {state: {rf_state: 'disable'}};
                 }
                 break;
@@ -113,32 +107,26 @@ const tzLocal = {
                 if (value === '0ms') {
                     payload = {'presentValue': 90};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '0ms');
                     return {state: {transaction: '0ms'}};
                 } else if (value === '200ms') {
                     payload = {'presentValue': 91};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '200ms');
                     return {state: {transaction: '200ms'}};
                 } else if (value === '400ms') {
                     payload = {'presentValue': 92};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '400ms');
                     return {state: {transaction: '400ms'}};
                 } else if (value === '600ms') {
                     payload = {'presentValue': 93};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '600ms');
                     return {state: {transaction: '600ms'}};
                 } else if (value === '800ms') {
                     payload = {'presentValue': 94};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '800ms');
                     return {state: {transaction: '800ms'}};
                 } else if (value === '1,000ms') {
                     payload = {'presentValue': 95};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'transaction', '1,000ms');
                     return {state: {transaction: '1,000ms'}};
                 }
                 break;
@@ -146,12 +134,10 @@ const tzLocal = {
                 if (value === 'enable') {
                     payload = {'presentValue': 96};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'fast_in', 'enable');
                     return {state: {fast_in: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 97};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'fast_in', 'disable');
                     return {state: {fast_in: 'disable'}};
                 }
                 break;
@@ -159,12 +145,10 @@ const tzLocal = {
                 if (value === 'enable') {
                     payload = {'presentValue': 98};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'fast_out', 'enable');
                     return {state: {fast_out: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 99};
                     await endpoint.write('genAnalogInput', payload);
-                    globalStore.putValue(entity, 'fast_out', 'disable');
                     return {state: {fast_out: 'disable'}};
                 }
                 break;
