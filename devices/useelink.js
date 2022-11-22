@@ -1,6 +1,7 @@
 const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 const e = exposes.presets;
 
 module.exports = [
@@ -32,8 +33,7 @@ module.exports = [
         extend: extend.switch(),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const ID of [1, 2, 3, 4, 5]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }

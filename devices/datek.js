@@ -85,6 +85,15 @@ module.exports = [
             e.voltage_phase_c(), e.temperature()],
     },
     {
+        fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
+        model: 'HSE2927E',
+        vendor: 'Datek',
+        description: 'Eva Zigbee motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.temperature],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux(), e.temperature()],
+    },
+    {
         zigbeeModel: ['ID Lock 150'],
         model: '0402946',
         vendor: 'Datek',
