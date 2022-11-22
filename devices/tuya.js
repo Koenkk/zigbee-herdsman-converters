@@ -3552,28 +3552,44 @@ module.exports = [
         ],
     },
     {
-        tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5','_TZE200_a8sdabtg']), 
+        fingerprint:tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5','_TZE200_a8sdabtg']),
         model: 'ZG-227ZL',
         vendor: 'TuYa',
         description: 'Temperature & humidity LCD sensor',
-        fromZigbee: [fz.ZG227ZL_lms],
-        toZigbee: [tz.ZG227ZL_lms],
-        onEvent: tuya.onEventSetTime,
-        exposes: [e.temperature(), e.humidity(), e.battery(),
-        exposes.enum('temperature_unit', ea.STATE_SET, ['Celsius', 'Fahrenheit']).withDescription('Current display unit'),
-        exposes.numeric('temp_calibration', ea.STATE_SET).withValueMin(-2.0).withValueMax(2.0).withValueStep(0.1).withUnit('°C')
-            .withDescription('Temperature calibration'),
-        exposes.numeric('hum_calibration', ea.STATE_SET).withValueMin(-30).withValueMax(30).withValueStep(1).withUnit('%')
-            .withDescription('Humidity calibration'),
-        ],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.temperature(), tuya.exposes.humidity(), tuya.exposes.zg_temperature_unit(),
+            tuya.exposes.zg_temp_calibration(), tuya.exposes.zg_hum_calibration(), tuya.exposes.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'zg_temperature_unit', tuya.valueConverter.ZGtemperature_unit],
+                [23, 'zg_temp_calibration', tuya.valueConverter.divideBy10],
+                [24, 'zg_hum_calibration', tuya.valueConverter.raw],
+
+            ],
+        },
     },
     {
-        tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']), 
+        fingerprint:tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']), 
         model: 'ZG-102ZL',
         vendor: 'TuYa',
         description: 'Luminance door sensor',
-        fromZigbee: [fz.ZG102ZL],
-        toZigbee: [],
-        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery()],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.contact(), tuya.exposes.illuminance(), tuya.exposes.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.inverse],
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [2, 'battery', tuya.valueConverter.raw],
+               
+            ],
+        },
+        
     },
 ];
