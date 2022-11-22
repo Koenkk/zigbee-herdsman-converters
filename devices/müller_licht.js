@@ -200,4 +200,20 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
     },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Candle white+color'}],
+        model: '45730',
+        vendor: 'Müller Licht',
+        description: 'Tint Candle E14 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white+color'}],
+        model: '45728',
+        vendor: 'Müller Licht',
+        description: 'Tint Bulb E27 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+    },
 ];
