@@ -2604,6 +2604,7 @@ module.exports = [
             exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
                 .withUnit('g'),
         ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.acn007'],
