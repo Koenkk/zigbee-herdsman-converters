@@ -2973,7 +2973,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
             if (msg.data.indexOf(stateHeader) === 0) {
-                if (msg.data[10] === 5) {
+                if (msg.data[10] === 5 || msg.data[10] === 2) {
                     const status = msg.data[14];
                     return {
                         state_left: status === 1 ? 'ON' : 'OFF',
