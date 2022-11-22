@@ -169,7 +169,7 @@ module.exports = [
         vendor: 'Hive',
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
+        toZigbee: [tz.thermostat_local_temperature, tz.hive_thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
@@ -231,12 +231,12 @@ module.exports = [
         vendor: 'Hive',
         description: 'Heating thermostat',
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_system_mode, tz.thermostat_running_state,
+        toZigbee: [tz.thermostat_local_temperature, tz.hive_thermostat_system_mode, tz.thermostat_running_state,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat'),
