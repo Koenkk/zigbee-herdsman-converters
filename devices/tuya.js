@@ -3557,17 +3557,15 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.temperature(), tuya.exposes.humidity(), tuya.exposes.zg_temperature_unit(),
-        tuya.exposes.zg_temp_calibration(), tuya.exposes.zg_hum_calibration(), tuya.exposes.battery()],
+        exposes: [e.temperature(), e.humidity(), e.temperatureUnit(), e.temperatureCalibration(), e.humidityCalibration(), e.battery()],
         meta: {
             tuyaDatapoints: [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
                 [4, 'battery', tuya.valueConverter.raw],
-                [9, 'zg_temperature_unit', tuya.valueConverter.ZGtemperature_unit],
-                [23, 'zg_temp_calibration', tuya.valueConverter.divideBy10],
-                [24, 'zg_hum_calibration', tuya.valueConverter.raw],
-
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
+                [24, 'humidity_calibration', tuya.valueConverter.raw],
             ],
         },
     },
@@ -3579,15 +3577,13 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.contact(), tuya.exposes.illuminance(), tuya.exposes.battery()],
+        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery()],
         meta: {
             tuyaDatapoints: [
                 [1, 'contact', tuya.valueConverter.inverse],
                 [101, 'illuminance', tuya.valueConverter.raw],
                 [2, 'battery', tuya.valueConverter.raw],
-
             ],
         },
-
     },
 ];
