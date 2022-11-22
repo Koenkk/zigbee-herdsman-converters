@@ -3549,4 +3549,45 @@ module.exports = [
                 .withDescription('Turns the onboard LED on or off'),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg']),
+        model: 'ZG-227ZL',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity LCD sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.temperature(), tuya.exposes.humidity(), tuya.exposes.zg_temperature_unit(),
+        tuya.exposes.zg_temp_calibration(), tuya.exposes.zg_hum_calibration(), tuya.exposes.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'zg_temperature_unit', tuya.valueConverter.ZGtemperature_unit],
+                [23, 'zg_temp_calibration', tuya.valueConverter.divideBy10],
+                [24, 'zg_hum_calibration', tuya.valueConverter.raw],
+
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']),
+        model: 'ZG-102ZL',
+        vendor: 'TuYa',
+        description: 'Luminance door sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.contact(), tuya.exposes.illuminance(), tuya.exposes.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.inverse],
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [2, 'battery', tuya.valueConverter.raw],
+
+            ],
+        },
+
+    },
 ];
