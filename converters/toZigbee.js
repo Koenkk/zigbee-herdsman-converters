@@ -1221,6 +1221,7 @@ const converters = {
                     tempSetpointHoldDuration: 0,
                     systemMode,
                 });
+                break;
             case 'heat':
                 // Send a message that matches what the thermostat remote control sends
                 await entity.write('hvacThermostat', {
