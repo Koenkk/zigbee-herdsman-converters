@@ -1,9 +1,7 @@
-const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
 const e = exposes.presets;
-
 
 module.exports = [
     {
@@ -16,7 +14,7 @@ module.exports = [
         endpoint: () => {
             return {l1: 1, l2: 2};
         },
-        meta: {multiEndpoint: true, disableDefaultResponse: true},
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ['TempAndHumSensor-ZB3.0'],
