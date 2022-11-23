@@ -8120,17 +8120,6 @@ const converters = {
             }
         },
     },
-    dawon_card_holder: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                card: (zoneStatus & 1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
-        },
-    },
     tuya_light_wz5: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
