@@ -163,6 +163,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['A60 TW T'],
+        model: '4058075729001',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ CL A60 E27 Tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW JP'],
         model: 'SMARTZBA60RGBW',
         vendor: 'LEDVANCE',

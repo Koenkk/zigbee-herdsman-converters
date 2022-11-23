@@ -177,6 +177,14 @@ module.exports = [
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['RB 286 C'],
+        model: 'RB 286 C',
+        vendor: 'Innr',
+        description: 'E27 bulb RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['BY 285 C'],
         model: 'BY 285 C',
         vendor: 'Innr',
@@ -564,6 +572,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -591,6 +600,7 @@ module.exports = [
             await reporting.rmsVoltage(endpoint);
             // Gives UNSUPPORTED_ATTRIBUTE on reporting.readMeteringMultiplierDivisor.
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
+            await reporting.currentSummDelivered(endpoint);
         },
         ota: ota.zigbeeOTA,
         exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],

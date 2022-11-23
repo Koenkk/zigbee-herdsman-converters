@@ -2,7 +2,7 @@ const extend = require('../lib/extend');
 
 module.exports = [
     {
-        zigbeeModel: ['5991711'],
+        zigbeeModel: ['5991711', '5991713'],
         model: 'C5850000',
         vendor: 'Villeroy & Boch',
         description: 'Subway 3.0 Zigbee home automation kit',

@@ -211,7 +211,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['LWA018'],
+        zigbeeModel: ['LWA018', 'LWA028'],
         model: '9290024693',
         vendor: 'Philips',
         description: 'Hue white A60 bulb B22 1055lm with Bluetooth',
@@ -561,7 +561,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU', '7602031J6'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -2913,5 +2913,12 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance BR30 E26',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['LCX012'],
+        model: '929003535301',
+        vendor: 'Philips',
+        description: 'Hue Festivia gradient light string 250',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];

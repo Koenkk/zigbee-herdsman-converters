@@ -79,7 +79,7 @@ module.exports = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {'seq': 0x0002});
         },
     },

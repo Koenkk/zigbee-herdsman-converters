@@ -9,6 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
+const utils = require('../lib/utils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -38,6 +39,21 @@ const preventReset = async (type, data, device) => {
         type: 0x41,
     }};
     await device.getEndpoint(1).write('genBasic', payload, options);
+};
+
+const daysLookup = {
+    0x7f: 'everyday',
+    0x1f: 'workdays',
+    0x60: 'weekend',
+    0x01: 'mon',
+    0x02: 'tue',
+    0x04: 'wed',
+    0x08: 'thu',
+    0x10: 'fri',
+    0x20: 'sat',
+    0x40: 'sun',
+    0x55: 'mon-wed-fri-sun',
+    0x2a: 'tue-thu-sat',
 };
 
 
@@ -93,6 +109,87 @@ const fzLocal = {
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unknown key ${key} = ${value}`);
+                }
+            });
+            return result;
+        },
+    },
+    aqara_feeder: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (parseInt(key)) {
+                case 0xfff1: {
+                    const attr = value.slice(3, 7);
+                    const len = value.slice(7, 8).readUInt8();
+                    const val = value.slice(8, 8 + len);
+                    switch (attr.readInt32BE()) {
+                    case 0x04150055: // feeding
+                        result['feed'] = '';
+                        break;
+                    case 0x041502bc: { // feeding report
+                        const report = val.toString();
+                        result['feeding_source'] = {1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_size'] = parseInt(report.slice(3, 4));
+                        break;
+                    }
+                    case 0x0d680055: // portions per day
+                        result['portions_per_day'] = val.readUInt16BE();
+                        break;
+                    case 0x0d690055: // weight per day
+                        result['weight_per_day'] = val.readUInt32BE();
+                        break;
+                    case 0x0d0b0055: // error ?
+                        result['error'] = {1: true, 0: false}[val.readUInt8()];
+                        break;
+                    case 0x080008c8: { // schedule string
+                        const schlist = val.toString().split(',');
+                        const schedule = [];
+                        schlist.forEach((str) => { // 7f13000100
+                            const feedtime = Buffer.from(str, 'hex');
+                            schedule.push({
+                                'days': daysLookup[feedtime[0]],
+                                'hour': feedtime[1],
+                                'minute': feedtime[2],
+                                'size': feedtime[3],
+                            });
+                        });
+                        result['schedule'] = schedule;
+                        break;
+                    }
+                    case 0x04170055: // indicator
+                        result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        break;
+                    case 0x04160055: // child lock
+                        result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[val.readUInt8()];
+                        break;
+                    case 0x04180055: // mode
+                        result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
+                        break;
+                    case 0x0e5c0055: // serving size
+                        result['serving_size'] = val.readUInt8();
+                        break;
+                    case 0x0e5f0055: // portion weight
+                        result['portion_weight'] = val.readUInt8();
+                        break;
+                    case 0x080007d1: // ? 64
+                    case 0x0d090055: // ? 00
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        break;
+                    default:
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                    }
+                    break;
+                }
+                case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
                 }
             });
             return result;
@@ -233,6 +330,73 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
+        },
+    },
+    aqara_feeder: {
+        key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode, value, length) => {
+                entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                case 1:
+                    v.writeUInt8(value);
+                    break;
+                case 2:
+                    v.writeUInt16BE(value);
+                    break;
+                case 4:
+                    v.writeUInt32BE(value);
+                    break;
+                default:
+                    v = value;
+                }
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: 0x115f});
+            };
+            switch (key) {
+            case 'feed':
+                sendAttr(0x04150055, 1, 1);
+                break;
+            case 'schedule': {
+                const schedule = [];
+                value.forEach((item) => {
+                    const schedItem = Buffer.from([
+                        utils.getKey(daysLookup, item.days, 0x7f),
+                        item.hour,
+                        item.minute,
+                        item.size,
+                        0,
+                    ]);
+                    schedule.push(schedItem.toString('hex'));
+                });
+                const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                sendAttr(0x080008c8, val, val.length);
+                break;
+            }
+            case 'led_indicator':
+                sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
+                break;
+            case 'child_lock':
+                sendAttr(0x04160055, {'UNLOCK': 0, 'LOCK': 1}[value], 1);
+                break;
+            case 'mode':
+                sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
+                break;
+            case 'serving_size':
+                sendAttr(0x0e5c0055, value, 4);
+                break;
+            case 'portion_weight':
+                sendAttr(0x0e5f0055, value, 4);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+            }
+            return {state: {[key]: value}};
         },
     },
 };
@@ -2408,6 +2572,39 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
+    },
+    {
+        zigbeeModel: ['aqara.feeder.acn001'],
+        model: 'ZNCWWSQ01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara pet feeder C1',
+        fromZigbee: [fzLocal.aqara_feeder],
+        toZigbee: [tzLocal.aqara_feeder],
+        exposes: [
+            exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
+            exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
+            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
+            exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
+            exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
+            exposes.binary('error', ea.STATE, true, false)
+                .withDescription('Indicates wether there is an error with the feeder'),
+            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
+                .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
+                    'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
+                    'mon-wed-fri-sun', 'tue-thu-sat']))
+                .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('size', exposes.access.STATE_SET)),
+            ).withDescription('Feeding schedule'),
+            exposes.switch().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
+            e.child_lock(),
+            exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
+            exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
+                .withUnit('portion'),
+            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
+                .withUnit('g'),
+        ],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.acn007'],
