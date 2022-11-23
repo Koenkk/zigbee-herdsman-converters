@@ -369,7 +369,7 @@ module.exports = [
             await reporting.rmsVoltage(endpoint, {min: 10, change: 10}); // divider 100: 0.1Vrms
             await reporting.acFrequency(endpoint, {min: 10, change: 100}); // divider 100: 1Hz
             await endpoint.read('haElectricalMeasurement', ['acFrequency']); // get a first read
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 307, change: [1, 1]})
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 307, change: [1, 1]});
         },
     },
     {
