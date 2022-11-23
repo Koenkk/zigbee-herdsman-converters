@@ -2918,7 +2918,7 @@ module.exports = [
         zigbeeModel: ['LCX012'],
         model: '929003535301',
         vendor: 'Philips',
-        description: 'Hue Festivia gradient light string 250',
+        description: 'Hue Festavia gradient light string 250',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];
