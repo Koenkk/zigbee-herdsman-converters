@@ -355,15 +355,21 @@ module.exports = [
         model: 'SP2600ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.ac_frequency(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, {readFrequencyAttrs: true});
             await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint, {min: 10, change: 1});
+            await reporting.activePower(endpoint, {min: 10, change: 1}); // divider 10 : 0.1W
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // divider 100: 0.1Arms
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 10}); // divider 100: 0.1Vrms
+            await reporting.acFrequency(endpoint, {min: 10, change: 100}); // divider 100: 1Hz
+            await endpoint.read('haElectricalMeasurement', ['acFrequency']); // get a first read
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 307, change: [1, 1]})
         },
     },
     {
