@@ -3334,8 +3334,7 @@ module.exports = [
         exposes: [e.illuminance_lux(), e.brightness_state()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pay2byax'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
         model: 'TM001-ZA/TM081',
         vendor: 'TuYa',
         description: 'Door and window sensor',
@@ -3415,16 +3414,6 @@ module.exports = [
             exposes.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Alarm humidity min'),
         ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5'}],
-        model: 'CX-0726',
-        vendor: 'TuYa',
-        description: 'Temperature & humidity LCD sensor',
-        fromZigbee: [fz.tuya_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [],
-        onEvent: tuya.onEventSetLocalTime,
-        exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}, {modelID: 'TS0601', manufacturerName: '_TZE200_1ibpyhdc'}],
@@ -3583,6 +3572,22 @@ module.exports = [
                 [1, 'contact', tuya.valueConverter.inverse],
                 [101, 'illuminance', tuya.valueConverter.raw],
                 [2, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']),
+        model: 'ZG-225Z',
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.gasState(), tuya.exposes.gasValue().withUnit('%')],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas_state', tuya.valueConverter.gasState],
+                [2, 'gas_value', tuya.valueConverter.raw],
             ],
         },
     },
