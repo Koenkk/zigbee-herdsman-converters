@@ -2359,9 +2359,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['LLM001'],
-        model: '7121131PU',
+        model: '7121131PU/7120031PH/7120131PH/7120231PU',
         vendor: 'Philips',
-        description: 'Hue Beyond white and color ambiance suspension light',
+        description: 'Hue Beyond white and color ambiance suspension/ceiling/table lamp',
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
     },
     {
