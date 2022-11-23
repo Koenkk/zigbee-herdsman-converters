@@ -362,7 +362,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, readFrequencyAttrs = true);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, {readFrequencyAttrs: true});
             await reporting.onOff(endpoint);
             await reporting.activePower(endpoint, {min: 10, change: 1});   // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10,  change: 10});  // divider 100: 0.1Arms
