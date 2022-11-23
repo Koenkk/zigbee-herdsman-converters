@@ -747,7 +747,7 @@ module.exports = [
         model: '046677577957',                                                                       
         vendor: 'Philips',                                             
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LWB004'],
