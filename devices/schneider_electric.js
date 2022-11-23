@@ -466,9 +466,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['1GANG/SWITCH/1'], 
-        model: 'MEG5113-0300/MEG5161-0000', 
+        model: 'MEG5161-0000', 
         vendor: 'Schneider Electric',
-        description: 'Merten MEG5161-0000 PlusLink relay insert with Merten Wiser System M Push Button (1fold)',
+        description: 'Merten PlusLink relay insert with Merten Wiser system M push button (1fold)',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
