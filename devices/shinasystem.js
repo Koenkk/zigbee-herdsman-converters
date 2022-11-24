@@ -70,8 +70,12 @@ const tzLocal = {
             case 'counting_freeze':
                 if (value.toLowerCase() === 'on') {
                     payload = {'presentValue': 82};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {counting_freeze: 'ON'}};
                 } else if (value.toLowerCase() === 'off') {
                     payload = {'presentValue': 84};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {counting_freeze: 'OFF'}};
                 }
                 break;
             case 'tof_init':
@@ -80,44 +84,72 @@ const tzLocal = {
             case 'led_state':
                 if (value === 'enable') {
                     payload = {'presentValue': 86};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {led_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 87};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {led_state: 'disable'}};
                 }
                 break;
             case 'rf_state':
                 if (value === 'enable') {
                     payload = {'presentValue': 88};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {rf_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 89};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {rf_state: 'disable'}};
                 }
                 break;
             case 'transaction':
                 if (value === '0ms') {
                     payload = {'presentValue': 90};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '0ms'}};
                 } else if (value === '200ms') {
                     payload = {'presentValue': 91};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '200ms'}};
                 } else if (value === '400ms') {
                     payload = {'presentValue': 92};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '400ms'}};
                 } else if (value === '600ms') {
                     payload = {'presentValue': 93};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '600ms'}};
                 } else if (value === '800ms') {
                     payload = {'presentValue': 94};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '800ms'}};
                 } else if (value === '1,000ms') {
                     payload = {'presentValue': 95};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '1,000ms'}};
                 }
                 break;
             case 'fast_in':
                 if (value === 'enable') {
                     payload = {'presentValue': 96};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_in: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 97};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_in: 'disable'}};
                 }
                 break;
             case 'fast_out':
                 if (value === 'enable') {
                     payload = {'presentValue': 98};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_out: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 99};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_out: 'disable'}};
                 }
                 break;
             }

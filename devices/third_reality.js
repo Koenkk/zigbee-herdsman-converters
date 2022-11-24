@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 
 module.exports = [
@@ -60,6 +61,7 @@ module.exports = [
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         meta: {battery: {dontDividePercentage: true}},
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
