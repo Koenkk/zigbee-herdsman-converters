@@ -3416,7 +3416,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}, {modelID: 'TS0601', manufacturerName: '_TZE200_1ibpyhdc'}],
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd' }, { modelID: 'TS0601', manufacturerName: '_TZE200_1ibpyhdc' }, { modelID: 'TS0601', manufacturerName: '_TZE200_bh3n6gk8'}],
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',
@@ -3583,10 +3583,10 @@ module.exports = [
         fromZigbee: [tuya.fzDataPoints],
         toZigbee: [tuya.tzDataPoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.gasState(), tuya.exposes.gasValue().withUnit('%')],
+        exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm')],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas_state', tuya.valueConverter.gasState],
+                [1, 'gas', tuya.valueConverter.true0ElseFalse],
                 [2, 'gas_value', tuya.valueConverter.raw],
             ],
         },
