@@ -131,7 +131,7 @@ const fzLocal = {
                         break;
                     case 0x041502bc: { // feeding report
                         const report = val.toString();
-                        result['feeding_source'] = {1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_source'] = {0: 'schedule', 1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
                         result['feeding_size'] = parseInt(report.slice(3, 4));
                         break;
                     }
@@ -2582,7 +2582,7 @@ module.exports = [
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
             exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
-            exposes.enum('feeding_source', ea.STATE, ['manual', 'remote']).withDescription('Feeding source'),
+            exposes.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
             exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
