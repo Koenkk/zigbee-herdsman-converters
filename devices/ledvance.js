@@ -67,6 +67,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['PAR16 RGBW T'],
+        model: '4058075729186',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Spot PAR16 28 GU10 Multicolor',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['PAR16S TW'],
         model: 'AC33905',
         vendor: 'LEDVANCE',
@@ -171,6 +179,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['P40 TW T'],
+        model: '4058075729124',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ CL P40 E14 Tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW JP'],
         model: 'SMARTZBA60RGBW',
         vendor: 'LEDVANCE',
@@ -247,6 +263,19 @@ module.exports = [
         model: '4058075729322',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU',
+        extend: extend.switch(),
+        ota: ota.ledvance,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['PLUG UK T'],
+        model: '4058075729285',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Plug UK',
         extend: extend.switch(),
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
