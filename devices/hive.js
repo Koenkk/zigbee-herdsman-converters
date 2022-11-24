@@ -236,7 +236,7 @@ module.exports = [
             tz.thermostat_clear_weekly_schedule, tz.thermostat_temperature_setpoint_hold, tz.thermostat_temperature_setpoint_hold_duration],
         exposes: [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 32, 0.5).withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat', 'emergency_heating']).withRunningState(['idle', 'heat']),
+                .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat']),
             exposes.binary('temperature_setpoint_hold', ea.ALL, true, false)
                 .withDescription('Prevent changes. `false` = run normally. `true` = prevent from making changes.' +
                     ' Must be set to `false` when system_mode = off or `true` for heat'),
