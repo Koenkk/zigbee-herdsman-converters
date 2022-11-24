@@ -1231,15 +1231,8 @@ const converters = {
                     systemMode,
                 });
                 return {readAfterWriteTime: 250, state: {system_mode: value, occupied_heating_setpoint: occupiedHeatingSetpoint / 100}};
-            case 'emergency_heating':
-                await entity.write('hvacThermostat', {
-                    occupiedHeatingSetpoint,
-                    tempSetpointHold: 1,
-                    tempSetpointHoldDuration: 30, // Thermostat defaults to a minimum of 30mins.
-                    systemMode,
-                });
-                return {readAfterWriteTime: 250, state: {system_mode: value, occupied_heating_setpoint: occupiedHeatingSetpoint/100}};
             default:
+                // Default handling for 'emergency_heating', 'auto' system modes.
                 // No special message needed, just send systemMode.
                 await entity.write('hvacThermostat', {systemMode});
                 return {readAfterWriteTime: 250, state: {system_mode: value}};
