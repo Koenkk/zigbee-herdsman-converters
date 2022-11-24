@@ -290,15 +290,29 @@ const tzLocal = {
     },
     // for HC-020-ZB, we must use different data points depending on thermostat_unit
     hc020_temperatures: {
-        key: ['current_heating_setpoint', 'max_temperature', 'min_temperature'],
+        key: ['current_heating_setpoint', 'max_temperature', 'min_temperature', 'local_temperature_calibration'],
         convertSet: async (entity, key, value, meta) => {
+            const fahrenheit = meta.state.thermostat_unit === 'fahrenheit' ? 1 : 0;
+            if (key === 'local_temperature_calibration') {
+                // when in fahrenheit mode, the thermostat does not report the re-calibrated value
+                // furthermore, the calibration value is applied in fahrenheit
+                // in this case, guess local_temperature based on the previous known calibration
+                // note that this will accumulate rounding errors if the calibration is changed too many times
+                const capped = utils.numberWithinRange(value, -9, 9);
+                await tuya.sendDataPointValue(entity, 27, capped);
+                const state = {local_temperature_calibration: value};
+                if (fahrenheit && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) {
+                    state['local_temperature'] = utils.precisionRound(meta.state.local_temperature +
+                        (capped - meta.state.local_temperature_calibration) * 5 / 9, 1);
+                }
+                return {state};
+            }
             // dps[key] = [celsius data point, fahrenheit data point]
             const dps = {
                 'current_heating_setpoint': [16, 17],
                 'max_temperature': [19, 18],
                 'min_temperature': [26, 20],
             };
-            const fahrenheit = meta.state.thermostat_unit === 'fahrenheit' ? 1 : 0;
             const temp = fahrenheit ?
                 utils.mapNumberRange(value, 0, 100, 32, 212) : value;
             await tuya.sendDataPointValue(entity, dps[key][fahrenheit], temp);
@@ -3622,14 +3636,10 @@ module.exports = [
             tuya.tzDataPoints,
         ],
         onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
-        },
         exposes: [
             exposes.climate()
                 .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['program', 'manual', 'eco'], 'Mode switch among “Manual/Programmable/ECO” ' +
+                .withPreset(['program', 'manual', 'eco'], 'Mode switch among “Manual/Programmable/ECO”. ' +
                     'In the manual mode, “☝” will display in the bottom of the screen. ' +
                     'In programmable mode, “⏱” will display in the bottom of the screen. ' +
                     'In ECO mode, “🍃” will display in the right side.',
