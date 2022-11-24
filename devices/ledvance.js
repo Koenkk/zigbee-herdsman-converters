@@ -171,6 +171,14 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['P40 TW T'],
+        model: '4058075729124',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ CL P40 E14 Tunable white',
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['CLA60 RGBW JP'],
         model: 'SMARTZBA60RGBW',
         vendor: 'LEDVANCE',
