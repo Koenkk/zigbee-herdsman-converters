@@ -146,5 +146,6 @@ module.exports = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
     },
 ];
