@@ -285,7 +285,6 @@ module.exports = [
         model: 'PIR323-PTH',
         vendor: 'OWON',
         description: 'OWON Multi-Sensor - Motion/Temp/Humi/Batt',
-        description: 'OWON Multi-Sensor - Motion/Temp/Humi/Batt',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
