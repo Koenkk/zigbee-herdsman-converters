@@ -7,6 +7,15 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    temperature: {
+        ...fz.temperature,
+        convert: (model, msg, publish, options, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15173
+            if (msg.data.measuredValue < 32770) {
+                return fz.temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     PC321_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -76,6 +85,7 @@ const fzLocal = {
         },
     },
 };
+
 module.exports = [
     {
         zigbeeModel: ['WSP404'],
@@ -177,7 +187,7 @@ module.exports = [
         model: 'THS317-ET',
         vendor: 'OWON',
         description: 'Temperature sensor',
-        fromZigbee: [fz.temperature, fz.battery],
+        fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
