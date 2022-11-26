@@ -1247,6 +1247,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
+            return {readAfterWriteTime: 250, state: {temperature_display_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['tempDisplayMode']);
         },
     },
     thermostat_keypad_lockout: {
@@ -4293,6 +4297,18 @@ const converters = {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
         },
     },
+    sinope_thermostat_report_local_temperature: {
+        key: ['report_local_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            const reportLocalTemperatureValues = {0: 'automatic', 1: '', 2:'outside temp'};
+            const reportLocalTemperature = utils.getKey(reportLocalTemperatureValues, value, value, Number);
+            await entity.write('manuSpecificSinope', {reportLocalTemperature});
+            return {state: {'report_local_temperature': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['reportLocalTemperature']);
+        },
+    },
     sinope_thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
@@ -4310,6 +4326,33 @@ const converters = {
             await entity.write('hvacThermostat', {SinopeBacklight});
             return {state: {'backlight_auto_dim': value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['SinopeBacklight']);
+        },
+    },
+    sinope_thermostat_main_cycle_output: {
+        // TH1400ZB specific
+        key: ['main_cycle_output'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'15 sec': 15, '5 min': 300, '10 min': 600, '15 min': 900, '20 min': 1200, '30 min': 1800};
+            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]});
+            return {state: {'main_cycle_output': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['SinopeMainCycleOutput']);
+        },
+    },
+    sinope_thermostat_aux_cycle_output: {
+        // TH1400ZB specific
+        key: ['aux_cycle_output'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'off': 65535, '15 sec': 15, '5 min': 300, '10 min': 600, '15 min': 900, '20 min': 1200, '30 min': 1800};
+            await entity.write('hvacThermostat', {SinopeAuxCycleOutput: lookup[value]});
+            return {state: {'aux_cycle_output': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['SinopeAuxCycleOutput']);
+        },
     },
     sinope_thermostat_enable_outdoor_temperature: {
         key: ['enable_outdoor_temperature'],
@@ -4317,9 +4360,13 @@ const converters = {
             if (value.toLowerCase() == 'on') {
                 await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
             } else if (value.toLowerCase() == 'off') {
-                // set timer to 30sec in order to disable outdoor temperature
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 30});
+                // set timer to 12 sec in order to disable outdoor temperature
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12});
             }
+            return {readAfterWriteTime: 250, state: {enable_outdoor_temperature: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout']);
         },
     },
     sinope_thermostat_outdoor_temperature: {
@@ -4345,7 +4392,7 @@ const converters = {
         },
     },
     sinope_floor_control_mode: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZB specific
         key: ['floor_control_mode'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -4356,37 +4403,53 @@ const converters = {
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {floorControlMode: lookup[value]});
             }
+            return {readAfterWriteTime: 250, state: {floor_control_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['floorControlMode']);
         },
     },
     sinope_ambiant_max_heat_setpoint: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZBspecific
         key: ['ambiant_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value * 100});
+            if ((value >= 5 && value <= 36) || value == 'off') {
+                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                return {readAfterWriteTime: 250, state: {ambiant_max_heat_setpoint: value}};
             }
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['ambiantMaxHeatSetpointLimit']);
+        }, 
     },
     sinope_floor_min_heat_setpoint: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZB specific
         key: ['floor_min_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value * 100});
+            if ((value >= 5 && value <= 34) || value == 'off') {
+                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                return {readAfterWriteTime: 250, state: {floor_min_heat_setpoint: value}};
             }
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['floorMinHeatSetpointLimit']);
+        },        
     },
     sinope_floor_max_heat_setpoint: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZB specific
         key: ['floor_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value * 100});
+            if ((value >= 7 && value <= 36) || value == 'off') {
+                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: (value == 'off' ? -32768 : value * 100)});
+                return {readAfterWriteTime: 250, state: {floor_max_heat_setpoint: value}};
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['floorMaxHeatSetpointLimit']);
         },
     },
     sinope_temperature_sensor: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZB specific
         key: ['floor_temperature_sensor'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -4397,13 +4460,14 @@ const converters = {
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {temperatureSensor: lookup[value]});
             }
+            return {readAfterWriteTime: 250, state: {floor_temperature_sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['temperatureSensor']);
         },
     },
     sinope_time_format: {
-        // TH1300ZB specific
+        // TH1300ZB and TH1400ZB specific
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -4413,7 +4477,48 @@ const converters = {
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
                 await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+                return {readAfterWriteTime: 250, state: {time_format: value}};
             }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['timeFormatToDisplay']);
+        },
+    },
+    sinope_connected_load: {
+        // TH1400ZB specific
+        key: ['connected_load'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificSinope', {connectedLoad: value});
+            return {state: {connected_load: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['connectedLoad']);
+        },
+    },
+    sinope_aux_connected_load: {
+        // TH1400ZB specific
+        key: ['aux_connected_load'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('manuSpecificSinope', {auxConnectedLoad: value});
+            return {readAfterWriteTime: 250, state: {aux_connected_load: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['auxConnectedLoad']);
+        },
+    },
+    sinope_pump_protection: {
+        // TH1400ZB specific
+        key: ['pump_protection'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value.toLowerCase() == 'on') {
+                await entity.write('manuSpecificSinope', {pumpProtection: 1});
+            } else if (value.toLowerCase() == 'off') {
+                await entity.write('manuSpecificSinope', {pumpProtection: 255});
+            }
+            return {readAfterWriteTime: 250, state: {pump_protection: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['pumpProtection']);
         },
     },
     sinope_led_intensity_on: {
