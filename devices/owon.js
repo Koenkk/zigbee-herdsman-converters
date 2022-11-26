@@ -290,4 +290,19 @@ module.exports = [
             await endpoint2.read('msOccupancySensing', ['occupancy']);
         },
     },
+    {
+        zigbeeModel: ['PIR323-PTH'],
+        model: 'PIR323-PTH',
+        vendor: 'OWON',
+        description: 'Multi-sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            device.powerSource = 'Battery';
+            device.save();
+        },
+    },
 ];
