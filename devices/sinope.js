@@ -187,7 +187,7 @@ module.exports = [
             } catch (error) {/* Not all support this */}
 
             try {
-                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier']);
+                await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             } catch (error) {
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {'acPowerMultiplier': 1, 'acPowerDivisor': 1});
