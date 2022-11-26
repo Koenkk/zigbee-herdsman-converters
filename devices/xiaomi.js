@@ -2572,6 +2572,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['aqara.feeder.acn001'],
