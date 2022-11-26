@@ -395,10 +395,13 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}],
-        model: 'HG08673-FR',
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_j1v25l17'}, // EU
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
+        ],
+        model: 'HG08673',
         vendor: 'Lidl',
-        description: 'Silvercrest smart plug FR with power monitoring',
+        description: 'Silvercrest smart plug with power monitoring (EU, FR)',
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fzLocal.electrical_measurement_skip_duplicate, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
             fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
