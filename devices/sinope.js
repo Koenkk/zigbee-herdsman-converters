@@ -123,12 +123,6 @@ module.exports = [
                 await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
             } catch (error) {/* Do nothing*/}
 
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-            try {
-                await reporting.instantaneousDemand(endpoint, {min: 10, max: 304, change: 1});
-            } catch (error) {/* Do nothing*/}
-
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             try {
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
