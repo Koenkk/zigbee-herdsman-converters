@@ -4629,8 +4629,8 @@ const converters = {
                 case 3: // setup
                     return {system_mode: 'off', away_mode: 'OFF', setup_mode: 'ON', preset: 'none'};
                 default:
-                    meta.logger.warn('zigbee-herdsman-converters:eThermostat: ' +
-                        `preset ${value} is not recognized.`);
+                    meta.logger.warn('zigbee-herdsman-converters:TCPThermostat: ' +
+                        `Preset ${value} is not recognized.`);
                     break;
                 }
                 break;
