@@ -17,8 +17,8 @@ module.exports = [
             tz.tuya_thermostat_current_heating_setpoint, tz.tcp_thermostat_away_mode,
             tz.tcp_thermostat_system_mode, tz.tcp_thermostat_setup_mode],
         meta: {
-            timeout: 10000
-    },
+            timeout: 10000,
+        },
         exposes: [e.battery_low(), e.window_detection(), e.child_lock(), e.away_mode(), e.setup_mode(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open'),
             exposes.climate()
