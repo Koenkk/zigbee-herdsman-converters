@@ -4024,6 +4024,8 @@ const converters = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesMinTempLimit:
+                return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
