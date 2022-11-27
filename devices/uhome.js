@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['TWV'],
+        fingerprint: [{modelID: 'TWV', manufacturerName: 'UHome'}],
         model: 'TWV',
         vendor: 'UHome',
         description: 'Smart valve',
