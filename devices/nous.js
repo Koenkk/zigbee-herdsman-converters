@@ -32,6 +32,10 @@ module.exports = [
         },
         exposes: [
             e.temperature(), e.humidity(), e.battery(),
+            exposes.numeric('temperature_report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(120).withValueStep(5)
+                .withDescription('Temperature Report interval'),
+            exposes.numeric('humidity_report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(120).withValueStep(5)
+                .withDescription('Humidity Report interval'),
             exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
@@ -41,6 +45,14 @@ module.exports = [
                 .withDescription('Alarm temperature min'),
             exposes.numeric('temperature_sensitivity', ea.STATE_SET).withUnit('°C').withValueMin(0.1).withValueMax(50).withValueStep(0.1)
                 .withDescription('Temperature sensitivity'),
+            exposes.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
+                .withDescription('Humidity alarm status'),
+            exposes.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Alarm humidity max'),
+            exposes.numeric('min_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
+                .withDescription('Alarm humidity min'),
+            exposes.numeric('humidity_sensitivity', ea.STATE_SET).withUnit('%').withValueMin(1).withValueMax(100).withValueStep(1)
+                .withDescription('Humidity sensitivity'),
         ],
     },
     {

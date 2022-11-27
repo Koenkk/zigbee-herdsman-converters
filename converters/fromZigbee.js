@@ -22,6 +22,8 @@ const utils = require('../lib/utils');
 const exposes = require('../lib/exposes');
 const xiaomi = require('../lib/xiaomi');
 
+const defaultSimulatedBrightness = 255;
+
 const converters = {
     // #region Generic/recommended converters
     fan: {
@@ -338,9 +340,24 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('batteryAlarmState')) {
-                const battery1Low = (msg.data.batteryAlarmState & 1<<0) > 0;
-                const battery2Low = (msg.data.batteryAlarmState & 1<<9) > 0;
-                const battery3Low = (msg.data.batteryAlarmState & 1<<19) > 0;
+                const battery1Low = (
+                    msg.data.batteryAlarmState & 1<<0 ||
+                    msg.data.batteryAlarmState & 1<<1 ||
+                    msg.data.batteryAlarmState & 1<<2 ||
+                    msg.data.batteryAlarmState & 1<<3
+                ) > 0;
+                const battery2Low = (
+                    msg.data.batteryAlarmState & 1<<10 ||
+                    msg.data.batteryAlarmState & 1<<11 ||
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
+                ) > 0;
+                const battery3Low = (
+                    msg.data.batteryAlarmState & 1<<20 ||
+                    msg.data.batteryAlarmState & 1<<21 ||
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
+                ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
 
@@ -706,30 +723,6 @@ const converters = {
             return result;
         },
     },
-    develco_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('develcoPulseConfiguration')) {
-                result[postfixWithEndpointName('pulse_configuration', msg, model, meta)] =
-                    msg.data['develcoPulseConfiguration'];
-            }
-
-            if (msg.data.hasOwnProperty('develcoInterfaceMode')) {
-                result[postfixWithEndpointName('interface_mode', msg, model, meta)] =
-                    constants.develcoInterfaceMode.hasOwnProperty(msg.data['develcoInterfaceMode']) ?
-                        constants.develcoInterfaceMode[msg.data['develcoInterfaceMode']] :
-                        msg.data['develcoInterfaceMode'];
-            }
-            if (msg.data.hasOwnProperty('status')) {
-                result['battery_low'] = (msg.data.status & 2) > 0;
-                result['check_meter'] = (msg.data.status & 1) > 0;
-            }
-
-            return result;
-        },
-    },
     electrical_measurement: {
         /**
          * When using this converter also add the following to the configure method of the device:
@@ -806,7 +799,7 @@ const converters = {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
-            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg)) {
+            if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
@@ -1108,7 +1101,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandStore',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName(`store_${msg.data.sceneid}`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1118,7 +1111,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName(`recall_${msg.data.sceneid}`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1128,7 +1121,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandPanic',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName(`panic`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1138,7 +1131,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandArm',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(constants.armMode[msg.data['armmode']], msg, model, meta),
                 action_code: msg.data.code,
@@ -1162,7 +1155,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandStop',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('stop', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1172,7 +1165,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandUpOpen',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('open', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1182,7 +1175,7 @@ const converters = {
         cluster: 'closuresWindowCovering',
         type: 'commandDownClose',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('close', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1192,7 +1185,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('on', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1202,7 +1195,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('off', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1212,7 +1205,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOffWithEffect',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName(`off`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1222,7 +1215,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandToggle',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName('toggle', msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1233,7 +1226,7 @@ const converters = {
         type: ['commandMoveToLevel', 'commandMoveToLevelWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(`brightness_move_to_level`, msg, model, meta),
                 action_level: msg.data.level,
@@ -1242,9 +1235,12 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
+                const currentBrightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', msg.data.level);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = msg.data.level;
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                payload[deltaProperty] = msg.data.level - currentBrightness;
             }
 
             return payload;
@@ -1255,7 +1251,7 @@ const converters = {
         type: ['commandMove', 'commandMoveWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`brightness_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate};
@@ -1269,14 +1265,15 @@ const converters = {
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                 if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                     const timer = setInterval(() => {
-                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                        let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                         const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
                             deltaOpts : -1 * deltaOpts;
                         brightness += delta;
                         brightness = numberWithinRange(brightness, 0, 255);
                         globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                         const property = postfixWithEndpointName('brightness', msg, model, meta);
-                        publish({[property]: brightness});
+                        const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                        publish({[property]: brightness, [deltaProperty]: delta});
                     }, intervalOpts);
 
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
@@ -1291,7 +1288,7 @@ const converters = {
         type: ['commandStep', 'commandStepWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'down' : 'up';
             const payload = {
                 action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
@@ -1301,13 +1298,15 @@ const converters = {
             addActionGroup(payload, msg, model);
 
             if (options.simulated_brightness) {
-                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', 255);
+                let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                 const delta = direction === 'up' ? msg.data.stepsize : -1 * msg.data.stepsize;
                 brightness += delta;
                 brightness = numberWithinRange(brightness, 0, 255);
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
                 const property = postfixWithEndpointName('brightness', msg, model, meta);
                 payload[property] = brightness;
+                const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                payload[deltaProperty] = delta;
             }
 
             return payload;
@@ -1318,7 +1317,7 @@ const converters = {
         type: ['commandStop', 'commandStopWithOnOff'],
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             if (options.simulated_brightness) {
                 clearInterval(globalStore.getValue(msg.endpoint, 'simulated_brightness_timer'));
                 globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', undefined);
@@ -1333,7 +1332,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandMoveColorTemp'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.movemode === 1 ? 'down' : 'up';
             const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
@@ -1345,7 +1344,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
@@ -1364,7 +1363,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandEnhancedMoveToHueAndSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(`enhanced_move_to_hue_and_saturation`, msg, model, meta),
                 action_enhanced_hue: msg.data.enhancehue,
@@ -1381,7 +1380,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepHue'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
@@ -1396,7 +1395,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: ['commandStepSaturation'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.stepmode === 1 ? 'up' : 'down';
             const payload = {
                 action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
@@ -1411,7 +1410,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandColorLoopSet',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const updateFlags = msg.data.updateflags;
             const actionLookup = {
                 0x00: 'deactivate',
@@ -1441,7 +1440,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_temperature_move`, msg, model, meta),
                 action_color_temperature: msg.data.colortemp,
@@ -1455,7 +1454,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToColor',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(`color_move`, msg, model, meta),
                 action_color: {
@@ -1472,7 +1471,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveHue',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const movestop = msg.data.movemode == 1 ? 'move' : 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
             const payload = {action, action_rate: msg.data.rate};
@@ -1484,7 +1483,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToSaturation',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName('move_to_saturation', msg, model, meta),
                 action_saturation: msg.data.saturation,
@@ -1498,7 +1497,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandMoveToHue',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {
                 action: postfixWithEndpointName(`move_to_hue`, msg, model, meta),
                 action_hue: msg.data.hue,
@@ -1513,7 +1512,7 @@ const converters = {
         cluster: 'ssIasAce',
         type: 'commandEmergency',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {action: postfixWithEndpointName(`emergency`, msg, model, meta)};
             addActionGroup(payload, msg, model);
             return payload;
@@ -1523,7 +1522,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'ON'};
         },
@@ -1532,7 +1531,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const property = postfixWithEndpointName('state', msg, model, meta);
             return {[property]: 'OFF'};
         },
@@ -1612,12 +1611,6 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            if (msg.data.hasOwnProperty('physicalMinLevel')) {
-                result['ballast_physical_minimum_level'] = msg.data.physicalMinLevel;
-            }
-            if (msg.data.hasOwnProperty('physicalMaxLevel')) {
-                result['ballast_physical_maximum_level'] = msg.data.physicalMaxLevel;
-            }
             if (msg.data.hasOwnProperty('ballastStatus')) {
                 const ballastStatus = msg.data.ballastStatus;
                 result['ballast_status_non_operational'] = ballastStatus & 1 ? true : false;
@@ -1784,8 +1777,7 @@ const converters = {
                 result.hysterersis = precisionRound(data[0x100A], 2) / 10;
             }
             if (data.hasOwnProperty(0x100B)) { // DisplayAutoOffEnable
-                const lookup = {0: 'enabled', 1: 'disabled'};
-                result.display_auto_off_enabled = lookup[data[0x100B]];
+                result.display_auto_off_enabled = data[0x100B] ? 'enabled' : 'disabled';
             }
             if (data.hasOwnProperty(0x2001)) { // AlarmAirTempOverValue
                 result.alarm_airtemp_overvalue = data[0x2001];
@@ -1927,49 +1919,6 @@ const converters = {
             return {...payload1, ...payload2};
         },
     },
-    develco_voc: {
-        cluster: 'develcoSpecificAirQuality',
-        type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
-        convert: (model, msg, publish, options, meta) => {
-            const voc = parseFloat(msg.data['measuredValue']);
-            const vocProperty = postfixWithEndpointName('voc', msg, model, meta);
-
-            let airQuality;
-            const airQualityProperty = postfixWithEndpointName('air_quality', msg, model, meta);
-            if (voc <= 65) {
-                airQuality = 'excellent';
-            } else if (voc <= 220) {
-                airQuality = 'good';
-            } else if (voc <= 660) {
-                airQuality = 'moderate';
-            } else if (voc <= 2200) {
-                airQuality = 'poor';
-            } else if (voc <= 5500) {
-                airQuality = 'unhealthy';
-            } else if (voc > 5500) {
-                airQuality = 'out_of_range';
-            } else {
-                airQuality = 'unknown';
-            }
-            return {[vocProperty]: calibrateAndPrecisionRoundOptions(voc, options, 'voc'), [airQualityProperty]: airQuality};
-        },
-    },
-    develco_voc_battery: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            /*
-             * Per the technical documentation for AQSZB-110:
-             * To detect low battery the system can monitor the "BatteryVoltage" by setting up a reporting interval of every 12 hour.
-             * When a voltage of 2.5V is measured the battery should be replaced.
-             * Low batt LED indication–RED LED will blink twice every 60 second.
-             */
-            const result = converters.battery.convert(model, msg, publish, options, meta);
-            result.battery_low = (result.voltage <= 2500);
-            return result;
-        },
-    },
     tuya_temperature_humidity_sensor: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
@@ -2029,22 +1978,28 @@ const converters = {
                     result.min_temperature = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
                 case tuya.dataPoints.nousMaxHumi:
-                    result.max_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.max_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousMinHumi:
-                    result.min_humidity = calibrateAndPrecisionRoundOptions(value / 10, options, 'humidity');
+                    result.min_humidity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
                     break;
                 case tuya.dataPoints.nousTempAlarm:
-                    result.temperature_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousHumiAlarm:
-                    result.humidity_alarm = {0x00: 'canceled', 0x01: 'lower_alarm', 0x02: 'upper_alarm'}[value];
+                    result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
                     break;
                 case tuya.dataPoints.nousTempSensitivity:
                     result.temperature_sensitivity = calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature');
                     break;
-                case tuya.dataPoints.nousReportInterval:
-                    result.report_interval = value;
+                case tuya.dataPoints.nousHumiSensitivity:
+                    result.humidity_sensitivity = calibrateAndPrecisionRoundOptions(value, options, 'humidity');
+                    break;
+                case tuya.dataPoints.nousTempReportInterval:
+                    result.temperature_report_interval = value;
+                    break;
+                case tuya.dataPoints.nousHumiReportInterval:
+                    result.humidity_report_interval = value;
                     break;
                 default:
                     meta.logger.warn(`zigbee-herdsman-converters:nous_lcd_temperature_humidity_sensor: NOT RECOGNIZED ` +
@@ -2403,7 +2358,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const lookup = {1: 'pressed'};
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -2886,7 +2841,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             const clickMapping = {0: 'single', 1: 'double', 2: 'hold'};
             let buttonMapping = null;
             if (model.model === 'TS0042') {
@@ -3018,7 +2973,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
             if (msg.data.indexOf(stateHeader) === 0) {
-                if (msg.data[10] === 5) {
+                if (msg.data[10] === 5 || msg.data[10] === 2) {
                     const status = msg.data[14];
                     return {
                         state_left: status === 1 ? 'ON' : 'OFF',
@@ -3521,6 +3476,22 @@ const converters = {
             return result;
         },
     },
+    sinope_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'unoccupied', 1: 'occupied'};
+            const lookup1 = {0: 'on_demand', 1: 'sensing'};
+            const result = {};
+            if (msg.data.hasOwnProperty('1024')) {
+                result.thermostat_occupancy = lookup[msg.data['1024']];
+            }
+            if (msg.data.hasOwnProperty('1026')) {
+                result.backlight_auto_dim = lookup1[msg.data['1026']];
+            }
+            return result;
+        },
+    },
     danfoss_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -3626,6 +3597,18 @@ const converters = {
                     result[postfixWithEndpointName('output_status', msg, model, meta)] = 'inactive';
                     result[postfixWithEndpointName('running_state', msg, model, meta)] = 'idle';
                 }
+            }
+            return result;
+        },
+    },
+    danfoss_thermostat_setpoint_scheduled: {
+        cluster: 'hvacThermostat',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+                result[postfixWithEndpointName('occupied_heating_setpoint_scheduled', msg, model, meta)] =
+                    precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
             }
             return result;
         },
@@ -3992,20 +3975,44 @@ const converters = {
             switch (dp) {
             case tuya.dataPoints.moesSchedule:
                 return {
-                    program: [
-                        {weekdays_p1: value[0] + 'h:' + value[1] + 'm ' + value[2]/2 + '°C'},
-                        {weekdays_p2: value[3] + 'h:' + value[4] + 'm ' + value[5]/2 + '°C'},
-                        {weekdays_p3: value[6] + 'h:' + value[7] + 'm ' + value[8]/2 + '°C'},
-                        {weekdays_p4: value[9] + 'h:' + value[10] + 'm ' + value[11]/2 + '°C'},
-                        {saturday_p1: value[12] + 'h:' + value[13] + 'm ' + value[14]/2+ '°C'},
-                        {saturday_p2: value[15] + 'h:' + value[16] + 'm ' + value[17]/2 + '°C'},
-                        {saturday_p3: value[18] + 'h:' + value[19] + 'm ' + value[20]/2 + '°C'},
-                        {saturday_p4: value[21] + 'h:' + value[22] + 'm ' + value[23]/2 + '°C'},
-                        {sunday_p1: value[24] + 'h:' + value[25] + 'm ' + value[26]/2 + '°C'},
-                        {sunday_p2: value[27] + 'h:' + value[28] + 'm ' + value[29]/2 + '°C'},
-                        {sunday_p3: value[30] + 'h:' + value[31] + 'm ' + value[32]/2 + '°C'},
-                        {sunday_p4: value[33] + 'h:' + value[34] + 'm ' + value[35]/2 + '°C'},
-                    ],
+                    program: {
+                        weekdays_p1_hour: value[0],
+                        weekdays_p1_minute: value[1],
+                        weekdays_p1_temperature: value[2] / 2,
+                        weekdays_p2_hour: value[3],
+                        weekdays_p2_minute: value[4],
+                        weekdays_p2_temperature: value[5] / 2,
+                        weekdays_p3_hour: value[6],
+                        weekdays_p3_minute: value[7],
+                        weekdays_p3_temperature: value[8] / 2,
+                        weekdays_p4_hour: value[9],
+                        weekdays_p4_minute: value[10],
+                        weekdays_p4_temperature: value[11] / 2,
+                        saturday_p1_hour: value[12],
+                        saturday_p1_minute: value[13],
+                        saturday_p1_temperature: value[14] / 2,
+                        saturday_p2_hour: value[15],
+                        saturday_p2_minute: value[16],
+                        saturday_p2_temperature: value[17] / 2,
+                        saturday_p3_hour: value[18],
+                        saturday_p3_minute: value[19],
+                        saturday_p3_temperature: value[20] / 2,
+                        saturday_p4_hour: value[21],
+                        saturday_p4_minute: value[22],
+                        saturday_p4_temperature: value[23] / 2,
+                        sunday_p1_hour: value[24],
+                        sunday_p1_minute: value[25],
+                        sunday_p1_temperature: value[26] / 2,
+                        sunday_p2_hour: value[27],
+                        sunday_p2_minute: value[28],
+                        sunday_p2_temperature: value[29] / 2,
+                        sunday_p3_hour: value[30],
+                        sunday_p3_minute: value[31],
+                        sunday_p3_temperature: value[32] / 2,
+                        sunday_p4_hour: value[33],
+                        sunday_p4_minute: value[34],
+                        sunday_p4_temperature: value[35] / 2,
+                    },
                 };
             case tuya.dataPoints.state: // Thermostat on standby = OFF, running = ON
                 if (model.model === 'BAC-002-ALZB') {
@@ -4017,6 +4024,8 @@ const converters = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesMinTempLimit:
+                return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
@@ -4071,7 +4080,7 @@ const converters = {
             const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
             switch (dp) {
             case tuya.dataPoints.moesSsystemMode:
-                return {preset: presetLookup[value]};
+                return {preset: presetLookup[value], system_mode: 'heat'};
             case tuya.dataPoints.moesSheatingSetpoint:
                 return {current_heating_setpoint: value};
             case tuya.dataPoints.moesSlocalTemp:
@@ -4081,7 +4090,7 @@ const converters = {
             case tuya.dataPoints.moesSboostHeatingCountdown:
                 return {boost_heating_countdown: value};
             case tuya.dataPoints.moesSreset:
-                return {valve_state: value ? 'CLOSED' : 'OPEN'};
+                return {running_state: value ? 'idle' : 'heat', valve_state: value ? 'CLOSED' : 'OPEN'};
             case tuya.dataPoints.moesSwindowDetectionFunktion_A2:
                 return {window_detection: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSwindowDetection:
@@ -4095,7 +4104,14 @@ const converters = {
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
             case tuya.dataPoints.moesScompensationTempSet:
-                return {local_temperature_calibration: value};
+                return {
+                    local_temperature_calibration: value,
+                    // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
+                    // so update local_temperature by subtracting the old calibration and adding the new one
+                    ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) ?
+                        {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)} :
+                        {},
+                };
             case tuya.dataPoints.moesSecoMode:
                 return {eco_mode: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSecoModeTempSet:
@@ -4122,160 +4138,6 @@ const converters = {
             }
         },
     },
-    tvtwo_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tvtwo_thermostat');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            const presetLookup = {0: 'auto', 1: 'manual', 2: 'holiday'};
-            switch (dp) {
-            case tuya.dataPoints.tvMode:
-                return {preset: presetLookup[value]};
-            case tuya.dataPoints.tvChildLock:
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            case tuya.dataPoints.tvHolidayTemp:
-                return {holiday_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvHeatingSetpoint:
-                return {current_heating_setpoint: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvFrostDetection:
-                return {frost_protection: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvWindowDetection:
-                return {open_window: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvHeatingStop:
-                return {heating_stop: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvLocalTemp:
-                return {local_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvBattery:
-                return {battery_low: value === 0 ? true : false};
-            case tuya.dataPoints.tvTempCalibration:
-                return {local_temperature_calibration: value > 55 ?
-                    ((value - 0x100000000)/10).toFixed(1): (value/ 10).toFixed(1)};
-            case tuya.dataPoints.tvBoostTime:
-                // Setting minimum 0 - maximum 465 seconds
-                return {boost_timeset_countdown: value};
-            case tuya.dataPoints.tvComfortTemp:
-                return {comfort_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvEcoTemp:
-                return {eco_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvOpenWindowTemp:
-                return {open_window_temperature: (value / 10).toFixed(1)};
-            case tuya.dataPoints.tvErrorStatus:
-                return {fault_alarm: value};
-            case tuya.dataPoints.tvHolidayMode: {
-                const sy = value.slice(0, 4); const sm = value.slice(4, 6); const sd = value.slice(6, 8);
-                const sh = value.slice(8, 10); const smi = value.slice(10, 12); const ey = value.slice(12, 16);
-                const em = value.slice(16, 18); const ed = value.slice(18, 20); const eh = value.slice(20, 22);
-                const emi = value.slice(22, 24);
-                const hMode = 'start -->   ' + sy + ' - ' + sm + ' - ' + sd + '     ' + sh + ' : ' + smi +
-                '             stop -->   ' + ey + ' - ' + em + ' - ' + ed + '     ' + eh + ' : ' + emi;
-                return {holiday_start_stop: hMode};
-            }
-            case tuya.dataPoints.tvBoostMode:
-                // 115 online / Is the device online
-                return {online: value ? 'ON' : 'OFF'};
-            case tuya.dataPoints.tvWorkingDay:
-                // DP-31, Send and Report, ENUM,  Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
-                return {working_day: value};
-            case tuya.dataPoints.tvMondaySchedule:
-                return {schedule_monday:
-                        '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                        ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                        ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                        ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                        ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                        ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                        ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                        ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                        ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                        ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvTuesdaySchedule:
-                return {schedule_tuesday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvWednesdaySchedule:
-                return {schedule_wednesday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvThursdaySchedule:
-                return {schedule_thursday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvFridaySchedule:
-                return {schedule_friday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvSaturdaySchedule:
-                return {schedule_saturday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-            case tuya.dataPoints.tvSundaySchedule:
-                return {schedule_sunday:
-                    '  ' + value[0] / 6 + 'h:' + value[1] + 'm ' + value[2] / 10 + '°C' +
-                    ', ' + value[3] / 6 + 'h:' + value[4] + 'm ' + value[5] / 10 + '°C' +
-                    ', ' + value[6] / 6 + 'h:' + value[7] + 'm ' + value[8] / 10 + '°C' +
-                    ', ' + value[9] / 6 + 'h:' + value[10] + 'm ' + value[11] / 10 + '°C' +
-                    ', ' + value[12] / 6 + 'h:' + value[13] + 'm ' + value[14] / 10 + '°C ' +
-                    ', ' + value[15] / 6 + 'h:' + value[16] + 'm ' + value[17] / 10 + '°C ' +
-                    ', ' + value[18] / 6 + 'h:' + value[19] + 'm ' + value[20] / 10 + '°C ' +
-                    ', ' + value[21] / 6 + 'h:' + value[22] + 'm ' + value[23] / 10 + '°C ' +
-                    ', ' + value[24] / 6 + 'h:' + value[25] + 'm ' + value[26] / 10 + '°C ' +
-                    ', ' + value[27] / 6 + 'h:' + value[28] + 'm ' + value[29] / 10 + '°C ',
-                };
-
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tvtwo_thermostat: NOT RECOGNIZED DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     haozee_thermostat: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -4284,9 +4146,10 @@ const converters = {
             const dp = dpValue.dp; // First we get the data point ID
             const value = tuya.getDataValue(dpValue);
             const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+            const systemModeLookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
             switch (dp) {
             case tuya.dataPoints.haozeeSystemMode:
-                return {preset: presetLookup[value]};
+                return {preset: presetLookup[value], system_mode: systemModeLookup[value]};
             case tuya.dataPoints.haozeeHeatingSetpoint:
                 return {current_heating_setpoint: (value / 10).toFixed(1)};
             case tuya.dataPoints.haozeeLocalTemp:
@@ -5032,7 +4895,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowSingle',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             if (msg.data.value === 2) {
                 // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
                 return;
@@ -5046,7 +4909,7 @@ const converters = {
         cluster: 'genScenes',
         type: 'commandTradfriArrowHold',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = msg.data.value === 3329 ? 'left' : 'right';
             globalStore.putValue(msg.endpoint, 'direction', direction);
             return {action: `arrow_${direction}_hold`};
@@ -5057,7 +4920,7 @@ const converters = {
         type: 'commandTradfriArrowRelease',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
                 globalStore.clearValue(msg.endpoint, 'direction');
@@ -5128,7 +4991,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return; // Skip commisioning command.
 
             // Button 1: A0 (top left)
@@ -5141,11 +5004,8 @@ const converters = {
                 0x63: 'release_2_and_4', 0x22: 'press_energy_bar',
             };
 
-            if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`PTM 215Z: missing command '${commandID}'`);
-            } else {
-                return {action: lookup[commandID]};
-            }
+            const action = lookup.hasOwnProperty(commandID) ? lookup[commandID] : `unknown_${commandID}`;
+            return {action};
         },
     },
     enocean_ptm215ze: {
@@ -5153,7 +5013,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
 
             // Button 1: A0 (top left)
@@ -5181,7 +5041,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
 
             // Button 1: A0 (top left)
@@ -5593,7 +5453,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4'};
             if (!lookup.hasOwnProperty(commandID)) {
@@ -5608,7 +5468,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {0x22: 'press_once', 0x20: 'press_twice'};
             if (!lookup.hasOwnProperty(commandID)) {
@@ -5727,7 +5587,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             let actionLookup = {0: 'hold', 1: 'single', 2: 'double', 3: 'triple', 255: 'release'};
             if (model.model === 'WXKG12LM') {
                 actionLookup = {...actionLookup, 16: 'hold', 17: 'release', 18: 'shake'};
@@ -5864,7 +5724,7 @@ const converters = {
                 `increase it with this option (value is in ms).`),
         ],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const state = msg.data['onOff'];
 
             // 0 = click down, 1 = click up, else = multiple clicks
@@ -6145,7 +6005,7 @@ const converters = {
         cluster: 'genMultistateInput',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const actionLookup = {0: 'hold', 255: 'release', 1: 'single', 2: 'double', 3: 'triple', 5: 'quintuple', 6: 'many'};
             const button = msg.endpoint.ID;
             const value = msg.data.presentValue;
@@ -6168,7 +6028,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: 'button_2_single'};
         },
     },
@@ -6176,7 +6036,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'commandOff',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: 'button_1_single'};
         },
     },
@@ -6184,7 +6044,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandStep',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const button = msg.data.stepmode === 0 ? '4' : '3';
             return {action: `button_${button}_single`};
         },
@@ -6194,7 +6054,7 @@ const converters = {
         type: 'commandStop',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             if (globalStore.hasValue(msg.endpoint, 'button')) {
                 const value = globalStore.getValue(msg.endpoint, 'button');
                 const duration = Date.now() - value.start;
@@ -6208,7 +6068,7 @@ const converters = {
         cluster: 'genLevelCtrl',
         type: 'commandMove',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const button = msg.data.movemode === 0 ? '4' : '3';
             globalStore.putValue(msg.endpoint, 'button', {button, start: Date.now()});
             return {action: `button_${button}_hold`};
@@ -6218,7 +6078,7 @@ const converters = {
         cluster: 'lightingColorCtrl',
         type: 'commandStepColorTemp',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             let action;
             if (model.model === 'WXCJKG12LM') {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -6235,7 +6095,7 @@ const converters = {
         type: 'commandMoveColorTemp',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const stop = msg.data.movemode === 0;
             let result = null;
             if (stop) {
@@ -7156,7 +7016,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('48')) {
-                const lookup = ['low', 'medium', 'high'];
+                const lookup = ['low', 'medium', 'high', 'very_high', 'max'];
                 return {motion_sensitivity: lookup[msg.data['48']]};
             }
         },
@@ -7372,6 +7232,7 @@ const converters = {
                 const delta = button === 'up' ? deltaOpts : deltaOpts * -1;
                 const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
                 payload.brightness = numberWithinRange(brightness, 0, 255);
+                payload.action_brightness_delta = delta;
                 globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
             }
 
@@ -7383,7 +7244,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {0x22: 'press_1', 0x10: 'press_2', 0x11: 'press_3', 0x12: 'press_4'};
             if (!lookup.hasOwnProperty(commandID)) {
@@ -7585,23 +7446,6 @@ const converters = {
             return result;
         },
     },
-    tuya_gas: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_gas');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.state:
-                return {gas: value === 0 ? true : false};
-            default:
-                meta.logger.warn(`zigbee-herdsman-converters:tuya_gas: Unrecognized DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     idlock: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
@@ -7678,7 +7522,7 @@ const converters = {
         cluster: 'wiserDeviceInfo',
         type: 'attributeReport',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
 
             const data = msg.data['deviceInfo'].split(',');
             if (data[0] === 'UI' && data[1]) {
@@ -7880,39 +7724,6 @@ const converters = {
             return {action: `scene_${scenes[msg.data.level]}`};
         },
     },
-    develco_fw: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (0x8000 in msg.data) {
-                const firmware = msg.data[0x8000].join('.');
-                result.current_firmware = firmware;
-                meta.device.softwareBuildID = firmware;
-            }
-
-            if (0x8020 in msg.data) {
-                meta.device.hardwareVersion = msg.data[0x8020].join('.');
-            }
-
-            return result;
-        },
-    },
-    develco_genbinaryinput: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            if (msg.data.hasOwnProperty('reliability')) {
-                const lookup = {0: 'no_fault_detected', 7: 'unreliable_other', 8: 'process_error'};
-                result.reliability = lookup[msg.data['reliability']];
-            }
-            if (msg.data.hasOwnProperty('statusFlags')) {
-                result.fault = (msg.data['statusFlags']===1);
-            }
-            return result;
-        },
-    },
     xiaomi_tvoc: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -7924,7 +7735,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const lookup = {32768: 'pressed'};
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -7997,44 +7808,6 @@ const converters = {
                 meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
 
-            return result;
-        },
-    },
-    tuya_radar_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_radar_sensor');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            let result = null;
-            switch (dp) {
-            case tuya.dataPoints.trsPresenceState:
-                result = {presence: {0: false, 1: true}[value]};
-                break;
-            case tuya.dataPoints.trsMotionState:
-                result = {occupancy: {1: false, 2: true}[value]};
-                break;
-            case tuya.dataPoints.trsMotionSpeed:
-                result = {motion_speed: value};
-                break;
-            case tuya.dataPoints.trsMotionDirection:
-                result = {motion_direction: tuya.tuyaRadar.motionDirection[value]};
-                break;
-            case tuya.dataPoints.trsScene:
-                result = {radar_scene: tuya.tuyaRadar.radarScene[value]};
-                break;
-            case tuya.dataPoints.trsSensitivity:
-                result = {radar_sensitivity: value};
-                break;
-            case tuya.dataPoints.trsIlluminanceLux:
-                result = {illuminance_lux: value};
-                break;
-            case tuya.dataPoints.trsDetectionData: // Ignore this, function of this DP is unknown at the moment!
-                break;
-            default:
-                meta.logger.warn(`fromZigbee.tuya_radar_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
-            }
             return result;
         },
     },
@@ -8378,7 +8151,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {0x21: 'press_on', 0x20: 'press_off', 0x34: 'release', 0x35: 'hold_on', 0x36: 'hold_off'};
             if (!lookup.hasOwnProperty(commandID)) {
@@ -8393,7 +8166,7 @@ const converters = {
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
-            if (hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
             const lookup = {
                 0x21: 'press_on',
@@ -8409,17 +8182,6 @@ const converters = {
             } else {
                 return {action: lookup[commandID]};
             }
-        },
-    },
-    dawon_card_holder: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                card: (zoneStatus & 1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
         },
     },
     tuya_light_wz5: {
@@ -8462,7 +8224,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             // commandStopMove without params
             if (msg.data[2] !== 71) return;
-            if (hasAlreadyProcessedMessage(msg)) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
             const movestop = 'stop';
             const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
             const payload = {action};
@@ -8474,7 +8236,7 @@ const converters = {
         cluster: 'genOnOff',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            if (hasAlreadyProcessedMessage(msg, msg.data[1])) return;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data[1])) return;
             let action;
             if (msg.data[2] == 253) {
                 action = {0: 'single', 1: 'double', 2: 'hold'}[msg.data[3]];

@@ -5,7 +5,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['TPZRCO2HT-Z3'],
+        zigbeeModel: ['TPZRCO2HT-Z3', 'TPZRCO2HT-Z3/L'],
         model: 'TPZRCO2HT-Z3',
         vendor: 'Titan Products',
         description: 'Room CO2, humidity & temperature sensor',

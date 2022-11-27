@@ -1,5 +1,6 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
@@ -37,5 +38,27 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['RBSH-TRV0-ZB-EU'],
+        model: 'BTH-RA',
+        vendor: 'Bosch',
+        description: 'Radiator thermostat II',
+        fromZigbee: [fz.thermostat, fz.battery],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature],
+        exposes: [
+            e.battery(),
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-30, 30, 0.1),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
     },
 ];

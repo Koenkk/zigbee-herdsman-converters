@@ -41,18 +41,26 @@ const zifgredFromZigbeeButtonEvent = {
 };
 
 const coverAndLightToZigbee = {
-    key: ['state', 'brightness', 'brightness_percent', 'on_time'],
+    key: ['state', 'brightness', 'brightness_percent', 'on_time', 'position', 'tilt'],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        const isCover = (typeof value === 'string' && ['open', 'close', 'stop'].includes(value.toLowerCase()));
+        const isCover = entity.ID === 0x0b || entity.ID === 0x0c;
         if (isCover) {
-            return tz.cover_state.convertSet(entity, key, value, meta);
+            if (key === 'state') {
+                return tz.cover_state.convertSet(entity, key, value, meta);
+            } else if (key === 'position' || key === 'tilt') {
+                return tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            }
         } else {
-            return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            if (key === 'state' || key === 'brightness' || key === 'brightness_percent' || key === 'on_time') {
+                return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            }
         }
     },
     convertGet: async (entity, key, meta) => {
-        if (key === 'brightness') {
+        if (key === 'state' && (entity.ID === 0x0b || entity.ID === 0x0c)) {
+            await tz.cover_position_tilt.convertGet(entity, 'position', meta);
+        } else if (key === 'brightness') {
             await entity.read('genLevelCtrl', ['currentLevel']);
         } else if (key === 'state') {
             await tz.on_off.convertGet(entity, key, meta);
@@ -68,7 +76,7 @@ const buttonEventExposes = e.action([
 ]);
 
 function checkOption(device, options, key) {
-    if (options.hasOwnProperty(key)) {
+    if (options != null && options.hasOwnProperty(key)) {
         if (options[key] === 'true') {
             return true;
         } else if (options[key] === 'false') {
@@ -80,16 +88,22 @@ function checkOption(device, options, key) {
 }
 
 function checkMetaOption(device, key) {
-    const enabled = device.meta[key];
-    if (enabled === undefined) {
-        return false;
-    } else {
-        return !!enabled;
+    if (device != null) {
+        const enabled = device.meta[key];
+        if (enabled === undefined) {
+            return false;
+        } else {
+            return !!enabled;
+        }
     }
+
+    return false;
 }
 
 function setMetaOption(device, key, enabled) {
-    device.meta[key] = enabled;
+    if (device != null && key != null) {
+        device.meta[key] = enabled;
+    }
 }
 
 module.exports = [
@@ -114,21 +128,19 @@ module.exports = [
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null && options != null) {
-                if (checkOption(device, options, 'front_surface_enabled')) {
-                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-                }
+            if (checkOption(device, options, 'front_surface_enabled')) {
+                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
+            }
 
-                if (checkOption(device, options, 'relay_enabled')) {
-                    expose.push(e.switch().withEndpoint('l2'));
-                }
+            if (checkOption(device, options, 'relay_enabled')) {
+                expose.push(e.switch().withEndpoint('l2'));
+            }
 
-                if (checkOption(device, options, 'dimmer_enabled')) {
-                    if (checkOption(device, options, 'dimmer_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l3'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l3'));
-                    }
+            if (checkOption(device, options, 'dimmer_enabled')) {
+                if (checkOption(device, options, 'dimmer_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l3'));
                 }
             }
 
@@ -238,65 +250,63 @@ module.exports = [
             expose.push(buttonEventExposes);
             expose.push(e.linkquality());
 
-            if (device != null && options != null) {
-                if (checkOption(device, options, 'front_surface_enabled')) {
-                    expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
-                }
+            if (checkOption(device, options, 'front_surface_enabled')) {
+                expose.push(e.light_brightness_colorxy().withEndpoint('l1'));
+            }
 
-                if (checkOption(device, options, 'dimmer_1_enabled')) {
-                    if (checkOption(device, options, 'dimmer_1_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l2'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l2'));
-                    }
+            if (checkOption(device, options, 'dimmer_1_enabled')) {
+                if (checkOption(device, options, 'dimmer_1_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l2'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l2'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_2_enabled')) {
-                    if (checkOption(device, options, 'dimmer_2_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l3'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l3'));
-                    }
+            if (checkOption(device, options, 'dimmer_2_enabled')) {
+                if (checkOption(device, options, 'dimmer_2_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l3'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l3'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_3_enabled')) {
-                    if (checkOption(device, options, 'dimmer_3_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l4'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l4'));
-                    }
+            if (checkOption(device, options, 'dimmer_3_enabled')) {
+                if (checkOption(device, options, 'dimmer_3_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l4'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l4'));
                 }
+            }
 
-                if (checkOption(device, options, 'dimmer_4_enabled')) {
-                    if (checkOption(device, options, 'dimmer_4_dimming_enabled')) {
-                        expose.push(e.light_brightness().withEndpoint('l5'));
-                    } else {
-                        expose.push(e.switch().withEndpoint('l5'));
-                    }
+            if (checkOption(device, options, 'dimmer_4_enabled')) {
+                if (checkOption(device, options, 'dimmer_4_dimming_enabled')) {
+                    expose.push(e.light_brightness().withEndpoint('l5'));
+                } else {
+                    expose.push(e.switch().withEndpoint('l5'));
                 }
+            }
 
-                if (checkOption(device, options, 'cover_1_enabled')) {
-                    if (checkOption(device, options, 'cover_1_tilt_enabled')) {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withTilt().withEndpoint('l6'));
-                    } else {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withEndpoint('l6'));
-                    }
+            if (checkOption(device, options, 'cover_1_enabled')) {
+                if (checkOption(device, options, 'cover_1_tilt_enabled')) {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withTilt().withEndpoint('l6'));
+                } else {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withEndpoint('l6'));
                 }
+            }
 
-                if (checkOption(device, options, 'cover_2_enabled')) {
-                    if (checkOption(device, options, 'cover_2_tilt_enabled')) {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withTilt().withEndpoint('l7'));
-                    } else {
-                        expose.push(exposes.cover()
-                            .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
-                            .withPosition().withEndpoint('l7'));
-                    }
+            if (checkOption(device, options, 'cover_2_enabled')) {
+                if (checkOption(device, options, 'cover_2_tilt_enabled')) {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withTilt().withEndpoint('l7'));
+                } else {
+                    expose.push(exposes.cover()
+                        .setAccess('state', exposes.access.STATE_SET | exposes.access.STATE_GET)
+                        .withPosition().withEndpoint('l7'));
                 }
             }
 
@@ -311,9 +321,6 @@ module.exports = [
             fz.power_on_behavior,
             fz.ignore_basic_report,
             fz.cover_position_tilt,
-            fz.command_cover_open,
-            fz.command_cover_close,
-            fz.command_cover_stop,
         ],
         toZigbee: [
             tz.light_color,
@@ -327,7 +334,6 @@ module.exports = [
             tz.light_hue_saturation_step,
             tz.light_color_options,
             tz.light_color_mode,
-            tz.cover_position_tilt,
             coverAndLightToZigbee,
         ],
         meta: {multiEndpoint: true},

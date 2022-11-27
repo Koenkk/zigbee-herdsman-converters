@@ -29,7 +29,8 @@ module.exports = [
         // https://github.com/Koenkk/zigbee2mqtt/issues/13123#issuecomment-1198793749
         meta: {disableDefaultResponse: true},
         toZigbee: [tz.on_off, tzLocal.DD10Z_brightness, tz.light_colortemp, tz.effect],
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp(
+            {colorTempRange: [153, 370], disableColorTempStartup: true, disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['4a33f5ea766a4c96a962b371ffde9943'],

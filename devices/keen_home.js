@@ -42,7 +42,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SV02-410-MP-1.3', 'SV02-412-MP-1.3', 'SV02-610-MP-1.3', 'SV02-612-MP-1.2', 'SV02-612-MP-1.3', 'SV02-410-MP-1.0',
-            'SV02-410-MP-1.2'],
+            'SV02-410-MP-1.2', 'SV02-412-MP-1.2'],
         model: 'SV02',
         vendor: 'Keen Home',
         description: 'Smart vent',

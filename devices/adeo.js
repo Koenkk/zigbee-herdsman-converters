@@ -88,6 +88,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['ZBEK-11'],
+        model: 'IM-CDZDGAAG005KA-MZN',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN GU-10 LED white',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['ZBEK-12'],
         model: 'IA-CDZFB2AA007NA-MZN-01',
         vendor: 'ADEO',

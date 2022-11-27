@@ -247,6 +247,22 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['E2D-G73'],
+        model: 'E2D-G73',
+        vendor: 'Sengled',
+        description: 'Smart window and door sensor G2',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        ota: ota.zigbeeOTA,
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['E1C-NB6'],
         model: 'E1C-NB6',
         vendor: 'Sengled',

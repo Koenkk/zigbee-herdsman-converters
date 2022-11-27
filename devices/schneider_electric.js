@@ -28,7 +28,7 @@ const fzLocal = {
             }
 
             const commandID = msg.data.commandID;
-            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
 
             const rxAfterTx = (msg.data.options & (1<<11));
             const ret = {};
@@ -462,6 +462,18 @@ module.exports = [
             const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['1GANG/SWITCH/1'],
+        model: 'MEG5161-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten PlusLink relay insert with Merten Wiser system M push button (1fold)',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
     {

@@ -15,6 +15,14 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
     {
+        zigbeeModel: ['Retro Bulb Gold XXL white+ambiance'],
+        model: '404065',
+        vendor: 'Müller Licht',
+        description: 'tint LED-Globe Retro Gold XXL E27',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
         zigbeeModel: ['ZBT-DIMLight-A4700001'],
         model: '404023',
         vendor: 'Müller Licht',
@@ -56,7 +64,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tint_scene]),
     },
     {
-        zigbeeModel: ['ZBT-ExtendedColor'],
+        zigbeeModel: ['ZBT-ExtendedColor', 'Bulb white+color'],
         model: '404000/404005/404012/404019',
         vendor: 'Müller Licht',
         description: 'Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white',
@@ -117,8 +125,8 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.tint404011_brightness_updown_click,
             fz.legacy.tint404011_move_to_color_temp, fz.legacy.tint404011_move_to_color, fz.tint_scene,
             fz.legacy.tint404011_brightness_updown_release, fz.legacy.tint404011_brightness_updown_hold],
-        exposes: [e.action(['on', 'off', 'toggle', 'brightness_down_click', 'brightness_up_click', 'color_temp', 'color_wheel',
-            'brightness_0_release', 'brightness_1_release', 'brightness_0_hold', 'brightness_1_hold'])],
+        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
+            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
     },
     {
@@ -152,9 +160,10 @@ module.exports = [
         model: '404022/404049C',
         description: 'Tint dim remote control',
         vendor: 'Müller Licht',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_move_to_color_temp,
+            fz.command_move_to_color, fz.tint_scene],
         exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up', 'brightness_move_down',
-            'brightness_stop', 'color_temperature_move'])],
+            'brightness_stop', 'color_temperature_move', 'color_move', 'scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
@@ -182,5 +191,29 @@ module.exports = [
         vendor: 'Müller Licht',
         description: 'Tint Armaro',
         extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white'}],
+        model: '45727',
+        vendor: 'Müller Licht',
+        description: 'Tint Amela 42cm, white+ambiance (1800-6500K)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Candle white+color'}],
+        model: '45730',
+        vendor: 'Müller Licht',
+        description: 'Tint candle E14 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+    },
+    {
+        fingerprint: [{manufacturerName: 'MLI', modelID: 'Bulb white+color'}],
+        model: '45728',
+        vendor: 'Müller Licht',
+        description: 'Tint bulb E27 white+color',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
+        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
     },
 ];

@@ -59,7 +59,7 @@ const fzLocal = {
 
 const tzLocal = {
     CSM300_SETUP: {
-        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transation', 'fast_in', 'fast_out'],
+        key: ['rf_pairing_on', 'counting_freeze', 'tof_init', 'led_state', 'rf_state', 'transaction', 'fast_in', 'fast_out'],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster('genAnalogInput'));
@@ -70,8 +70,12 @@ const tzLocal = {
             case 'counting_freeze':
                 if (value.toLowerCase() === 'on') {
                     payload = {'presentValue': 82};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {counting_freeze: 'ON'}};
                 } else if (value.toLowerCase() === 'off') {
                     payload = {'presentValue': 84};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {counting_freeze: 'OFF'}};
                 }
                 break;
             case 'tof_init':
@@ -80,44 +84,72 @@ const tzLocal = {
             case 'led_state':
                 if (value === 'enable') {
                     payload = {'presentValue': 86};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {led_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 87};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {led_state: 'disable'}};
                 }
                 break;
             case 'rf_state':
                 if (value === 'enable') {
                     payload = {'presentValue': 88};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {rf_state: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 89};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {rf_state: 'disable'}};
                 }
                 break;
-            case 'transation':
+            case 'transaction':
                 if (value === '0ms') {
                     payload = {'presentValue': 90};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '0ms'}};
                 } else if (value === '200ms') {
                     payload = {'presentValue': 91};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '200ms'}};
                 } else if (value === '400ms') {
                     payload = {'presentValue': 92};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '400ms'}};
                 } else if (value === '600ms') {
                     payload = {'presentValue': 93};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '600ms'}};
                 } else if (value === '800ms') {
                     payload = {'presentValue': 94};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '800ms'}};
                 } else if (value === '1,000ms') {
                     payload = {'presentValue': 95};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {transaction: '1,000ms'}};
                 }
                 break;
             case 'fast_in':
                 if (value === 'enable') {
                     payload = {'presentValue': 96};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_in: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 97};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_in: 'disable'}};
                 }
                 break;
             case 'fast_out':
                 if (value === 'enable') {
                     payload = {'presentValue': 98};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_out: 'enable'}};
                 } else if (value === 'disable') {
                     payload = {'presentValue': 99};
+                    await endpoint.write('genAnalogInput', payload);
+                    return {state: {fast_out: 'disable'}};
                 }
                 break;
             }
@@ -216,8 +248,8 @@ module.exports = [
             exposes.enum('tof_init', ea.SET, ['initial']).withDescription('ToF sensor initial'),
             exposes.binary('led_state', ea.SET, 'enable', 'disable').withDescription('Indicate LED enable/disable, default : enable'),
             exposes.binary('rf_state', ea.SET, 'enable', 'disable').withDescription('RF function enable/disable, default : disable'),
-            exposes.enum('transation', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
-                .withDescription('Transation interval, default : 400ms'),
+            exposes.enum('transaction', ea.SET, ['0ms', '200ms', '400ms', '600ms', '800ms', '1,000ms'])
+                .withDescription('Transaction interval, default : 400ms'),
             exposes.binary('fast_in', ea.SET, 'enable', 'disable')
                 .withDescription('Fast process enable/disable when people 0 to 1. default : enable'),
             exposes.binary('fast_out', ea.SET, 'enable', 'disable')
@@ -508,6 +540,40 @@ module.exports = [
         model: 'PMM-300Z2',
         vendor: 'ShinaSystem',
         description: 'SiHAS energy monitor',
+        fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
+        toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
+        exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET), e.voltage().withAccess(ea.STATE_GET),
+            e.temperature().withAccess(ea.STATE_GET).withDescription('temperature of device internal mcu'),
+            exposes.numeric('power_factor', ea.STATE_GET).withDescription('Measured electrical power factor'),
+            exposes.numeric('ac_frequency', ea.STATE_GET).withUnit('Hz').withDescription('Measured electrical ac frequency')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier',
+                'acCurrentDivisor']);
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+            // await reporting.activePower(endpoint, {min: 1, max: 600, change: 5});  // no need, duplicate for power value.
+            await reporting.instantaneousDemand(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.powerFactor(endpoint, {min: 10, max: 600, change: 1});
+            await reporting.rmsVoltage(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.rmsCurrent(endpoint, {min: 5, max: 600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {min: 1, max: 600, change: 5});
+            await reporting.temperature(endpoint, {min: 20, max: 300, change: 10});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acFrequencyMultiplier: 1, acFrequencyDivisor: 10});
+            await endpoint.configureReporting('haElectricalMeasurement', [{
+                attribute: 'acFrequency',
+                minimumReportInterval: 10,
+                maximumReportInterval: 600,
+                reportableChange: 3,
+            }]);
+        },
+    },
+    {
+        zigbeeModel: ['PMM-300Z3'],
+        model: 'PMM-300Z3',
+        vendor: 'ShinaSystem',
+        description: 'SiHAS 3phase energy monitor',
         fromZigbee: [fz.electrical_measurement, fz.metering, fz.temperature],
         toZigbee: [tz.metering_power, tz.currentsummdelivered, tz.frequency, tz.powerfactor, tz.acvoltage, tz.accurrent, tz.temperature],
         exposes: [e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET),

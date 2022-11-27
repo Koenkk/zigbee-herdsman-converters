@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
@@ -8,76 +8,15 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const zosung = require('../lib/zosung');
-const utils = require('../lib/utils');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-const fzLocal = {
-    ZSEUD: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: async (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case 1:
-                    result.state_l1 = value ? 'ON' : 'OFF';
-                    break;
-                case 2:
-                    result.brightness_l1 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                case 7:
-                    result.state_l2 = value ? 'ON' : 'OFF';
-                    break;
-                case 8:
-                    result.brightness_l2 = utils.mapNumberRange(value, 0, 1000, 0, 254);
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:ZSEUD: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-};
-
-const tzLocal = {
-    ZSEUD_state: {
-        key: ['state'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 1, l2: 7};
-            const dp = lookup[meta.endpoint_name];
-            await tuya.sendDataPointBool(entity, dp, value === 'ON');
-        },
-    },
-    ZSEUD_brightness: {
-        key: ['brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {l1: 2, l2: 8};
-            const dp = lookup[meta.endpoint_name];
-
-            if (key == 'brightness') {
-                // upscale to 1000
-                if (value >= 0 && value <= 254) {
-                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-                    // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-                    if (meta.state[`state_${meta.endpoint_name}`] === 'ON') {
-                        await tuya.sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
-                    } else {
-                        await tuya.sendDataPoints(entity, [tuya.dpValueFromBool(dp-1, true), tuya.dpValueFromIntValue(dp, newValue)],
-                            'dataRequest', 1);
-                    }
-                } else {
-                    throw new Error('Dimmer brightness is out of range 0..254');
-                }
-            } else {
-                meta.logger.warn(`ZSEUD TZ unsupported key=${key} value=${value}`);
-            }
-        },
-    },
+const exposesLocal = {
+    hour: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23),
+    minute: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('m').withValueMin(0).withValueMax(59),
+    program_temperature: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('°C')
+        .withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
 module.exports = [
@@ -87,18 +26,19 @@ module.exports = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_child_mode],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_child_mode],
+        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage'), e.child_lock()],
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
+                .withDescription('Plug LED indicator mode'), e.child_lock()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -181,12 +121,52 @@ module.exports = [
         fromZigbee: [fz.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
-            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit],
-        exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(),
-            exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 1, ea.STATE_SET)
+            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit, tz.moes_thermostat_min_temperature_limit,
+            tz.moes_thermostat_program_schedule],
+        exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
+            exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-                .withPreset(['hold', 'program']).withSensor(['IN', 'AL', 'OU'], ea.STATE_SET)],
+                .withPreset(['hold', 'program']),
+            e.temperature_sensor_select(['IN', 'AL', 'OU']),
+            exposes.composite('program', 'program').withDescription('Time of day and setpoint to use when in program mode')
+                .withFeature(exposesLocal.hour('weekdays_p1_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p2_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p2_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p3_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p3_temperature'))
+                .withFeature(exposesLocal.hour('weekdays_p4_hour'))
+                .withFeature(exposesLocal.minute('weekdays_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('weekdays_p4_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p1_hour'))
+                .withFeature(exposesLocal.minute('saturday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p1_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p2_hour'))
+                .withFeature(exposesLocal.minute('saturday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p2_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p3_hour'))
+                .withFeature(exposesLocal.minute('saturday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p3_temperature'))
+                .withFeature(exposesLocal.hour('saturday_p4_hour'))
+                .withFeature(exposesLocal.minute('saturday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('saturday_p4_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p1_hour'))
+                .withFeature(exposesLocal.minute('sunday_p1_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p1_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p2_hour'))
+                .withFeature(exposesLocal.minute('sunday_p2_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p2_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p3_hour'))
+                .withFeature(exposesLocal.minute('sunday_p3_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p3_temperature'))
+                .withFeature(exposesLocal.hour('sunday_p4_hour'))
+                .withFeature(exposesLocal.minute('sunday_p4_minute'))
+                .withFeature(exposesLocal.program_temperature('sunday_p4_temperature')),
+        ],
         onEvent: tuya.onEventSetLocalTime,
     },
     {
@@ -318,14 +298,18 @@ module.exports = [
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_system_mode, tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming,
+            tz.moesS_thermostat_system_mode],
         exposes: [
-            e.battery(), e.child_lock(), e.eco_mode(), e.eco_temperature(), e.max_temperature().withValueMax(45), e.min_temperature(),
+            e.battery(), e.child_lock(), e.eco_mode(),
+            e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
             e.valve_state(), e.position(), e.window_detection(),
-            exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
+            exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             exposes.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSystemMode(['heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
@@ -343,37 +327,6 @@ module.exports = [
                 .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_la2c2uo9'}],
-        model: 'MS-105Z',
-        vendor: 'Moes',
-        description: '1 gang 2 way Zigbee dimmer switch',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105_dimmer],
-        meta: {turnsOffAtBrightness1: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_fjjbhx9d'}],
-        model: 'ZS-EUD',
-        vendor: 'Moes',
-        description: '2 gang light dimmer switch',
-        fromZigbee: [fzLocal.ZSEUD, fz.ignore_basic_report],
-        toZigbee: [tzLocal.ZSEUD_brightness, tzLocal.ZSEUD_state],
-        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
@@ -416,6 +369,7 @@ module.exports = [
         model: 'MS-108ZR',
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch module',
+        meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [e.cover_position(), exposes.numeric('calibration_time', ea.ALL).withValueMin(0).withValueMax(100),

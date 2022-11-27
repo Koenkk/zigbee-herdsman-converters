@@ -7,6 +7,8 @@ const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
+const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const tuyaLocal = {
     dataPoints: {
@@ -138,6 +140,20 @@ const fzLocal = {
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
+        },
+    },
+    metering_skip_duplicate: {
+        ...fz.metering,
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            return fz.metering.convert(model, msg, publish, options, meta);
+        },
+    },
+    electrical_measurement_skip_duplicate: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
     },
 };
@@ -379,26 +395,36 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}],
-        model: 'HG08673-FR',
+        fingerprint: [
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_j1v25l17'}, // EU
+            {modelID: 'TS011F', manufacturerName: '_TZ3000_ynmowqk2'}, // FR
+        ],
+        model: 'HG08673',
         vendor: 'Lidl',
-        description: 'Silvercrest smart plug FR with power monitoring',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+        description: 'Silvercrest smart plug with power monitoring (EU, FR)',
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.on_off, fzLocal.electrical_measurement_skip_duplicate, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
+            fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
+        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            // Energy reporting (currentSummDelivered) doesn't work; requires polling: https://github.com/Koenkk/zigbee2mqtt/issues/14356
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
-                acPowerDivisor: 1,
-            });
+            device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: tuya.onEventMeasurementPoll,
+        options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
+                .withDescription('Plug LED indicator mode'), e.child_lock()],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_rco1yzb1'}],
@@ -407,6 +433,11 @@ module.exports = [
         description: 'Silvercrest smart button',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
         toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
         exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']), e.battery()],
     },
     {
@@ -487,8 +518,7 @@ module.exports = [
         extend: extend.switch(),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const ID of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -711,7 +741,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'}],
+        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'},
+            {modelID: 'TS0502A', manufacturerName: '_TZ3000_5fkufhn1'}],
         model: '14147206L',
         vendor: 'Lidl',
         description: 'Livarno Lux ceiling light',

@@ -61,8 +61,8 @@ module.exports = [
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 50, 1)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-30, 30, 0.1)
-                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-                .withSensor(['air', 'floor', 'supervisor_floor']),
+                .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']),
+            e.temperature_sensor_select(['air', 'floor', 'supervisor_floor']),
             exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
                 .withDescription('Current temperature measured from the floor sensor'),
             exposes.numeric('max_floor_temp', ea.ALL).withUnit('°C')

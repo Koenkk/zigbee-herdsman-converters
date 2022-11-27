@@ -50,8 +50,11 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'},
-            {modelID: 'TS0502B', manufacturerName: '_TZ3210_jtifm80b'}],
+        fingerprint: [
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_frm6149r'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_jtifm80b'},
+            {modelID: 'TS0502B', manufacturerName: '_TZ3210_xwqng7ol'},
+        ],
         model: 'FUT035Z',
         description: 'Dual white LED controller',
         vendor: 'Miboxer',
@@ -74,7 +77,7 @@ module.exports = [
         exposes: [e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await endpoint.command('genGroups', 'miboxerSetZones', {zones: [
                 {zoneNum: 1, groupId: 101},
                 {zoneNum: 2, groupId: 102},
