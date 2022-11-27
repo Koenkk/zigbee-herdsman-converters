@@ -4606,8 +4606,8 @@ const converters = {
             case tuya.dataPoints.state: // on/off
                 return !value ? {system_mode: 'off'} : {};
             case tuya.dataPoints.etopErrorStatus:
-			    // Note: These values below appear to be the same as for the etopThermostat however
-				//       only two have been checked (and are thus present here).
+                // Note: These values below appear to be the same as for the etopThermostat however
+                //       only two have been checked (and are thus present here).
                 return {
                     low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
                     battery_low: (value & 1<<4) > 0,
