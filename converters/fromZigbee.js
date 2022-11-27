@@ -4601,24 +4601,16 @@ const converters = {
             const dp = dpValue.dp;
             const value = tuya.getDataValue(dpValue);
 
-            // TODO: Using etop_thermostat errorstatus though not clear if fully the
-            //        same. battery_low verified to be the same.
-            // TODO: TCP thermostat mode 3 is set during setup after replacing the batteries
-
             // Copied from etopThermostat above
             switch (dp) {
             case tuya.dataPoints.state: // on/off
                 return !value ? {system_mode: 'off'} : {};
-                // TODO: This needs to be this but only if it wasn't us turning the thing on when it was already on
-                //        {system_mode 'heat', away_mode: 'ON', preset: 'away'};
             case tuya.dataPoints.etopErrorStatus:
+			    // Note: These values below appear to be the same as for the etopThermostat however
+				//       only two have been checked (and are thus present here).
                 return {
-                    high_temperature: (value & 1<<0) > 0 ? 'ON' : 'OFF',
                     low_temperature: (value & 1<<1) > 0 ? 'ON' : 'OFF',
-                    internal_sensor_error: (value & 1<<2) > 0 ? 'ON' : 'OFF',
-                    external_sensor_error: (value & 1<<3) > 0 ? 'ON' : 'OFF',
                     battery_low: (value & 1<<4) > 0,
-                    device_offline: (value & 1<<5) > 0 ? 'ON' : 'OFF',
                 };
             case tuya.dataPoints.childLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
