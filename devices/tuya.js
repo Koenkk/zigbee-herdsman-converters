@@ -1463,20 +1463,19 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_zsh6uat3'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_2izubafb'}],
+        fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
+            '_TZ3000_2izubafb', '_TZ3000_pkfazisv']),
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
         fromZigbee: [fz.command_emergency, fz.battery],
-        exposes: [e.battery(), e.action(['emergency'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['emergency'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
     },
     {
