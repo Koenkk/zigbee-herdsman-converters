@@ -81,14 +81,7 @@ module.exports = [
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
-            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous']),
-        ],
-        endpoint: () => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
+        extend: tuya.extend.switch({powerOnBehavior: true, endpoints: ['left', 'center', 'right']}),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);

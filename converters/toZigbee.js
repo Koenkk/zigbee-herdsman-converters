@@ -3626,20 +3626,6 @@ const converters = {
             await entity.read('genOnOff', ['moesStartUpOnOff']);
         },
     },
-    moes_power_on_behavior: {
-        key: ['power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: pState});
-            return {state: {power_on_behavior: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
     moes_switch: {
         key: ['power_on_behavior', 'indicate_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -6229,20 +6215,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
-        },
-    },
-    tuya_backlight_mode: {
-        key: ['backlight_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
-            value = value.toUpperCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const backlight = lookup[value];
-            await entity.write('genOnOff', {tuyaBacklightMode: backlight});
-            return {state: {backlight_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
         },
     },
     ts011f_plug_indicator_mode: {

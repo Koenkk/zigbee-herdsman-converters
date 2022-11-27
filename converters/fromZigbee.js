@@ -2545,17 +2545,6 @@ const converters = {
             };
         },
     },
-    moes_power_on_behavior: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
-                const property = postfixWithEndpointName('power_on_behavior', msg, model, meta);
-                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
-            }
-        },
-    },
     moes_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -2791,17 +2780,6 @@ const converters = {
                 result[postfixWithEndpointName('calibration_time', msg, model, meta)] = value;
             }
             return result;
-        },
-    },
-    tuya_backlight_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
-                return {backlight_mode: backlightLookup[value]};
-            }
         },
     },
     ts011f_plug_indicator_mode: {
