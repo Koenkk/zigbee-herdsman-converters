@@ -1443,6 +1443,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2hf7x9n3'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bynnczcb'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_atpwqgml'}],
         model: 'TS0601_switch_3_gang',
         vendor: 'TuYa',
         description: '3 gang switch',
