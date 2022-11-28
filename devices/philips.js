@@ -2935,4 +2935,14 @@ module.exports = [
         description: 'Hue Festavia gradient light string 250',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['915005987101'],
+        model: '915005987101',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (white)',
+        toZigbee: [tzLocal.gradient_scene, ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee],
+        exposes: [exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes],
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
 ];
