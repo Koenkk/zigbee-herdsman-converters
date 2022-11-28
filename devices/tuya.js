@@ -983,6 +983,7 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
@@ -991,8 +992,8 @@ module.exports = [
             exposes.enum('light', ea.STATE, ['dark', 'bright'])],
         meta: {
             tuyaDatapoints: [
-                [102, 'light', tuya.valueConverterBasic.lookup({'dark': true, 'bright': false})],
-                [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'hold': 1, 'double': 2})],
+                [102, 'light', tuya.valueConverterBasic.lookup({'dark': false, 'bright': true})],
+                [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'double': 1, 'hold': 2})],
             ],
         },
     },
