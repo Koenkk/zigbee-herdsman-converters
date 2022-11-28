@@ -375,8 +375,8 @@ describe('index.js', () => {
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
-                // tuya.tzDataPoints is generic, keys cannot be used to determine expose access
-                if (device.toZigbee.includes(tuya.tzDataPoints)) return;
+                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
 
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;

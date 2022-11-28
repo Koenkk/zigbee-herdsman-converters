@@ -8,7 +8,6 @@ const ea = exposes.access;
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
-const utils = require('../lib/utils');
 
 const tuyaLocal = {
     dataPoints: {
@@ -140,20 +139,6 @@ const fzLocal = {
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
-        },
-    },
-    metering_skip_duplicate: {
-        ...fz.metering,
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            return fz.metering.convert(model, msg, publish, options, meta);
-        },
-    },
-    electrical_measurement_skip_duplicate: {
-        ...fz.electrical_measurement,
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
     },
 };
@@ -403,9 +388,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Silvercrest smart plug with power monitoring (EU, FR)',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.on_off, fzLocal.electrical_measurement_skip_duplicate, fzLocal.metering_skip_duplicate, fz.ignore_basic_report,
-            fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
+        extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -419,11 +402,6 @@ module.exports = [
             device.save();
         },
         options: [exposes.options.measurement_poll_interval().withDescription('Only the energy value is polled for this device.')],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
-                .withDescription('Plug LED indicator mode'), e.child_lock()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
     },
     {
