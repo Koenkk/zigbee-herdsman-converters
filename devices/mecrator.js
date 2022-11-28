@@ -12,13 +12,11 @@ module.exports = [
         model: 'SPP04G',
         vendor: 'Mercator',
         description: 'Ikuü Quad Power Point',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.current().withEndpoint('left'),
             e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy(),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
+            tuya.exposes.powerOutageMemory()],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
@@ -36,8 +34,7 @@ module.exports = [
         model: 'SPP02GIP',
         vendor: 'Mercator',
         description: 'Ikuü double outdoors power point',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off],
+        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.current().withEndpoint('left'),
             e.voltage().withEndpoint('left').withAccess(ea.STATE), e.energy()],
@@ -85,15 +82,11 @@ module.exports = [
         model: 'SPPUSB02',
         vendor: 'Mercator',
         description: 'Ikuü double power point with USB',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off],
+        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [
-            e.switch().withEndpoint('left'),
-            e.switch().withEndpoint('right'),
-            e.power().withEndpoint('left'),
-            e.current().withEndpoint('left'),
-            e.voltage().withEndpoint('left').withAccess(ea.STATE),
-            e.energy(),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
+            e.power().withEndpoint('left'), e.current().withEndpoint('left'), e.voltage().withEndpoint('left').withAccess(ea.STATE),
+            e.energy(), tuya.exposes.powerOutageMemory(),
         ],
         endpoint: (device) => {
             return {left: 1, right: 2};

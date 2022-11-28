@@ -10,7 +10,7 @@ module.exports = [
         model: 'JR-ZDS01',
         vendor: 'Girier',
         description: '1 gang mini switch',
-        extend: tuya.extend.switch({powerOnBehavior: true, switchType: true}),
+        extend: tuya.extend.switch({switchType: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },

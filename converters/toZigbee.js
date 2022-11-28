@@ -3612,20 +3612,6 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'cool');
         },
     },
-    tuya_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: payload});
-            return {state: {power_outage_memory: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
     moes_switch: {
         key: ['power_on_behavior', 'indicate_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -3899,19 +3885,6 @@ const converters = {
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
-        },
-    },
-    tuya_switch_type: {
-        key: ['switch_type'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
-            return {state: {switch_type: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
     tuya_min_brightness: {
@@ -6215,32 +6188,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
-        },
-    },
-    ts011f_plug_indicator_mode: {
-        key: ['indicator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'string') {
-                value = value.toLowerCase();
-                const lookup = {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-            }
-
-            if (typeof value === 'number' && value >= 0 && value <= 3) {
-                await entity.write('genOnOff', {tuyaBacklightMode: value});
-            } else {
-                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    ts011f_plug_child_mode: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
         },
     },
     hy_thermostat: {

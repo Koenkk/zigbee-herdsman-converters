@@ -26,13 +26,7 @@ module.exports = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
-                .withDescription('Plug LED indicator mode'), e.child_lock()],
+        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -69,7 +63,7 @@ module.exports = [
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
-        extend: tuya.extend.switch({powerOnBehavior: true, endpoints: ['l1', 'l2']}),
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2']}),
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -404,7 +398,7 @@ module.exports = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({powerOnBehavior: true, backlightMode: true, switchType: true}),
+        extend: tuya.extend.switch({backlightMode: true, switchType: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

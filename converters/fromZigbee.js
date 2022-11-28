@@ -677,6 +677,7 @@ const converters = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
             const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
             const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
@@ -733,6 +734,7 @@ const converters = {
         options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
             exposes.options.calibration('voltage', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key) => {
                 const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
@@ -2782,31 +2784,6 @@ const converters = {
             return result;
         },
     },
-    ts011f_plug_indicator_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'tuyaBacklightMode'; // 0x8001 or 32769
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
-                if (lookup.hasOwnProperty(value)) {
-                    return {indicator_mode: lookup[value]};
-                }
-            }
-        },
-    },
-    ts011f_plug_child_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = (0x8000).toString(); // 32768
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            }
-        },
-    },
     WSZ01_on_off_action: {
         cluster: 65029,
         type: 'raw',
@@ -4755,16 +4732,6 @@ const converters = {
             fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
                 if (err) throw err;
             });
-        },
-    },
-    tuya_switch_type: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
-            if (msg.data.hasOwnProperty('switchType')) {
-                return {switch_type: lookup[msg.data['switchType']]};
-            }
         },
     },
     tuya_min_brightness: {
@@ -7167,22 +7134,6 @@ const converters = {
                 meta.logger.error(`Hue Tap: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
-            }
-        },
-    },
-    tuya_switch_power_outage_memory: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'moesStartUpOnOff';
-
-            if (msg.data.hasOwnProperty(property)) {
-                const dict = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const value = msg.data[property];
-
-                if (dict.hasOwnProperty(value)) {
-                    return {[postfixWithEndpointName('power_outage_memory', msg, model, meta)]: dict[value]};
-                }
             }
         },
     },
