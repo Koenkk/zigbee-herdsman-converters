@@ -259,7 +259,7 @@ module.exports = [
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_ngqk6jia'}],
+        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
         model: 'TS110E_1gang',
         vendor: 'Lonsonho',
         description: 'Zigbee smart dimmer module 1 gang with neutral',

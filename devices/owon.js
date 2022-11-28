@@ -7,6 +7,15 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    temperature: {
+        ...fz.temperature,
+        convert: (model, msg, publish, options, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15173
+            if (msg.data.measuredValue < 32770) {
+                return fz.temperature.convert(model, msg, publish, options, meta);
+            }
+        },
+    },
     PC321_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
@@ -76,6 +85,7 @@ const fzLocal = {
         },
     },
 };
+
 module.exports = [
     {
         zigbeeModel: ['WSP404'],
@@ -177,7 +187,7 @@ module.exports = [
         model: 'THS317-ET',
         vendor: 'OWON',
         description: 'Temperature sensor',
-        fromZigbee: [fz.temperature, fz.battery],
+        fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -278,6 +288,21 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
             await reporting.occupancy(endpoint2, {min: 1, max: 600, change: 1});
             await endpoint2.read('msOccupancySensing', ['occupancy']);
+        },
+    },
+    {
+        zigbeeModel: ['PIR323-PTH'],
+        model: 'PIR323-PTH',
+        vendor: 'OWON',
+        description: 'Multi-sensor',
+        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            device.powerSource = 'Battery';
+            device.save();
         },
     },
 ];

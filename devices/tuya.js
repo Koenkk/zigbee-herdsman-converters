@@ -25,6 +25,50 @@ const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak',
     '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg', '_TZ3000_rul9yxcc'];
 
 const tzLocal = {
+    TS110E_options: {
+        key: ['min_brightness', 'max_brightness', 'light_type'],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            if (key === 'min_brightness' || key == 'max_brightness') {
+                const id = key === 'min_brightness' ? 64515 : 64516;
+                payload = {[id]: {value: utils.mapNumberRange(value, 1, 255, 0, 1000), type: 0x21}};
+            } else if (key === 'light_type') {
+                const lookup = {led: 0, incandescent: 1, halogen: 2};
+                payload = {64514: {value: lookup[value], type: 0x20}};
+            }
+            await entity.write('genLevelCtrl', payload, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            let id = null;
+            if (key === 'min_brightness') id = 64515;
+            if (key === 'max_brightness') id = 64516;
+            if (key === 'light_type') id = 64514;
+            await entity.read('genLevelCtrl', [id]);
+        },
+    },
+    TS110E_onoff_brightness: {
+        key: ['state', 'brightness'],
+        options: [],
+        convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
+            if (message.state === 'OFF' || (message.hasOwnProperty('state') && !message.hasOwnProperty('brightness'))) {
+                return await tz.on_off.convertSet(entity, key, value, meta);
+            } else if (message.hasOwnProperty('brightness')) {
+                // set brightness
+                if (state.state === 'OFF') {
+                    await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+                }
+
+                const level = utils.mapNumberRange(message.brightness, 0, 254, 0, 1000);
+                await entity.command('genLevelCtrl', 'moveToLevelTuya', {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: 'ON', brightness: message.brightness}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === 'state') await tz.on_off.convertGet(entity, key, meta);
+            if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
+        },
+    },
     SA12IZL_silence_siren: {
         key: ['silence_siren'],
         convertSet: async (entity, key, value, meta) => {
@@ -291,6 +335,27 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TS110E: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('64515')) {
+                result['min_brightness'] = utils.mapNumberRange(msg.data['64515'], 0, 1000, 1, 255);
+            }
+            if (msg.data.hasOwnProperty('64516')) {
+                result['max_brightness'] = utils.mapNumberRange(msg.data['64516'], 0, 1000, 1, 255);
+            }
+            if (msg.data.hasOwnProperty('64514')) {
+                const lookup = {0: 'led', 1: 'incandescent', 2: 'halogen'};
+                result['light_type'] = lookup[msg.data['64514']];
+            }
+            if (msg.data.hasOwnProperty('61440')) {
+                result['brightness'] = utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 254);
+            }
+            return result;
+        },
+    },
     SA12IZL: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -826,7 +891,9 @@ module.exports = [
         fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type]),
         exposes: extend.switch().exposes.concat([e.power_on_behavior(), e.switch_type_2()]),
         configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
     {
@@ -1396,19 +1463,19 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0215A', manufacturerName: '_TZ3000_4fsgukof'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_wr2ucaj9'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_zsh6uat3'},
-            {modelID: 'TS0215A', manufacturerName: '_TZ3000_tj4pwzzm'}],
+        fingerprint: tuya.fingerprint('TS0215A', ['_TZ3000_4fsgukof', '_TZ3000_wr2ucaj9', '_TZ3000_zsh6uat3', '_TZ3000_tj4pwzzm',
+            '_TZ3000_2izubafb', '_TZ3000_pkfazisv']),
         model: 'TS0215A_sos',
         vendor: 'TuYa',
         description: 'SOS button',
         fromZigbee: [fz.command_emergency, fz.battery],
-        exposes: [e.battery(), e.action(['emergency'])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(['emergency'])],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genTime', 'genBasic', 'ssIasAce', 'ssIasZone']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
     },
     {
@@ -3335,8 +3402,7 @@ module.exports = [
         exposes: [e.illuminance_lux(), e.brightness_state()],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_pay2byax'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kltffuzl'}, {modelID: 'TS0601', manufacturerName: '_TZE200_fwoorn8y'}],
         model: 'TM001-ZA/TM081',
         vendor: 'TuYa',
         description: 'Door and window sensor',
@@ -3418,18 +3484,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_qoy0ekbd'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_znbl8dj5'}],
-        model: 'CX-0726',
-        vendor: 'TuYa',
-        description: 'Temperature & humidity LCD sensor',
-        fromZigbee: [fz.tuya_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [],
-        onEvent: tuya.onEventSetLocalTime,
-        exposes: [e.temperature(), e.humidity(), e.battery()],
-    },
-    {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_3towulqd'}, {modelID: 'TS0601', manufacturerName: '_TZE200_1ibpyhdc'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_3towulqd', '_TZE200_1ibpyhdc', '_TZE200_bh3n6gk8']),
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',
@@ -3549,5 +3604,113 @@ module.exports = [
             exposes.binary('led_state', ea.STATE_SET, true, false)
                 .withDescription('Turns the onboard LED on or off'),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_qoy0ekbd', '_TZE200_znbl8dj5', '_TZE200_a8sdabtg']),
+        model: 'ZG-227ZL',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity LCD sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [23, 'temperature_calibration', tuya.valueConverter.divideBy10],
+                [24, 'humidity_calibration', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n8dljorx', '_TZE200_pay2byax']),
+        model: 'ZG-102ZL',
+        vendor: 'TuYa',
+        description: 'Luminance door sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.contact(), e.illuminance().withUnit('lx'), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.inverse],
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [2, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_8isdky6j']),
+        model: 'ZG-225Z',
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.gas(), tuya.exposes.gasValue()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverter.true0ElseFalse],
+                [2, 'gas_value', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia']),
+        model: 'TS110E',
+        vendor: 'TuYa',
+        description: '1 channel dimmer',
+        whiteLabel: [{vendor: 'RTX', model: 'QS-Zigbee-D02-TRIAC-LN'}],
+        fromZigbee: [fzLocal.TS110E, fz.moes_power_on_behavior, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tz.moes_power_on_behavior, tz.light_brightness_move],
+        exposes: [
+            e.light_brightness().withMinBrightness().withMaxBrightness(),
+            tuya.exposes.lightType().withAccess(ea.ALL), tuya.exposes.powerOnBehavior().withAccess(ea.ALL)],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nslr42tt']),
+        model: 'TS0601_3_phase_clamp_meter',
+        vendor: 'TuYa',
+        description: '3-phase clamp power meter',
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        whiteLabel: [{vendor: 'MatSeePlus', model: 'PC321-Z-TY'}],
+        exposes: [
+            e.ac_frequency(), e.temperature(), e.current(), e.power(), e.energy(),
+            tuya.exposes.energyWithPhase('a'), tuya.exposes.energyWithPhase('b'), tuya.exposes.energyWithPhase('c'),
+            tuya.exposes.voltageWithPhase('a'), tuya.exposes.voltageWithPhase('b'), tuya.exposes.voltageWithPhase('c'),
+            tuya.exposes.powerWithPhase('a'), tuya.exposes.powerWithPhase('b'), tuya.exposes.powerWithPhase('c'),
+            tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'), tuya.exposes.currentWithPhase('c'),
+            tuya.exposes.powerFactorWithPhase('a'), tuya.exposes.powerFactorWithPhase('b'), tuya.exposes.powerFactorWithPhase('c'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [132, 'ac_frequency', tuya.valueConverter.raw],
+                [133, 'temperature', tuya.valueConverter.divideBy10],
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [101, 'energy_a', tuya.valueConverter.divideBy1000],
+                [111, 'energy_b', tuya.valueConverter.divideBy1000],
+                [121, 'energy_c', tuya.valueConverter.divideBy1000],
+                [131, 'current', tuya.valueConverter.divideBy1000],
+                [9, 'power', tuya.valueConverter.raw],
+                [102, 'power_factor_a', tuya.valueConverter.raw],
+                [112, 'power_factor_b', tuya.valueConverter.raw],
+                [122, 'power_factor_c', tuya.valueConverter.raw],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],
+                [134, 'device_status', tuya.valueConverter.raw],
+            ],
+        },
     },
 ];
