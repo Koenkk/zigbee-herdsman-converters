@@ -8,7 +8,7 @@ module.exports = [
         model: 'SAGE206612',
         vendor: 'EchoStar',
         description: 'SAGE by Hughes doorbell sensor',
-        fromZigbee: [fz.SAGE206612_state, fz.battery],
+        fromZigbee: [fz.SAGE206612_state, fz.battery, fz.ignore_genOta],
         exposes: [e.battery(), e.action(['bell1', 'bell2'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
