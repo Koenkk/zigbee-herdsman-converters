@@ -30,9 +30,9 @@ module.exports = [
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(ea.STATE_GET),
-            exposes.enum('thermostat_occupancy', ea.SET, ['unoccupied', 'occupied'])
+            exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
-            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
