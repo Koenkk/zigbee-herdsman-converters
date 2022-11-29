@@ -5,6 +5,7 @@ const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
 const utils = require('../lib/utils');
+const ColorRGB = require('../lib/color').ColorRGB;
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -162,12 +163,39 @@ const gradientScenes = {
     'crystalline': '5001040013500000006ea96a92a85e58074e18543d9cf3332800',
 };
 
+const encodeHexToPoint = (hex) => {
+    const rgb = ColorRGB.fromHex(hex);
+    const xy = rgb.toXY();
+    const x = xy.x * 4095 / 0.7347;
+    const y = xy.y * 4095 / 0.8413;
+    const xx = Math.round(x).toString(16);
+    const yy = Math.round(y).toString(16);
+
+    return [
+        xx[1], xx[2],
+        yy[2], xx[0],
+        yy[0], yy[1],
+    ].join('');
+};
+
 const tzLocal = {
     gradient_scene: {
         key: ['gradient_scene'],
         convertSet: async (entity, key, value, meta) => {
             const scene = gradientScenes[value];
             if (!scene) throw new Error(`Gradient scene '${value}' is unknown`);
+            const payload = {data: Buffer.from(scene, 'hex')};
+            await entity.command('manuSpecificPhilips2', 'multiColor', payload);
+        },
+    },
+    philips_hue_multicolor: {
+        key: ['philips_hue_multicolor'],
+        convertSet: async (entity, key, value, meta) => {
+            const hexes = value.split(',');
+            if (hexes.length !== 5) {
+                throw new Error(`Expected 5 colors, got ${hexes.length}`);
+            }
+            const scene = '500104001350000000' + hexes.map(encodeHexToPoint) + '2800';
             const payload = {data: Buffer.from(scene, 'hex')};
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
@@ -1636,9 +1664,16 @@ module.exports = [
         model: '4080248U9',
         vendor: 'Philips',
         description: 'Hue White and color ambiance Signe floor light',
-        toZigbee: [tzLocal.gradient_scene, ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee],
-        exposes: [exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes],
+        toZigbee: [
+            tzLocal.gradient_scene,
+            tzLocal.philips_hue_multicolor,
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee,
+        ],
+        exposes: [
+            exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+            exposes.text('philips_hue_multicolor', ea.SET),
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes,
+        ],
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
