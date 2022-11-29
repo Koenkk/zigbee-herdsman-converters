@@ -188,17 +188,26 @@ const tzLocal = {
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
     },
-    philips_hue_multicolor: {
-        key: ['philips_hue_multicolor'],
-        convertSet: async (entity, key, value, meta) => {
-            const hexes = value.split(',');
-            if (hexes.length !== 5) {
-                throw new Error(`Expected 5 colors, got ${hexes.length}`);
-            }
-            const scene = '500104001350000000' + hexes.map(encodeHexToPoint) + '2800';
-            const payload = {data: Buffer.from(scene, 'hex')};
-            await entity.command('manuSpecificPhilips2', 'multiColor', payload);
-        },
+    philips_hue_multicolor: (opts = {reverse: false}) => {
+        return {
+            key: ['philips_hue_multicolor'],
+            convertSet: async (entity, key, value, meta) => {
+                const hexes = value.split(',');
+                if (hexes.length !== 5) {
+                    throw new Error(`Expected 5 colors, got ${hexes.length}`);
+                }
+
+                // For devices where it makes more sense to specify the colors in reverse
+                // For example Hue Signe, where the last color is the top color.
+                if (opts.reverse) {
+                    hexes.reverse();
+                }
+
+                const scene = '500104001350000000' + hexes.map(encodeHexToPoint).join('') + '2800';
+                const payload = {data: Buffer.from(scene, 'hex')};
+                await entity.command('manuSpecificPhilips2', 'multiColor', payload);
+            },
+        };
     },
 };
 
@@ -1666,7 +1675,7 @@ module.exports = [
         description: 'Hue White and color ambiance Signe floor light',
         toZigbee: [
             tzLocal.gradient_scene,
-            tzLocal.philips_hue_multicolor,
+            tzLocal.philips_hue_multicolor({reverse: true}),
             ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee,
         ],
         exposes: [
