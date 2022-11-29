@@ -201,16 +201,16 @@ module.exports = [
                     const dp = msg.data.dpValues[0].dp;
                     const value = tuya.getDataValue(msg.data.dpValues[0]);
                     switch (dp) {
-                        case 24:
-                            return {tamper: value};
-                        case 26:
-                            return {action: 'disarm'};
-                        case 27:
-                            return {action: 'arm_away'};
-                        case 28:
-                            return {action: 'arm_home'};
-                        case 29:
-                            return {action: 'sos'};
+                    case 24:
+                        return {tamper: value};
+                    case 26:
+                        return {action: 'disarm'};
+                    case 27:
+                        return {action: 'arm_away'};
+                    case 28:
+                        return {action: 'arm_home'};
+                    case 29:
+                        return {action: 'sos'};
                     }
                 },
             },
