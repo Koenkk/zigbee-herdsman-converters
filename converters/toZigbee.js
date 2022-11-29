@@ -4307,7 +4307,8 @@ const converters = {
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [SinopeBacklight], manufacturerOptions.sinope);  
+            await entity.read('hvacThermostat', [SinopeBacklight], manufacturerOptions.sinope);
+        },
     },
     sinope_thermostat_enable_outdoor_temperature: {
         key: ['enable_outdoor_temperature'],
