@@ -334,7 +334,7 @@ module.exports = [
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered, tz.acvoltage, tz.accurrent, tz.frequency],
+        toZigbee: [tz.on_off, tz.frequency],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency().withAccess(ea.STATE_GET),
         ],
 
