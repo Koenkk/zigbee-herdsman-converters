@@ -622,6 +622,14 @@ module.exports = [
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['OFL 142 C'],
+        model: 'OFL 142 C',
+        vendor: 'Innr',
+        description: 'Outdoor flex light colour LED strip 4m, 1440lm, RGBW',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [100, 350], supportsHS: true}),
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['OSL 130 C'],
         model: 'OSL 130 C',
         vendor: 'Innr',
