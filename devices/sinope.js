@@ -36,22 +36,7 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            exposes.numeric('power', ea.STATE_GET)
-                .withUnit('W')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('current', ea.STATE_GET)
-                .withUnit('A')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('voltage', ea.STATE_GET)
-                .withUnit('V')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('energy', ea.STATE_GET)
-                .withUnit('kWh')
-                .withValueMin(0)
-                .withValueMax(2000000),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy,
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -109,22 +94,7 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            exposes.numeric('power', ea.STATE_GET)
-                .withUnit('W')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('current', ea.STATE_GET)
-                .withUnit('A')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('voltage', ea.STATE_GET)
-                .withUnit('V')
-                .withValueMin(0)
-                .withValueMax(20000),
-            exposes.numeric('energy', ea.STATE_GET)
-                .withUnit('kWh')
-                .withValueMin(0)
-                .withValueMax(2000000),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy,
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
