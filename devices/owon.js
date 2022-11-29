@@ -88,7 +88,23 @@ const fzLocal = {
 
 module.exports = [
     {
-        zigbeeModel: ['WSP404', 'WSP402'],
+        zigbeeModel: ['WSP402'],
+        model: 'WSP402',
+        vendor: 'OWON',
+        description: 'Smart plug',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2});
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
+    {
+        zigbeeModel: ['WSP404'],
         model: 'WSP404',
         vendor: 'OWON',
         description: 'Smart plug',
