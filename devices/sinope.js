@@ -177,7 +177,7 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
-            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             e.keypad_lockout(), e.power(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -242,7 +242,7 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
-            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -278,7 +278,7 @@ module.exports = [
                 .withSystemMode(['off', 'auto', 'heat'])
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
-            exposes.enum('backlight_auto_dim', ea.SET, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
