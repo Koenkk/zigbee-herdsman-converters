@@ -190,20 +190,19 @@ const tzLocal = {
     },
     philips_hue_multicolor: (opts = {reverse: false}) => {
         return {
-            key: ['philips_hue_multicolor'],
+            key: ['colors'],
             convertSet: async (entity, key, value, meta) => {
-                const hexes = value.split(',');
-                if (hexes.length !== 5) {
-                    throw new Error(`Expected 5 colors, got ${hexes.length}`);
+                if (value.length !== 5) {
+                    throw new Error(`Expected 5 colors, got ${value.length}`);
                 }
 
                 // For devices where it makes more sense to specify the colors in reverse
                 // For example Hue Signe, where the last color is the top color.
                 if (opts.reverse) {
-                    hexes.reverse();
+                    value.reverse();
                 }
 
-                const scene = '500104001350000000' + hexes.map(encodeHexToPoint).join('') + '2800';
+                const scene = '500104001350000000' + value.map(encodeHexToPoint).join('') + '2800';
                 const payload = {data: Buffer.from(scene, 'hex')};
                 await entity.command('manuSpecificPhilips2', 'multiColor', payload);
             },
@@ -1680,7 +1679,7 @@ module.exports = [
         ],
         exposes: [
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-            exposes.text('philips_hue_multicolor', ea.SET),
+            exposes.list('colors', ea.SET, exposes.text('color', ea.SET)),
             ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes,
         ],
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
