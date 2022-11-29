@@ -21,7 +21,7 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.sinope_thermostat_occupancy,
-            tz.electrical_measurement_power, tz.currentsummdelivered, tz.acvoltage, tz.accurrent],
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withLocalTemperature()
@@ -36,10 +36,7 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -82,7 +79,7 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
             tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.sinope_thermostat_occupancy,
-            tz.electrical_measurement_power, tz.currentsummdelivered, tz.acvoltage, tz.accurrent],
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withLocalTemperature()
@@ -97,10 +94,7 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -341,12 +335,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered, tz.acvoltage, tz.accurrent, tz.frequency],
-        exposes: [e.switch(),
-            e.power().withAccess(ea.STATE_GET),
-            e.current().withAccess(ea.STATE_GET),
-            e.voltage().withAccess(ea.STATE_GET),
-            e.energy().withAccess(ea.STATE_GET),
-            e.ac_frequency().withAccess(ea.STATE_GET),
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency().withAccess(ea.STATE_GET),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
