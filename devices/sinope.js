@@ -340,8 +340,15 @@ module.exports = [
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.ac_frequency(), e.energy()],
+        toZigbee: [tz.on_off, tz.electrical_measurement_power, tz.currentsummdelivered, tz.acvoltage, tz.accurrent, tz.frequency],
+        exposes: [e.switch(),
+            e.power().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET),
+            e.voltage().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+            e.ac_frequency().withAccess(ea.STATE_GET),
+        ],
+
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
