@@ -36,7 +36,10 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy,
+            e.power().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET),
+            e.voltage().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -94,7 +97,10 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy,
+            e.power().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET),
+            e.voltage().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
