@@ -77,7 +77,7 @@ module.exports = [
                 .withUnit('kWh')
                 .withValueMin(0)
                 .withValueMax(2000000),
-    ],
+        ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -102,7 +102,7 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            
+
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
@@ -175,7 +175,7 @@ module.exports = [
                 .withUnit('kWh')
                 .withValueMin(0)
                 .withValueMax(2000000),
-    ],
+        ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -200,7 +200,7 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            
+
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
