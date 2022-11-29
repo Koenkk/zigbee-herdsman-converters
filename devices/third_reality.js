@@ -12,6 +12,7 @@ module.exports = [
         model: '3RSS009Z',
         vendor: 'Third Reality',
         description: 'Smart switch Gen3',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
         exposes: [e.switch(), e.battery_voltage()],
@@ -103,6 +104,7 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

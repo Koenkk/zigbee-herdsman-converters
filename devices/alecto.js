@@ -62,6 +62,7 @@ module.exports = [
     {
         fingerprint: [
             {modelID: 'daqwrsj\u0000', manufacturerName: '_TYST11_8daqwrsj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qtbrwrfv'},
         ],
         model: 'SMART-HEAT10',
         vendor: 'Alecto',
