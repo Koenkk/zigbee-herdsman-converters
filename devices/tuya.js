@@ -2208,6 +2208,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a4bpgplm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_dv8abrrz'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_z1tyspqw'},
         ],
         model: 'TS0601_thermostat_1',
         vendor: 'TuYa',
