@@ -772,10 +772,10 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
             const leftButtonsEndpoint = device.getEndpoint(21);
-            await reporting.bind(leftButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg'],);
+            await reporting.bind(leftButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
             const rightButtonsEndpoint = device.getEndpoint(22);
             await reporting.bind(rightButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryPercentageRemaining(leftButtonsEndpoint);
         },
     },
     {
