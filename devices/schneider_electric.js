@@ -763,7 +763,7 @@ module.exports = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         endpoint: (device) => {
-            return {'left': 21, 'right': 22};
+            return {'right': 21, 'left': 22};
         },
         meta: {multiEndpoint: true},
         exposes: [e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_stop_left',
