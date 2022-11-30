@@ -2904,7 +2904,7 @@ module.exports = [
         zigbeeModel: ['4090131P9'],
         model: '8718696174548',
         vendor: 'Philips',
-        description: ' Hue Sana wall lamp with Bluetooth white',
+        description: 'Hue Sana wall lamp with Bluetooth white',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
