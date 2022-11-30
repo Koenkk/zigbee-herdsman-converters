@@ -2782,6 +2782,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWA029'],
+        model: '9290024691A',
+        vendor: 'Philips',
+        description: 'Hue white single filament bulb A19 E26 with Bluetooth (1100 Lumen)',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['915005998201'],
         model: '915005998201',
         vendor: 'Philips',
