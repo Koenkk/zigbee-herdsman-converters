@@ -706,13 +706,12 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'seMetering'){
-	            const endpoint = device.getEndpoint(4);
-	            try {
-	                await endpoint.read('seMetering', ['currentSummDelivered']);
-	            } catch (error) {/* Do nothing*/}
+            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+                const endpoint = device.getEndpoint(4);
+                try {
+                    await endpoint.read('seMetering', ['currentSummDelivered']);
+                } catch (error) {/* Do nothing*/}
             }
-            
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
