@@ -4213,12 +4213,19 @@ const converters = {
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-            exposes.options.precision('co2'), exposes.options.calibration('co2'),
-            exposes.options.precision('voc'), exposes.options.calibration('voc'),
-            exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
-            exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        options: (definition) => {
+            const result = [
+                exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+                exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
+                exposes.options.precision('co2'), exposes.options.calibration('co2'),
+                exposes.options.precision('voc'), exposes.options.calibration('voc'),
+                exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
+            ];
+            if (definition.exposes.find((e) => e.name === 'pm25')) {
+                result.push(exposes.options.precision('pm25'), exposes.options.calibration('pm25'));
+            }
+            return result;
+        },
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
