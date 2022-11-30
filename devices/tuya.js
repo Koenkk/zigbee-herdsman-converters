@@ -15,15 +15,6 @@ const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const globalStore = require('../lib/store');
 
-const TS011Fplugs = ['_TZ3000_5f43h46b', '_TZ3000_cphmq0q7', '_TZ3000_dpo1ysak', '_TZ3000_ew3ldmgx', '_TZ3000_gjnozsaz',
-    '_TZ3000_jvzvulen', '_TZ3000_mraovvmm', '_TZ3000_nfnmi125', '_TZ3000_ps3dmato', '_TZ3000_w0qqde0g', '_TZ3000_u5u4cakc',
-    '_TZ3000_rdtixbnu', '_TZ3000_typdpbpg', '_TZ3000_kx0pris5', '_TZ3000_amdymr7l', '_TZ3000_z1pnpsdo', '_TZ3000_ksw8qtmt',
-    '_TZ3000_1h2x4akh', '_TZ3000_9vo5icau', '_TZ3000_cehuw1lw', '_TZ3000_ko6v90pg', '_TZ3000_f1bapcit', '_TZ3000_cjrngdr3',
-    '_TZ3000_zloso4jk', '_TZ3000_r6buo8ba', '_TZ3000_iksasdbv', '_TZ3000_idrffznf', '_TZ3000_okaz9tjs', '_TZ3210_q7oryllx',
-    '_TZ3000_ss98ec5d', '_TZ3000_gznh2xla', '_TZ3000_hdopuwv6', '_TZ3000_gvn91tmx', '_TZ3000_dksbtrzs', '_TZ3000_b28wrpvx',
-    '_TZ3000_aim0ztek', '_TZ3000_mlswgkc3', '_TZ3000_7dndcnnb', '_TZ3000_waho4jtj', '_TZ3000_nmsciidq', '_TZ3000_jtgxgmks',
-    '_TZ3000_rdfh8cfs', '_TZ3000_yujkchbz', '_TZ3000_fgwhjm9j', '_TZ3000_qeuvnohg', '_TZ3000_rul9yxcc', '_TZ3000_0zfrhq4i'];
-
 const tzLocal = {
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type'],
@@ -2293,9 +2284,9 @@ module.exports = [
         extend: tuya.extend.switch({indicatorMode: true}),
     },
     {
-        fingerprint: TS011Fplugs.map((manufacturerName) => {
-            return {modelID: 'TS011F', manufacturerName};
-        }),
+        // Note: below you will find the TS011F_plug_2 and TS011F_plug_3. These are identified via a fingerprint and
+        // thus preferred above the TS011F_plug_1 if the fingerprint matches
+        zigbeeModel: ['TS011F'],
         model: 'TS011F_plug_1',
         description: 'Smart plug (with power monitoring)',
         vendor: 'TuYa',
@@ -2319,12 +2310,8 @@ module.exports = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_hyfvrar3'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_v1pdxuqq'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_8a833yls'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_bfn1w0mm'},
-            {modelID: 'TS011F', manufacturerName: '_TZ3000_nzkqcvvs'}],
+        fingerprint: tuya.fingerprint('TS011F',
+            ['_TZ3000_hyfvrar3', '_TZ3000_v1pdxuqq', '_TZ3000_8a833yls', '_TZ3000_bfn1w0mm', '_TZ3000_nzkqcvvs']),
         model: 'TS011F_plug_2',
         description: 'Smart plug (without power monitoring)',
         vendor: 'TuYa',
@@ -2335,11 +2322,9 @@ module.exports = [
         },
     },
     {
-        fingerprint: [].concat(...TS011Fplugs.map((manufacturerName) => {
-            return [160, 69, 68, 65, 64].map((applicationVersion) => {
-                return {modelID: 'TS011F', manufacturerName, applicationVersion};
-            });
-        })),
+        fingerprint: [160, 69, 68, 65, 64].map((applicationVersion) => {
+            return {modelID: 'TS011F', applicationVersion};
+        }),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
