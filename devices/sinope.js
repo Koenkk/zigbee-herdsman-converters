@@ -16,20 +16,19 @@ module.exports = [
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_thermostat],
-
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
-            tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.sinope_thermostat_occupancy,
-            tz.electrical_measurement_power],
+            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
+            tz.sinope_thermostat_enable_outdoor_temperature,
+            tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
-                .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'])
-                .withPiHeatingDemand(ea.STATE_GET),
+                .withPiHeatingDemand(ea.STATE_GET)
+                .withRunningState(['idle', 'heat']),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
@@ -74,7 +73,6 @@ module.exports = [
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_thermostat],
-
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
@@ -335,9 +333,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency().withAccess(ea.STATE_GET),
-        ],
-
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
