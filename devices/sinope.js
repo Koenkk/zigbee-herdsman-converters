@@ -48,7 +48,12 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            try {
+                await reporting.thermostatSystemMode(endpoint);
+            } catch (error) {/* Not all support this */}
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -105,7 +110,12 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            try {
+                await reporting.thermostatSystemMode(endpoint);
+            } catch (error) {/* Not all support this */}
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
