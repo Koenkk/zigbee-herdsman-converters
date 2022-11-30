@@ -18,9 +18,9 @@ module.exports = [
             fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_thermostat],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tz.sinope_thermostat_occupancy, tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time,
-            tz.sinope_thermostat_enable_outdoor_temperature,
-            tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.electrical_measurement_power],
+            tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
+            tz.sinope_thermostat_outdoor_temperature, tz.thermostat_pi_heating_demand, tz.sinope_thermostat_occupancy,
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -85,12 +85,12 @@ module.exports = [
             tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
-                .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
-                .withRunningState(['idle', 'heat'])
-                .withPiHeatingDemand(ea.STATE_GET),
+                .withPiHeatingDemand(ea.STATE_GET)
+                .withRunningState(['idle', 'heat']),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
