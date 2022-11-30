@@ -60,7 +60,6 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Water sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        meta: {battery: {dontDividePercentage: true}},
         toZigbee: [],
         ota: ota.zigbeeOTA,
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
