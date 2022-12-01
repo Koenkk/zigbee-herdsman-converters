@@ -10,6 +10,7 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
+const xiaomiUtils = require('../lib/xiaomiUtils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -98,12 +99,25 @@ const fzLocal = {
                 case 0x0275:
                     result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
+                case 0x00f7:
+                    result['valve_alarm'] ={1: true, 0: false}[value.readUInt32LE(36)];
+                    result['occupied_heating_setpoint'] = value.readUint16LE(32)/100;
+                    result['local_temperature'] = value.readUint16LE(28)/100;
+                    break;
+                case 0x027d:
+                    result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
+                    break;
+                case 0x0276: {
+                    meta.logger.warn(`VALUE ${value.length} ${value}`);
+                    const schedule = xiaomiUtils.readSchedule(value);
+                    result['schedule_settings_json'] = schedule;
+                    result['schedule_settings'] = xiaomiUtils.stringifySchedule(schedule);
+                    break;
+                }
                 case 0xfff2:
+                    break;
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
-                case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
-                case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
                 case 0x027c: // 0x00
-                case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
@@ -200,7 +214,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings_json', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -308,13 +322,30 @@ const tzLocal = {
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
+            case 'schedule':
+                await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
+                break;
+            case 'schedule_settings_json': {
+                xiaomiUtils.validateSchedule(value);
+                const buffer = xiaomiUtils.writeSchedule(value);
+                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
+                break;
+            }
+            case 'schedule_settings': {
+                const schedule = xiaomiUtils.parseSchedule(value);
+                const buffer = xiaomiUtils.writeSchedule(schedule);
+                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
+                break;
+            }
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
             }
         },
         convertGet: async (entity, key, meta) => {
             const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
-                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e,
+                'schedule': 0x027d, 'schedule_settings_json': 0x0276, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
                 await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
@@ -2564,6 +2595,11 @@ module.exports = [
             exposes.binary('window_open', ea.STATE, true, false),
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
+            exposes.switch().withState('schedule', true,
+                'When being ON, the thermostat will change its state based on your settings',
+                ea.ALL, 'ON', 'OFF'),
+            exposes.text('schedule_settings', ea.ALL)
+                .withDescription('Smart schedule configuration (also exposed as JSON object through "schedule_settings_json")'),
             e.battery_voltage(),
             e.battery(),
         ],
