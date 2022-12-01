@@ -20,9 +20,6 @@ describe('lib/xiaomiUtils.js', () => {
 
             expect(schedule).toEqual(factoryDefaultSchedule);
         });
-
-        it('foo', () => {
-        });
     });
 
     describe(xiaomiUtils.validateSchedule, () => {
