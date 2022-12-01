@@ -2324,7 +2324,7 @@ module.exports = [
     },
     {
         fingerprint: [160, 69, 68, 65, 64].map((applicationVersion) => {
-            return {modelID: 'TS011F', applicationVersion};
+            return {modelID: 'TS011F', applicationVersion, priority: -1};
         }),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
