@@ -1,4 +1,4 @@
-const xiaomiUtils = require('../lib/xiaomiUtils');
+const xiaomiUtils = require('../lib/xiaomiTrvUtils');
 
 const factoryDefaultScheduleData = "043e01e0000009600438000006a405640000089881e000000898";
 const factoryDefaultSchedule = {

@@ -10,7 +10,7 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
-const xiaomiUtils = require('../lib/xiaomiUtils');
+const xiaomiTrvUtils = require('../lib/xiaomiTrvUtils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -108,9 +108,9 @@ const fzLocal = {
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
                 case 0x0276: {
-                    const schedule = xiaomiUtils.readSchedule(value);
+                    const schedule = xiaomiTrvUtils.readSchedule(value);
                     result['schedule_settings_json'] = schedule;
-                    result['schedule_settings'] = xiaomiUtils.stringifySchedule(schedule);
+                    result['schedule_settings'] = xiaomiTrvUtils.stringifySchedule(schedule);
                     break;
                 }
                 case 0xfff2:
@@ -326,15 +326,15 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings_json': {
-                xiaomiUtils.validateSchedule(value);
-                const buffer = xiaomiUtils.writeSchedule(value);
+                xiaomiTrvUtils.validateSchedule(value);
+                const buffer = xiaomiTrvUtils.writeSchedule(value);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
             case 'schedule_settings': {
-                const schedule = xiaomiUtils.parseSchedule(value);
-                xiaomiUtils.validateSchedule(value);
-                const buffer = xiaomiUtils.writeSchedule(schedule);
+                const schedule = xiaomiTrvUtils.parseSchedule(value);
+                xiaomiTrvUtils.validateSchedule(value);
+                const buffer = xiaomiTrvUtils.writeSchedule(schedule);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
