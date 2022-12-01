@@ -48,6 +48,19 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['DG3HL'],
+        model: 'DG3HL-1BW',
+        vendor: 'Leviton',
+        description: 'Indoor Decora smart Zigbee 3.0 certified plug-in dimmer',
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['DG15A'],
         model: 'DG15A-1BW',
         vendor: 'Leviton',
