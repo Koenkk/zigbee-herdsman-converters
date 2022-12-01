@@ -333,6 +333,7 @@ const tzLocal = {
             }
             case 'schedule_settings': {
                 const schedule = xiaomiUtils.parseSchedule(value);
+                xiaomiUtils.validateSchedule(value);
                 const buffer = xiaomiUtils.writeSchedule(schedule);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
