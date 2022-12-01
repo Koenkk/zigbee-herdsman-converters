@@ -96,6 +96,30 @@ describe('index.js', () => {
         expect(definition.model).toBe("RTCGQ01LM");
     });
 
+    it('Find by fingerprint with priority', () => {
+        const HG06338 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz',
+            modelID: 'TS011F',
+            applicationVersion: 69,
+        };
+        const TS011F_plug_3 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz_random',
+            modelID: 'TS011F',
+            applicationVersion: 69,
+        };
+        const TS011F_plug_1 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz_random',
+            modelID: 'TS011F',
+            applicationVersion: 1,
+        };
+        expect(index.findByDevice(HG06338).model).toBe('HG06338');
+        expect(index.findByDevice(TS011F_plug_3).model).toBe('TS011F_plug_3');
+        expect(index.findByDevice(TS011F_plug_1).model).toBe('TS011F_plug_1');
+    });
+
     it('Find by device should prefer fingerprint match over zigbeeModel', () => {
         const mullerEndpoints = [
             {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
