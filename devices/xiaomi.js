@@ -108,7 +108,6 @@ const fzLocal = {
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
                 case 0x0276: {
-                    meta.logger.warn(`VALUE ${value.length} ${value}`);
                     const schedule = xiaomiUtils.readSchedule(value);
                     result['schedule_settings_json'] = schedule;
                     result['schedule_settings'] = xiaomiUtils.stringifySchedule(schedule);
