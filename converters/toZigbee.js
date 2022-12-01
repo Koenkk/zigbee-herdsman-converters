@@ -4260,6 +4260,9 @@ const converters = {
             await entity.write('hvacThermostat', {SinopeOccupancy});
             return {state: {'thermostat_occupancy': value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['SinopeOccupancy']);
+        },
     },
     sinope_thermostat_backlight_autodim_param: {
         key: ['backlight_auto_dim'],
@@ -4268,6 +4271,9 @@ const converters = {
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight});
             return {state: {'backlight_auto_dim': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', ['SinopeBacklight']);
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
