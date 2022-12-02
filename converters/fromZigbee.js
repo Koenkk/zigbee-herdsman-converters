@@ -3435,14 +3435,22 @@ const converters = {
         cluster: 'hvacThermostat',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'unoccupied', 1: 'occupied'};
-            const lookup1 = {0: 'on_demand', 1: 'sensing'};
             const result = {};
+            const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min',
+                900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
             if (msg.data.hasOwnProperty('1024')) {
+                const lookup = {0: 'unoccupied', 1: 'occupied'};
                 result.thermostat_occupancy = lookup[msg.data['1024']];
             }
+            if (msg.data.hasOwnProperty('1025')) {
+                result.main_cycle_output = cycleOutputLookup[msg.data['1025']];
+            }
             if (msg.data.hasOwnProperty('1026')) {
-                result.backlight_auto_dim = lookup1[msg.data['1026']];
+                const lookup = {0: 'on_demand', 1: 'sensing'};
+                result.backlight_auto_dim = lookup[msg.data['1026']];
+            }
+            if (msg.data.hasOwnProperty('1028')) {
+                result.aux_cycle_output = cycleOutputLookup[msg.data['1028']];
             }
             return result;
         },
