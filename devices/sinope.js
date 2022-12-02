@@ -133,6 +133,64 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TH1123ZB-G2'],
+        model: 'TH1123ZB-G2',
+        vendor: 'Sinopé',
+        description: 'Zigbee line volt thermostat',
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
+        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.electrical_measurement, fz.metering,
+            fz.ignore_temperature_report, fz.legacy.sinope_thermostat_state, fz.sinope_thermostat],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature, tz.sinope_thermostat_outdoor_temperature,
+            tz.thermostat_pi_heating_demand, tz.acvoltage, tz.sinope_time_format],
+        exposes: [
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
+                .withPiHeatingDemand(ea.STATE_GET)
+                .withRunningState(['idle', 'heat']),
+            exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
+                .withDescription('Enables or disables the device buttons'),
+            e.power(), e.current(), e.voltage().withAccess(ea.STATE_GET), e.energy(),
+        ],
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
+                'manuSpecificSinope'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+
+            try {
+                await reporting.thermostatSystemMode(endpoint);
+            } catch (error) {/* Not all support this */}
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Not all support this */}
+
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            try {
+                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+            } catch (error) {/* Do nothing*/}
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+        },
+    },
+    {
         zigbeeModel: ['TH1300ZB'],
         model: 'TH1300ZB',
         vendor: 'Sinopé',
