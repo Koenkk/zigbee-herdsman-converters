@@ -852,9 +852,9 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ggev5fsl', '_TZE200_u319yc66']),
-        model: 'TS0601_gas_sensor',
+        model: 'TS0601_gas_sensor_1',
         vendor: 'TuYa',
-        description: 'gas sensor',
+        description: 'Gas sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -865,6 +865,37 @@ module.exports = [
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [11, 'fault_alarm', tuya.valueConverter.trueFalse],
+                [16, 'silence', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yojqa8xn']),
+        model: 'TS0601_gas_sensor_2',
+        vendor: 'TuYa',
+        description: 'Gas sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.gas(), tuya.exposes.gasValue().withUnit('LEL'), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(),
+            tuya.exposes.silence(),
+            exposes.enum('alarm_ringtone', ea.STATE_SET, ['1', '2', '3', '4', '5']).withDescription('Ringtone of the alarm'),
+            exposes.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
+                .withUnit('s').withDescription('Alarm time'),
+            exposes.binary('preheat', ea.STATE, true, false),
+            exposes.binary('alarm_switch', ea.STATE_SET, true, false),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'gas', tuya.valueConverterBasic.lookup({true: tuya.enum(0), false: tuya.enum(1)})],
+                [2, 'gas_value', tuya.valueConverter.divideBy10],
+                [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'1': 0, '2': 1, '3': 2, '4': 3, '5': 4})],
+                [7, 'alarm_time', tuya.valueConverter.raw],
+                [8, 'self_test', tuya.valueConverter.raw],
+                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
+                [10, 'preheat', tuya.valueConverter.raw],
+                [13, 'alarm_switch', tuya.valueConverter.raw],
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
@@ -3497,7 +3528,7 @@ module.exports = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.gas(), tuya.exposes.gasValue()],
+        exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm')],
         meta: {
             tuyaDatapoints: [
                 [1, 'gas', tuya.valueConverter.true0ElseFalse],
