@@ -6,6 +6,7 @@ const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
 const utils = require('../lib/utils');
 const ColorXY = require('../lib/color').ColorXY;
+const ColorRGB = require('../lib/color').ColorRGB;
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -96,7 +97,7 @@ const fzLocal = {
                     const offset = input.indexOf('1350000000') + 10;
                     const points = input.slice(offset, - 4);
                     const pairs = points.match(/.{6}/g);
-                    const colors = pairs.map(decodeScaledGradientToXY);
+                    const colors = pairs.map(decodeScaledGradientToRGB);
 
                     if (opts.reverse) {
                         colors.reverse();
@@ -189,10 +190,10 @@ const gradientScenes = {
     'crystalline': '5001040013500000006ea96a92a85e58074e18543d9cf3332800',
 };
 
-
-const encodePoint = (point) => {
-    const x = point['x'] * 4095 / 0.7347;
-    const y = point['y'] * 4095 / 0.8413;
+const encodeRGBToScaledGradient = (hex) => {
+    const xy = ColorRGB.fromHex(hex).toXY();
+    const x = xy.x * 4095 / 0.7347;
+    const y = xy.y * 4095 / 0.8413;
     const xx = Math.round(x).toString(16);
     const yy = Math.round(y).toString(16);
 
@@ -203,14 +204,14 @@ const encodePoint = (point) => {
     ].join('');
 };
 
-const decodeScaledGradientToXY = (p) => {
+const decodeScaledGradientToRGB = (p) => {
     const x = p[3] + p[0] + p[1];
     const y = p[4] + p[5] + p[2];
 
     const xx = (parseInt(x, 16) * 0.7347 / 4095).toFixed(4);
     const yy = (parseInt(y, 16) * 0.8413 / 4095).toFixed(4);
 
-    return new ColorXY(xx, yy);
+    return new ColorXY(xx, yy).toRGB().toHex();
 };
 
 const tzLocal = {
@@ -248,7 +249,7 @@ const tzLocal = {
                 const segments = (value.length << 3).toString(16);
 
                 // Encode the colors
-                const colorsPayload = value.map(encodePoint).join('');
+                const colorsPayload = value.map(encodeRGBToScaledGradient).join('');
 
                 // Offset of the first color, left shifted 3 bits. 0 means the first segment uses the first color.
                 const offset = '00';
@@ -1743,11 +1744,8 @@ module.exports = [
             ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).fromZigbee,
         ],
         exposes: [
-            exposes.list('colors', ea.ALL, exposes.composite('color_xy', 'color')
-                .withFeature(exposes.numeric('x', ea.ALL))
-                .withFeature(exposes.numeric('y', ea.ALL))
-                .withDescription('Color of this point in the CIE 1931 color space (x/y)'))
-                .withDescription('List of color points in the CIE 1931 color space (x/y)'),
+            exposes.list('colors', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
+                .withDescription('List of RGB HEX colors'),
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
             ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes,
         ],
