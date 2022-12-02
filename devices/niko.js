@@ -36,6 +36,20 @@ const local = {
                 return state;
             },
         },
+        switch_status_led: {
+            cluster: 'manuSpecificNiko1',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const state = {};
+                if (msg.data.hasOwnProperty('outletLedState')) {
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
+                }
+                if (msg.data.hasOwnProperty('outletLedColor')) {
+                    state['led_state'] = (msg.data['outletLedColor'] == 255);
+                }
+                return state;
+            },
+        },
         outlet: {
             cluster: 'manuSpecificNiko1',
             type: ['attributeReport', 'readResponse'],
@@ -67,6 +81,26 @@ const local = {
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['switchOperationMode']);
+            },
+        },
+        switch_led_enable: {
+            key: ['led_enable'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
+                return {state: {led_enable: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletLedState']);
+            },
+        },
+        switch_led_state: {
+            key: ['led_state'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write('manuSpecificNiko1', {'outletLedColor': ((value) ? 255 : 0)});
+                return {state: {led_state: ((value) ? true : false)}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificNiko1', ['outletLedColor']);
             },
         },
         outlet_child_lock: {
@@ -198,18 +232,22 @@ module.exports = [
         model: '552-721X1',
         vendor: 'Niko',
         description: 'Single connectable switch',
-        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
             await endpoint.read('manuSpecificNiko1', ['switchOperationMode']);
+            await endpoint.read('manuSpecificNiko1', ['outletLedState']);
+            await endpoint.read('manuSpecificNiko1', ['outletLedColor']);
         },
         exposes: [
             e.switch(),
             e.action(['single', 'hold', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
+            exposes.binary('led_state', ea.ALL, true, false).withDescription('LED State'),
         ],
     },
     {
@@ -217,8 +255,8 @@ module.exports = [
         model: '552-721X2',
         vendor: 'Niko',
         description: 'Double connectable switch',
-        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action],
-        toZigbee: [tz.on_off, local.tz.switch_operation_mode],
+        fromZigbee: [fz.on_off, local.fz.switch_operation_mode, local.fz.switch_action, local.fz.switch_status_led],
+        toZigbee: [tz.on_off, local.tz.switch_operation_mode, local.tz.switch_led_enable, local.tz.switch_led_state],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
@@ -232,6 +270,10 @@ module.exports = [
             await reporting.onOff(ep2);
             await ep1.read('manuSpecificNiko1', ['switchOperationMode']);
             await ep2.read('manuSpecificNiko1', ['switchOperationMode']);
+            await ep1.read('manuSpecificNiko1', ['outletLedState']);
+            await ep2.read('manuSpecificNiko1', ['outletLedState']);
+            await ep1.read('manuSpecificNiko1', ['outletLedColor']);
+            await ep2.read('manuSpecificNiko1', ['outletLedColor']);
         },
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
@@ -239,6 +281,10 @@ module.exports = [
             e.action(['single', 'hold', 'release']).withEndpoint('l2'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
+            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
+            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
+            exposes.binary('led_state', ea.ALL, true, false).withEndpoint('l1').withDescription('LED State'),
+            exposes.binary('led_state', ea.ALL, true, false).withEndpoint('l2').withDescription('LED State'),
         ],
     },
     {
