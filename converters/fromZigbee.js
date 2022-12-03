@@ -184,6 +184,10 @@ const converters = {
                 result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
+                        if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] : msg.data['tempDisplayMode'];
+            }
             return result;
         },
     },
@@ -3413,45 +3417,6 @@ const converters = {
                 result.measureserial = result.measure_serial; // deprecated
             }
 
-            return result;
-        },
-    },
-    sinope_TH1300ZB_specific: {
-        cluster: 'manuSpecificSinope',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
-            const result = {};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
-                result.gfci_status = lookup[msg.data['GFCiStatus']];
-            }
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
-                result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
-            }
-            return result;
-        },
-    },
-    sinope_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min',
-                900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
-            if (msg.data.hasOwnProperty('1024')) {
-                const lookup = {0: 'unoccupied', 1: 'occupied'};
-                result.thermostat_occupancy = lookup[msg.data['1024']];
-            }
-            if (msg.data.hasOwnProperty('1025')) {
-                result.main_cycle_output = cycleOutputLookup[msg.data['1025']];
-            }
-            if (msg.data.hasOwnProperty('1026')) {
-                const lookup = {0: 'on_demand', 1: 'sensing'};
-                result.backlight_auto_dim = lookup[msg.data['1026']];
-            }
-            if (msg.data.hasOwnProperty('1028')) {
-                result.aux_cycle_output = cycleOutputLookup[msg.data['1028']];
-            }
             return result;
         },
     },
