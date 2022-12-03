@@ -87,6 +87,7 @@ const local = {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
                 await entity.write('manuSpecificNiko1', {'outletLedState': ((value.toLowerCase() === 'off') ? 0 : 1)});
+                await entity.read('manuSpecificNiko1', ['outletLedColor']);
                 return {state: {led_enable: ((value.toLowerCase() === 'off') ? 'OFF' : 'ON')}};
             },
             convertGet: async (entity, key, meta) => {
