@@ -2102,6 +2102,19 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.acn026'],
+        model: 'SSWQD03LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Spotlight T2',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true,
+            disablePowerOnBehavior: true,
+            disableColorTempStartup: true,
+            colorTempRange: [153, 370],
+        }),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.n0agl1'],
         model: 'SSM-U01',
         vendor: 'Xiaomi',
