@@ -552,7 +552,6 @@ module.exports = [
             try {
                 await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
-
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
