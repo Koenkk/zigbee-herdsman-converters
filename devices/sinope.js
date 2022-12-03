@@ -554,6 +554,7 @@ module.exports = [
             } catch (error) {/* Not all support this */}
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             try {
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
@@ -651,9 +652,9 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, 
-            tzLocal.sinope_floor_control_mode, tzLocal.sinope_ambiant_max_heat_setpoint, tzLocal.sinope_floor_min_heat_setpoint, 
-            tzLocal.sinope_floor_max_heat_setpoint, tzLocal.sinope_temperature_sensor, tz.thermostat_min_heat_setpoint_limit, 
+            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
+            tzLocal.sinope_floor_control_mode, tzLocal.sinope_ambiant_max_heat_setpoint, tzLocal.sinope_floor_min_heat_setpoint,
+            tzLocal.sinope_floor_max_heat_setpoint, tzLocal.sinope_temperature_sensor, tz.thermostat_min_heat_setpoint_limit,
             tz.thermostat_max_heat_setpoint_limit, tzLocal.sinope_connected_load, tzLocal.sinope_aux_connected_load,
             tzLocal.sinope_thermostat_main_cycle_output, tzLocal.sinope_thermostat_aux_cycle_output, tzLocal.sinope_pump_protection],
         exposes: [
