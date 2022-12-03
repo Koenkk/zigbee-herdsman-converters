@@ -47,7 +47,7 @@ const fzLocal = {
             return result;
         },
     },
-        sinope_TH1400ZB_specific: {
+    sinope_TH1400ZB_specific: {
         cluster: 'manuSpecificSinope',
         type: ['readResponse'],
         convert: (model, msg, publish, options, meta) => {
@@ -102,7 +102,7 @@ const fzLocal = {
             }
             return result;
         },
-    }
+    },
 };
 
 const tzLocal = {
@@ -375,7 +375,7 @@ const tzLocal = {
             await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
         },
     },
-        sinope_minimum_brightness: {
+    sinope_minimum_brightness: {
         // DM2500ZB
         key: ['minimum_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -383,7 +383,7 @@ const tzLocal = {
                 await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
         },
-    }
+    },
 };
 
 module.exports = [
@@ -652,11 +652,11 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_floor_control_mode,
-            tzLocal.sinope_ambiant_max_heat_setpoint, tzLocal.sinope_floor_min_heat_setpoint, tzLocal.sinope_floor_max_heat_setpoint,
-            tzLocal.sinope_temperature_sensor, tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
-            tzLocal.sinope_connected_load, tzLocal.sinope_aux_connected_load, tzLocal.sinope_thermostat_main_cycle_output,
-            tzLocal.sinope_thermostat_aux_cycle_output, tzLocal.sinope_pump_protection],
+            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, 
+            tzLocal.sinope_floor_control_mode, tzLocal.sinope_ambiant_max_heat_setpoint, tzLocal.sinope_floor_min_heat_setpoint, 
+            tzLocal.sinope_floor_max_heat_setpoint, tzLocal.sinope_temperature_sensor, tz.thermostat_min_heat_setpoint_limit, 
+            tz.thermostat_max_heat_setpoint_limit, tzLocal.sinope_connected_load, tzLocal.sinope_aux_connected_load,
+            tzLocal.sinope_thermostat_main_cycle_output, tzLocal.sinope_thermostat_aux_cycle_output, tzLocal.sinope_pump_protection],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 1)
