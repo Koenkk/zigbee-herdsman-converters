@@ -883,8 +883,7 @@ module.exports = [
             exposes.enum('alarm_ringtone', ea.STATE_SET, ['1', '2', '3', '4', '5']).withDescription('Ringtone of the alarm'),
             exposes.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
                 .withUnit('s').withDescription('Alarm time'),
-            exposes.binary('preheat', ea.STATE, true, false),
-            exposes.binary('alarm_switch', ea.STATE_SET, true, false),
+            exposes.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -895,7 +894,7 @@ module.exports = [
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
                 [10, 'preheat', tuya.valueConverter.raw],
-                [13, 'alarm_switch', tuya.valueConverter.raw],
+                [13, null, null], // alarm_switch; ignore for now since it is unclear what it does
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
