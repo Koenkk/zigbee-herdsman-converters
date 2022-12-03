@@ -2089,6 +2089,19 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.light.acn004'],
+        model: 'SSWQD02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara Smart Dimmer Controller T1 Pro',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true,
+            disablePowerOnBehavior: true,
+            disableColorTempStartup: true,
+            colorTempRange: [153, 370],
+        }),
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.switch.n0agl1'],
         model: 'SSM-U01',
         vendor: 'Xiaomi',
