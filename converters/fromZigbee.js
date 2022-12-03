@@ -184,6 +184,10 @@ const converters = {
                 result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] : msg.data['tempDisplayMode'];
+            }
             return result;
         },
     },
@@ -3451,6 +3455,62 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('1028')) {
                 result.aux_cycle_output = cycleOutputLookup[msg.data['1028']];
+            }
+            return result;
+        },
+    },
+    sinope_TH1400ZB_specific: {
+        cluster: 'manuSpecificSinope',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('outdoorTempToDisplayTimeout')) {
+                result.enable_outdoor_temperature = msg.data['outdoorTempToDisplayTimeout'] == 10800 ? 'ON' : 'OFF';
+            }
+            if (msg.data.hasOwnProperty('currentTimeToDisplay')) {
+                result.current_time_to_display = msg.data['currentTimeToDisplay'];
+            }
+            if (msg.data.hasOwnProperty('floorControlMode')) {
+                const lookup = {1: 'ambiant', 2: 'floor'};
+                result.floor_control_mode = lookup[msg.data['floorControlMode']];
+            }
+            if (msg.data.hasOwnProperty('ambiantMaxHeatSetpointLimit')) {
+                result.ambiant_max_heat_setpoint = msg.data['ambiantMaxHeatSetpointLimit'] / 100.0;
+                if (result.ambiant_max_heat_setpoint === -327.68) {
+                    result.ambiant_max_heat_setpoint = 'off';
+                }
+            }
+            if (msg.data.hasOwnProperty('floorMinHeatSetpointLimit')) {
+                result.floor_min_heat_setpoint = msg.data['floorMinHeatSetpointLimit'] / 100.0;
+                if (result.floor_min_heat_setpoint === -327.68) {
+                    result.floor_min_heat_setpoint = 'off';
+                }
+            }
+            if (msg.data.hasOwnProperty('floorMaxHeatSetpointLimit')) {
+                result.floor_max_heat_setpoint = msg.data['floorMaxHeatSetpointLimit'] / 100.0;
+                if (result.floor_max_heat_setpoint === -327.68) {
+                    result.floor_max_heat_setpoint = 'off';
+                }
+            }
+            if (msg.data.hasOwnProperty('temperatureSensor')) {
+                const lookup = {0: '10k', 1: '12k'};
+                result.floor_temperature_sensor = lookup[msg.data['temperatureSensor']];
+            }
+            if (msg.data.hasOwnProperty('timeFormatToDisplay')) {
+                const lookup = {0: '24h', 1: '12h'};
+                result.time_format = lookup[msg.data['timeFormatToDisplay']];
+            }
+            if (msg.data.hasOwnProperty('connectedLoad')) {
+                result.connected_load = msg.data['connectedLoad'];
+            }
+            if (msg.data.hasOwnProperty('auxConnectedLoad')) {
+                result.aux_connected_load = msg.data['auxConnectedLoad'];
+                if (result.aux_connected_load == 65535) {
+                    result.aux_connected_load = 'disabled';
+                }
+            }
+            if (msg.data.hasOwnProperty('pumpProtection')) {
+                result.pump_protection = msg.data['pumpProtection'] == 1 ? 'ON' : 'OFF';
             }
             return result;
         },

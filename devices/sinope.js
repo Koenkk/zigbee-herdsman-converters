@@ -264,35 +264,99 @@ module.exports = [
         vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [
-            fz.legacy.sinope_thermostat_att_report, fz.legacy.sinope_thermostat_state],
-        toZigbee: [
-            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
+        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.sinope_thermostat_state, fz.legacy.hvac_user_interface, fz.metering,
+            fz.ignore_temperature_report, fz.sinope_thermostat, fz.sinope_TH1400ZB_specific],
+
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
             tz.sinope_thermostat_backlight_autodim_param, tz.sinope_thermostat_time, tz.sinope_thermostat_enable_outdoor_temperature,
-            tz.sinope_thermostat_outdoor_temperature],
+            tz.sinope_thermostat_outdoor_temperature, tz.sinope_floor_control_mode, tz.sinope_ambiant_max_heat_setpoint,
+            tz.sinope_floor_min_heat_setpoint, tz.sinope_floor_max_heat_setpoint, tz.sinope_temperature_sensor, tz.sinope_time_format,
+            tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit, tz.sinope_connected_load,
+            tz.sinope_aux_connected_load, tz.sinope_thermostat_main_cycle_output, tz.sinope_thermostat_aux_cycle_output,
+            tz.sinope_pump_protection],
+
         exposes: [
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withSetpoint('occupied_heating_setpoint', 5, 36, 1)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat'])
+                .withSystemMode(['off', 'heat'])
                 .withRunningState(['idle', 'heat'])
                 .withPiHeatingDemand(),
-            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
-                .withDescription('Control backlight dimming behavior')],
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
+                .withDescription('The display backlight behavior'),
+            exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
+                .withDescription('Enables or disables the device’s buttons'),
+            exposes.presets.max_heat_setpoint_limit(5, 36, 0.5),
+            exposes.presets.min_heat_setpoint_limit(5, 36, 0.5),
+            exposes.numeric('connected_load', ea.ALL)
+                .withUnit('W')
+                .withValueMin(1)
+                .withValueMax(20000)
+                .withDescription('The power in watts of the electrical load connected to the device'),
+            exposes.enum('floor_control_mode', ea.ALL, ['ambiant', 'floor'])
+                .withDescription('Control mode using floor or ambient temperature'),
+            exposes.numeric('floor_max_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(7)
+                .withValueMax(36)
+                .withValueStep(0.5)
+                .withPreset('off', 'off', 'Use minimum permitted value')
+                .withDescription('The maximum floor temperature limit of the floor when in ambient control mode'),
+            exposes.numeric('floor_min_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(34)
+                .withValueStep(0.5)
+                .withPreset('off', 'off', 'Use minimum permitted value')
+                .withDescription('The minimum floor temperature limit of the floor when in ambient control mode'),
+            exposes.numeric('ambiant_max_heat_setpoint', ea.ALL)
+                .withUnit('°C')
+                .withValueMin(5)
+                .withValueMax(36)
+                .withValueStep(0.5)
+                .withPreset('off', 'off', 'Use minimum permitted value')
+                .withDescription('The maximum ambient temperature limit when in floor control mode'),
+            exposes.enum('floor_temperature_sensor', ea.ALL, ['10k', '12k'])
+                .withDescription('The floor sensor'),
+            exposes.enum('main_cycle_output', ea.ALL, ['15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
+                .withDescription('The length of the control cycle according to the type of load connected to the thermostats'),
+            exposes.enum('aux_cycle_output', ea.ALL, ['off', '15_sec', '5_min', '10_min', '15_min', '20_min', '30_min'])
+                .withDescription('The length of the control cycle according to the type of auxiliary load connected to the thermostats'),
+            exposes.binary('pump_protection', ea.ALL, 'ON', 'OFF')
+                .withDescription('This function prevents the seizure of the pump'),
+            exposes.numeric('aux_connected_load', ea.ALL)
+                .withUnit('W')
+                .withValueMin(0)
+                .withValueMax(20000)
+                .withDescription('The power in watts of the heater connected to the auxiliary output of the thermostat'),
+        ],
+
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat',
-                'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
+                'hvacUserInterfaceCfg', 'msTemperatureMeasurement', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
 
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Do nothing*/}
+            await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint', 'localTemp', 'systemMode', 'pIHeatingDemand',
+                'SinopeBacklight', 'maxHeatSetpointLimit', 'minHeatSetpointLimit', 'SinopeMainCycleOutput', 'SinopeAuxCycleOutput']);
+            await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
+            await endpoint.read('manuSpecificSinope', ['timeFormatToDisplay', 'connectedLoad', 'auxConnectedLoad', 'floorControlMode',
+                'floorMinHeatSetpointLimit', 'floorMaxHeatSetpointLimit', 'ambiantMaxHeatSetpointLimit', 'outdoorTempToDisplayTimeout',
+                'temperatureSensor', 'pumpProtection']);
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // disable reporting
         },
     },
     {
