@@ -107,18 +107,6 @@ const fzLocal = {
 };
 
 const tzLocal = {
-    sinope_thermostat_report_local_temperature: {
-        key: ['report_local_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            const reportLocalTemperatureValues = {0: 'automatic', 1: '', 2: 'outside_temperature'};
-            const reportLocalTemperature = utils.getKey(reportLocalTemperatureValues, value, value, Number);
-            await entity.write('manuSpecificSinope', {reportLocalTemperature});
-            return {state: {'report_local_temperature': value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['reportLocalTemperature']);
-        },
-    },
     sinope_thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
