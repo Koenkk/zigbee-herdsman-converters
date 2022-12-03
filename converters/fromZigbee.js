@@ -184,7 +184,7 @@ const converters = {
                 result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
-                        if (msg.data.hasOwnProperty('tempDisplayMode')) {
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
                 result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
                     constants.temperatureDisplayMode[msg.data['tempDisplayMode']] : msg.data['tempDisplayMode'];
             }
