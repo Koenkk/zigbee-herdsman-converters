@@ -3654,8 +3654,8 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'system_mode', tuya.valueConverterBasic.lookup({'off': tuya.enum(2), 'heat': tuya.enum(1), 'auto': tuya.enum(0)})],
-                [3, 'running_state', tuya.valueConverter.idleHeat],
+                [2, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(0), 'heat': tuya.enum(1), 'off': tuya.enum(2)})],
+                [3, 'running_state', tuya.valueConverterBasic.lookup({'heat': tuya.enum(0), 'idle': tuya.enum(1)})],
                 [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [5, 'local_temperature', tuya.valueConverter.divideBy10],
                 [7, 'child_lock', tuya.valueConverter.lockUnlock],
