@@ -34,7 +34,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['IM-Z3.0-DIM'],
-        model: '07005B',
+        model: '07001L/07005B',
         vendor: 'Immax',
         description: 'Neo SMART LED E14 5W warm white, dimmable, Zigbee 3.0',
         extend: extend.light_onoff_brightness(),
