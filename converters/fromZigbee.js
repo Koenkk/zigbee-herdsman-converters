@@ -2809,6 +2809,8 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (['TS0044', 'YSR-MINI-Z', 'TS004F'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            } else if (['TS0046'].includes(model.model)) {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
