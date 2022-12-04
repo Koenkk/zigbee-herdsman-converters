@@ -268,7 +268,6 @@ const tzLocal = {
         },
     },
     sinope_time_format: {
-        // TH1300ZB and TH1400ZB specific
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -388,7 +387,8 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
-            tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tz.electrical_measurement_power],
+            tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -403,6 +403,8 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
+            exposes.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
+                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
@@ -450,7 +452,8 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tz.thermostat_pi_heating_demand, tz.thermostat_running_state, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
-            tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tz.electrical_measurement_power],
+            tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -465,6 +468,8 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
+            exposes.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
+                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
