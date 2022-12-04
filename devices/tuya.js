@@ -1222,6 +1222,25 @@ module.exports = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_myd45weu']),
+        model: 'TS0601_soil',
+        vendor: 'TuYa',
+        description: 'Soil sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
+        meta: {
+            tuyaDatapoints: [
+                [3, 'humidity', tuya.valueConverter.raw],
+                [4, 'temperature', tuya.valueConverter.divideBy10],
+                [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+                [15, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
             '_TZE200_vucankjx']),
         model: 'TS0601_dimmer_1',
