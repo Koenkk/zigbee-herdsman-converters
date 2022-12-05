@@ -94,6 +94,11 @@ const fzLocal = {
                     const colors = philips.decodeGradientColors(input, options);
                     return {colors};
                 }
+                if (msg.data.hasOwnProperty('state')) {
+                    const input = msg.data['state'].toString('hex');
+                    const colors = philips.decodeGradientColors(input, opts);
+                    return {colors};
+                }
                 return {};
             },
         };
@@ -195,6 +200,9 @@ const tzLocal = {
                 const scene = philips.encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, 'hex')};
                 await entity.command('manuSpecificPhilips2', 'multiColor', payload);
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('manuSpecificPhilips2', ['state']);
             },
         };
     },
