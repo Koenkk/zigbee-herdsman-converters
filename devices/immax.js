@@ -182,4 +182,22 @@ module.exports = [
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht']),
+        model: '07505L',
+        vendor: 'Immax',
+        description: 'Neo smart keypad',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [],
+        exposes: [e.action(['disarm', 'arm_home', 'arm_away', 'sos']), e.tamper()],
+        meta: {
+            tuyaDatapoints: [
+                [24, 'tamper', tuya.valueConverter.trueFalse],
+                [26, 'action', tuya.valueConverter.static('disarm')],
+                [27, 'action', tuya.valueConverter.static('arm_away')],
+                [28, 'action', tuya.valueConverter.static('arm_home')],
+                [29, 'action', tuya.valueConverter.static('sos')],
+            ],
+        },
+    },
 ];
