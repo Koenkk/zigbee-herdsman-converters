@@ -112,7 +112,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             try {
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {}
+            } catch (error){}
             await reporting.activePower(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint);
