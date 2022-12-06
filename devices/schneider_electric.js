@@ -423,7 +423,7 @@ module.exports = [
         description: 'Odace connectable relay switch 10A',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(10);
+            const endpoint = device.getEndpoint(21);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },

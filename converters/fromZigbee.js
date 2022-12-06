@@ -184,6 +184,10 @@ const converters = {
                 result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] : msg.data['tempDisplayMode'];
+            }
             return result;
         },
     },
@@ -2805,6 +2809,8 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (['TS0044', 'YSR-MINI-Z', 'TS004F'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            } else if (['TS0046'].includes(model.model)) {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
@@ -3413,37 +3419,6 @@ const converters = {
                 result.measureserial = result.measure_serial; // deprecated
             }
 
-            return result;
-        },
-    },
-    sinope_TH1300ZB_specific: {
-        cluster: 'manuSpecificSinope',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
-            const result = {};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
-                result.gfci_status = lookup[msg.data['GFCiStatus']];
-            }
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
-                result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
-            }
-            return result;
-        },
-    },
-    sinope_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'unoccupied', 1: 'occupied'};
-            const lookup1 = {0: 'on_demand', 1: 'sensing'};
-            const result = {};
-            if (msg.data.hasOwnProperty('1024')) {
-                result.thermostat_occupancy = lookup[msg.data['1024']];
-            }
-            if (msg.data.hasOwnProperty('1026')) {
-                result.backlight_auto_dim = lookup1[msg.data['1026']];
-            }
             return result;
         },
     },
