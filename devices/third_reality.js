@@ -102,12 +102,20 @@ module.exports = [
         model: '3RSP019BZ',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
+        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
             await reporting.onOff(endpoint);
+            try {
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            } catch (error) {}
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
         },
     },
     {
