@@ -2141,7 +2141,7 @@ module.exports = [
                 'degrees and from 04:00 to 00:00 temperature will be 22 degrees.'),
             ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
             exposes.binary('online', ea.STATE_SET, 'ON', 'OFF').withDescription('The current data request from the device.'),
-            exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
+            tuya.exposes.errorStatus(),
         ],
         meta: {
             tuyaDatapoints: [
