@@ -2586,8 +2586,8 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['LWE003', 'LWE008'],
-        model: '9290020400/929003021301',
+        zigbeeModel: ['LWE003'],
+        model: '9290020400',
         vendor: 'Philips',
         description: 'Hue White E17 470 lumen',
         extend: hueExtend.light_onoff_brightness(),
@@ -2961,5 +2961,12 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White & Color Ambiance Xamento M',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LWE008'],
+        model: '929003021301',
+        vendor: 'Philips',
+        description: 'Hue White E17 470 lumen',
+        extend: hueExtend.light_onoff_brightness(),
     },
 ];
