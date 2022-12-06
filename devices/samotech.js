@@ -1,5 +1,10 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const exposes = require('../lib/exposes');
+const e = exposes.presets;
+
 
 module.exports = [
     {
@@ -22,6 +27,30 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genIdentify', 'genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['SM308-2CH'],
+        model: 'SM308-2CH',
+        vendor: 'Samotech',
+        description: 'Zigbee in wall smart switch with overall power monitoring, two channel',
+        fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.energy(), e.power(), e.current(), e.voltage()],
+        endpoint: (device) => {
+            return { 'l1': 1, 'l2': 2 };
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1)
+            const endpoint2 = device.getEndpoint(2)
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
+            await reporting.activePower(endpoint1);
+            await reporting.rmsCurrent(endpoint1, { min: 10, change: 10 });
+            await reporting.rmsVoltage(endpoint1, { min: 10 });
+            await reporting.readMeteringMultiplierDivisor(endpoint1);
+            await reporting.currentSummDelivered(endpoint1);
         },
     },
     {
