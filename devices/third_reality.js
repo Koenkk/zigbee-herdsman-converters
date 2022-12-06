@@ -115,7 +115,7 @@ module.exports = [
             } catch (error) {}
             await reporting.activePower(endpoint);
             await reporting.rmsCurrent(endpoint);
-			await reporting.rmsVoltage(endpoint);
+	    await reporting.rmsVoltage(endpoint);
         },
     },
     {
