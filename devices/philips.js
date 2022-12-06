@@ -662,14 +662,14 @@ module.exports = [
         zigbeeModel: ['1740193P0'],
         model: '1740193P0',
         vendor: 'Philips',
-        description: 'Hue White Lucca Wall Light',
+        description: 'Hue White Lucca wall light',
         extend: hueExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['929003089301'],
         model: '929003089301',
         vendor: 'Philips',
-        description: 'Hue White and Color Ambiance Lucca Wall Light',
+        description: 'Hue White and Color Ambiance Lucca wall light',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
