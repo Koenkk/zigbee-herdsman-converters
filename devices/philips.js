@@ -1682,7 +1682,7 @@ module.exports = [
             ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).fromZigbee,
         ],
         exposes: [
-            exposes.list('colors', ea.SET, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
+            exposes.list('colors', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
                 .withLengthMin(1)
                 .withLengthMax(9)
                 .withDescription('List of RGB HEX colors'),
