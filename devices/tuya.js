@@ -3211,7 +3211,7 @@ module.exports = [
         model: 'TS0046',
         vendor: 'TuYa',
         description: 'Wireless switch with 6 buttons',
-        whiteLabel: [{vendor: 'LoraTap', model: 'TS0046'}],
+        whiteLabel: [{vendor: 'LoraTap', model: 'SS9600ZB'}],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
