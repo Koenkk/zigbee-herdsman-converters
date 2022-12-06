@@ -653,7 +653,7 @@ module.exports = [
             tzLocal.sinope_thermostat_main_cycle_output, tzLocal.sinope_thermostat_aux_cycle_output, tzLocal.sinope_pump_protection],
         exposes: [
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 36, 1)
+                .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'])
                 .withRunningState(['idle', 'heat'])
