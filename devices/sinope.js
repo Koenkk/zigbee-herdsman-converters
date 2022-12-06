@@ -580,8 +580,8 @@ module.exports = [
             tzLocal.sinope_temperature_sensor],
         exposes: [
             exposes.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 5, 36, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
