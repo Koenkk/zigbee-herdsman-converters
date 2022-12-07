@@ -1279,7 +1279,7 @@ module.exports = [
         model: '4090230P9',
         vendor: 'Philips',
         description: 'Hue Liane (Black)',
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003053201'],
