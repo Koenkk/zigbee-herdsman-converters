@@ -12,7 +12,6 @@ module.exports = [
         description: 'Lock',
         fromZigbee: [fz.lock, fz.lock_operation_event, fz.battery],
         toZigbee: [tz.lock],
-        meta: {configureKey: 1, options: {disableDefaultResponse: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.endpoints[0];
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
