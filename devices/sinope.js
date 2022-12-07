@@ -20,12 +20,23 @@ const fzLocal = {
                 const lookup = {0: 'unoccupied', 1: 'occupied'};
                 result.thermostat_occupancy = lookup[msg.data['1024']];
             }
+            if (msg.data.hasOwnProperty('SinopeOccupancy')) {
+                const lookup = {0: 'unoccupied', 1: 'occupied'};
+                result.thermostat_occupancy = lookup[msg.data['SinopeOccupancy']];
+            }
             if (msg.data.hasOwnProperty('1025')) {
                 result.main_cycle_output = cycleOutputLookup[msg.data['1025']];
+            }
+            if (msg.data.hasOwnProperty('SinopeMainCycleOutput')) {
+                result.main_cycle_output = cycleOutputLookup[msg.data['SinopeMainCycleOutput']];
             }
             if (msg.data.hasOwnProperty('1026')) {
                 const lookup = {0: 'on_demand', 1: 'sensing'};
                 result.backlight_auto_dim = lookup[msg.data['1026']];
+            }
+            if (msg.data.hasOwnProperty('SinopeBacklight')) {
+                const lookup = {0: 'on_demand', 1: 'sensing'};
+                result.backlight_auto_dim = lookup[msg.data['SinopeBacklight']];
             }
             if (msg.data.hasOwnProperty('1028')) {
                 result.aux_cycle_output = cycleOutputLookup[msg.data['1028']];
@@ -112,11 +123,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeOccupancy});
+            await entity.write('hvacThermostat', {SinopeOccupancy}, {manufacturerCode: 0x119C});
             return {state: {'thermostat_occupancy': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeOccupancy']);
+            await entity.read('hvacThermostat', ['SinopeOccupancy'], {manufacturerCode: 0x119C});
         },
     },
     sinope_thermostat_backlight_autodim_param: {
@@ -124,11 +135,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeBacklight});
+            await entity.write('hvacThermostat', {SinopeBacklight}, {manufacturerCode: 0x119C});
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeBacklight']);
+            await entity.read('hvacThermostat', ['SinopeBacklight'], {manufacturerCode: 0x119C});
         },
     },
     sinope_thermostat_main_cycle_output: {
@@ -136,11 +147,11 @@ const tzLocal = {
         key: ['main_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
-            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]});
+            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]}, {manufacturerCode: 0x119C});
             return {state: {'main_cycle_output': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeMainCycleOutput']);
+            await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], {manufacturerCode: 0x119C});
         },
     },
     sinope_thermostat_aux_cycle_output: {
@@ -385,7 +396,7 @@ module.exports = [
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tz.thermostat_pi_heating_demand, tz.thermostat_running_state, tzLocal.sinope_thermostat_backlight_autodim_param,
+            tz.thermostat_pi_heating_demand, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
             tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
             tz.electrical_measurement_power],
@@ -396,10 +407,10 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
-            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
@@ -450,7 +461,7 @@ module.exports = [
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tz.thermostat_pi_heating_demand, tz.thermostat_running_state, tzLocal.sinope_thermostat_backlight_autodim_param,
+            tz.thermostat_pi_heating_demand, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
             tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
             tz.electrical_measurement_power],
@@ -461,10 +472,10 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
-            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
@@ -512,55 +523,62 @@ module.exports = [
         description: 'Zigbee line volt thermostat',
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_pi_heating_demand, tz.thermostat_running_state,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
+            tz.thermostat_pi_heating_demand, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
-            tzLocal.sinope_thermostat_outdoor_temperature, tz.acvoltage],
+            tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
+            tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
+                .withDescription('Occupancy state of the thermostat'),
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
+                .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power(), e.current(), e.voltage().withAccess(ea.STATE_GET), e.energy(),
+            exposes.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
+                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'genBasic', 'genIdentify', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
 
-            try {
-                await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Not all support this */}
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
-
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            try {
-                await reporting.activePower(endpoint, {min: 10, max: 305, change: 1});
-            } catch (error) {/* Do nothing*/}
-            try {
-                await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
-            } catch (error) {/* Do nothing*/}
-            try {
-                await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            } catch (error) {/* Do nothing*/}
+            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+
+            const thermostatDate = new Date();
+            const thermostatTimeSec = thermostatDate.getTime() / 1000;
+            const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+            const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
+            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, {manufacturerCode: 0x119C});
 
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            try {
+                await reporting.thermostatRunningState(endpoint);
+            } catch (error) {/* Do nothing */} // Not enought space
         },
     },
     {
@@ -588,7 +606,7 @@ module.exports = [
                 .withRunningState(['idle', 'heat']),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
-            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
@@ -755,7 +773,7 @@ module.exports = [
                 .withRunningState(['idle', 'heat']),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
-            exposes.enum('backlight_auto_dim', ea.ALL, ['on demand', 'sensing'])
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
