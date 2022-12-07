@@ -123,7 +123,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeOccupancy},{manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeOccupancy}, {manufacturerCode: 0x119C});
             return {state: {'thermostat_occupancy': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -135,7 +135,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeBacklight},{manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeBacklight}, {manufacturerCode: 0x119C});
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -552,7 +552,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
-                'genBasic', 'genIdentify','hvacThermostat', 'hvacUserInterfaceCfg',
+                'genBasic', 'genIdentify', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
@@ -568,7 +568,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-            
+
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
@@ -578,7 +578,7 @@ module.exports = [
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             try {
                 await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Do nothing */} //Not enought space 
+            } catch (error) {/* Do nothing */} // Not enought space
         },
     },
     {
