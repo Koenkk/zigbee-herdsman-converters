@@ -397,7 +397,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, 
+            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
             tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
@@ -461,7 +461,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, 
+            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
             tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
@@ -525,7 +525,7 @@ module.exports = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
             tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature, 
+            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
             tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
