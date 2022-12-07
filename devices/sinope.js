@@ -407,7 +407,7 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
@@ -472,7 +472,7 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
@@ -526,7 +526,7 @@ module.exports = [
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tz.thermostat_pi_heating_demand, tzLocal.sinope_thermostat_backlight_autodim_param,
+            tz.thermostat_pi_heating_demand, tz.thermostat_running_state, tzLocal.sinope_thermostat_backlight_autodim_param,
             tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format, tzLocal.sinope_thermostat_enable_outdoor_temperature,
             tzLocal.sinope_thermostat_outdoor_temperature, tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output,
             tz.electrical_measurement_power],
@@ -537,7 +537,7 @@ module.exports = [
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
                 .withPiHeatingDemand(ea.STATE_GET)
-                .withRunningState(['idle', 'heat']).withAccess(ea.STATE),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
