@@ -1879,7 +1879,7 @@ module.exports = [
             fz.battery,
             fz.xiaomi_curtain_position_tilt,
             fz.aqara_opple,
-            fz.power_source
+            fz.power_source,
         ],
         toZigbee: [
             tz.xiaomi_curtain_position_state,
@@ -1889,7 +1889,7 @@ module.exports = [
             tz.ZNCLBL01LM_hand_open,
             tz.ZNCLBL01LM_reset_limits,
             tz.power_source,
-            tz.battery_percentage_remaining
+            tz.battery_percentage_remaining,
         ],
         exposes: [
             e.cover_position().setAccess('state', ea.ALL),
@@ -1905,7 +1905,7 @@ module.exports = [
             exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking']).withDescription('Hooks state'),
             exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
             exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
-            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state')
+            exposes.binary('charging', ea.STATE_GET, true, false).withDescription('The current charging state'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
