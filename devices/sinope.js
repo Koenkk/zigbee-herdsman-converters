@@ -558,7 +558,7 @@ module.exports = [
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
             await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, {manufacturerCode: 0x119C});
-            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, {manufacturerCode: 0x119C}); // set secondscreen mode to auto
+            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, {manufacturerCode: 0x119C}); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
