@@ -61,9 +61,9 @@ const hueExtend = {
                 .withDescription('List of RGB HEX colors'),
         ]),
         fromZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).fromZigbee.concat(
-            [fzLocal.philips_hue_multicolor({reverse: true})]),
+            [fzLocal.gradient({reverse: true})]),
         toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).toZigbee.concat(
-            [tz.hue_power_on_behavior, tz.hue_power_on_error, tzLocal.gradient_scene, tzLocal.philips_hue_multicolor({reverse: true})]),
+            [tz.hue_power_on_behavior, tz.hue_power_on_error, tzLocal.gradient_scene, tzLocal.gradient({reverse: true})]),
     }),
 };
 
@@ -107,7 +107,7 @@ const fzLocal = {
             return payload;
         },
     },
-    philips_hue_multicolor: (opts = {reverse: false}) => {
+    gradient: (opts = {reverse: false}) => {
         return {
             cluster: 'manuSpecificPhilips2',
             type: ['attributeReport', 'readResponse'],
@@ -211,7 +211,7 @@ const tzLocal = {
             await entity.command('manuSpecificPhilips2', 'multiColor', payload);
         },
     },
-    philips_hue_multicolor: (opts = {reverse: false}) => {
+    gradient: (opts = {reverse: false}) => {
         return {
             key: ['gradient'],
             convertSet: async (entity, key, value, meta) => {
