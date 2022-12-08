@@ -8,6 +8,9 @@ const constants = require('../lib/constants');
 const herdsman = require('zigbee-herdsman');
 const e = exposes.presets;
 const ea = exposes.access;
+const globalStore = require('../lib/store');
+
+const defaultSimulatedBrightness = 255;
 
 const manufacturerOptions = {
     /*
@@ -133,14 +136,15 @@ const ubisys = {
                     globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
                     if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
                         const timer = setInterval(() => {
-                            let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
+                            let brightness = globalStore.getValue(
+                                msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
                             const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
                                 deltaOpts : -1 * deltaOpts;
                             brightness += delta;
-                            brightness = numberWithinRange(brightness, 0, 255);
+                            brightness = utils.numberWithinRange(brightness, 0, 255);
                             globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                            const property = postfixWithEndpointName('brightness', msg, model, meta);
-                            const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                            const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
+                            const deltaProperty = utils.postfixWithEndpointName('action_brightness_delta', msg, model, meta);
                             publish({[property]: brightness, [deltaProperty]: delta});
                         }, intervalOpts);
 
