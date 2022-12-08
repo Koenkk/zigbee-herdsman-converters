@@ -72,6 +72,19 @@ const fzLocal = {
             return result;
         },
     },
+    ctm_relay_state: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x5001)) {
+                result.relay_state = data[0x5001] ? 'ON' : 'OFF';
+            }
+
+            return result;
+        },
+    },
     ctm_temperature_offset: {
         cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
@@ -306,6 +319,16 @@ const tzLocal = {
         key: ['current_flag'],
         convertGet: async (entity, key, meta) => {
             await entity.read('genOnOff', [0x5000], {manufacturerCode: 0x1337});
+        },
+    },
+    ctm_relay_state: {
+        key: ['relay_state'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('genOnOff',
+                {0x5001: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}}, {manufacturerCode: 0x1337});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', [0x5001], {manufacturerCode: 0x1337});
         },
     },
     ctm_temperature_offset: {
@@ -728,7 +751,7 @@ module.exports = [
         ],
     },
     {
-        zigbeeModel: ['mStikk Outlet'],
+        zigbeeModel: ['mStikk Outlet', 'mStikk 16A', 'mStikk 25A', 'Tavlerele 25A'],
         model: 'mStikk_Outlet',
         vendor: 'CTM Lyng',
         description: 'mStikk OP, wall socket',
@@ -834,7 +857,7 @@ module.exports = [
             exposes.binary('child_lock', ea.STATE, 'locked', 'unlocked')
                 .withDescription('Physical input on the device enabled/disabled'),
             exposes.numeric('group_id', ea.STATE)
-                .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.'),
+                .withDescription('The device sends commands with this group ID. Put devices in this group to control them.'),
         ],
     },
     {
@@ -866,10 +889,12 @@ module.exports = [
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'ssIasZone']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await endpoint.read('genOnOff', ['onOff']);
             await reporting.onOff(endpoint);
-            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['ssIasZone']);
+            await endpoint2.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
         },
         exposes: [e.switch(), e.water_leak(),
             exposes.binary('active_water_leak', ea.STATE, true, false)
@@ -897,7 +922,7 @@ module.exports = [
         exposes: [e.temperature(), e.battery(), e.battery_low(), e.smoke(),
             e.action(['on', 'off']),
             exposes.numeric('group_id', ea.STATE)
-                .withDescription('The device sends commands with this group ID. Put dvices in this group to control them.'),
+                .withDescription('The device sends commands with this group ID. Put devices in this group to control them.'),
         ],
     },
     {
@@ -924,8 +949,8 @@ module.exports = [
         model: 'MBD-S',
         vendor: 'CTM Lyng',
         description: 'MBD-S, motion detector with 16A relay',
-        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fzLocal.ctm_device_enabled],
-        toZigbee: [tz.on_off, tzLocal.ctm_device_enabled],
+        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fzLocal.ctm_relay_state],
+        toZigbee: [tz.on_off, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -936,17 +961,17 @@ module.exports = [
             await reporting.illuminance(endpoint);
             await endpoint.read('msOccupancySensing', ['occupancy']);
             await reporting.occupancy(endpoint);
-            // Device enabled
-            await endpoint.read('genOnOff', [0x2201]);
+            // Relay State
+            await endpoint.read('genOnOff', [0x5001], {manufacturerCode: 0x1337});
             await endpoint.configureReporting('genOnOff', [{
-                attribute: {ID: 0x2201, type: dataType.boolean},
-                minimumReportInterval: 0,
+                attribute: {ID: 0x5001, type: dataType.boolean},
+                minimumReportInterval: 1,
                 maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null}]);
+                reportableChange: 0}], {manufacturerCode: 0x1337});
         },
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
-            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
-                .withDescription('Turn the device on or off'),
+            exposes.binary('relay_state', ea.ALL, 'ON', 'OFF')
+                .withDescription('Turn the relay on or off'),
         ],
     },
 ];
