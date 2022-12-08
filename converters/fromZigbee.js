@@ -6278,6 +6278,10 @@ const converters = {
                     result.position = options.invert_cover ? 100 - result.position : result.position;
                 }
             }
+            // Add the state
+            if ('position' in result) {
+                result.state = result.position === 0 ? 'CLOSE' : 'OPEN';
+            }
             return result;
         },
     },
