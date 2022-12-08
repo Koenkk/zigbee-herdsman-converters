@@ -100,6 +100,57 @@ const ubisys = {
                 }
             },
         },
+        command_toggle_force_multiendpoint: {
+            cluster: 'genOnOff',
+            type: 'commandToggle',
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const endpointName = model.hasOwnProperty('endpoint') ?
+                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                const payload = {action: utils.postfixWithEndpointName([`toggle_${endpointName}`], msg, model, meta)};
+                utils.addActionGroup(payload, msg, model);
+                return payload;
+            },
+        },
+        command_move_force_multiendpoint: {
+            cluster: 'genLevelCtrl',
+            type: ['commandMove', 'commandMoveWithOnOff'],
+            options: [exposes.options.simulated_brightness()],
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const endpointName = model.hasOwnProperty('endpoint') ?
+                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
+                const direction = msg.data.movemode === 1 ? 'down' : 'up';
+                const action = utils.postfixWithEndpointName(`brightness_move_${direction}_${endpointName}`, msg, model, meta);
+                const payload = {action, action_rate: msg.data.rate};
+                utils.addActionGroup(payload, msg, model);
+
+                if (options.simulated_brightness) {
+                    const opts = options.simulated_brightness;
+                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
+                    const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
+
+                    globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
+                    if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
+                        const timer = setInterval(() => {
+                            let brightness = globalStore.getValue(msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
+                            const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
+                                deltaOpts : -1 * deltaOpts;
+                            brightness += delta;
+                            brightness = numberWithinRange(brightness, 0, 255);
+                            globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
+                            const property = postfixWithEndpointName('brightness', msg, model, meta);
+                            const deltaProperty = postfixWithEndpointName('action_brightness_delta', msg, model, meta);
+                            publish({[property]: brightness, [deltaProperty]: delta});
+                        }, intervalOpts);
+
+                        globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
+                    }
+                }
+
+                return payload;
+            },
+        },
     },
     tz: {
         configure_j1: {
@@ -615,6 +666,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+            e.energy(),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
@@ -633,6 +685,12 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         onEvent: async (type, data, device) => {
+            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+                const endpoint = device.getEndpoint(5);
+                try {
+                    await endpoint.read('seMetering', ['currentSummDelivered']);
+                } catch (error) {/* Do nothing*/}
+            }
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
@@ -664,19 +722,47 @@ module.exports = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall,
-            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, ubisys.fz.command_toggle_force_multiendpoint, fz.command_on, fz.command_off, fz.command_recall,
+            ubisys.fz.command_move_force_multiendpoint, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,
             ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
             tz.light_brightness_step],
-        exposes: [e.light_brightness().withLevelConfig(), e.power(), e.energy(),
+        exposes: [
+            e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
+                'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
+                'brightness_stop_s2']),
+            e.light_brightness(),
+            exposes.composite('level_config', 'level_config')
+                .withFeature(exposes.numeric('on_off_transition_time', ea.ALL)
+                    .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
+                    'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
+                .withFeature(exposes.numeric('on_level', ea.ALL)
+                    .withValueMin(1).withValueMax(254)
+                    .withPreset('previous', 255, 'Use previous value')
+                    .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
+                .withFeature(exposes.binary('execute_if_off', ea.ALL, true, false)
+                    .withDescription('Defines if you can send a brightness change without to turn on the light'))
+                .withFeature(exposes.numeric('current_level_startup', ea.ALL)
+                    .withValueMin(1).withValueMax(254)
+                    .withPreset('previous', 255, 'Use previous value')
+                    .withDescription('Specifies the initial level to be applied after the device is supplied with power')),
+            e.power(), e.energy(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
             exposes.numeric('minimum_on_level', ea.ALL).withValueMin(0).withValueMax(255)
-                .withDescription('Specifies the minimum light output after switching on'),
+                .withDescription('Specifies the minimum level that shall be applied, when an on/toggle command causes the ' +
+                'light to turn on. When this attribute is set to the invalid value (255) this feature is disabled ' +
+                'and standard rules apply: The light will either return to the previously active level (before it ' +
+                'was turned off) if the OnLevel attribute is set to the invalid value (255/previous); or to the specified ' +
+                'value of the OnLevel attribute if this value is in the range 0…254. Otherwise, if the ' +
+                'MinimumOnLevel is in the range 0…254, the light will be set to the the previously ' +
+                'active level (before it was turned off), or the value specified here, whichever is the larger ' +
+                'value. For example, if the previous level was 30 and the MinimumOnLevel was 40 then ' +
+                'the light would turn on and move to level 40. Conversely, if the previous level was 50, ' +
+                'and the MinimumOnLevel was 40, then the light would turn on and move to level 50.'),
             exposes.binary('capabilities_forward_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
             exposes.binary('capabilities_reverse_phase_control', ea.ALL, true, false)
@@ -704,6 +790,9 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
+        },
+        endpoint: (device) => {
+            return {'default': 1, 's1': 2, 's2': 3};
         },
         onEvent: async (type, data, device) => {
             if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
@@ -750,6 +839,12 @@ module.exports = [
             return {'default': 1, 'meter': 3};
         },
         onEvent: async (type, data, device) => {
+            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+                const endpoint = device.getEndpoint(3);
+                try {
+                    await endpoint.read('seMetering', ['currentSummDelivered']);
+                } catch (error) {/* Do nothing*/}
+            }
             /*
              * As per technical doc page 21 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
