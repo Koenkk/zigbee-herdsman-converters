@@ -728,7 +728,7 @@ module.exports = [
         description: 'Universal dimmer D1',
         fromZigbee: [fz.on_off, fz.brightness, fz.metering, ubisys.fz.command_toggle_force_multiendpoint, fz.command_on,
             fz.command_off, fz.command_recall, ubisys.fz.command_move_force_multiendpoint, fz.command_stop,
-            fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup,ubisys.fz.dimmer_setup_genLevelCtrl,
+            fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup, ubisys.fz.dimmer_setup_genLevelCtrl,
             ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
