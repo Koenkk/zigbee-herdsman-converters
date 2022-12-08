@@ -53,8 +53,9 @@ const hueExtend = {
             }
         },
         exposes: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).exposes.concat([
+            // gradient_scene is deprecated, use gradient instead
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
-            exposes.list('colors', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
+            exposes.list('gradient', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
                 .withLengthMin(1)
                 .withLengthMax(9)
                 .withDescription('List of RGB HEX colors'),
@@ -113,8 +114,8 @@ const fzLocal = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.hasOwnProperty('state')) {
                     const input = msg.data['state'].toString('hex');
-                    const colors = philips.decodeGradientColors(input, opts);
-                    return {colors};
+                    const gradient = philips.decodeGradientColors(input, opts);
+                    return {gradient};
                 }
                 return {};
             },
@@ -212,7 +213,7 @@ const tzLocal = {
     },
     philips_hue_multicolor: (opts = {reverse: false}) => {
         return {
-            key: ['colors'],
+            key: ['gradient'],
             convertSet: async (entity, key, value, meta) => {
                 const scene = philips.encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, 'hex')};
