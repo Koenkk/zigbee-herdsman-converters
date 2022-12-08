@@ -2824,7 +2824,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0014', ['_TZ3000_jr2atpww', '_TYZB01_dvakyzhd',
+        fingerprint: tuya.fingerprint('TS0014', ['_TZ3000_jr2atpww', '_TYZB01_dvakyzhd', '_TZ3000_mrduubod',
             '_TZ3210_w3hl6rao', '_TYZB01_bagt1e4o', '_TZ3000_r0pmi2p3', '_TZ3000_fxjdcikv', '_TZ3000_q6vxaod1']),
         model: 'TS0014',
         vendor: 'TuYa',
