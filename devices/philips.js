@@ -115,7 +115,7 @@ const fzLocal = {
                 if (msg.data.hasOwnProperty('state')) {
                     const input = msg.data['state'].toString('hex');
                     const gradient = philips.decodeGradientColors(input, opts);
-                    return {gradient};
+                    return {gradient: gradient.colors};
                 }
                 return {};
             },
