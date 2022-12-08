@@ -6547,11 +6547,21 @@ const converters = {
             await entity.read('aqaraOpple', [0x0401], manufacturerOptions.xiaomi);
         },
     },
-    ZNCLBL01LM_reset_limits: {
-        key: ['reset_limits'],
+    ZNCLBL01LM_limits_calibration: {
+        key: ['limits_calibration'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'reset': 0};
-            await entity.write('aqaraOpple', {0x0402: {value: lookup[value], type: 0x10}}, manufacturerOptions.xiaomi);
+            switch (value) {
+            case 'start':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.xiaomi);
+                break;
+            case 'end':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.xiaomi);
+                break;
+            case 'reset':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.xiaomi);
+                // also? await entity.write('aqaraOpple', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
+                break;
+            }
         },
     },
     wiser_vact_calibrate_valve: {
