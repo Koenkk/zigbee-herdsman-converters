@@ -23,6 +23,14 @@ const manufacturerOptions = {
     tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
 };
 
+const ubisysOnEventReadCurrentSummDelivered = async function(type, data, devic) {
+    if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+        try {
+            await data.endpoint.read('seMetering', ['currentSummDelivered']);
+        } catch (error) {/* Do nothing*/}
+    }
+}
+
 const ubisys = {
     fz: {
         dimmer_setup: {
@@ -588,7 +596,7 @@ module.exports = [
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior()],
+            e.power_on_behavior(), e.energy()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
@@ -616,6 +624,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -630,7 +640,7 @@ module.exports = [
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior()],
+            e.power_on_behavior(), e.energy()],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
         toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
@@ -658,6 +668,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -689,12 +701,6 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-                const endpoint = device.getEndpoint(5);
-                try {
-                    await endpoint.read('seMetering', ['currentSummDelivered']);
-                } catch (error) {/* Do nothing*/}
-            }
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
@@ -717,6 +723,8 @@ module.exports = [
                 const ep4 = device.getEndpoint(4);
                 ep3.addBinding('genOnOff', ep1);
                 ep4.addBinding('genOnOff', ep2);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -800,12 +808,6 @@ module.exports = [
             return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
         },
         onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-                const endpoint = device.getEndpoint(4);
-                try {
-                    await endpoint.read('seMetering', ['currentSummDelivered']);
-                } catch (error) {/* Do nothing*/}
-            }
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
@@ -817,6 +819,8 @@ module.exports = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
                 ep2.addBinding('genLevelCtrl', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -830,7 +834,7 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
             ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
         exposes: [e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
+            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -844,12 +848,6 @@ module.exports = [
             return {'default': 1, 'meter': 3};
         },
         onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-                const endpoint = device.getEndpoint(3);
-                try {
-                    await endpoint.read('seMetering', ['currentSummDelivered']);
-                } catch (error) {/* Do nothing*/}
-            }
             /*
              * As per technical doc page 21 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
@@ -860,6 +858,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('closuresWindowCovering', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
