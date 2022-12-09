@@ -11,7 +11,7 @@ module.exports = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100', 'eTRV0101'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
