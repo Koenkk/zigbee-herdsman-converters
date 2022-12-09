@@ -1988,6 +1988,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_g5wdnuow'},
             // Tubular motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
         ],
