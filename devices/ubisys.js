@@ -29,7 +29,7 @@ const ubisysOnEventReadCurrentSummDelivered = async function(type, data, devic) 
             await data.endpoint.read('seMetering', ['currentSummDelivered']);
         } catch (error) {/* Do nothing*/}
     }
-}
+};
 
 const ubisys = {
     fz: {
