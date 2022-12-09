@@ -2080,6 +2080,7 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_sur6q7ko', /* model: '3012732', vendor: 'LSC Smart Connect' */
             '_TZE200_hue3yfsn', /* model: 'TV02-Zigbee', vendor: 'TuYa' */
             '_TZE200_e9ba97vf', /* model: 'TV01-ZB', vendor: 'Moes' */
             '_TZE200_husqqvux', /* model: 'TSL-TRV-TV01ZG', vendor: 'Tesla Smart' */
