@@ -884,17 +884,28 @@ const converters = {
                 // TODO: same problem as above.
                 // TODO: if transition is not specified, should use device default (OnTransitionTime), not 0.
                 if (transition.specified || globalStore.getValue(entity, 'turnedOffWithTransition') === true) {
-                    const current = utils.getObjectProperty(meta.state, 'brightness', 254);
-                    brightness = globalStore.getValue(entity, 'brightness', current);
-                    try {
-                        const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
-                        // TODO: for groups, `read` does not wait for responses. If it did, we could still issue a single
-                        //  command if all values of `OnLevel` are equal, or split into one command per device if not.
-                        if (attributeRead !== undefined && attributeRead['onLevel'] != 255) {
-                            brightness = attributeRead['onLevel'];
+                    const levelConfig = utils.getObjectProperty(meta.state, 'level_config', {});
+                    let onLevel = utils.getObjectProperty(levelConfig, 'on_level', 0);
+                    if (onLevel === 0 && entity.meta.onLevelSupported !== false) {
+                        try {
+                            const attributeRead = await entity.read('genLevelCtrl', ['onLevel']);
+                            if (attributeRead !== undefined) {
+                                onLevel = attributeRead['onLevel'];
+                            }
+                        } catch (e) {
+                            // OnLevel not supported
                         }
-                    } catch (e) {
-                        // OnLevel not supported
+                    }
+                    if (onLevel === 0) {
+                        onLevel = 'previous';
+                        entity.meta.onLevelSupported = false;
+                        entity.save();
+                    }
+                    if (onLevel === 255 || onLevel === 'previous') {
+                        const current = utils.getObjectProperty(meta.state, 'brightness', 254);
+                        brightness = globalStore.getValue(entity, 'brightness', current);
+                    } else {
+                        brightness = onLevel;
                     }
                     // Published state might have gotten clobbered by reporting.
                     publishBrightness = true;
@@ -1308,7 +1319,7 @@ const converters = {
     thermostat_occupancy: {
         key: ['occupancy'],
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['ocupancy']);
+            await entity.read('hvacThermostat', ['occupancy']);
         },
     },
     thermostat_clear_weekly_schedule: {
@@ -1359,6 +1370,7 @@ const converters = {
             }
             const unoccupiedHeatingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedHeatingSetpoint});
+            return {state: {unoccupied_heating_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['unoccupiedHeatingSetpoint']);
@@ -1394,6 +1406,7 @@ const converters = {
             }
             const unoccupiedCoolingSetpoint = result;
             await entity.write('hvacThermostat', {unoccupiedCoolingSetpoint});
+            return {state: {unoccupied_cooling_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['unoccupiedCoolingSetpoint']);
@@ -3420,6 +3433,12 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSchedule, payload);
         },
     },
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {system_mode: 'heat'}};
+        },
+    },
     moesS_thermostat_preset: {
         key: ['preset'],
         convertSet: async (entity, key, value, meta) => {
@@ -3591,34 +3610,6 @@ const converters = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'cool');
-        },
-    },
-    tuya_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: payload});
-            return {state: {power_outage_memory: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
-    moes_power_on_behavior: {
-        key: ['power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: pState});
-            return {state: {power_on_behavior: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
         },
     },
     moes_switch: {
@@ -3894,19 +3885,6 @@ const converters = {
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
-        },
-    },
-    tuya_switch_type: {
-        key: ['switch_type'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
-            return {state: {switch_type: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
     tuya_min_brightness: {
@@ -4280,17 +4258,16 @@ const converters = {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
             await entity.write('hvacThermostat', {SinopeOccupancy});
+            return {state: {'thermostat_occupancy': value}};
         },
     },
     sinope_thermostat_backlight_autodim_param: {
         key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {
-                0: 'on demand',
-                1: 'sensing',
-            };
+            const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write('hvacThermostat', {SinopeBacklight});
+            return {state: {'backlight_auto_dim': value}};
         },
     },
     sinope_thermostat_enable_outdoor_temperature: {
@@ -6211,46 +6188,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
-        },
-    },
-    tuya_backlight_mode: {
-        key: ['backlight_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
-            value = value.toUpperCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const backlight = lookup[value];
-            await entity.write('genOnOff', {tuyaBacklightMode: backlight});
-            return {state: {backlight_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    ts011f_plug_indicator_mode: {
-        key: ['indicator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'string') {
-                value = value.toLowerCase();
-                const lookup = {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-            }
-
-            if (typeof value === 'number' && value >= 0 && value <= 3) {
-                await entity.write('genOnOff', {tuyaBacklightMode: value});
-            } else {
-                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    ts011f_plug_child_mode: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
         },
     },
     hy_thermostat: {

@@ -41,11 +41,11 @@ const fzLocal = {
     },
 };
 
-function syncTime(endpoint) {
+async function syncTime(endpoint) {
     try {
         const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date()).getTimezoneOffset() * -1) * 60);
         const values = {time: time};
-        endpoint.write('genTime', values);
+        await endpoint.write('genTime', values);
     } catch (error) {/* Do nothing*/}
 }
 
@@ -462,10 +462,16 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatKeypadLockMode(endpoint);
+            try {
+                await reporting.thermostatKeypadLockMode(endpoint);
+            } catch (error) {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15025
+                logger.debug(`Failed to setup keypadLockout reporting`);
+            }
 
             await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'ocupancy',
+                attribute: 'occupancy',
                 minimumReportInterval: 0,
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: null,

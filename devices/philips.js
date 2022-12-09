@@ -211,7 +211,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['LWA018'],
+        zigbeeModel: ['LWA018', 'LWA028'],
         model: '9290024693',
         vendor: 'Philips',
         description: 'Hue white A60 bulb B22 1055lm with Bluetooth',
@@ -561,7 +561,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
-        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU'],
+        zigbeeModel: ['LCT026', '7602031P7', '7602031U7', '7602031PU', '7602031J6'],
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
@@ -741,6 +741,13 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance BR30 with bluetooth',
         extend: hueExtend.light_onoff_brightness_colortemp_color(),
+    },
+    {
+        zigbeeModel: ['LCB002'],
+        model: '046677577957',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance BR30 with bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LWB004'],
@@ -1338,7 +1345,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['3261331P6'],
+        zigbeeModel: ['3261331P6', '929003055301'],
         model: '3261331P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Still',
@@ -1635,6 +1642,16 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005987601'],
+        model: '915005987601',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (black)',
+        toZigbee: [tzLocal.gradient_scene, ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee],
+        exposes: [exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes],
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCT020'],
         model: '4080148P7',
         vendor: 'Philips',
@@ -1686,6 +1703,13 @@ module.exports = [
     {
         zigbeeModel: ['5060830P7_01', '5060830P7_02', '5060830P7_03', '5060830P7_04'],
         model: '5060830P7',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (3 spots)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['5060831P7_01', '5060831P7_02', '5060831P7_03', '5060831P7_04'],
+        model: '5060831P7',
         vendor: 'Philips',
         description: 'Hue White & Color ambience Centris ceiling light (3 spots)',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
@@ -2342,10 +2366,10 @@ module.exports = [
     },
     {
         zigbeeModel: ['LLM001'],
-        model: '7121131PU',
+        model: '7121131PU/7120031PH/7120131PH/7120231PU',
         vendor: 'Philips',
-        description: 'Hue Beyond white and color ambiance suspension light',
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        description: 'Hue Beyond white and color ambiance suspension/ceiling/table lamp',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['5041131P9', '5041148P9'],
@@ -2429,6 +2453,13 @@ module.exports = [
         model: '929002422801',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 65',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['LCX003'],
+        model: '929002422901',
+        vendor: 'Philips',
+        description: 'Hue Play gradient lightstrip 75',
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
@@ -2896,5 +2927,22 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White ambiance BR30 E26',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['LCX012'],
+        model: '929003535301',
+        vendor: 'Philips',
+        description: 'Hue Festavia gradient light string 250',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['915005987101'],
+        model: '915005987101',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (white)',
+        toZigbee: [tzLocal.gradient_scene, ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).toZigbee],
+        exposes: [exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
+            ...hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}).exposes],
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];

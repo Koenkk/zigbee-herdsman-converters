@@ -26,20 +26,13 @@ module.exports = [
         model: 'ZP-LZ-FR2U',
         vendor: 'Moes',
         description: 'Zigbee 3.0 dual USB wireless socket plug',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory, fz.ts011f_plug_indicator_mode, fz.ts011f_plug_child_mode],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory, tz.ts011f_plug_indicator_mode, tz.ts011f_plug_child_mode],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on'])
-                .withDescription('Plug LED indicator mode'), e.child_lock()],
+        extend: tuya.extend.switch({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic',
-                ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(device.getEndpoint(1));
@@ -52,12 +45,7 @@ module.exports = [
         model: 'MS-104Z',
         description: 'Smart light switch module (1 gang)',
         vendor: 'Moes',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
-        extend: extend.switch(),
-        exposes: [e.switch(),
-            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
-                .withDescription('Controls the behaviour when the device is powered on')],
+        extend: tuya.extend.switch({powerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -75,13 +63,8 @@ module.exports = [
         model: 'MS-104BZ',
         description: 'Smart light switch module (2 gang)',
         vendor: 'Moes',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior]),
-        extend: extend.switch(),
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2']}),
         meta: {multiEndpoint: true},
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'previous'])
-                .withDescription('Controls the behaviour when the device is powered on')],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -299,7 +282,8 @@ module.exports = [
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
             tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
             tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming],
+            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming,
+            tz.moesS_thermostat_system_mode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(),
             e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
@@ -308,7 +292,7 @@ module.exports = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withSystemMode(['heat'], ea.STATE)
+                .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
@@ -414,15 +398,7 @@ module.exports = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        toZigbee: extend.switch().toZigbee.concat([tz.moes_power_on_behavior, tz.tuya_switch_type, tz.tuya_backlight_mode]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.moes_power_on_behavior, fz.tuya_switch_type, fz.tuya_backlight_mode]),
-        exposes: [
-            e.switch(),
-            exposes.presets.power_on_behavior(),
-            exposes.presets.switch_type_2(),
-            exposes.enum('backlight_mode', ea.ALL, ['LOW', 'MEDIUM', 'HIGH'])
-                .withDescription('Indicator light status: LOW: Off | MEDIUM: On| HIGH: Inverted'),
-        ],
+        extend: tuya.extend.switch({backlightMode: true, switchType: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

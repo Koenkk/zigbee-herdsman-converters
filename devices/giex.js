@@ -118,18 +118,18 @@ module.exports = [
             e.battery(),
             exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('State'),
             exposes.enum('mode', ea.STATE_SET, ['duration', 'capacity']).withDescription('Irrigation mode'),
-            exposes.numeric('irrigation_target', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('minutes or Litres')
-                .withDescription('Irrigation Target, duration in minutes or capacity in Litres (depending on mode)'),
-            exposes.numeric('cycle_irrigation_num_times', exposes.access.STATE_SET).withValueMin(0).withValueMax(100).withUnit('#')
+            exposes.numeric('irrigation_target', exposes.access.STATE_SET).withValueMin(0).withValueMax(3600).withUnit('seconds or litres')
+                .withDescription('Irrigation target, duration in seconds or capacity in litres (depending on mode)'),
+            exposes.numeric('cycle_irrigation_num_times', exposes.access.STATE_SET).withValueMin(0).withValueMax(100)
                 .withDescription('Number of cycle irrigation times, set to 0 for single cycle'),
-            exposes.numeric('cycle_irrigation_interval', exposes.access.STATE_SET).withValueMin(0).withValueMax(1440).withUnit('min')
+            exposes.numeric('cycle_irrigation_interval', exposes.access.STATE_SET).withValueMin(0).withValueMax(3600).withUnit('sec')
                 .withDescription('Cycle irrigation interval'),
-            exposes.numeric('irrigation_start_time', ea.STATE).withUnit('GMT+8').withDescription('Irrigation start time'),
-            exposes.numeric('irrigation_end_time', ea.STATE).withUnit('GMT+8').withDescription('Irrigation end time'),
-            exposes.numeric('last_irrigation_duration', exposes.access.STATE).withUnit('min')
+            exposes.numeric('irrigation_start_time', ea.STATE).withDescription('Last irrigation start time (GMT)'),
+            exposes.numeric('irrigation_end_time', ea.STATE).withDescription('Last irrigation end time (GMT)'),
+            exposes.numeric('last_irrigation_duration', exposes.access.STATE)
                 .withDescription('Last irrigation duration'),
             exposes.numeric('water_consumed', exposes.access.STATE).withUnit('L')
-                .withDescription('Water consumed (Litres)'),
+                .withDescription('Last irrigation water consumption'),
         ],
     },
 ];

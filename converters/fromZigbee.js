@@ -347,16 +347,16 @@ const converters = {
                     msg.data.batteryAlarmState & 1<<3
                 ) > 0;
                 const battery2Low = (
-                    msg.data.batteryAlarmState & 1<<9 ||
                     msg.data.batteryAlarmState & 1<<10 ||
                     msg.data.batteryAlarmState & 1<<11 ||
-                    msg.data.batteryAlarmState & 1<<12
+                    msg.data.batteryAlarmState & 1<<12 ||
+                    msg.data.batteryAlarmState & 1<<13
                 ) > 0;
                 const battery3Low = (
-                    msg.data.batteryAlarmState & 1<<19 ||
                     msg.data.batteryAlarmState & 1<<20 ||
                     msg.data.batteryAlarmState & 1<<21 ||
-                    msg.data.batteryAlarmState & 1<<22
+                    msg.data.batteryAlarmState & 1<<22 ||
+                    msg.data.batteryAlarmState & 1<<23
                 ) > 0;
                 payload.battery_low = battery1Low || battery2Low || battery3Low;
             }
@@ -677,6 +677,7 @@ const converters = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
             const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
             const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
@@ -733,6 +734,7 @@ const converters = {
         options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
             exposes.options.calibration('voltage', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key) => {
                 const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
@@ -2545,17 +2547,6 @@ const converters = {
             };
         },
     },
-    moes_power_on_behavior: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
-                const property = postfixWithEndpointName('power_on_behavior', msg, model, meta);
-                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
-            }
-        },
-    },
     moes_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -2793,42 +2784,6 @@ const converters = {
             return result;
         },
     },
-    tuya_backlight_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
-                return {backlight_mode: backlightLookup[value]};
-            }
-        },
-    },
-    ts011f_plug_indicator_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'tuyaBacklightMode'; // 0x8001 or 32769
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
-                if (lookup.hasOwnProperty(value)) {
-                    return {indicator_mode: lookup[value]};
-                }
-            }
-        },
-    },
-    ts011f_plug_child_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = (0x8000).toString(); // 32768
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            }
-        },
-    },
     WSZ01_on_off_action: {
         cluster: 65029,
         type: 'raw',
@@ -2973,7 +2928,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
             if (msg.data.indexOf(stateHeader) === 0) {
-                if (msg.data[10] === 5) {
+                if (msg.data[10] === 5 || msg.data[10] === 2) {
                     const status = msg.data[14];
                     return {
                         state_left: status === 1 ? 'ON' : 'OFF',
@@ -3472,6 +3427,22 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('floorLimitStatus')) {
                 result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
+            }
+            return result;
+        },
+    },
+    sinope_thermostat: {
+        cluster: 'hvacThermostat',
+        type: ['readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup = {0: 'unoccupied', 1: 'occupied'};
+            const lookup1 = {0: 'on_demand', 1: 'sensing'};
+            const result = {};
+            if (msg.data.hasOwnProperty('1024')) {
+                result.thermostat_occupancy = lookup[msg.data['1024']];
+            }
+            if (msg.data.hasOwnProperty('1026')) {
+                result.backlight_auto_dim = lookup1[msg.data['1026']];
             }
             return result;
         },
@@ -4008,6 +3979,8 @@ const converters = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesMinTempLimit:
+                return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
@@ -4086,7 +4059,14 @@ const converters = {
             case tuya.dataPoints.moesSvalvePosition:
                 return {position: value};
             case tuya.dataPoints.moesScompensationTempSet:
-                return {local_temperature_calibration: value};
+                return {
+                    local_temperature_calibration: value,
+                    // local_temperature is now stale: the valve does not report the re-calibrated value until an actual temperature change
+                    // so update local_temperature by subtracting the old calibration and adding the new one
+                    ...(meta && meta.state && meta.state.local_temperature != null && meta.state.local_temperature_calibration != null) ?
+                        {local_temperature: meta.state.local_temperature + (value - meta.state.local_temperature_calibration)} :
+                        {},
+                };
             case tuya.dataPoints.moesSecoMode:
                 return {eco_mode: value ? 'ON' : 'OFF'};
             case tuya.dataPoints.moesSecoModeTempSet:
@@ -4752,16 +4732,6 @@ const converters = {
             fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
                 if (err) throw err;
             });
-        },
-    },
-    tuya_switch_type: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
-            if (msg.data.hasOwnProperty('switchType')) {
-                return {switch_type: lookup[msg.data['switchType']]};
-            }
         },
     },
     tuya_min_brightness: {
@@ -7167,22 +7137,6 @@ const converters = {
             }
         },
     },
-    tuya_switch_power_outage_memory: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'moesStartUpOnOff';
-
-            if (msg.data.hasOwnProperty(property)) {
-                const dict = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const value = msg.data[property];
-
-                if (dict.hasOwnProperty(value)) {
-                    return {[postfixWithEndpointName('power_outage_memory', msg, model, meta)]: dict[value]};
-                }
-            }
-        },
-    },
     tuya_relay_din_led_indicator: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -8095,17 +8049,6 @@ const converters = {
             } else {
                 return {action: lookup[commandID]};
             }
-        },
-    },
-    dawon_card_holder: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
-            return {
-                card: (zoneStatus & 1) > 0,
-                battery_low: (zoneStatus & 1<<3) > 0,
-            };
         },
     },
     tuya_light_wz5: {
