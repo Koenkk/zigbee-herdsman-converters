@@ -521,6 +521,12 @@ describe('index.js', () => {
         }
     });
 
+    it('Check TuYa tuya.fz.datapoints calibration/presicion options', () => {
+        const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
+        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
+            ['humidity_precision', 'humidity_calibration', 'temperature_precision', 'temperature_calibration']);
+    });
+
     it('List expose number', () => {
         // Example payload:
         // {"temperatures": [19,21,30]}
