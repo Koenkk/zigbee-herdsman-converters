@@ -331,35 +331,6 @@ module.exports = [
         },
     },
     {
-        // Since a lot of TuYa devices use the same modelID, but use different datapoints
-        // it's necessary to provide a fingerprint instead of a zigbeeModel
-        fingerprint: [
-            {
-                // The model ID from: Device with modelID 'TS0601' is not supported
-                // You may need to add \u0000 at the end of the name in some cases
-                modelID: 'TS0505B',
-                // The manufacturer name from: Device with modelID 'TS0601' is not supported.
-                manufacturerName: '_TZ3210_rcggc0ys',
-            },
-        ],
-        model: 'ZLD-RCW',
-        vendor: 'Moes',
-        description: 'ZigBee GU10 Smart Sync Full Color LED Dimmable Party Light Bulbs RGBCCT 2200-6500K C+W 5W',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
-        ]),
-        ota: ota.zigbeeOTA,
-        meta: {applyRedFix: true, enhancedHue: false},
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true, disablePowerOnBehavior:true}).exposes.concat([
-            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
-                .withDescription('Do not disturb mode'),
-            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
-                .withDescription('Power on behavior state'),
-        ]),
-    },
-    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
         model: 'ZLD-RCW',
