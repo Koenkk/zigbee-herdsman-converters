@@ -339,6 +339,7 @@ module.exports = [
         toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
             tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
         ]),
+        ota: ota.zigbeeOTA,
         meta: {applyRedFix: true, enhancedHue: false},
         fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
         exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}).exposes.concat([
