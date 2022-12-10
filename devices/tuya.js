@@ -972,6 +972,13 @@ module.exports = [
         whiteLabel: [{vendor: 'KTNNKG', model: 'ZB1248-10A'}],
     },
     {
+        zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)'],
+        model: 'CK-BL702-AL-01',
+        vendor: 'TuYa',
+        description: 'Zigbee LED bulb',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [142, 500]}),
+    },
+    {
         zigbeeModel: ['TS0505B'],
         model: 'TS0505B',
         vendor: 'TuYa',
