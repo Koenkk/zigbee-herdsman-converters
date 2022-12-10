@@ -3910,7 +3910,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             // input to multiple of 10 with max value of 100
             const thresh = Math.abs(Math.min(10 * (Math.floor(value / 10)), 100));
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTreshold, thresh, 'dataRequest', 1);
+            await tuya.sendDataPointValue(entity, tuya.dataPoints.frankEverTreshold1, thresh, 'dataRequest', 1);
             return {state: {threshold: value}};
         },
     },
