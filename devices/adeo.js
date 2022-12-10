@@ -53,6 +53,13 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['ZBEK-7'],
+        model: 'IST-CDZFB2AS007NA-MZN-02',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN E27 LED Edison white filament 806 lumen',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['ZBEK-8'],
         model: 'IG-CDZFB2G009RA-MZN-02',
         vendor: 'ADEO',
