@@ -5027,7 +5027,10 @@ const converters = {
             case tuya.dataPoints.state: {
                 return {state: value ? 'ON': 'OFF'};
             }
-            case tuya.dataPoints.frankEverTreshold: {
+            case tuya.dataPoints.frankEverTreshold1: {
+                return {threshold: value};
+            }
+            case tuya.dataPoints.frankEverTreshold2: {
                 return {threshold: value};
             }
             case tuya.dataPoints.frankEverTimer: {
