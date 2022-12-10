@@ -2028,6 +2028,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ywdxldoj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_do5qy8zo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_cwnjrr72'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_pvvbommb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
