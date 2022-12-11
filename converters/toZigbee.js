@@ -3409,8 +3409,8 @@ const converters = {
                 // await tuya.sendDataPointEnum(entity, tuya.dataPoints.moesScheduleEnable, 0);
                 break;
             }
-        }
-   },
+        },
+    },
     moes_thermostat_program_schedule: {
         key: ['program'],
         convertSet: async (entity, key, value, meta) => {

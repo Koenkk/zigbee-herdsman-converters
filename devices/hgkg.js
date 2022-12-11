@@ -42,10 +42,10 @@ module.exports = [
                 // .withPreset(['valve_state'])
                 .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
 
-                //.withSystemMode(['off', 'cool'], ea.STATE_SET)
-                // .withRunningState(['off','on'], ea.STATE)
-                //.withPreset(['hold', 'program'])
-                //.withFanMode([ 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
+            // .withSystemMode(['off', 'cool'], ea.STATE_SET)
+            // .withRunningState(['off','on'], ea.STATE)
+            // .withPreset(['hold', 'program'])
+            // .withFanMode([ 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
             exposes.composite('programming_mode')
                 .withDescription(
