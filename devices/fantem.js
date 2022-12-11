@@ -48,7 +48,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3210_wuhzzfqg'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
