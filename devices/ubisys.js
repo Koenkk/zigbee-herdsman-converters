@@ -80,10 +80,10 @@ const ubisys = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const result = {};
-                if (msg.data.hasOwnProperty('input_configurations')) {
-                    result['input_configurations'] = msg.data['input_configurations'];
+                if (msg.data['inputConfigurations'] != null) {
+                    result['input_configurations'] = msg.data['inputConfigurations'];
                 }
-                if (msg.data.hasOwnProperty('inputActions')) {
+                if (msg.data['inputActions'] != null) {
                     result['input_actions'] = msg.data['inputActions'].map(function(el) {
                         return Object.values(el);
                     });
@@ -95,8 +95,8 @@ const ubisys = {
             cluster: 'hvacThermostat',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('ocupancy')) {
-                    return {vacation_mode: msg.data.ocupancy === 0};
+                if (msg.data.hasOwnProperty('occupancy')) {
+                    return {vacation_mode: msg.data.occupancy === 0};
                 }
             },
         },
@@ -516,7 +516,7 @@ const ubisys = {
         thermostat_vacation_mode: {
             key: ['vacation_mode'],
             convertGet: async (entity, key, meta) => {
-                await entity.read('hvacThermostat', ['ocupancy']);
+                await entity.read('hvacThermostat', ['occupancy']);
             },
         },
     },
@@ -670,11 +670,7 @@ module.exports = [
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
             tz.light_brightness_step],
-        exposes: [e.light_brightness().withLevelConfig(), e.power(),
-            exposes.numeric('ballast_physical_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the minimum light output the ballast can achieve.'),
-            exposes.numeric('ballast_physical_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output the ballast can achieve.'),
+        exposes: [e.light_brightness().withLevelConfig(), e.power(), e.energy(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -710,6 +706,12 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         onEvent: async (type, data, device) => {
+            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+                const endpoint = device.getEndpoint(4);
+                try {
+                    await endpoint.read('seMetering', ['currentSummDelivered']);
+                } catch (error) {/* Do nothing*/}
+            }
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
@@ -829,7 +831,7 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint,
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOcupancy(endpoint);
+            await reporting.thermostatOccupancy(endpoint);
             await reporting.batteryPercentageRemaining(endpoint,
                 {min: constants.repInterval.HOUR, max: 43200, change: 1});
 

@@ -99,7 +99,7 @@ module.exports = [
         exposes: [e.action(['recall_*']), e.switch()],
     },
     {
-        zigbeeModel: ['LXN56-DC27LX1.1', 'LXN56-DS27LX1.1'],
+        zigbeeModel: ['LXN56-DC27LX1.1', 'LXN56-DS27LX1.1', 'LXN56-DS27LX1.3'],
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
@@ -159,7 +159,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2', 'LXN56-DS27LX1.3', 'LXN60-DS27LX1.3'],
+        zigbeeModel: ['FB56+ZSC05HG1.0', 'FNB56-ZBW01LX1.2', 'LXN60-DS27LX1.3'],
         model: 'HGZB-04D / HGZB-4D-UK',
         vendor: 'Nue / 3A',
         description: 'Smart dimmer wall switch',

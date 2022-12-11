@@ -28,7 +28,7 @@ const fzLocal = {
             }
 
             const commandID = msg.data.commandID;
-            if (utils.hasAlreadyProcessedMessage(msg, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
 
             const rxAfterTx = (msg.data.options & (1<<11));
             const ret = {};
@@ -423,7 +423,7 @@ module.exports = [
         description: 'Odace connectable relay switch 10A',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(10);
+            const endpoint = device.getEndpoint(21);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
@@ -462,6 +462,18 @@ module.exports = [
             const endpoint = device.getEndpoint(1) || device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
             await reporting.currentPositionLiftPercentage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['1GANG/SWITCH/1'],
+        model: 'MEG5161-0000',
+        vendor: 'Schneider Electric',
+        description: 'Merten PlusLink relay insert with Merten Wiser system M push button (1fold)',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
     {
@@ -747,16 +759,23 @@ module.exports = [
         zigbeeModel: ['FLS/SYSTEM-M/4'],
         model: 'WDE002906',
         vendor: 'Schneider Electric',
-        description: 'Wiser wireless switch 1-gang',
+        description: 'Wiser wireless switch 1-gang or 2-gang',
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            e.battery()],
-        meta: {disableActionGroup: true},
+        endpoint: (device) => {
+            return {'right': 21, 'left': 22};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [e.action(['on_left', 'off_left', 'on_right', 'off_right', 'brightness_move_up_left', 'brightness_stop_left',
+            'brightness_move_down_left', 'brightness_stop_left', 'brightness_move_up_right', 'brightness_stop_right',
+            'brightness_move_down_right', 'brightness_stop_right']), e.battery()],
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(21);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
-            await reporting.batteryPercentageRemaining(endpoint);
+            // When in 2-gang operation mode, unit operates out of endpoints 21 and 22, otherwise just 21
+            const leftButtonsEndpoint = device.getEndpoint(21);
+            await reporting.bind(leftButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPowerCfg']);
+            const rightButtonsEndpoint = device.getEndpoint(22);
+            await reporting.bind(rightButtonsEndpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.batteryPercentageRemaining(leftButtonsEndpoint);
         },
     },
     {

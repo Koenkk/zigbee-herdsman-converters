@@ -6,7 +6,6 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const ota = require('../lib/ota');
-const utils = require('../lib/utils');
 
 const readInitialBatteryState = async (type, data, device) => {
     if (['deviceAnnounce'].includes(type)) {
@@ -16,24 +15,24 @@ const readInitialBatteryState = async (type, data, device) => {
     }
 };
 
-const fzLocal = {
-    command_off: {
-        cluster: 'genOnOff',
-        type: 'commandOff',
-        convert: (model, msg, publish, options, meta) => {
-            const payload = {action: utils.postfixWithEndpointName('off', msg, model, meta)};
-            utils.addActionGroup(payload, msg, model);
-            return payload;
+const tzLocal = {
+    auto_mode: {
+        key: ['auto_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {'off': 0x00, 'auto': 0x02, 'on_override': 0x03};
+            const payload = {data: Buffer.from([mode[value]])};
+            await entity.command('manuSpecificLegrandDevices3', 'command0', payload);
+            return {state: {'auto_mode': value}};
         },
     },
 };
 
 module.exports = [
     {
-        zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
-            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        model: '412171',
-        description: 'DIN contactor module ( Bticino FC80CC )',
+        zigbeeModel: [' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '412173',
+        description: 'DIN dry contactor module',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
@@ -47,6 +46,32 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
+        },
+    },
+    {
+        zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '412171',
+        description: 'DIN contactor module ( Bticino FC80CC )',
+        vendor: 'Legrand',
+        extend: extend.switch(),
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        toZigbee: [tz.legrand_deviceMode, tz.on_off, tz.legrand_identify, tz.electrical_measurement_power, tzLocal.auto_mode],
+        exposes: [exposes.switch().withState('state', true, 'On/off (works only if device is in "switch" mode)'),
+            e.power().withAccess(ea.STATE_GET),
+            exposes.enum('device_mode', ea.ALL, ['switch', 'auto'])
+                .withDescription('Switch: allow manual on/off, auto uses contact\'s C1/C2 wired actions for Peak/Off-Peak ' +
+                    'electricity rates'),
+            exposes.enum('auto_mode', ea.STATE_SET, ['off', 'auto', 'on_override'])
+                .withDescription('Off/auto/on (override) (works only if device is set to "auto" mode)')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'haElectricalMeasurement']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
     },
     {
@@ -121,28 +146,29 @@ module.exports = [
         vendor: 'Legrand',
         // led blink RED when battery is low
         description: 'Wireless remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
             fz.battery],
         exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
             'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
+        onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
         },
-        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Double gangs remote switch\u0000\u0000\u0000\u0000'],
         model: '067774',
         vendor: 'Legrand',
         description: 'Wireless double remote switch',
-        fromZigbee: [fz.identify, fz.command_on, fzLocal.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(),
             e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}},
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
+        onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
@@ -152,7 +178,6 @@ module.exports = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-        onEvent: readInitialBatteryState,
     },
     {
         zigbeeModel: [' Remote toggle switch\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
@@ -228,6 +253,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
+        whiteLabel: [{vendor: 'Bticino', model: '3584C'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);

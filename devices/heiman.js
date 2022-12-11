@@ -11,7 +11,7 @@ const tuya = require('../lib/tuya');
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0212', manufacturerName: '_TYZB01_wpmo3ja3'}],
-        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba'],
+        zigbeeModel: ['CO_V15', 'CO_YDLV10', 'CO_V16', '1ccaa94c49a84abaa9e38687913947ba', 'CO_CTPG'],
         model: 'HS1CA-M',
         description: 'Smart carbon monoxide sensor',
         vendor: 'HEIMAN',
@@ -104,7 +104,7 @@ module.exports = [
         model: 'HS3CG',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
+        fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },

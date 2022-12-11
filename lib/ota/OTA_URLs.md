@@ -18,6 +18,20 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/OTA-Image-Types---
 
 Dresden Elektronik also provide third-party OTA firmware images and external URLs for many third-party Zigbee OTA firmware images.
 
+### Inovelli OTA Firmware provider
+
+Inovelli Zigbee OTA firmware images are made publicly available by Inovelli (first-party) at the following URLs:
+
+https://files.inovelli.com/firmware/firmware.json
+
+https://files.inovelli.com/firmware
+
+### Sonoff OTA Firmware provider
+
+Sonoff Zigbee OTA firmware images are made publicly available by Sonoff (first-party) at the following URLs:
+
+https://zigbee-ota.sonoff.tech/releases/upgrade.json
+
 ### EUROTRONICS
 
 EUROTRONICS Zigbee OTA firmware images are made publicly available by EUROTRONIC Technology (first-party) at the following URL:
@@ -97,3 +111,9 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/OTA-Image-Types---
 Ubisys Zigbee OTA firmware images are made publicly available by Ubisys (first-party) at the following URL:
 
 https://www.ubisys.de/en/support/firmware/
+
+### Third Reality (3reality)
+
+ThirdReality (3reality) Zigbee OTA firmware images are made publicly available by Third Reality, Inc. (first-party) at the following URL:
+
+https://tr-zha.s3.amazonaws.com/firmware.json

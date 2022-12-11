@@ -23,7 +23,7 @@ module.exports = [
         model: '07089L',
         vendor: 'Immax',
         description: 'NEO SMART LED E27 5W',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['E27-filament-Dim-ZB3.0'],
@@ -34,7 +34,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['IM-Z3.0-DIM'],
-        model: '07005B',
+        model: '07001L/07005B',
         vendor: 'Immax',
         description: 'Neo SMART LED E14 5W warm white, dimmable, Zigbee 3.0',
         extend: extend.light_onoff_brightness(),
@@ -92,7 +92,7 @@ module.exports = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint);
-            await reporting.activePower(endpoint);
+            await reporting.activePower(endpoint, {change: 5});
         },
         exposes: [e.switch(), e.power(), e.energy()],
     },
@@ -181,5 +181,23 @@ module.exports = [
             exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             // eslint-disable-next-line
             exposes.enum('keep_time', ea.STATE_SET, ['0', '30', '60', '120', '240']).withDescription('PIR keep time in seconds')],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_n9clpsht']),
+        model: '07505L',
+        vendor: 'Immax',
+        description: 'Neo smart keypad',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [],
+        exposes: [e.action(['disarm', 'arm_home', 'arm_away', 'sos']), e.tamper()],
+        meta: {
+            tuyaDatapoints: [
+                [24, 'tamper', tuya.valueConverter.trueFalse],
+                [26, 'action', tuya.valueConverter.static('disarm')],
+                [27, 'action', tuya.valueConverter.static('arm_away')],
+                [28, 'action', tuya.valueConverter.static('arm_home')],
+                [29, 'action', tuya.valueConverter.static('sos')],
+            ],
+        },
     },
 ];

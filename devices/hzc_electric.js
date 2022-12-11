@@ -1,6 +1,7 @@
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
+const fz = require('../converters/fromZigbee');
 const e = exposes.presets;
 
 module.exports = [
@@ -25,5 +26,14 @@ module.exports = [
         endpoint: () => {
             return {l1: 1, l2: 2};
         },
+    },
+    {
+        zigbeeModel: ['TempAndHumSensor-ZB3.0'],
+        model: 'S093TH-ZG',
+        vendor: 'HZC Electric',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity()], // Unfortunately, battery percentage is not reported by this device
     },
 ];

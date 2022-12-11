@@ -45,6 +45,18 @@ const bulbOnEvent = async (type, data, device, options, state) => {
         if (state !== undefined && state.level_config !== undefined && state.level_config.execute_if_off === true) {
             device.endpoints[0].write('genLevelCtrl', {'options': 1});
         }
+        if (state !== undefined && state.level_config !== undefined && state.level_config.on_level !== undefined) {
+            let onLevel = state.level_config.on_level;
+            if (typeof onLevel === 'string' && onLevel.toLowerCase() == 'previous') {
+                onLevel = 255;
+            } else {
+                onLevel = Number(onLevel);
+            }
+            if (onLevel > 255) onLevel = 254;
+            if (onLevel < 1) onLevel = 1;
+
+            device.endpoints[0].write('genLevelCtrl', {onLevel});
+        }
     }
 };
 
@@ -92,7 +104,7 @@ const fzLocal = {
         cluster: 'genOnOff',
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
             if (arrowReleaseAgo > 700) {
                 return {action: 'on'};
@@ -104,7 +116,7 @@ const fzLocal = {
         type: 'commandTradfriArrowRelease',
         options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
             const direction = globalStore.getValue(msg.endpoint, 'direction');
             if (direction) {
@@ -121,25 +133,21 @@ const fzLocal = {
 const tradfriExtend = {
     light_onoff_brightness: (options = {}) => ({
         ...extend.light_onoff_brightness(options),
-        exposes: extend.light_onoff_brightness(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp: (options = {colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
-        exposes: extend.light_onoff_brightness_colortemp(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_colortemp_color: (options = {disableColorTempStartup: true, colorTempRange: [250, 454]}) => ({
         ...extend.light_onoff_brightness_colortemp_color(options),
-        exposes: extend.light_onoff_brightness_colortemp_color(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
     light_onoff_brightness_color: (options = {}) => ({
         ...extend.light_onoff_brightness_color(options),
-        exposes: extend.light_onoff_brightness_color(options).exposes.concat(e.power_on_behavior()),
         ota: ota.tradfri,
         onEvent: bulbOnEvent,
     }),
@@ -367,10 +375,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE27WSglobeclear806lm'],
+        zigbeeModel: ['TRADFRIbulbE26WSglobeclear800lm', 'TRADFRIbulbE27WSglobeclear806lm'],
         model: 'LED2004G8',
         vendor: 'IKEA',
-        description: 'TRADFRI LED bulb E27 806 lumen, dimmable, white spectrum, clear',
+        description: 'TRADFRI LED bulb E26/E27 800/806 lumen, dimmable, white spectrum, clear',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -893,6 +901,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E14 470 lumen, opal, dimmable, white spectrum, color spectrum',
         extend: tradfriExtend.light_onoff_brightness_colortemp_color(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['TRADFRIbulbE14WWclear250lm', 'TRADFRIbulbE12WWclear250lm'],
@@ -990,5 +999,12 @@ module.exports = [
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp 24 warm light dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
+        model: 'LED2006R9',
+        vendor: 'IKEA',
+        description: 'TRADFRI E26 PAR38 LED bulb 900 lumen, dimmable, white spectrum, downlight',
+        extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
 ];

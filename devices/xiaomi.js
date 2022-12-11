@@ -9,6 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
+const utils = require('../lib/utils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -40,6 +41,21 @@ const preventReset = async (type, data, device) => {
     await device.getEndpoint(1).write('genBasic', payload, options);
 };
 
+const daysLookup = {
+    0x7f: 'everyday',
+    0x1f: 'workdays',
+    0x60: 'weekend',
+    0x01: 'mon',
+    0x02: 'tue',
+    0x04: 'wed',
+    0x08: 'thu',
+    0x10: 'fri',
+    0x20: 'sat',
+    0x40: 'sun',
+    0x55: 'mon-wed-fri-sun',
+    0x2a: 'tue-thu-sat',
+};
+
 
 const fzLocal = {
     aqara_trv: {
@@ -50,7 +66,7 @@ const fzLocal = {
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (parseInt(key)) {
                 case 0x0271:
-                    result['state'] = {1: 'ON', 0: 'OFF'}[value];
+                    result['system_mode'] = {1: 'heat', 0: 'off'}[value];
                     break;
                 case 0x0272:
                     result['preset'] = {2: 'away', 1: 'auto', 0: 'manual'}[value];
@@ -68,20 +84,27 @@ const fzLocal = {
                     result['away_preset_temperature'] = (value / 100).toFixed(1);
                     break;
                 case 0x027b:
-                    result['calibration'] = {1: true, 0: false}[value];
+                    result['calibrated'] = {1: true, 0: false}[value];
                     break;
                 case 0x027e:
                     result['sensor'] = {1: 'external', 0: 'internal'}[value];
                     break;
+                case 0x040a:
+                    result['battery'] = value;
+                    break;
+                case 0x027a:
+                    result['window_open'] = {1: true, 0: false}[value];
+                    break;
+                case 0x0275:
+                    result['valve_alarm'] = {1: true, 0: false}[value];
+                    break;
+                case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
-                case 0x0275: // 0x00000001
                 case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
-                case 0x027a: // 0x00
                 case 0x027c: // 0x00
                 case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
-                case 0x040a: // 0x64
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
                 default:
@@ -91,15 +114,104 @@ const fzLocal = {
             return result;
         },
     },
+    aqara_feeder: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (parseInt(key)) {
+                case 0xfff1: {
+                    const attr = value.slice(3, 7);
+                    const len = value.slice(7, 8).readUInt8();
+                    const val = value.slice(8, 8 + len);
+                    switch (attr.readInt32BE()) {
+                    case 0x04150055: // feeding
+                        result['feed'] = '';
+                        break;
+                    case 0x041502bc: { // feeding report
+                        const report = val.toString();
+                        result['feeding_source'] = {0: 'schedule', 1: 'manual', 2: 'remote'}[parseInt(report.slice(0, 2))];
+                        result['feeding_size'] = parseInt(report.slice(3, 4));
+                        break;
+                    }
+                    case 0x0d680055: // portions per day
+                        result['portions_per_day'] = val.readUInt16BE();
+                        break;
+                    case 0x0d690055: // weight per day
+                        result['weight_per_day'] = val.readUInt32BE();
+                        break;
+                    case 0x0d0b0055: // error ?
+                        result['error'] = {1: true, 0: false}[val.readUInt8()];
+                        break;
+                    case 0x080008c8: { // schedule string
+                        const schlist = val.toString().split(',');
+                        const schedule = [];
+                        schlist.forEach((str) => { // 7f13000100
+                            const feedtime = Buffer.from(str, 'hex');
+                            schedule.push({
+                                'days': daysLookup[feedtime[0]],
+                                'hour': feedtime[1],
+                                'minute': feedtime[2],
+                                'size': feedtime[3],
+                            });
+                        });
+                        result['schedule'] = schedule;
+                        break;
+                    }
+                    case 0x04170055: // indicator
+                        result['led_indicator'] = {1: 'ON', 0: 'OFF'}[val.readUInt8()];
+                        break;
+                    case 0x04160055: // child lock
+                        result['child_lock'] = {1: 'LOCK', 0: 'UNLOCK'}[val.readUInt8()];
+                        break;
+                    case 0x04180055: // mode
+                        result['mode'] = {1: 'schedule', 0: 'manual'}[val.readUInt8()];
+                        break;
+                    case 0x0e5c0055: // serving size
+                        result['serving_size'] = val.readUInt8();
+                        break;
+                    case 0x0e5f0055: // portion weight
+                        result['portion_weight'] = val.readUInt8();
+                        break;
+                    case 0x080007d1: // ? 64
+                    case 0x0d090055: // ? 00
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled attribute ${attr} = ${val}`);
+                        break;
+                    default:
+                        meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown attribute ${attr} = ${val}`);
+                    }
+                    break;
+                }
+                case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key} = ${value}`);
+                    break;
+                default:
+                    meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unknown key ${key} = ${value}`);
+                }
+            });
+            return result;
+        },
+    },
 };
 
 const tzLocal = {
     aqara_trv: {
-        key: ['state', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature'],
+        key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
+            'calibrate', 'sensor', 'sensor_temp', 'identify'],
         convertSet: async (entity, key, value, meta) => {
+            const aqaraHeader = (counter, params, action) => {
+                const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
+                const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
+                return [...header, integrity, action, 0x41, params.length];
+            };
+            const sensor = Buffer.from('00158d00019d1b98', 'hex');
+
             switch (key) {
-            case 'state':
-                await entity.write('aqaraOpple', {0x0271: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+            case 'system_mode':
+                await entity.write('aqaraOpple', {0x0271: {value: {'off': 0, 'heat': 1}[value], type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
             case 'preset':
@@ -121,8 +233,91 @@ const tzLocal = {
             case 'away_preset_temperature':
                 await entity.write('aqaraOpple', {0x0279: {value: Math.round(value * 100), type: 0x23}}, {manufacturerCode: 0x115f});
                 break;
+            case 'sensor': {
+                const device = Buffer.from(entity.deviceIeeeAddress.substring(2), 'hex');
+                const timestamp = Buffer.alloc(4);
+                timestamp.writeUint32BE(Date.now()/1000);
+
+                if (value === 'external') {
+                    const params1 = [
+                        ...timestamp,
+                        0x3d, 0x04,
+                        ...device,
+                        ...sensor,
+                        0x00, 0x01, 0x00, 0x55,
+                        0x13, 0x0a, 0x02, 0x00, 0x00, 0x64, 0x04, 0xce, 0xc2, 0xb6, 0xc8,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x3d,
+                        0x64,
+                        0x65,
+                    ];
+                    const params2 = [
+                        ...timestamp,
+                        0x3d, 0x05,
+                        ...device,
+                        ...sensor,
+                        0x08, 0x00, 0x07, 0xfd,
+                        0x16, 0x0a, 0x02, 0x0a, 0xc9, 0xe8, 0xb1, 0xb8, 0xd4, 0xda, 0xcf, 0xdf, 0xc0, 0xeb,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x3d,
+                        0x04,
+                        0x65,
+                    ];
+
+                    const val1 = [...(aqaraHeader(0x12, params1, 0x02)), ...params1];
+                    const val2 = [...(aqaraHeader(0x13, params2, 0x02)), ...params2];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+                } else if (value === 'internal') {
+                    const params1 = [
+                        ...timestamp,
+                        0x3d, 0x05,
+                        ...device,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    ];
+                    const params2 = [
+                        ...timestamp,
+                        0x3d, 0x04,
+                        ...device,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    ];
+
+                    const val1 = [...(aqaraHeader(0x12, params1, 0x04)), ...params1];
+                    const val2 = [...(aqaraHeader(0x13, params2, 0x04)), ...params2];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: val1, type: 0x41}}, {manufacturerCode: 0x115f});
+                    await entity.write('aqaraOpple', {0xfff2: {value: val2, type: 0x41}}, {manufacturerCode: 0x115f});
+
+                    await entity.read('hvacThermostat', ['localTemp']);
+                }
+                break;
+            }
+            case 'sensor_temp':
+                if (meta.state['sensor'] === 'external') {
+                    const temperatureBuf = Buffer.alloc(4);
+                    temperatureBuf.writeFloatBE(Math.round(value * 100));
+
+                    const params = [...sensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
+                    const data = [...(aqaraHeader(0x12, params, 0x05)), ...params];
+
+                    await entity.write('aqaraOpple', {0xfff2: {value: data, type: 0x41}}, {manufacturerCode: 0x115f});
+                }
+                break;
+            case 'calibrate':
+                await entity.write('aqaraOpple', {0x0270: {value: 1, type: 0x20}}, {manufacturerCode: 0x115F});
+                break;
+            case 'identify':
+                await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
+                break;
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
+                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+
+            if (dict.hasOwnProperty(key)) {
+                await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
             }
         },
     },
@@ -135,6 +330,73 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0114], {manufacturerCode: 0x115F, disableDefaultResponse: true});
+        },
+    },
+    aqara_feeder: {
+        key: ['feed', 'schedule', 'led_indicator', 'child_lock', 'mode', 'serving_size', 'portion_weight'],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode, value, length) => {
+                entity.sendSeq = ((entity.sendSeq || 0)+1) % 256;
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                case 1:
+                    v.writeUInt8(value);
+                    break;
+                case 2:
+                    v.writeUInt16BE(value);
+                    break;
+                case 4:
+                    v.writeUInt32BE(value);
+                    break;
+                default:
+                    v = value;
+                }
+                await entity.write('aqaraOpple', {0xfff1: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: 0x115f});
+            };
+            switch (key) {
+            case 'feed':
+                sendAttr(0x04150055, 1, 1);
+                break;
+            case 'schedule': {
+                const schedule = [];
+                value.forEach((item) => {
+                    const schedItem = Buffer.from([
+                        utils.getKey(daysLookup, item.days, 0x7f),
+                        item.hour,
+                        item.minute,
+                        item.size,
+                        0,
+                    ]);
+                    schedule.push(schedItem.toString('hex'));
+                });
+                const val = Buffer.concat([Buffer.from(schedule.join(',')), Buffer.from([0])]);
+                sendAttr(0x080008c8, val, val.length);
+                break;
+            }
+            case 'led_indicator':
+                sendAttr(0x04170055, {'OFF': 0, 'ON': 1}[value], 1);
+                break;
+            case 'child_lock':
+                sendAttr(0x04160055, {'UNLOCK': 0, 'LOCK': 1}[value], 1);
+                break;
+            case 'mode':
+                sendAttr(0x04180055, {'manual': 0, 'schedule': 1}[value], 1);
+                break;
+            case 'serving_size':
+                sendAttr(0x0e5c0055, value, 4);
+                break;
+            case 'portion_weight':
+                sendAttr(0x0e5f0055, value, 4);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
+            }
+            return {state: {[key]: value}};
         },
     },
 };
@@ -635,6 +897,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.ctrl_neutral2'],
@@ -698,6 +964,10 @@ module.exports = [
         },
         onEvent: preventReset,
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.remote.b286acn02'],
@@ -1265,10 +1535,16 @@ module.exports = [
         model: 'ZNCZ12LM',
         description: 'Mi power plug ZigBee US',
         vendor: 'Xiaomi',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
-        toZigbee: [tz.on_off, tz.xiaomi_power],
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
-            e.voltage().withAccess(ea.STATE)],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple, fz.xiaomi_basic, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_auto_off, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection],
+        exposes: [
+            e.switch(), e.power().withAccess(ea.STATE_GET), e.energy(), e.device_temperature().withAccess(ea.STATE),
+            e.voltage().withAccess(ea.STATE), e.current(), e.consumer_connected(), e.led_disabled_night(),
+            e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
+                .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
+            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
+                .withDescription('Maximum allowed load, turns off if exceeded')],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1411,7 +1687,7 @@ module.exports = [
             exposes.numeric('gas_density', ea.STATE_GET).withUnit('%LEL').withDescription('Value of gas concentration'),
             exposes.enum('gas_sensitivity', ea.ALL, ['10%LEL', '15%LEL']).withDescription('Gas concentration value at which ' +
                 'an alarm is triggered ("10%LEL" is more sensitive than "15%LEL")'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
@@ -1451,7 +1727,7 @@ module.exports = [
         exposes: [e.smoke().withAccess(ea.STATE_GET),
             exposes.numeric('smoke_density', ea.STATE_GET).withDescription('Value of smoke concentration'),
             exposes.numeric('smoke_density_dbm', ea.STATE_GET).withUnit('dB/m').withDescription('Value of smoke concentration in dB/m'),
-            exposes.enum('selftest', ea.SET, ['']).withDescription('Starts the self-test process (checking the indicator ' +
+            exposes.enum('selftest', ea.SET, ['selftest']).withDescription('Starts the self-test process (checking the indicator ' +
                 'light and buzzer work properly)'),
             exposes.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
@@ -1810,6 +2086,24 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
         extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.acn004'],
+        model: 'SSWQD02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart dimmer controller t1 pro',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.acn026'],
+        model: 'SSWQD03LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara spotlight T2',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2274,16 +2568,72 @@ module.exports = [
         description: 'Aqara Smart Radiator Thermostat E1',
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
-        exposes: [e.switch().setAccess('state', ea.STATE_SET),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperature(ea.STATE).withPreset(['manual', 'away', 'auto'], ea.STATE_SET),
-            e.child_lock(), e.window_detection(), e.valve_detection(),
-            e.away_preset_temperature(), e.battery_voltage(), e.battery(),
+        exposes: [
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'heat'], ea.ALL)
+                .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
+            e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
+            exposes.binary('calibrated', ea.STATE, true, false)
+                .withDescription('Is the valve calibrated'),
+            e.child_lock().setAccess('state', ea.ALL),
+            e.window_detection().setAccess('state', ea.ALL),
+            exposes.binary('window_open', ea.STATE, true, false),
+            e.valve_detection().setAccess('state', ea.ALL),
+            e.away_preset_temperature().withAccess(ea.ALL),
+            e.battery_voltage(),
+            e.battery(),
         ],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['aqara.feeder.acn001'],
+        model: 'ZNCWWSQ01LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara pet feeder C1',
+        fromZigbee: [fzLocal.aqara_feeder],
+        toZigbee: [tzLocal.aqara_feeder],
+        exposes: [
+            exposes.enum('feed', ea.STATE_SET, ['START']).withDescription('Start feeding'),
+            exposes.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
+            exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
+            exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
+            exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
+            exposes.binary('error', ea.STATE, true, false)
+                .withDescription('Indicates wether there is an error with the feeder'),
+            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
+                .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
+                    'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
+                    'mon-wed-fri-sun', 'tue-thu-sat']))
+                .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
+                .withFeature(exposes.numeric('size', exposes.access.STATE_SET)),
+            ).withDescription('Feeding schedule'),
+            exposes.switch().withState('led_indicator', true, 'Led indicator', ea.STATE_SET, 'ON', 'OFF'),
+            e.child_lock(),
+            exposes.enum('mode', ea.STATE_SET, ['schedule', 'manual']).withDescription('Feeding mode'),
+            exposes.numeric('serving_size', ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription('One serving size')
+                .withUnit('portion'),
+            exposes.numeric('portion_weight', ea.STATE_SET).withValueMin(1).withValueMax(20).withDescription('Portion weight')
+                .withUnit('g'),
+        ],
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.remote.acn007'],
+        model: 'WXKG20LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 wireless mini switch',
+        fromZigbee: [fz.battery, fz.aqara_opple_multistate, fz.aqara_opple],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
+            e.device_temperature(), e.power_outage_count()],
     },
 ];

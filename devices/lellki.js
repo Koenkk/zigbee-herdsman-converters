@@ -23,9 +23,7 @@ module.exports = [
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device.getEndpoint(1).read('genBasic', [
-                'manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
-
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const ID of [1, 2, 3, 4, 5]) {
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
             }
@@ -36,14 +34,11 @@ module.exports = [
         model: 'JZ-ZB-001',
         description: 'Smart plug (without power monitoring)',
         vendor: 'LELLKI',
-        fromZigbee: [fz.on_off, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        extend: tuya.extend.switch({powerOutageMemory: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
         },
-        exposes: [e.switch(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-            .withDescription('Recover state after power outage')],
     },
     {
         zigbeeModel: ['JZ-ZB-003'],
@@ -90,9 +85,7 @@ module.exports = [
         model: 'XF-EU-S100-1-M',
         description: 'Touch switch 1 gang (with power monitoring)',
         vendor: 'LELLKI',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -101,9 +94,6 @@ module.exports = [
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
@@ -111,20 +101,16 @@ module.exports = [
         model: 'WK34-EU',
         description: 'Power socket EU (with power monitoring)',
         vendor: 'LELLKI',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+        extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
         options: [exposes.options.measurement_poll_interval()],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
-                .withDescription('Recover state after power outage')],
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
@@ -134,11 +120,11 @@ module.exports = [
         vendor: 'LELLKI',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
-            fz.tuya_switch_power_outage_memory],
-        toZigbee: [tz.on_off, tz.tuya_switch_power_outage_memory],
+            tuya.fz.power_outage_memory],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const ep of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
                 await reporting.onOff(device.getEndpoint(ep));

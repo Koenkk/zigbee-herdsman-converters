@@ -9,10 +9,11 @@ const tuya = require('../lib/tuya');
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3210_lfbz816s'},
+            {modelID: 'TS110F', manufacturerName: '_TZ3210_ebbfkvoy'}],
         model: 'ZB006-X',
         vendor: 'Fantem',
-        description: 'Smart dimmer module without neutral',
+        description: 'Smart dimmer module',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.ZB006X_settings],
@@ -41,13 +42,14 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             // Enables reporting of physical state changes
             // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
-            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
         },
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3210_wuhzzfqg'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',

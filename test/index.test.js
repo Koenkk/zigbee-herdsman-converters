@@ -1,6 +1,6 @@
 const index = require('../index');
 const exposes = require('../lib/exposes');
-const utils = require('../lib/utils');
+const tuya = require('../lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -94,6 +94,30 @@ describe('index.js', () => {
 
         const definition = index.findByDevice(device);
         expect(definition.model).toBe("RTCGQ01LM");
+    });
+
+    it('Find by fingerprint with priority', () => {
+        const HG06338 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz',
+            modelID: 'TS011F',
+            applicationVersion: 69,
+        };
+        const TS011F_plug_3 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz_random',
+            modelID: 'TS011F',
+            applicationVersion: 69,
+        };
+        const TS011F_plug_1 = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_vzopcetz_random',
+            modelID: 'TS011F',
+            applicationVersion: 1,
+        };
+        expect(index.findByDevice(HG06338).model).toBe('HG06338');
+        expect(index.findByDevice(TS011F_plug_3).model).toBe('TS011F_plug_3');
+        expect(index.findByDevice(TS011F_plug_1).model).toBe('TS011F_plug_1');
     });
 
     it('Find by device should prefer fingerprint match over zigbeeModel', () => {
@@ -267,7 +291,7 @@ describe('index.js', () => {
             }
 
             if (device.meta) {
-                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite'], Object.keys(device.meta));
+                containsOnly(['disableActionGroup', 'multiEndpoint', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite', 'publishDuplicateTransaction'], Object.keys(device.meta));
             }
 
             if (device.zigbeeModel) {
@@ -375,6 +399,9 @@ describe('index.js', () => {
     it('Exposes access matches toZigbee', () => {
         index.definitions.forEach((device) => {
             if (device.exposes) {
+                // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
+                if (device.toZigbee.includes(tuya.tz.datapoints)) return;
+
                 const toCheck = [];
                 const expss = typeof device.exposes == 'function' ? device.exposes() : device.exposes;
                 for (const expose of expss) {
@@ -492,5 +519,68 @@ describe('index.js', () => {
             const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
+    });
+
+    it('Check TuYa tuya.fz.datapoints calibration/presicion options', () => {
+        const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
+        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
+            ['humidity_precision', 'humidity_calibration', 'temperature_precision', 'temperature_calibration']);
+    });
+
+    it('List expose number', () => {
+        // Example payload:
+        // {"temperatures": [19,21,30]}
+        const itemType = exposes.numeric('temperature', exposes.access.STATE_SET);
+        const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
+        expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
+            "access": 3, 
+            "item_type": {"access": 3, "name": "temperature", "type": "numeric"}, 
+            "name": "temperatures", 
+            "property": "temperatures", 
+            "type": "list"
+        });
+    });
+
+    it('List expose composite', () => {
+        // Example payload:
+        // {"schedule": [{"day":"monday","hour":13,"minute":37}, {"day":"tuesday","hour":14,"minute":59}]}
+
+        const itemType = exposes.composite('dayTime', exposes.access.STATE_SET)
+            .withFeature(exposes.enum('day', exposes.access.STATE_SET, ['monday', 'tuesday', 'wednesday']))
+            .withFeature(exposes.numeric('hour', exposes.access.STATE_SET))
+            .withFeature(exposes.numeric('minute', exposes.access.STATE_SET))
+
+        const list = exposes.list('schedule', exposes.access.STATE_SET, itemType);
+        expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
+            type: 'list',
+            name: 'schedule',
+            property: 'schedule',
+            access: 3,
+            item_type: {
+                type: 'composite',
+                name: 'dayTime',
+                features: [
+                    {
+                        access: 3, 
+                        name: "day", 
+                        property: "day", 
+                        type: "enum",
+                        values: ['monday', 'tuesday', 'wednesday'],
+                    },
+                    {
+                        access: 3, 
+                        name: "hour", 
+                        property: "hour", 
+                        type: "numeric",
+                    },
+                    {
+                        access: 3, 
+                        name: "minute", 
+                        property: "minute", 
+                        type: "numeric",
+                    },
+                ]
+            }
+        });
     });
 });
