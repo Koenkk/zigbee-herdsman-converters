@@ -2892,7 +2892,7 @@ module.exports = [
         fromZigbee: [fzLocal.scenes_recall_scene_65029],
         exposes: [e.action(['scene_1', 'scene_2', 'scene_3', 'scene_4', 'scene_5', 'scene_6'])],
         toZigbee: [],
-    },    
+    },
     {
         zigbeeModel: ['q9mpfhw'],
         model: 'SNTZ009',
