@@ -112,10 +112,12 @@ const fzLocal = {
             cluster: 'manuSpecificPhilips2',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.hasOwnProperty('state')) {
+                if (msg.data && msg.data.hasOwnProperty('state')) {
                     const input = msg.data['state'].toString('hex');
-                    const gradient = philips.decodeGradientColors(input, opts);
-                    return {gradient: gradient.colors};
+                    const decoded = philips.decodeGradientColors(input, opts);
+                    if (decoded.color_mode === 'gradient') {
+                        return {gradient: decoded.colors};
+                    }
                 }
                 return {};
             },
