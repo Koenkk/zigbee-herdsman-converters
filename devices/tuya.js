@@ -1840,8 +1840,9 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
-        whiteLabel: [{vendor: 'Aubess', model: 'WDH02'}],
-        exposes: [e.switch(), e.power(), e.voltage().withAccess(ea.STATE), e.energy(), e.power_on_behavior(), tuya.exposes.switchType()],
+        whiteLabel: [{vendor: 'Aubess', model: 'WHD02'}],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy(), e.power_on_behavior(),
+            tuya.exposes.switchType()],
     },
     {
         zigbeeModel: ['TS0001'],
