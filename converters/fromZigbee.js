@@ -5040,31 +5040,6 @@ const converters = {
             }
         },
     },
-    tuya_smoke: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case tuya.dataPoints.state:
-                    result.smoke = value === 0;
-                    break;
-                case 14:
-                    // battery state, ignore
-                    break;
-                case 15:
-                    result.battery = value;
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
     tuya_woox_smoke: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse'],
