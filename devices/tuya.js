@@ -2885,7 +2885,7 @@ module.exports = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ['_TZ3000_zua10nyz'],
+        zigbeeModel: ['TS0026'],
         model: 'TS0026',
         vendor: 'TuYa',
         description: '6 button scene wall switch',
