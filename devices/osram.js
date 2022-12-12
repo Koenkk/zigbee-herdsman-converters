@@ -9,21 +9,14 @@ const e = exposes.presets;
 const fzLocal = {
     pbc_level_to_action: {
         cluster: 'genLevelCtrl',
-        type: [
-            'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
-            'commandMoveToLevelWithOnOff',
-        ],
+        type: ['commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop', 'commandMoveToLevelWithOnOff'],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            let action = '';
-            if (msg.type == 'commandMoveWithOnOff' || msg.type == 'commandMove') {
-                action = 'hold';
-            } else if (msg.type == 'commandStopWithOnOff' || msg.type == 'commandStop') {
-                action = 'release';
-            } else if (msg.type == 'commandMoveToLevelWithOnOff') {
-                action = 'toggle';
-            }
-            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: action};
+            const lookup = {
+                commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release', 
+                commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
+            };
+            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
         },
     },
 };
@@ -503,7 +496,7 @@ module.exports = [
         zigbeeModel: ['PBC'],
         model: '4052899930377',
         vendor: 'OSRAM',
-        description: 'Lightify Pro Push Button Controller (PBC)',
+        description: 'Lightify pro push button controller (PBC)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
