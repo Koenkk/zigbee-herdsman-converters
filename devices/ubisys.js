@@ -8,9 +8,6 @@ const constants = require('../lib/constants');
 const herdsman = require('zigbee-herdsman');
 const e = exposes.presets;
 const ea = exposes.access;
-const globalStore = require('../lib/store');
-
-const defaultSimulatedBrightness = 255;
 
 const manufacturerOptions = {
     /*
