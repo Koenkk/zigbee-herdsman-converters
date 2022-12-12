@@ -615,6 +615,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+            e.energy(),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
@@ -633,6 +634,13 @@ module.exports = [
             await reporting.instantaneousDemand(endpoint);
         },
         onEvent: async (type, data, device) => {
+            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+                const endpoint = device.getEndpoint(5);
+                try {
+                    await endpoint.read('seMetering', ['currentSummDelivered']);
+                } catch (error) {/* Do nothing*/}
+            }
+
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
