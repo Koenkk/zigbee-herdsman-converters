@@ -2841,7 +2841,7 @@ module.exports = [
         model: 'TS0014',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang without neutral wire',
-        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3', 'l4']}),
+        extend: tuya.extend.switch({backlightMode: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
