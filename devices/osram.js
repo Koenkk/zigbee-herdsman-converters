@@ -10,29 +10,23 @@ const fzLocal = {
     pbc_level_to_action: {
         cluster: 'genLevelCtrl',
         type: [
-            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
+            'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
             'commandMoveToLevelWithOnOff',
         ],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            // Leaving step commands commented out as they are part of the genLevelCtrl cluster
-            // yet don't appear to be used by the device.
-            // WithOnOff commands are used by odd endpoints, the other commands are used by even
-            // MoveToLevel is used by all endpoints.
-            const lookup = {
-                // commandStepWithOnOff: 'unknown',
-                // commandStep: 'unknown',
-                commandMoveWithOnOff: 'hold',
-                commandStopWithOnOff: 'release',
-                commandMove: 'hold',
-                commandStop: 'release',
-                commandMoveToLevelWithOnOff: 'toggle',
-            };
-            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
+            let action = '';
+            if (msg.type == 'commandMoveWithOnOff' || msg.type == 'commandMove') {
+                action = 'hold';
+            } else if (msg.type == 'commandStopWithOnOff' || msg.type == 'commandStop') {
+                action = 'release';
+            } else if (msg.type == 'commandMoveToLevelWithOnOff') {
+                action = 'toggle';
+            }
+            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: action};
         },
     },
 };
-
 
 module.exports = [
     {
