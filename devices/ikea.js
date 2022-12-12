@@ -375,7 +375,7 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRIbulbE26WSglobeclear800lm', 'TRADFRIbulbE27WSglobeclear806lm'],
+        zigbeeModel: ['TRADFRIbulbE26WSglobeclear800lm', 'TRADFRIbulbE27WSglobeclear806lm', 'TRADFRIbulbE26WSglobeclear806lm'],
         model: 'LED2004G8',
         vendor: 'IKEA',
         description: 'TRADFRI LED bulb E26/E27 800/806 lumen, dimmable, white spectrum, clear',
