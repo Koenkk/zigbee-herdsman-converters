@@ -22,14 +22,14 @@ const fzLocal = {
             const lookup = {
                 // commandStepWithOnOff: 'unknown',
                 // commandStep: 'unknown',
-                commandMoveWithOnOff: 'hold', 
+                commandMoveWithOnOff: 'hold',
                 commandStopWithOnOff: 'release',
                 commandMove: 'hold',
                 commandStop: 'release',
                 commandMoveToLevelWithOnOff: 'toggle',
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
-        }
+        },
     },
 };
 
@@ -512,7 +512,7 @@ module.exports = [
         description: 'Lightify Pro Push Button Controller (PBC)',
         meta: {multiEndpoint: true},
         endpoint: (device) => {
-           return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         fromZigbee: [fzLocal.pbc_level_to_action],
         exposes: [
@@ -528,5 +528,5 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genLevelCtrl']);
         },
-    },    
+    },
 ];
