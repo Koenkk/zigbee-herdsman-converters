@@ -111,58 +111,6 @@ const ubisys = {
                 }
             },
         },
-        command_toggle_force_multiendpoint: {
-            cluster: 'genOnOff',
-            type: 'commandToggle',
-            convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                const endpointName = model.hasOwnProperty('endpoint') ?
-                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
-                const payload = {action: utils.postfixWithEndpointName([`toggle_${endpointName}`], msg, model, meta)};
-                utils.addActionGroup(payload, msg, model);
-                return payload;
-            },
-        },
-        command_move_force_multiendpoint: {
-            cluster: 'genLevelCtrl',
-            type: ['commandMove', 'commandMoveWithOnOff'],
-            options: [exposes.options.simulated_brightness()],
-            convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                const endpointName = model.hasOwnProperty('endpoint') ?
-                    utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
-                const direction = msg.data.movemode === 1 ? 'down' : 'up';
-                const action = utils.postfixWithEndpointName(`brightness_move_${direction}_${endpointName}`, msg, model, meta);
-                const payload = {action, action_rate: msg.data.rate};
-                utils.addActionGroup(payload, msg, model);
-
-                if (options.simulated_brightness) {
-                    const opts = options.simulated_brightness;
-                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 20;
-                    const intervalOpts = typeof opts === 'object' && opts.hasOwnProperty('interval') ? opts.interval : 200;
-
-                    globalStore.putValue(msg.endpoint, 'simulated_brightness_direction', direction);
-                    if (globalStore.getValue(msg.endpoint, 'simulated_brightness_timer') === undefined) {
-                        const timer = setInterval(() => {
-                            let brightness = globalStore.getValue(
-                                msg.endpoint, 'simulated_brightness_brightness', defaultSimulatedBrightness);
-                            const delta = globalStore.getValue(msg.endpoint, 'simulated_brightness_direction') === 'up' ?
-                                deltaOpts : -1 * deltaOpts;
-                            brightness += delta;
-                            brightness = utils.numberWithinRange(brightness, 0, 255);
-                            globalStore.putValue(msg.endpoint, 'simulated_brightness_brightness', brightness);
-                            const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
-                            const deltaProperty = utils.postfixWithEndpointName('action_brightness_delta', msg, model, meta);
-                            publish({[property]: brightness, [deltaProperty]: delta});
-                        }, intervalOpts);
-
-                        globalStore.putValue(msg.endpoint, 'simulated_brightness_timer', timer);
-                    }
-                }
-
-                return payload;
-            },
-        },
     },
     tz: {
         configure_j1: {
@@ -734,8 +682,8 @@ module.exports = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off, fz.brightness, fz.metering, ubisys.fz.command_toggle_force_multiendpoint, fz.command_on,
-            fz.command_off, fz.command_recall, ubisys.fz.command_move_force_multiendpoint, fz.command_stop,
+        fromZigbee: [fz.on_off_force_single_endpoint, fz.brightness_force_single_endpoint, fz.metering, fz.command_toggle,
+            fz.command_on, fz.command_off, fz.command_recall, fz.command_move, fz.command_stop,
             fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup, ubisys.fz.dimmer_setup_genLevelCtrl,
             ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
