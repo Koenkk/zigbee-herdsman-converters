@@ -3,7 +3,36 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
+
+const fzLocal = {
+    pbc_level_to_action: {
+        cluster: 'genLevelCtrl',
+        type: [
+            'commandStepWithOnOff', 'commandStep', 'commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop',
+            'commandMoveToLevelWithOnOff',
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            // Leaving step commands commented out as they are part of the genLevelCtrl cluster
+            // yet don't appear to be used by the device.
+            // WithOnOff commands are used by odd endpoints, the other commands are used by even
+            // MoveToLevel is used by all endpoints.
+            const lookup = {
+                // commandStepWithOnOff: 'unknown',
+                // commandStep: 'unknown',
+                commandMoveWithOnOff: 'hold', 
+                commandStopWithOnOff: 'release',
+                commandMove: 'hold',
+                commandStop: 'release',
+                commandMoveToLevelWithOnOff: 'toggle',
+            };
+            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
+        }
+    },
+};
+
 
 module.exports = [
     {
@@ -476,4 +505,28 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['PBC'],
+        model: '4052899930377',
+        vendor: 'OSRAM',
+        description: 'Lightify Pro Push Button Controller (PBC)',
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+           return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        fromZigbee: [fzLocal.pbc_level_to_action],
+        exposes: [
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l1'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l2'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l3'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l4'),
+        ],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genLevelCtrl']);
+        },
+    },    
 ];
