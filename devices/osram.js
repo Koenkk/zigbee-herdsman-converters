@@ -13,7 +13,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const lookup = {
-                commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release', 
+                commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release',
                 commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
             };
             return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
