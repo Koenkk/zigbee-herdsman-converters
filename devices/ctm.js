@@ -19,6 +19,19 @@ const dataType = {
 };
 
 const fzLocal = {
+    ctm_mbd_device_enabled: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty('onOff')) {
+                result.device_enabled = data['onOff'] ? 'ON' : 'OFF';
+            }
+
+            return result;
+        },
+    },
     ctm_device_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -79,7 +92,7 @@ const fzLocal = {
             const result = {};
             const data = msg.data;
             if (data.hasOwnProperty(0x5001)) {
-                result.relay_state = data[0x5001] ? 'ON' : 'OFF';
+                result.state = data[0x5001] ? 'ON' : 'OFF';
             }
 
             return result;
@@ -294,6 +307,15 @@ const fzLocal = {
 
 
 const tzLocal = {
+    ctm_mbd_device_enabled: {
+        key: ['device_enabled'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genOnOff', value.toLowerCase(), {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genOnOff', ['onOff']);
+        },
+    },
     ctm_device_mode: {
         key: ['device_mode'],
         convertGet: async (entity, key, meta) => {
@@ -322,7 +344,7 @@ const tzLocal = {
         },
     },
     ctm_relay_state: {
-        key: ['relay_state'],
+        key: ['state'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('genOnOff',
                 {0x5001: {value: {'OFF': 0, 'ON': 1}[value], type: dataType.boolean}}, {manufacturerCode: 0x1337});
@@ -949,8 +971,8 @@ module.exports = [
         model: 'MBD-S',
         vendor: 'CTM Lyng',
         description: 'MBD-S, motion detector with 16A relay',
-        fromZigbee: [fz.on_off, fz.illuminance, fz.occupancy, fzLocal.ctm_relay_state],
-        toZigbee: [tz.on_off, tzLocal.ctm_relay_state],
+        fromZigbee: [fz.illuminance, fz.occupancy, fzLocal.ctm_mbd_device_enabled, fzLocal.ctm_relay_state],
+        toZigbee: [tzLocal.ctm_mbd_device_enabled, tzLocal.ctm_relay_state],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -970,8 +992,8 @@ module.exports = [
                 reportableChange: 0}], {manufacturerCode: 0x1337});
         },
         exposes: [e.switch(), e.illuminance(), e.illuminance_lux(), e.occupancy(),
-            exposes.binary('relay_state', ea.ALL, 'ON', 'OFF')
-                .withDescription('Turn the relay on or off'),
+            exposes.binary('device_enabled', ea.ALL, 'ON', 'OFF')
+                .withDescription('Turn the device on or off'),
         ],
     },
 ];
