@@ -516,6 +516,17 @@ const converters = {
             }
         },
     },
+    brightness_force_single_endpoint: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // This converter is needed instead of `fz.brightness` for multi-endpoint devices (`{multiEndpoint: true}`)
+            // which only have a single state. This prevents unnecessary prefixing of the brightness attribute.
+            if (msg.data.hasOwnProperty('currentLevel')) {
+                return {brightness: msg.data['currentLevel']};
+            }
+        },
+    },
     level_config: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -808,6 +819,17 @@ const converters = {
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
                 const property = postfixWithEndpointName('state', msg, model, meta);
                 return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            }
+        },
+    },
+    on_off_force_single_endpoint: {
+        cluster: 'genOnOff',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            // This converter is needed instead of `fz.on_off` for multi-endpoint devices (`{multiEndpoint: true}`)
+            // which only have a single state. This prevents unnecessary prefixing of the state attribute.
+            if (msg.data.hasOwnProperty('onOff')) {
+                return {state: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
             }
         },
     },
