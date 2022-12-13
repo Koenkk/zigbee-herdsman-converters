@@ -1016,5 +1016,5 @@ module.exports = [
              await reportingbatteryAlarmState(endpoint);
              } catch (error) {/* Do Nothing */}
         },
-    };
+    },
 ];
