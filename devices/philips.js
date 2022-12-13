@@ -3025,4 +3025,11 @@ module.exports = [
         description: 'Hue White E17 470 lumen',
         extend: hueExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['929003046901'],
+        model: '8719514338524',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Pillar spotlight with Bluetooth (black)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
 ];
