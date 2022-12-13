@@ -668,7 +668,9 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withDescription('Decoupled mode'),
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
-                    'Quick mode makes the device respond faster.')],
+                    'Quick mode makes the device respond faster.'),
+            e.power_outage_count(),
+            e.device_temperature().withAccess(ea.STATE),],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
