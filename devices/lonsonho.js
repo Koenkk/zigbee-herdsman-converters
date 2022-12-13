@@ -3,46 +3,9 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const utils = require('../lib/utils');
+const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
-
-const fzLocal = {
-    TS110E_switch_type: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 0xfc02;
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const lookup = {0: 'momentary', 1: 'toggle', 2: 'state'};
-                if (lookup.hasOwnProperty(value)) {
-                    const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
-                    return {[propertyName]: lookup[value]};
-                }
-            }
-        },
-    },
-};
-
-const tzLocal = {
-    TS110E_switch_type: {
-        key: ['switch_type'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'momentary': 0, 'toggle': 1, 'state': 2};
-
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-
-            await entity.write('genLevelCtrl', {0xfc02: {value: payload, type: 0x20}});
-            return {state: {switch_type: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', [0xfc02]);
-        },
-    },
-};
 
 module.exports = [
     {
@@ -62,8 +25,9 @@ module.exports = [
         model: '11830304',
         vendor: 'Lonsonho',
         description: 'Curtain switch',
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_backlight_mode, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tz.tuya_backlight_mode],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode, fz.tuya_cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
+            tuya.tz.backlight_indicator_mode],
         meta: {coverInverted: true},
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
@@ -257,39 +221,5 @@ module.exports = [
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
-    },
-    {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_zxbtub8r'}],
-        model: 'TS110E_1gang',
-        vendor: 'Lonsonho',
-        description: 'Zigbee smart dimmer module 1 gang with neutral',
-        extend: extend.light_onoff_brightness(),
-    },
-    {
-        fingerprint: [{modelID: 'TS110E', manufacturerName: '_TZ3210_wdexaypg'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_3mpwqzuu'}],
-        model: 'TS110E_2gang',
-        vendor: 'Lonsonho',
-        description: 'Zigbee smart dimmer module 2 gang with neutral',
-        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([fz.tuya_switch_power_outage_memory, fzLocal.TS110E_switch_type]),
-        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .toZigbee.concat([tz.tuya_switch_power_outage_memory, tzLocal.TS110E_switch_type]),
-        meta: {multiEndpoint: true},
-        exposes: [
-            e.light_brightness().withEndpoint('l1'),
-            e.light_brightness().withEndpoint('l2'),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')
-                .withEndpoint('l1'),
-            exposes.presets.switch_type_2().withEndpoint('l1'),
-            exposes.presets.switch_type_2().withEndpoint('l2'),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
     },
 ];

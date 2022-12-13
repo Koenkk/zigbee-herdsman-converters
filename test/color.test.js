@@ -35,6 +35,9 @@ describe('lib/color.js', () => {
         ])('.gammaCorrected - %j', (input, output) => {
             expect(libColor.ColorRGB.fromObject(input).gammaCorrected().rounded(4).toObject()).toStrictEqual(output);
         });
+
+        expect(libColor.ColorRGB.fromHex("#663399").toHEX()).toBe("#663399");
+        expect(libColor.ColorRGB.fromHex("#020202").toHEX()).toBe("#020202");
     });
 
     describe('ColorHSV', () => {

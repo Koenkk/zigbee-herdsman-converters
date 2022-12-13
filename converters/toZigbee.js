@@ -1247,6 +1247,10 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
             await entity.write('hvacUserInterfaceCfg', {tempDisplayMode});
+            return {readAfterWriteTime: 250, state: {temperature_display_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacUserInterfaceCfg', ['tempDisplayMode']);
         },
     },
     thermostat_keypad_lockout: {
@@ -3612,34 +3616,6 @@ const converters = {
             await tuya.sendDataPointBool(entity, tuya.dataPoints.state, value === 'cool');
         },
     },
-    tuya_switch_power_outage_memory: {
-        key: ['power_outage_memory'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0x00, 'on': 0x01, 'restore': 0x02};
-            utils.validateValue(value, Object.keys(lookup));
-            const payload = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: payload});
-            return {state: {power_outage_memory: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
-    moes_power_on_behavior: {
-        key: ['power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('genOnOff', {moesStartUpOnOff: pState});
-            return {state: {power_on_behavior: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
-        },
-    },
     moes_switch: {
         key: ['power_on_behavior', 'indicate_light'],
         convertSet: async (entity, key, value, meta) => {
@@ -3913,19 +3889,6 @@ const converters = {
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
             await tuya.sendDataPointBool(entity, keyid, value === 'ON');
             return {state: {state: value.toUpperCase()}};
-        },
-    },
-    tuya_switch_type: {
-        key: ['switch_type'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'toggle': 0, 'state': 1, 'momentary': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.write('manuSpecificTuya_3', {'switchType': lookup[value]}, {disableDefaultResponse: true});
-            return {state: {switch_type: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['switchType']);
         },
     },
     tuya_min_brightness: {
@@ -4291,180 +4254,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4000], manufacturerOptions.eurotronic);
-        },
-    },
-    sinope_thermostat_occupancy: {
-        key: ['thermostat_occupancy'],
-        convertSet: async (entity, key, value, meta) => {
-            const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
-            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeOccupancy});
-            return {state: {'thermostat_occupancy': value}};
-        },
-    },
-    sinope_thermostat_backlight_autodim_param: {
-        key: ['backlight_auto_dim'],
-        convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
-            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeBacklight});
-            return {state: {'backlight_auto_dim': value}};
-        },
-    },
-    sinope_thermostat_enable_outdoor_temperature: {
-        key: ['enable_outdoor_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value.toLowerCase() == 'on') {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
-            } else if (value.toLowerCase() == 'off') {
-                // set timer to 30sec in order to disable outdoor temperature
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 30});
-            }
-        },
-    },
-    sinope_thermostat_outdoor_temperature: {
-        key: ['thermostat_outdoor_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value > -100 && value < 100) {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100});
-            }
-        },
-    },
-    sinope_thermostat_time: {
-        key: ['thermostat_time'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === '') {
-                const thermostatDate = new Date();
-                const thermostatTimeSec = thermostatDate.getTime() / 1000;
-                const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
-                const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay});
-            } else if (value !== '') {
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value});
-            }
-        },
-    },
-    sinope_floor_control_mode: {
-        // TH1300ZB specific
-        key: ['floor_control_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-            const lookup = {'ambiant': 1, 'floor': 2};
-            value = value.toLowerCase();
-            if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {floorControlMode: lookup[value]});
-            }
-        },
-    },
-    sinope_ambiant_max_heat_setpoint: {
-        // TH1300ZB specific
-        key: ['ambiant_max_heat_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {ambiantMaxHeatSetpointLimit: value * 100});
-            }
-        },
-    },
-    sinope_floor_min_heat_setpoint: {
-        // TH1300ZB specific
-        key: ['floor_min_heat_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {floorMinHeatSetpointLimit: value * 100});
-            }
-        },
-    },
-    sinope_floor_max_heat_setpoint: {
-        // TH1300ZB specific
-        key: ['floor_max_heat_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 5 && value <= 36) {
-                await entity.write('manuSpecificSinope', {floorMaxHeatSetpointLimit: value * 100});
-            }
-        },
-    },
-    sinope_temperature_sensor: {
-        // TH1300ZB specific
-        key: ['floor_temperature_sensor'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-            const lookup = {'10k': 0, '12k': 1};
-            value = value.toLowerCase();
-            if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {temperatureSensor: lookup[value]});
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['temperatureSensor']);
-        },
-    },
-    sinope_time_format: {
-        // TH1300ZB specific
-        key: ['time_format'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== 'string') {
-                return;
-            }
-            const lookup = {'24h': 0, '12h': 1};
-            value = value.toLowerCase();
-            if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
-            }
-        },
-    },
-    sinope_led_intensity_on: {
-        // DM2500ZB and SW2500ZB
-        key: ['led_intensity_on'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 0 && value <= 100) {
-                await entity.write('manuSpecificSinope', {ledIntensityOn: value});
-            }
-        },
-    },
-    sinope_led_intensity_off: {
-        // DM2500ZB and SW2500ZB
-        key: ['led_intensity_off'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 0 && value <= 100) {
-                await entity.write('manuSpecificSinope', {ledIntensityOff: value});
-            }
-        },
-    },
-    sinope_led_color_on: {
-        // DM2500ZB and SW2500ZB
-        key: ['led_color_on'],
-        convertSet: async (entity, key, value, meta) => {
-            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
-            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
-            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
-
-            const valueHex = r + g * 256 + (b * 256 ** 2);
-            await entity.write('manuSpecificSinope', {ledColorOn: valueHex});
-        },
-    },
-    sinope_led_color_off: {
-        // DM2500ZB and SW2500ZB
-        key: ['led_color_off'],
-        convertSet: async (entity, key, value, meta) => {
-            const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
-            const g = (value.g >= 0 && value.g <= 255) ? value.g : 0;
-            const b = (value.b >= 0 && value.b <= 255) ? value.b : 0;
-
-            const valueHex = r + g * 256 + b * 256 ** 2;
-            await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
-        },
-    },
-    sinope_minimum_brightness: {
-        // DM2500ZB
-        key: ['minimum_brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            if (value >= 0 && value <= 3000) {
-                await entity.write('manuSpecificSinope', {minimumBrightness: value});
-            }
         },
     },
     stelpro_thermostat_outdoor_temperature: {
@@ -6229,46 +6018,6 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('closuresWindowCovering', ['moesCalibrationTime']);
-        },
-    },
-    tuya_backlight_mode: {
-        key: ['backlight_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'LOW': 0, 'MEDIUM': 1, 'HIGH': 2};
-            value = value.toUpperCase();
-            utils.validateValue(value, Object.keys(lookup));
-            const backlight = lookup[value];
-            await entity.write('genOnOff', {tuyaBacklightMode: backlight});
-            return {state: {backlight_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    ts011f_plug_indicator_mode: {
-        key: ['indicator_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value === 'string') {
-                value = value.toLowerCase();
-                const lookup = {'off': 0, 'off/on': 1, 'on/off': 2, 'on': 3};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-            }
-
-            if (typeof value === 'number' && value >= 0 && value <= 3) {
-                await entity.write('genOnOff', {tuyaBacklightMode: value});
-            } else {
-                meta.logger.warn(`toZigbee.ts011f_plug_indicator_mode: Unsupported value ${value}`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
-        },
-    },
-    ts011f_plug_child_mode: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write('genOnOff', {0x8000: {value: value === 'LOCK', type: 0x10}});
         },
     },
     hy_thermostat: {

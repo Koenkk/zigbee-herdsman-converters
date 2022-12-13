@@ -58,6 +58,22 @@ const daysLookup = {
 
 
 const fzLocal = {
+    aqara_s1_co2: {
+        cluster: 'msCO2',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            return {co2: Math.floor(msg.data.measuredValue)};
+        },
+    },
+    aqara_s1_pm25: {
+        cluster: 'heimanSpecificPM25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {pm25: msg.data['measuredValue'] / 1000};
+            }
+        },
+    },
     aqara_trv: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -416,6 +432,15 @@ module.exports = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
         },
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.airm.fhac01'],
+        model: 'KQJCMB11LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara air monitoring panel S1',
+        fromZigbee: [fz.temperature, fz.humidity, fzLocal.aqara_s1_pm25, fzLocal.aqara_s1_co2],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.pm25(), e.co2()],
     },
     {
         zigbeeModel: ['lumi.magnet.acn001'],
@@ -2107,6 +2132,24 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara zigbee LED-controller ',
         extend: extend.light_onoff_brightness(),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.acn004'],
+        model: 'SSWQD02LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart dimmer controller t1 pro',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['lumi.light.acn026'],
+        model: 'SSWQD03LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara spotlight T2',
+        extend: extend.light_onoff_brightness_colortemp({
+            disableEffect: true, disablePowerOnBehavior: true, disableColorTempStartup: true, colorTempRange: [153, 370]}),
         ota: ota.zigbeeOTA,
     },
     {

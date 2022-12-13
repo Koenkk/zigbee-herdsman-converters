@@ -184,6 +184,10 @@ const converters = {
                 result.keypad_lockout = constants.keypadLockoutMode.hasOwnProperty(msg.data['keypadLockout']) ?
                     constants.keypadLockoutMode[msg.data['keypadLockout']] : msg.data['keypadLockout'];
             }
+            if (msg.data.hasOwnProperty('tempDisplayMode')) {
+                result.temperature_display_mode = constants.temperatureDisplayMode.hasOwnProperty(msg.data['tempDisplayMode']) ?
+                    constants.temperatureDisplayMode[msg.data['tempDisplayMode']] : msg.data['tempDisplayMode'];
+            }
             return result;
         },
     },
@@ -677,6 +681,7 @@ const converters = {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
             const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
             const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor');
@@ -733,6 +738,7 @@ const converters = {
         options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
             exposes.options.calibration('voltage', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key) => {
                 const multiplier = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Multiplier`);
                 const divisor = msg.endpoint.getClusterAttributeValue('haElectricalMeasurement', `${key}Divisor`);
@@ -2545,17 +2551,6 @@ const converters = {
             };
         },
     },
-    moes_power_on_behavior: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
-            if (msg.data.hasOwnProperty('moesStartUpOnOff')) {
-                const property = postfixWithEndpointName('power_on_behavior', msg, model, meta);
-                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
-            }
-        },
-    },
     moes_switch: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
@@ -2793,42 +2788,6 @@ const converters = {
             return result;
         },
     },
-    tuya_backlight_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('tuyaBacklightMode')) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup = {0: 'LOW', 1: 'MEDIUM', 2: 'HIGH'};
-                return {backlight_mode: backlightLookup[value]};
-            }
-        },
-    },
-    ts011f_plug_indicator_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'tuyaBacklightMode'; // 0x8001 or 32769
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                const lookup = {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'};
-                if (lookup.hasOwnProperty(value)) {
-                    return {indicator_mode: lookup[value]};
-                }
-            }
-        },
-    },
-    ts011f_plug_child_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = (0x8000).toString(); // 32768
-            if (msg.data.hasOwnProperty(property)) {
-                const value = msg.data[property];
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            }
-        },
-    },
     WSZ01_on_off_action: {
         cluster: 65029,
         type: 'raw',
@@ -2850,6 +2809,8 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
             } else if (['TS0044', 'YSR-MINI-Z', 'TS004F'].includes(model.model)) {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            } else if (['TS0046'].includes(model.model)) {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
             }
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : '';
             // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
@@ -3461,37 +3422,6 @@ const converters = {
             return result;
         },
     },
-    sinope_TH1300ZB_specific: {
-        cluster: 'manuSpecificSinope',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
-            const result = {};
-            if (msg.data.hasOwnProperty('GFCiStatus')) {
-                result.gfci_status = lookup[msg.data['GFCiStatus']];
-            }
-            if (msg.data.hasOwnProperty('floorLimitStatus')) {
-                result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
-            }
-            return result;
-        },
-    },
-    sinope_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'unoccupied', 1: 'occupied'};
-            const lookup1 = {0: 'on_demand', 1: 'sensing'};
-            const result = {};
-            if (msg.data.hasOwnProperty('1024')) {
-                result.thermostat_occupancy = lookup[msg.data['1024']];
-            }
-            if (msg.data.hasOwnProperty('1026')) {
-                result.backlight_auto_dim = lookup1[msg.data['1026']];
-            }
-            return result;
-        },
-    },
     danfoss_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -4024,6 +3954,8 @@ const converters = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
                 return {current_heating_setpoint: value};
+            case tuya.dataPoints.moesMinTempLimit:
+                return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
                 return {max_temperature_limit: value};
             case tuya.dataPoints.moesMaxTemp:
@@ -4256,12 +4188,19 @@ const converters = {
     tuya_air_quality: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-            exposes.options.precision('co2'), exposes.options.calibration('co2'),
-            exposes.options.precision('voc'), exposes.options.calibration('voc'),
-            exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
-            exposes.options.precision('pm25'), exposes.options.calibration('pm25')],
+        options: (definition) => {
+            const result = [
+                exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+                exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
+                exposes.options.precision('co2'), exposes.options.calibration('co2'),
+                exposes.options.precision('voc'), exposes.options.calibration('voc'),
+                exposes.options.precision('formaldehyd'), exposes.options.calibration('formaldehyd'),
+            ];
+            if (definition.exposes.find((e) => e.name === 'pm25')) {
+                result.push(exposes.options.precision('pm25'), exposes.options.calibration('pm25'));
+            }
+            return result;
+        },
         convert: (model, msg, publish, options, meta) => {
             const dpValue = tuya.firstDpValue(msg, meta, 'tuya_air_quality');
             const dp = dpValue.dp;
@@ -4777,16 +4716,6 @@ const converters = {
             });
         },
     },
-    tuya_switch_type: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'toggle', 1: 'state', 2: 'momentary'};
-            if (msg.data.hasOwnProperty('switchType')) {
-                return {switch_type: lookup[msg.data['switchType']]};
-            }
-        },
-    },
     tuya_min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -5109,31 +5038,6 @@ const converters = {
                     `#${dp} with data ${JSON.stringify(dpValue)}`);
             }
             }
-        },
-    },
-    tuya_smoke: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case tuya.dataPoints.state:
-                    result.smoke = value === 0;
-                    break;
-                case 14:
-                    // battery state, ignore
-                    break;
-                case 15:
-                    result.battery = value;
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:tuya_smoke: Unrecognized DP #${ dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
         },
     },
     tuya_woox_smoke: {
@@ -6373,18 +6277,11 @@ const converters = {
                     result.position = options.invert_cover ? 100 - result.position : result.position;
                 }
             }
-            return result;
-        },
-    },
-    D10110_cover_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
-                // The Yookee D10110 SENDs it's position reversed, relative to the spec.
-                msg.data['currentPositionLiftPercentage'] = 100 - msg.data['currentPositionLiftPercentage'];
+            // Add the state
+            if ('position' in result) {
+                result.state = result.position === 0 ? 'CLOSE' : 'OPEN';
             }
-            return converters.cover_position_tilt.convert(model, msg, publish, options, meta);
+            return result;
         },
     },
     PGC410EU_presence: {
@@ -7211,22 +7108,6 @@ const converters = {
                 meta.logger.error(`Hue Tap: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
-            }
-        },
-    },
-    tuya_switch_power_outage_memory: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const property = 'moesStartUpOnOff';
-
-            if (msg.data.hasOwnProperty(property)) {
-                const dict = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const value = msg.data[property];
-
-                if (dict.hasOwnProperty(value)) {
-                    return {[postfixWithEndpointName('power_outage_memory', msg, model, meta)]: dict[value]};
-                }
             }
         },
     },
