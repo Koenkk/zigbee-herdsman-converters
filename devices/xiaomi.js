@@ -669,8 +669,7 @@ module.exports = [
             exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
-            e.power_outage_count(),
-            e.device_temperature().withAccess(ea.STATE)],
+            e.power_outage_count(), e.device_temperature().withAccess(ea.STATE)],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -684,24 +683,18 @@ module.exports = [
         model: 'WS-USC02',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action,
-            fz.aqara_opple, fz.WS_USC02_single_and_double_press],
-        toZigbee: [
-            tz.on_off, tz.xiaomi_switch_operation_mode_opple,
-            tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple, fz.WS_USC02_single_and_double_press],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
-            exposes
-                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for top button')
                 .withEndpoint('top'),
-            exposes
-                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for bottom button')
                 .withEndpoint('bottom'),
-            exposes
-                .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+            exposes.enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
                     'Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.',
@@ -709,21 +702,16 @@ module.exports = [
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.flip_indicator_light(),
-            e.action(['single_top', 'single_bottom', 'single_both',
-                'double_top', 'double_bottom', 'double_both'])],
+            e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'top': 1, 'bottom': 2};
         },
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
-            await device
-                .getEndpoint(1)
-                .write(
-                    'aqaraOpple',
-                    {mode: 1},
-                    {manufacturerCode: 0x115f, disableResponse: true},
-                );
+            await device.getEndpoint(1).write(
+                'aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableResponse: true},
+            );
         },
         ota: ota.zigbeeOTA,
     },
