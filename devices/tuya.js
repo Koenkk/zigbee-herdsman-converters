@@ -3103,7 +3103,7 @@ module.exports = [
         description: 'Vibration sensor',
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
-        exposes: [e.battery(), e.vibration(), exposes.enum('sensitivity', exposes.access.STATE_SET, ['low', 'medium', 'high'])],
+        exposes: [e.battery(), e.battery_voltage(), e.vibration(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
