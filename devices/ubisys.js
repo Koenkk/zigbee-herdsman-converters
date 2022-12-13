@@ -679,10 +679,9 @@ module.exports = [
         model: 'D1',
         vendor: 'Ubisys',
         description: 'Universal dimmer D1',
-        fromZigbee: [fz.on_off_force_single_endpoint, fz.brightness_force_single_endpoint, fz.metering, fz.command_toggle,
-            fz.command_on, fz.command_off, fz.command_recall, fz.command_move, fz.command_stop,
-            fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup, ubisys.fz.dimmer_setup_genLevelCtrl,
-            ubisys.fz.configure_device_setup],
+        fromZigbee: [fz.on_off, fz.brightness, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, 
+            fz.command_move, fz.command_stop, fz.lighting_ballast_configuration, fz.level_config, ubisys.fz.dimmer_setup, 
+            ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
             tz.light_brightness_step],
@@ -749,6 +748,7 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness']},
         endpoint: (device) => {
             return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
         },
