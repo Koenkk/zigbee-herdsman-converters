@@ -670,7 +670,7 @@ module.exports = [
                 .withDescription('Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.'),
             e.power_outage_count(),
-            e.device_temperature().withAccess(ea.STATE),],
+            e.device_temperature().withAccess(ea.STATE)],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
@@ -703,13 +703,13 @@ module.exports = [
             exposes
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
                     'Quick mode makes the device respond faster.',
                 ),
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.flip_indicator_light(),
-            e.action(['single_top', 'single_bottom', 'single_both', 
+            e.action(['single_top', 'single_bottom', 'single_both',
                 'double_top', 'double_bottom', 'double_both'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -718,12 +718,12 @@ module.exports = [
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
             await device
-            .getEndpoint(1)
-            .write(
-                'aqaraOpple',
-                { mode: 1 },
-                { manufacturerCode: 0x115f, disableResponse: true },
-            );
+                .getEndpoint(1)
+                .write(
+                    'aqaraOpple',
+                    {mode: 1},
+                    {manufacturerCode: 0x115f, disableResponse: true},
+                );
         },
         ota: ota.zigbeeOTA,
     },

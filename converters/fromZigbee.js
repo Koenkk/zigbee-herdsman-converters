@@ -8313,13 +8313,13 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if ([1, 2].includes(msg.data.presentValue)) {
-                const mapping = { 41: 'top', 42: 'bottom', 51: 'both' };
-                const times = { 1: 'single', 2: 'double' };
+                const mapping = {41: 'top', 42: 'bottom', 51: 'both'};
+                const times = {1: 'single', 2: 'double'};
                 const button = mapping[msg.endpoint.ID];
-                return { action: `${times[msg.data.presentValue]}_${button}` };
+                return {action: `${times[msg.data.presentValue]}_${button}`};
             }
         },
-    }
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
