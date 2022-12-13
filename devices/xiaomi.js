@@ -74,7 +74,6 @@ const fzLocal = {
             }
         },
     },
-
     aqara_trv: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
@@ -437,8 +436,8 @@ module.exports = [
     {
         zigbeeModel: ['lumi.airm.fhac01'],
         model: 'KQJCMB11LM',
-        vendor: 'Aqara',
-        description: 'Aqara Air Monitoring Panel S1',
+        vendor: 'Xiaomi',
+        description: 'Aqara air monitoring panel S1',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.aqara_s1_pm25, fzLocal.aqara_s1_co2],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.co2()],
