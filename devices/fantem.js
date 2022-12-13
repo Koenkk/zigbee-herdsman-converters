@@ -49,6 +49,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3210_rxqls8v0'},
             {modelID: 'TS0202', manufacturerName: '_TZ3210_zmy9hjay'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_6ygjfyll'},
             {modelID: 'TS0202', manufacturerName: '_TZ3210_wuhzzfqg'}],
         model: 'ZB003-X',
         vendor: 'Fantem',
