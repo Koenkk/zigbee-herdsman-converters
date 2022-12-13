@@ -683,7 +683,7 @@ module.exports = [
         model: 'WS-USC02',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple, fz.WS_USC02_single_and_double_press],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
         exposes: [
             e.switch().withEndpoint('top'),

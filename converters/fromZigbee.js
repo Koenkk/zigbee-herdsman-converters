@@ -5448,6 +5448,9 @@ const converters = {
                     61: 'all',
                 };
             }
+            if (['WS-USC02'].includes(model.model)) {
+                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
+            }
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
@@ -8306,18 +8309,6 @@ const converters = {
                 meta.logger.warn(`fromZigbee.moes_cover: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
-        },
-    },
-    WS_USC02_single_and_double_press: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if ([1, 2].includes(msg.data.presentValue)) {
-                const mapping = {41: 'top', 42: 'bottom', 51: 'both'};
-                const times = {1: 'single', 2: 'double'};
-                const button = mapping[msg.endpoint.ID];
-                return {action: `${times[msg.data.presentValue]}_${button}`};
-            }
         },
     },
     // #endregion
