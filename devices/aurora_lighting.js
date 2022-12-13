@@ -104,7 +104,7 @@ module.exports = [
         zigbeeModel: ['TWMPROZXBulb50AU'],
         model: 'AU-A1ZBMPRO1ZX',
         vendor: 'Aurora Lighting',
-        description: 'AOne MPROZX Fixed IP65 Fire Rated Smart Tuneable LED Downlight',
+        description: 'AOne MPROZX fixed IP65 fire rated smart tuneable LED downlight',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 455]}),
     },
     {
