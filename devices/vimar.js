@@ -10,10 +10,10 @@ const fzLocal = {
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
-            var payload = {}
+            let payload = {};
             if (msg.data.hasOwnProperty('activePower')) {
                 payload.power = msg.data['activePower'];
-            };
+            }
             return payload;
         },
     },
