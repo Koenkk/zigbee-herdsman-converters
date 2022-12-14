@@ -1010,10 +1010,10 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint); // valve position
             try {
-            await reporting.batteryVoltage(endpoint);
+                await reporting.batteryVoltage(endpoint);
             } catch (error) {/* Do Nothing */}
             try {
-            await reporting.batteryAlarmState(endpoint);
+                await reporting.batteryAlarmState(endpoint);
             } catch (error) {/* Do Nothing */}
         },
     },
