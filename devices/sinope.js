@@ -990,4 +990,31 @@ module.exports = [
             await reporting.brightness(endpoint); // valve position
         },
     },
+    {
+        zigbeeModel: ['VA4220ZB'],
+        model: 'VA4220ZB',
+        vendor: 'Sinopé',
+        description: 'Sedna smart water valve',
+        fromZigbee: [fz.ignore_iaszone_statuschange, fz.cover_position_via_brightness, fz.cover_state_via_onoff,
+            fz.battery, fz.metering],
+        toZigbee: [tz.cover_via_brightness],
+        meta: {battery: {voltageToPercentage: {min: 5400, max: 6800}}},
+        exposes: [e.valve_switch(), e.valve_position(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genGroups', 'genOnOff', 'ssIasZone', 'genLevelCtrl',
+                'genPowerCfg', 'seMetering', 'manuSpecificSinope'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint); // valve position
+            try {
+                await reporting.batteryVoltage(endpoint);
+            } catch (error) {/* Do Nothing */}
+            try {
+                await reporting.batteryAlarmState(endpoint);
+            } catch (error) {/* Do Nothing */}
+        },
+    },
 ];
