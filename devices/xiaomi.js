@@ -441,6 +441,7 @@ module.exports = [
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.aqara_s1_pm25, fzLocal.aqara_s1_co2],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.co2()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.magnet.acn001'],
