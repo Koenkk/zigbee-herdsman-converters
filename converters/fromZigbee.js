@@ -5449,6 +5449,9 @@ const converters = {
                     61: 'all',
                 };
             }
+            if (['WS-USC02'].includes(model.model)) {
+                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
+            }
 
             const action = actionLookup[msg.data['presentValue']];
             if (buttonLookup) {
