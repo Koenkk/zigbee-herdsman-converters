@@ -1983,6 +1983,10 @@ module.exports = [
                 .withDescription('Enabling prevents both relais being on at the same time'),
         ],
         ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['lumi.lock.acn02'],
