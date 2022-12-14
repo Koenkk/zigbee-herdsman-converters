@@ -6525,10 +6525,10 @@ const converters = {
             }
         },
     },
-    ZNCLBL01LM_hooks_action: {
-        key: ['hooks_action'],
+    ZNCLBL01LM_hooks_lock: {
+        key: ['hooks_lock'],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {'unlock': 0, 'lock': 1};
+            const lookup = {'UNLOCK': 0, 'LOCK': 1};
             await entity.write('aqaraOpple', {0x0427: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
         },
     },
