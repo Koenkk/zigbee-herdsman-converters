@@ -5,6 +5,20 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const fzLocal = {
+    vimar_active_power: {
+        cluster: 'haElectricalMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: async (model, msg, publish, options, meta) => {
+            var payload = {}
+            if (msg.data.hasOwnProperty('activePower')) {
+                payload.power = msg.data['activePower'];
+            };
+            return payload;
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['On_Off_Switch_Module_v1.0'],
@@ -42,10 +56,12 @@ module.exports = [
         model: '14593',
         vendor: 'Vimar',
         description: '16A outlet IoT connected',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fzLocal.vimar_active_power],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
         },
     },
     {
