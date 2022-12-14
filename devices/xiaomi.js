@@ -1881,6 +1881,27 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['lumi.curtain.hagl07'],
+        model: 'ZNCLDJ14LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara C2 curtain motor',
+        fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt, fz.xiaomi_curtain_hagl07_status],
+        toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        onEvent: async (type, data, device) => {
+            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invaid value
+            // however when reading it will provide the correct value.
+            if (data.type === 'attributeReport' && data.cluster === 'genAnalogOutput') {
+                await device.endpoints[0].read('genAnalogOutput', ['presentValue']);
+            }
+        },
+        exposes: [e.cover_position().setAccess('state', ea.ALL),
+            exposes.binary('running', ea.STATE, true, false)
+                .withDescription('Whether the motor is moving or not'),
+            exposes.enum('motor_state', ea.STATE, ['closing', 'opening', 'stop'])
+                .withDescription('The current state of the motor.'), e.power_outage_count()],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.curtain.acn002'],
         model: 'ZNJLBL01LM',
         description: 'Aqara roller shade companion E1',
