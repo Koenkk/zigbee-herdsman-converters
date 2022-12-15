@@ -6530,6 +6530,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'UNLOCK': 0, 'LOCK': 1};
             await entity.write('aqaraOpple', {0x0427: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {[key]: value}};
         },
     },
     ZNCLBL01LM_hooks_state: {
