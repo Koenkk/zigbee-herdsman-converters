@@ -1901,7 +1901,7 @@ module.exports = [
             e.action(['manual_open', 'manual_close']),
             exposes.enum('motor_state', ea.STATE, ['stopped', 'opening', 'closing', 'pause']).withDescription('Motor state'),
             exposes.binary('running', ea.STATE, true, false).withDescription('Whether the motor is moving or not'),
-            exposes.enum('hooks_lock', ea.SET, ['LOCK', 'UNLOCK']).withDescription('Lock the curtain driver hooks'),
+            exposes.enum('hooks_lock', ea.STATE_SET, ['LOCK', 'UNLOCK']).withDescription('Lock the curtain driver hooks'),
             exposes.enum('hooks_state', ea.STATE_GET, ['unlocked', 'locked', 'locking', 'unlocking']).withDescription('Hooks state'),
             exposes.numeric('target_position', ea.STATE).withUnit('%').withDescription('Target position'),
             exposes.enum('power_source', ea.STATE_GET, ['battery', 'dc_source']).withDescription('The current power source'),
