@@ -1001,7 +1001,7 @@ module.exports = [
         model: 'TS0504B',
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
-        extend: extend.light_onoff_brightness_color(),
+        extend: extend.light_onoff_brightness_color({disablePowerOnBehavior: true}),
         toZigbee: utils.replaceInArray(extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
     },
