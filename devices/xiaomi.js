@@ -2208,6 +2208,8 @@ module.exports = [
             e.voltage().withAccess(ea.STATE), e.power_outage_memory(), e.led_disabled_night(), e.switch_type()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         ota: ota.zigbeeOTA,
     },
