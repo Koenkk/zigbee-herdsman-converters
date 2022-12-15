@@ -4,6 +4,7 @@ const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
+const constants = require('../lib/constants');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -57,7 +58,7 @@ const tzLocal = {
                 if (value=='off') {
                     opMode = operatingModes.pause; // OperatingMode 5 = Pause
                 } else if (value == 'auto') {
-                    opMode = operatingModes.automatic; // OperatingMOde 1 = Automatic
+                    opMode = operatingModes.automatic; // OperatingMode 0 = Automatic
                 }
                 await entity.write('hvacThermostat', {0x4007: {value: opMode, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {system_mode: value}};
@@ -139,8 +140,11 @@ const fzLocal = {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
-                const opModes = {0: 'auto', 1: 'heat', 2: 'unknowm 2', 3: 'unknonw 3', 4: 'unknown 4', 5: 'off'};
+                const opModes = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
                 result.system_mode = opModes[data[0x4007]];
+            }
+            if (data.hasOwnProperty(0x4020)) {
+                result.pi_heating_demand = data[0x4020];
             }
 
             return result;
@@ -214,16 +218,17 @@ const definition = [
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
             tzLocal.bosch_thermostat,
-            tzLocal.bosch_userInterface],
+            tzLocal.bosch_userInterface,
+        ],
         exposes: [
             exposes.climate()
-                .withLocalTemperature()
+                .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-12, 12, 0.5)
-                .withSystemMode(['off', 'heat', 'auto']),
+                .withSystemMode(['off', 'heat', 'auto'])
+                .withPiHeatingDemand(ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
             exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
@@ -246,10 +251,33 @@ const definition = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat', 'hvacUserInterfaceCfg']);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
 
+            // report operating_mode (system_mode)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4007, type: herdsman.Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+            // report pi_heating_demand (valve opening)
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4020, type: herdsman.Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+            // report window_open
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4042, type: herdsman.Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
