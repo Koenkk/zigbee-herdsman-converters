@@ -140,7 +140,7 @@ const fzLocal = {
                 result.boost = (Object.keys(stateOffOn)[data[0x4043]]);
             }
             if (data.hasOwnProperty(0x4007)) {
-                const opModes = {0: 'auto', 1: 'heat', 2: 'unknown 2', 3: 'unknown 3', 4: 'unknown 4', 5: 'off'};
+                const opModes = {0: 'auto', 1: 'heat', 2: 'unknown_2', 3: 'unknown_3', 4: 'unknown_4', 5: 'off'};
                 result.system_mode = opModes[data[0x4007]];
             }
             if (data.hasOwnProperty(0x4020)) {
