@@ -1024,10 +1024,10 @@ module.exports = [
         description: 'Calypso Smart Water Heater Controller',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ias_water_leak_alarm_1, fz.temperature],
         toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(),e.temperature()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering',  'Temperature'];
+            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'Temperature'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
