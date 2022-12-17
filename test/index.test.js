@@ -510,7 +510,7 @@ describe('index.js', () => {
         const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
         expect(ZNCLDJ12LM.options.length).toBe(1);
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
-        expect(ZNCZ04LM.options.length).toBe(1);
+        expect(ZNCZ04LM.options.length).toBe(9);
     });
 
     it('Verify imports', () => {

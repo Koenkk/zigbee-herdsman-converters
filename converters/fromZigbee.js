@@ -383,9 +383,11 @@ const converters = {
     device_temperature: {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('device_temperature')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentTemperature')) {
-                return {device_temperature: parseInt(msg.data['currentTemperature'])};
+                const value = parseInt(msg.data['currentTemperature']);
+                return {device_temperature: calibrateAndPrecisionRoundOptions(value, options, 'device_temperature')};
             }
         },
     },
@@ -680,6 +682,17 @@ const converters = {
          */
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'power')) {
+                result.push(exposes.options.precision('power'), exposes.options.calibration('power', 'percentual'));
+            }
+            if (definition.exposes.find((e) => e.name === 'energy')) {
+                result.push(exposes.options.precision('energy'), exposes.options.calibration('energy', 'percentual'));
+            }
+            return result;
+        },
+
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
@@ -692,7 +705,7 @@ const converters = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = precisionRound(power, 2);
+                payload.power = calibrateAndPrecisionRoundOptions(power, options, 'power');
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -708,7 +721,7 @@ const converters = {
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
                     energy -= value * factor;
                 }
-                payload.energy = precisionRound(energy, 2);
+                payload.energy = calibrateAndPrecisionRoundOptions(energy, options, 'energy');
             }
 
             return payload;
@@ -735,8 +748,11 @@ const converters = {
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
-            exposes.options.calibration('voltage', 'percentual')],
+        options: [
+            exposes.options.calibration('power', 'percentual'), exposes.options.precision('power'),
+            exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
+            exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
+        ],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key) => {
@@ -5322,47 +5338,23 @@ const converters = {
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('power', 'percentual'), exposes.options.precision('power')],
         convert: (model, msg, publish, options, meta) => {
-            return {power: precisionRound(msg.data['presentValue'], 2)};
+            return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
         },
     },
     xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.calibration('illuminance', 'percentual'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
-                result.push(exposes.options.calibration('illuminance_lux', 'percentual'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
-            const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-            return payload;
+            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
@@ -5375,22 +5367,9 @@ const converters = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.calibration('illuminance', 'percentual'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
-            const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-            return payload;
+            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_on_off_action: {
