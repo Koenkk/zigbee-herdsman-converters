@@ -2588,6 +2588,18 @@ const converters = {
             }
         },
     },
+    xiaomi_curtain_battery_voltage: {
+        key: ['voltage'],
+        convertGet: async (entity, key, meta) => {
+            switch (meta.mapped.model) {
+            case 'ZNCLBL01LM':
+                await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
+                break;
+            default:
+                throw new Error(`xiaomi_curtain_battery_voltage - unsupported model: ${meta.mapped.model}`);
+            }
+        },
+    },
     xiaomi_curtain_acn002_charging_status: {
         key: ['charging_status'],
         convertGet: async (entity, key, meta) => {
@@ -6513,16 +6525,44 @@ const converters = {
             }
         },
     },
-    ZNCLBL01LM_battery_voltage: {
-        key: ['voltage'],
-        convertGet: async (entity, key, meta) => {
-            await entity.read('aqaraOpple', [0x040B], manufacturerOptions.xiaomi);
+    ZNCLBL01LM_hooks_lock: {
+        key: ['hooks_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'UNLOCK': 0, 'LOCK': 1};
+            await entity.write('aqaraOpple', {0x0427: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {[key]: value}};
         },
     },
     ZNCLBL01LM_hooks_state: {
         key: ['hooks_state'],
         convertGet: async (entity, key, meta) => {
             await entity.read('aqaraOpple', [0x0428], manufacturerOptions.xiaomi);
+        },
+    },
+    ZNCLBL01LM_hand_open: {
+        key: ['hand_open'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('aqaraOpple', {0x0401: {value: !value, type: 0x10}}, manufacturerOptions.xiaomi);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x0401], manufacturerOptions.xiaomi);
+        },
+    },
+    ZNCLBL01LM_limits_calibration: {
+        key: ['limits_calibration'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'start':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x01, type: 0x20}}, manufacturerOptions.xiaomi);
+                break;
+            case 'end':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x02, type: 0x20}}, manufacturerOptions.xiaomi);
+                break;
+            case 'reset':
+                await entity.write('aqaraOpple', {0x0407: {value: 0x00, type: 0x20}}, manufacturerOptions.xiaomi);
+                // also? await entity.write('aqaraOpple', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
+                break;
+            }
         },
     },
     wiser_vact_calibrate_valve: {
