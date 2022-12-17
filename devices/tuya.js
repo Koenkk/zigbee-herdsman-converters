@@ -983,7 +983,8 @@ module.exports = [
             {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
             {vendor: 'Feconn', model: 'FE-GU10-5W', description: 'Zigbee GU10 5W smart bulb'},
         ],
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 500], disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
@@ -992,7 +993,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Zigbee RGB light',
         whiteLabel: [{vendor: 'BTF-Lighting', model: 'C03Z'}],
-        extend: extend.light_onoff_brightness_color(),
+        extend: extend.light_onoff_brightness_color({disablePowerOnBehavior: true}),
         // Requires red fix: https://github.com/Koenkk/zigbee2mqtt/issues/5962#issue-796462106
         meta: {applyRedFix: true, enhancedHue: false},
     },
@@ -1010,14 +1011,14 @@ module.exports = [
         model: 'TS0501A',
         description: 'Zigbee light',
         vendor: 'TuYa',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['TS0501B'],
         model: 'TS0501B',
         description: 'Zigbee light',
         vendor: 'TuYa',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
@@ -1551,7 +1552,7 @@ module.exports = [
         model: 'TS0503A',
         vendor: 'TuYa',
         description: 'Led strip controller',
-        extend: extend.light_onoff_brightness_color(),
+        extend: extend.light_onoff_brightness_color({disablePowerOnBehavior: true}),
         meta: {applyRedFix: true},
     },
     {
@@ -1568,7 +1569,7 @@ module.exports = [
         model: 'TS0502A',
         vendor: 'TuYa',
         description: 'Light controller',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['TS0502B'],
@@ -1579,14 +1580,14 @@ module.exports = [
             {vendor: 'Mercator Ikuü', model: 'SMI7040', description: 'Ford Batten Light'},
             {vendor: 'Mercator Ikuü', model: 'SMD9300', description: 'Donovan Panel Light'},
         ],
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['TS0504A'],
         model: 'TS0504A',
         vendor: 'TuYa',
         description: 'RGBW LED controller',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_sosdczdl'}],
@@ -1602,7 +1603,7 @@ module.exports = [
         model: 'TS0505A',
         vendor: 'TuYa',
         description: 'RGB+CCT light controller',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         fingerprint: [{manufacturerName: '_TZ2000_a476raq2'}],
