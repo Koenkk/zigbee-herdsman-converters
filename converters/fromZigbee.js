@@ -648,7 +648,7 @@ const converters = {
             const result = converters.metering.convert(model, msg, publish, options, meta);
             // Filter incorrect 0 energy values reported by the device:
             // https://github.com/Koenkk/zigbee2mqtt/issues/7852
-            if (result.energy === 0) {
+            if (result && result.energy === 0) {
                 delete result.energy;
             }
             return result;
