@@ -2990,6 +2990,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005987301'],
+        model: '915005987301',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe table lamp (white)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003526301'],
         model: '929003526301',
         vendor: 'Philips',
