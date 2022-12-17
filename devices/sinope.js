@@ -1021,7 +1021,7 @@ module.exports = [
         zigbeeModel: ['RM3500ZB'],
         model: 'RM3500ZB',
         vendor: 'Sinopé',
-        description: 'Calypso Smart Water Heater Controller',
+        description: 'Calypso smart water heater controller',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ias_water_leak_alarm_1, fz.temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(), e.temperature()],
