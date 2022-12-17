@@ -2013,11 +2013,7 @@ module.exports = [
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
         endpoint: (device) => {
-            return {
-                'default': 2, // default
-                'ep1': 1,
-                'ep2': 2, // e.g. for write to msOccupancySensing
-            };
+            return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -2046,11 +2042,7 @@ module.exports = [
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
         endpoint: (device) => {
-            return {
-                'default': 2, // default
-                'ep1': 1,
-                'ep2': 2, // e.g. for write to msOccupancySensing
-            };
+            return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
@@ -2078,13 +2070,6 @@ module.exports = [
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
-        endpoint: (device) => {
-            return {
-                'default': 2, // default
-                'ep1': 1,
-                'ep2': 2, // e.g. for write to msOccupancySensing
-            };
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -2111,13 +2096,6 @@ module.exports = [
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
         toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
-        endpoint: (device) => {
-            return {
-                'default': 2, // default
-                'ep1': 1,
-                'ep2': 2, // e.g. for write to msOccupancySensing
-            };
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
