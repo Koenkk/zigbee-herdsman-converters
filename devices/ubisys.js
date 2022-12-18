@@ -543,8 +543,8 @@ module.exports = [
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
             e.power_on_behavior(),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
-            e.energy().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('energy'),
+            e.power().withAccess(ea.STATE_GET).withProperty('power'),
+            e.energy().withAccess(ea.STATE_GET).withProperty('energy'),
         ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
@@ -552,6 +552,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
+        meta: {multiEndpointSkip: {'power': 3, 'energy': 3}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -636,8 +637,8 @@ module.exports = [
                 'brightness_stop_s2']),
             e.power_on_behavior().withEndpoint('l1'),
             e.power_on_behavior().withEndpoint('l2'),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
-            e.energy().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('energy'),
+            e.power().withAccess(ea.STATE_GET).withProperty('power'),
+            e.energy().withAccess(ea.STATE_GET).withProperty('energy'),
         ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
@@ -645,7 +646,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: {'power': 5, 'energy': 5}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
