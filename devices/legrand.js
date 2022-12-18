@@ -123,15 +123,24 @@ module.exports = [
         model: '067776',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
-        // the physical LED will be green when permit join is true, off otherwise and red when not linked
-        fromZigbee: [
-            // Devices can send an identify message when the configuration button is pressed
-            // (behind the physical buttons)
-            // Used on the official gateway to send to every devices an identify command (green)
-            fz.identify, fz.ignore_basic_report,
-            // support binary report on moving state (supposed)
-            fz.legrand_binary_input_moving, fz.cover_position_tilt],
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
+    {
+        // swbuildid 001a requires coverInverted: https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
+        fingerprint: [{modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'}],
+        model: '067776_001a',
+        vendor: 'Legrand',
+        description: 'Netatmo wired shutter switch',
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
