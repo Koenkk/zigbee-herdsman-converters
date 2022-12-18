@@ -129,7 +129,7 @@ module.exports = [
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                    acCurrentDivisor: 10, acCurrentMultiplier: 1, powerMultiplier: 1, powerDivisor: 10});
+                    acCurrentDivisor: 1000, acCurrentMultiplier: 1, powerMultiplier: 1, powerDivisor: 10});
             }
             await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
