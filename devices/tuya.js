@@ -3662,7 +3662,17 @@ module.exports = [
         model: 'TS110E_1gang_1',
         vendor: 'TuYa',
         description: '1 channel dimmer',
-        extend: extend.light_onoff_brightness(),
+        fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+            .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
+        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+            .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+        meta: {multiEndpoint: true},
+        exposes: [e.light_brightness(), e.power_on_behavior(), tuya.exposes.switchType()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia']),
