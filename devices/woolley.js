@@ -18,7 +18,7 @@ module.exports = [
         zigbeeModel: ['SA-030-1'],
         model: 'SA-030',
         vendor: 'Woolley',
-        description: 'Smart Plug',
+        description: 'Smart plug',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
