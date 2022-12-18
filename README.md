@@ -3,6 +3,11 @@
 # zigbee-herdsman-converters
 Collection of device converters to be used with zigbee-herdsman.
 
+## Breaking changes
+15.0.0
+- OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
+- OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
+
 ## Contributing
 See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html).
 
