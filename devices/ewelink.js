@@ -24,7 +24,7 @@ module.exports = [
         zigbeeModel: ['SA-030-1'],
         model: 'SA-030-1',
         vendor: 'eWeLink',
-        description: '10A Zigbee 3.0 Smart Plug - (UK Version)',
+        description: '13A (3120W) Zigbee 3.0 Smart Plug - (UK Version)',
         extend: extend.switch(),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
