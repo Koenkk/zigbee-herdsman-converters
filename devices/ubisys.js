@@ -692,7 +692,7 @@ module.exports = [
             ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
-            tz.light_brightness_step],
+            tz.light_brightness_step, tz.metering_power, tz.currentsummdelivered],
         exposes: [
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
@@ -712,7 +712,8 @@ module.exports = [
                     .withValueMin(1).withValueMax(254)
                     .withPreset('previous', 255, 'Use previous value')
                     .withDescription('Specifies the initial level to be applied after the device is supplied with power')),
-            e.power(), e.energy(),
+            e.power().withAccess(ea.STATE_GET).withProperty('power'),
+            e.energy().withAccess(ea.STATE_GET).withProperty('energy'),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -756,7 +757,7 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness']},
+        meta: {multiEndpoint: true, multiEndpointSkip: {'state': null, 'brightness': null, 'power': 4, 'energy': 4}},
         endpoint: (device) => {
             return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
         },
@@ -785,9 +786,13 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
-            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
-        exposes: [e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'), e.energy()],
+            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup,
+            tz.currentsummdelivered],
+        exposes: [
+            e.cover_position_tilt(),
+            e.power().withAccess(ea.STATE_GET).withProperty('power'),
+            e.energy().withAccess(ea.STATE_GET).withProperty('energy'),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -800,6 +805,7 @@ module.exports = [
         endpoint: (device) => {
             return {'default': 1, 'meter': 3};
         },
+        meta: {multiEndpointSkip: {'power': 3, 'energy': 3}},
         onEvent: async (type, data, device) => {
             /*
              * As per technical doc page 21 section 7.3.4
