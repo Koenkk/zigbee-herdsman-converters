@@ -13,9 +13,9 @@ const boschManufacturer = {manufacturerCode: 0x1209};
 
 // 	Twinguard
 const smokeSensitivity = {
-    'low': 0x0003,
-    'medium': 0x0002,
-	'high': 0x0001,
+    'LOW': 3,
+    'MEDIUM': 2,
+	'HIGH': 1,
 };
 // Radiator Thermostat II
 const operatingModes = {
