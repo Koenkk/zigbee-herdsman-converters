@@ -1526,13 +1526,13 @@ const converters = {
     metering_power: {
         key: ['power'],
         convertGet: async (entity, key, meta) => {
-            await utils.getMultiEndpoint(entity, key, meta).read('seMetering', ['instantaneousDemand']);
+            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['instantaneousDemand']);
         },
     },
     currentsummdelivered: {
         key: ['energy'],
         convertGet: async (entity, key, meta) => {
-            await utils.getMultiEndpoint(entity, key, meta).read('seMetering', ['currentSummDelivered']);
+            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['currentSummDelivered']);
         },
     },
     frequency: {
