@@ -15,7 +15,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['SA-030-1'],
+        zigbeeModel: ['SA-030'],
         model: 'SA-030',
         vendor: 'Woolley',
         description: 'Smart plug',
