@@ -20,6 +20,21 @@ module.exports = [
             device.skipDefaultResponse = true;
         },
     },
+        {
+        zigbeeModel: ['SA-030-1'],
+        model: 'SA-030-1',
+        vendor: 'eWeLink',
+        description: '10A Zigbee 3.0 Smart Plug (UK Version)',
+        extend: extend.switch(),
+        fromZigbee: [fz.on_off_skip_duplicate_transaction],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        },
+        onEvent: async (type, data, device) => {
+            device.skipDefaultResponse = true;
+        },
+    },
     {
         zigbeeModel: ['SWITCH-ZR02'],
         model: 'SWITCH-ZR02',
