@@ -6,7 +6,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['SA-003-Zigbee', 'SWITCH-ZR03-1'],
+        zigbeeModel: ['SA-003-Zigbee'],
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
