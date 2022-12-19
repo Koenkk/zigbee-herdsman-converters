@@ -173,7 +173,7 @@ const tzLocal = {
                 await entity.read('manuSpecificBosch5', [0x4001], boschManufacturer);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.Twinguard_sensitivity.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
             }
 		},
     },
