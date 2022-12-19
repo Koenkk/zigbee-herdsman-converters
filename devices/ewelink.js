@@ -34,7 +34,7 @@ module.exports = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
-    }, 
+    },
     {
         zigbeeModel: ['SWITCH-ZR02'],
         model: 'SWITCH-ZR02',
