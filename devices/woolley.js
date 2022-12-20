@@ -14,16 +14,4 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-    {
-        zigbeeModel: ['SA-030'],
-        model: 'SA-030',
-        vendor: 'Woolley',
-        description: 'Smart plug',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
-    },
 ];
