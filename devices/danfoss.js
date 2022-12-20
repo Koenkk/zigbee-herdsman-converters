@@ -73,8 +73,11 @@ module.exports = [
                     'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
                 .withValueMin(-8000).withValueMax(3500),
             exposes.binary('radiator_covered', ea.ALL, true, false)
-                .withDescription('Set if the TRV should solely rely on external_measured_room_sensor or operate in offset mode. ' +
-                    '`false` = Auto Offset Mode or `true` = Room Sensor Mode'),
+                .withDescription('Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. ' +
+                '`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for ' +
+                'covered radiators). Please note that this flag only controls how the TRV operates on the value of ' +
+                '`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` ' +
+                'has no (noticable?) effect.'),
             exposes.binary('window_open_feature', ea.ALL, true, false)
                 .withDescription('Whether or not the window open feature is enabled'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
