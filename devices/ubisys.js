@@ -536,18 +536,23 @@ module.exports = [
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+        exposes: [
+            e.switch(),
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior(), e.energy()],
+            e.power_on_behavior(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
+        meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -580,15 +585,20 @@ module.exports = [
         model: 'S1-R',
         vendor: 'Ubisys',
         description: 'Power switch S1-R',
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+        exposes: [
+            e.switch(),
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior(), e.energy()],
+            e.power_on_behavior(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        meta: {multiEndpointEnforce: {'power': 4, 'energy': 4}},
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
@@ -625,20 +635,23 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
-            e.energy(),
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
-            e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
+            e.power_on_behavior().withEndpoint('l1'),
+            e.power_on_behavior().withEndpoint('l2'),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior, tz.currentsummdelivered],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointEnforce: {'power': 5, 'energy': 5}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -684,7 +697,7 @@ module.exports = [
             ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
-            tz.light_brightness_step],
+            tz.light_brightness_step, tz.metering_power, tz.currentsummdelivered],
         exposes: [
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
@@ -704,7 +717,8 @@ module.exports = [
                     .withValueMin(1).withValueMax(254)
                     .withPreset('previous', 255, 'Use previous value')
                     .withDescription('Specifies the initial level to be applied after the device is supplied with power')),
-            e.power(), e.energy(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
@@ -748,7 +762,7 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness']},
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness'], multiEndpointEnforce: {'power': 4, 'energy': 4}},
         endpoint: (device) => {
             return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
         },
@@ -777,9 +791,13 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
-            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
-        exposes: [e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'), e.energy()],
+            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup,
+            tz.currentsummdelivered],
+        exposes: [
+            e.cover_position_tilt(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -792,6 +810,7 @@ module.exports = [
         endpoint: (device) => {
             return {'default': 1, 'meter': 3};
         },
+        meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
         onEvent: async (type, data, device) => {
             /*
              * As per technical doc page 21 section 7.3.4
