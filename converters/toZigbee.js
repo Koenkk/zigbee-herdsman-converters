@@ -5515,6 +5515,9 @@ const converters = {
                 } else if (attribute === 'brightness') {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
+                } else if (attribute === 'position') {
+                    extensionfieldsets.push({'clstId': 258, 'len': 1, 'extField': [val]});
+                    state['position'] = val;
                 } else if (attribute === 'color_temp') {
                     /*
                      * ZCL version 7 added support for ColorTemperatureMireds
