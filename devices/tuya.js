@@ -2047,6 +2047,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
             {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
+            {modelID: 'TS0601', manufacturerName: '_TZE200_xby0s3ta'},
         ],
         model: 'TS0601_thermostat',
         vendor: 'TuYa',
