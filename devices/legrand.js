@@ -262,7 +262,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.identify, fz.on_off],
         toZigbee: [tz.on_off, tz.legrand_identify],
-        whiteLabel: [{vendor: 'Bticino', model: '3584C'}],
+        whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
@@ -278,6 +278,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        whiteLabel: [{vendor: 'BTicino', model: 'LN4570CWI'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
