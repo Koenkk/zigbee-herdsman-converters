@@ -12,9 +12,9 @@ const ea = exposes.access;
 
 const definition = {
     zigbeeModel: ['HK-DIM-SW'],
-    model: 'dmz250',
+    model: 'DMS250',
     vendor: 'Wisdom',
-    description: 'Zigbee Wifi Led Dimmer 5-250 Watt',
+    description: 'Zigbee led dimmer 5-250 Watt',
     extend: extend.light_onoff_brightness(),
 };
 
