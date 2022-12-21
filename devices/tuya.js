@@ -931,7 +931,7 @@ module.exports = [
         model: 'TS011F_2_gang_wall',
         vendor: 'TuYa',
         description: '2 gang wall outlet',
-        extend: tuya.extend.switch({backlightMode: true, endpoints: ['l1', 'l2']}),
+        extend: tuya.extend.switch({backlightMode: true, childLock: true, endpoints: ['l1', 'l2']}),
         whiteLabel: [{vendor: 'ClickSmart+', model: 'CMA30036'}],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
