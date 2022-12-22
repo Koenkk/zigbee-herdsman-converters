@@ -607,7 +607,7 @@ module.exports = [
         fingerprint: [{modelID: 'TERNCY-DC01', manufacturer: 'Sunricher'}],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
-        description: 'Door Windows Sensor',
+        description: 'Door windows sensor',
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
