@@ -3,6 +3,11 @@
 # zigbee-herdsman-converters
 Collection of device converters to be used with zigbee-herdsman.
 
+## Breaking changes
+15.0.0
+- OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
+- OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
+
 ## Contributing
 See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html).
 
@@ -18,6 +23,8 @@ If any of those commands finish with an error your PR won't pass the tests and w
 
 ## Documentation of definition meta property
 - `multiEndpoint`: enables the multi endpoint functionallity in e.g. fromZigbee.on_off, example: normally this converter would return {"state": "OFF"}, when multiEndpoint is enabled the 'endpoint' method of the device definition will be called to determine the endpoint name which is then used as key e.g. {"state_left": "OFF"}. Only needed when device sends the same attribute from multiple endpoints. (default: false)
+- `multiEndpointSkip`: array of attributes to not suffix with the endpoint name
+- `multiEndpointEnforce`: enforce a certain endpoint for an attribute, e.g. {"power": 4} see utils.enforceEndpoint()
 - `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one. (default: false)
 - `applyRedFix`: see toZigbee.light_color (default: false)
 - `enhancedHue`: see toZigbee.light_color (default: true)

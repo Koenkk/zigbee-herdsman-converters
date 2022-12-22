@@ -101,7 +101,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['RGB-CCT'],
-        model: '404028',
+        model: '404028/44435',
         vendor: 'Müller Licht',
         description: 'Tint LED Panel, color, opal white',
         extend: extend.light_onoff_brightness_colortemp_color(),

@@ -11,7 +11,8 @@ module.exports = [
         description: 'Smart switch 4 buttons white',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2'])],
+        exposes: [e.battery(), e.action(['on_1', 'off_1', 'on_2', 'off_2', 'brightness_move_up_1', 'brightness_move_down_1',
+            'brightness_move_stop_1', 'brightness_move_up_2', 'brightness_move_down_2', 'brightness_move_stop_2'])],
         meta: {multiEndpoint: true},
     },
     {

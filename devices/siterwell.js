@@ -34,9 +34,11 @@ module.exports = [
             {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
             {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'},
             {vendor: 'Brennenstuhl', description: 'Radiator Thermostat', model: 'HT CZ 01'}],
-        exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(), e.position(), exposes.climate()
-            .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
-            .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
-            .withRunningState(['idle', 'heat'], ea.STATE)],
+        exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
+            e.position().withDescription('TRV valve position in %.'),
+            exposes.climate()
+                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET).withLocalTemperature(ea.STATE)
+                .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)],
     },
 ];

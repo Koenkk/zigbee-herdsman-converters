@@ -556,6 +556,7 @@ module.exports = [
             dynExposes.push(e.linkquality());
             return dynExposes;
         },
+        ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
             return {default: 35};

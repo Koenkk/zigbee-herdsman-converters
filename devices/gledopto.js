@@ -335,6 +335,7 @@ module.exports = [
         zigbeeModel: ['GL-S-006P'],
         model: 'GL-S-006P',
         vendor: 'Gledopto',
+        ota: ota.zigbeeOTA,
         description: 'Zigbee GU10 LED lamp',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },

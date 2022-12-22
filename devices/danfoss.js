@@ -11,7 +11,7 @@ module.exports = [
     {
         // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
         // changing those two too.
-        zigbeeModel: ['eTRV0100', 'eTRV0101'],
+        zigbeeModel: ['eTRV0100', 'eTRV0101', 'eTRV0103'],
         model: '014G2461',
         vendor: 'Danfoss',
         description: 'Ally thermostat',
@@ -56,14 +56,28 @@ module.exports = [
                   'to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. ' +
                   '(more suitable for scheduled changes)'),
             exposes.numeric('external_measured_room_sensor', ea.ALL)
-                .withDescription('If `radiator_covered` is `true`: Set at maximum 30 minutes interval but not more often than every ' +
-                '5 minutes and 0.1 degrees difference. Resets every 35 minutes to standard. If `radiator_covered` is `false`: ' +
-                'Set at maximum 3 hours interval but not more often than every 30 minutes and 0.1 degrees difference. ' +
-                'Resets every 3 hours to standard. Value 21C = 2100 (-8000=undefined).')
+                .withDescription('The temperature sensor of the TRV is — due to its design — relatively close to the heat source ' +
+                    '(i.e. the hot water in the radiator). Thus there are situations where the `local_temperature` measured by the ' +
+                    'TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or ' +
+                    'if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge ' +
+                    'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
+                    'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
+                    'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
+                    'property: If `Radiator_covered` is `true` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
+                    'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
+                    '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
+                    'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
+                    'If `Radiator_covered` is `false` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property at ' +
+                    'least every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
+                    '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
+                    'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
                 .withValueMin(-8000).withValueMax(3500),
             exposes.binary('radiator_covered', ea.ALL, true, false)
-                .withDescription('Set if the TRV should solely rely on external_measured_room_sensor or operate in offset mode. ' +
-                    '`false` = Auto Offset Mode or `true` = Room Sensor Mode'),
+                .withDescription('Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. ' +
+                '`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for ' +
+                'covered radiators). Please note that this flag only controls how the TRV operates on the value of ' +
+                '`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` ' +
+                'has no (noticable?) effect.'),
             exposes.binary('window_open_feature', ea.ALL, true, false)
                 .withDescription('Whether or not the window open feature is enabled'),
             exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)

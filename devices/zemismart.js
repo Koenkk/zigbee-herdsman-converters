@@ -83,6 +83,9 @@ module.exports = [
         description: 'Smart light switch and socket - 2 gang with neutral wire',
         extend: tuya.extend.switch({endpoints: ['left', 'center', 'right']}),
         meta: {multiEndpoint: true},
+        endpoint: () => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const endpointID of [1, 2, 3]) {

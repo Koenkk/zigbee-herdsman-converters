@@ -15,4 +15,11 @@ module.exports = [
         description: 'ST64 adjustable white filament bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
+    {
+        zigbeeModel: ['EGLO_ZM_RGB_TW'],
+        model: '900024',
+        vendor: 'EGLO',
+        description: 'SALITERAS-Z ceiling light',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+    },
 ];
