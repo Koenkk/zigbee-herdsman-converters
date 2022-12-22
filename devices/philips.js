@@ -1430,7 +1430,7 @@ module.exports = [
         zigbeeModel: ['3261331P6', '929003055301'],
         model: '3261331P6',
         vendor: 'Philips',
-        description: 'Hue white ambiance Still',
+        description: 'Hue white ambiance Still (white)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
@@ -1452,13 +1452,6 @@ module.exports = [
         model: '929003055401',
         vendor: 'Philips',
         description: 'Hue white ambiance Still (aluminium)',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
-    },
-    {
-        zigbeeModel: ['929003055301'],
-        model: '929003055301',
-        vendor: 'Philips',
-        description: 'Hue white ambiance Still (white)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
