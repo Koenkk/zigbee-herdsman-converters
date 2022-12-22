@@ -368,6 +368,7 @@ module.exports = [
         model: '064882',
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.legrand_cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
         toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
         exposes: [exposes.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
