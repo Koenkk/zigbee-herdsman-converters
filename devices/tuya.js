@@ -1027,6 +1027,17 @@ module.exports = [
         extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
     },
     {
+        fingerprint: tuya.fingerprint('TS0202', ['_TYZB01_vwqnz1sn']),
+        model: 'TS0202_3',
+        vendor: 'TuYa',
+        description: 'Motion detector with illuminance',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report, fz.illuminance],
+        toZigbee: [],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper(), e.illuminance_lux()],
+    },
+    {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3210_cwamkvua']),
         model: 'TS0202_2',
         vendor: 'TuYa',
@@ -1069,7 +1080,6 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_dr6sduka'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_ef5xlc9q'},
-            {modelID: 'TS0202', manufacturerName: '_TYZB01_vwqnz1sn'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_2b8f6cio'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_71kfvvma'},
             {modelID: 'TS0202', manufacturerName: '_TZE200_bq5c8xfe'},
