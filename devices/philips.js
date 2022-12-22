@@ -1448,10 +1448,24 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003055401'],
+        model: '929003055401',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Still (aluminium)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003055301'],
+        model: '929003055301',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Still (white)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003055501'],
         model: '929003055501',
         vendor: 'Philips',
-        description: 'Hue white ambiance Still',
+        description: 'Hue white ambiance Still (black)',
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
