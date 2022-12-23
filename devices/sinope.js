@@ -8,6 +8,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const manuSinope = {manufacturerCode: 0x119C};
 const fzLocal = {
     sinope_thermostat: {
         cluster: 'hvacThermostat',
@@ -123,11 +124,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeOccupancy}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeOccupancy}, manuSinope);
             return {state: {'thermostat_occupancy': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeOccupancy'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeOccupancy'], manuSinope);
         },
     },
     sinope_thermostat_backlight_autodim_param: {
@@ -135,11 +136,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeBacklight}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeBacklight}, manuSinope);
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeBacklight'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeBacklight'], manuSinope);
         },
     },
     sinope_thermostat_main_cycle_output: {
@@ -147,11 +148,11 @@ const tzLocal = {
         key: ['main_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
-            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]}, manuSinope);
             return {state: {'main_cycle_output': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], manuSinope);
         },
     },
     sinope_thermostat_aux_cycle_output: {
@@ -170,22 +171,22 @@ const tzLocal = {
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800}, manuSinope);
             } else if (value.toLowerCase() == 'off') {
                 // set timer to 12 sec in order to disable outdoor temperature
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12}, manuSinope);
             }
             return {readAfterWriteTime: 250, state: {enable_outdoor_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout']);
+            await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout'], manuSinope);
         },
     },
     sinope_thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value > -100 && value < 100) {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100}, manuSinope);
             }
         },
     },
@@ -197,9 +198,9 @@ const tzLocal = {
                 const thermostatTimeSec = thermostatDate.getTime() / 1000;
                 const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
                 const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay});
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
             } else if (value !== '') {
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value});
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value}, manuSinope);
             }
         },
     },
@@ -287,12 +288,12 @@ const tzLocal = {
             const lookup = {'24h': 0, '12h': 1};
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]}, manuSinope);
                 return {readAfterWriteTime: 250, state: {time_format: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['timeFormatToDisplay']);
+            await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
         },
     },
     sinope_connected_load: {
@@ -428,6 +429,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
@@ -446,8 +451,6 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
     {
@@ -492,6 +495,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
@@ -510,8 +517,6 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
     {
@@ -557,13 +562,17 @@ module.exports = [
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, {manufacturerCode: 0x119C});
-            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, {manufacturerCode: 0x119C}); // Mode auto
+            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
+            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -571,8 +580,6 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch (error) {/* Do nothing */} // Not enought space but shall pass
