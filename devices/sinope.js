@@ -141,7 +141,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeBacklight}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeBacklight}, manuSinope);
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -153,7 +153,7 @@ const tzLocal = {
         key: ['main_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
-            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeMainCycleOutput: lookup[value]}, manuSinope);
             return {state: {'main_cycle_output': value}};
         },
         convertGet: async (entity, key, meta) => {
