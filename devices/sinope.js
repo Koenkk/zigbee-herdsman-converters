@@ -558,7 +558,6 @@ module.exports = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
-            endpoint.saveClusterAttributeKeyValue('genTime', {'dstStart': 0},{'disableResponse':true} );
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
