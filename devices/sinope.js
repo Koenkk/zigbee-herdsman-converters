@@ -8,6 +8,7 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const manuSinope = {manufacturerCode: 0x119C};
 const fzLocal = {
     sinope_thermostat: {
         cluster: 'hvacThermostat',
@@ -43,6 +44,11 @@ const fzLocal = {
             }
             return result;
         },
+    },
+    ignore2_time_read: {
+        cluster: 'genTime',
+        type: 'read',
+        convert: (raw, model, msg, publish, options, meta) => null,
     },
     sinope_TH1300ZB_specific: {
         cluster: 'manuSpecificSinope',
@@ -123,11 +129,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
             const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
-            await entity.write('hvacThermostat', {SinopeOccupancy}, {manufacturerCode: 0x119C});
+            await entity.write('hvacThermostat', {SinopeOccupancy}, manuSinope);
             return {state: {'thermostat_occupancy': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeOccupancy'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeOccupancy'], manuSinope);
         },
     },
     sinope_thermostat_backlight_autodim_param: {
@@ -139,7 +145,7 @@ const tzLocal = {
             return {state: {'backlight_auto_dim': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeBacklight'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeBacklight'], manuSinope);
         },
     },
     sinope_thermostat_main_cycle_output: {
@@ -151,7 +157,7 @@ const tzLocal = {
             return {state: {'main_cycle_output': value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], {manufacturerCode: 0x119C});
+            await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], manuSinope);
         },
     },
     sinope_thermostat_aux_cycle_output: {
@@ -170,22 +176,22 @@ const tzLocal = {
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 10800}, manuSinope);
             } else if (value.toLowerCase() == 'off') {
                 // set timer to 12 sec in order to disable outdoor temperature
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplayTimeout: 12}, manuSinope);
             }
             return {readAfterWriteTime: 250, state: {enable_outdoor_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout']);
+            await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout'], manuSinope);
         },
     },
     sinope_thermostat_outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value > -100 && value < 100) {
-                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100});
+                await entity.write('manuSpecificSinope', {outdoorTempToDisplay: value * 100}, manuSinope);
             }
         },
     },
@@ -197,9 +203,9 @@ const tzLocal = {
                 const thermostatTimeSec = thermostatDate.getTime() / 1000;
                 const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
                 const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay});
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
             } else if (value !== '') {
-                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value});
+                await entity.write('manuSpecificSinope', {currentTimeToDisplay: value}, manuSinope);
             }
         },
     },
@@ -287,12 +293,12 @@ const tzLocal = {
             const lookup = {'24h': 0, '12h': 1};
             value = value.toLowerCase();
             if (lookup.hasOwnProperty(value)) {
-                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]});
+                await entity.write('manuSpecificSinope', {timeFormatToDisplay: lookup[value]}, manuSinope);
                 return {readAfterWriteTime: 250, state: {time_format: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificSinope', ['timeFormatToDisplay']);
+            await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
         },
     },
     sinope_connected_load: {
@@ -552,13 +558,14 @@ module.exports = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
                 'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
                 'manuSpecificSinope'];
+            endpoint.saveClusterAttributeKeyValue('genTime', {'dstStart': 0},{'disableResponse':true} );
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, {manufacturerCode: 0x119C});
-            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, {manufacturerCode: 0x119C}); // Mode auto
+            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
+            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
