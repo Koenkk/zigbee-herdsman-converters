@@ -252,6 +252,22 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['FLEX RGBW T'],
+        model: '4058075729384',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Indoor Flex multicolor RGBW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['OUTDOOR FLEX RGBW T'],
+        model: '4058075729360',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ Outdoor Flex multicolor RGBW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['GLOBE60 FIL DIM T'],
         model: '4058075729247',
         vendor: 'LEDVANCE',
