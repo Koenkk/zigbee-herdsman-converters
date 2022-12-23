@@ -429,6 +429,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
@@ -447,8 +451,6 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
     {
@@ -493,6 +495,10 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
@@ -511,8 +517,6 @@ module.exports = [
             }
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
         },
     },
     {
@@ -566,14 +570,16 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
 
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
-
-            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch (error) {/* Do nothing */} // Not enought space but shall pass
