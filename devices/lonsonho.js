@@ -25,7 +25,7 @@ module.exports = [
         model: '11830304',
         vendor: 'Lonsonho',
         description: 'Curtain switch',
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode, fz.tuya_cover_options],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode],
         meta: {coverInverted: true},
