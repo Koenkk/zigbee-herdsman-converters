@@ -45,11 +45,6 @@ const fzLocal = {
             return result;
         },
     },
-    ignore2_time_read: {
-        cluster: 'genTime',
-        type: 'read',
-        convert: (raw, model, msg, publish, options, meta) => null,
-    },
     sinope_TH1300ZB_specific: {
         cluster: 'manuSpecificSinope',
         type: ['attributeReport', 'readResponse'],
