@@ -6,7 +6,6 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const {repInterval} = require('../lib/constants');
 const utils = require('../lib/utils');
-const libColor = require('../lib/color');
 const extend = require('../lib/extend');
 const globalStore = require('../lib/store');
 const e = exposes.presets;
@@ -71,30 +70,6 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
     await endpoint.bind('genOnOff', bindTarget);
     await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
     await reporting.batteryPercentageRemaining(endpoint);
-};
-
-const tzLocal = {
-    LED1624G9_color_colortemp: {
-        ...tz.light_color_colortemp,
-        convertSet: async (entity, key, value, meta) => {
-            if (key == 'color') {
-                const result = await tz.light_color.convertSet(entity, key, value, meta);
-                return result;
-            } else if (key == 'color_temp' || key == 'color_temp_percent') {
-                const xy = libColor.ColorXY.fromMireds(value);
-                const payload = {
-                    transtime: utils.getTransition(entity, key, meta).time,
-                    colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
-                    colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
-                };
-                await entity.command('lightingColorCtrl', 'moveToColor', payload, utils.getOptions(meta.mapped, entity));
-                return {
-                    state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
-                        entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
-                };
-            }
-        },
-    },
 };
 
 const fzLocal = {
@@ -490,7 +465,7 @@ module.exports = [
         toZigbee: utils.replaceInArray(
             tradfriExtend.light_onoff_brightness_colortemp_color().toZigbee,
             [tz.light_color_colortemp],
-            [tzLocal.LED1624G9_color_colortemp],
+            [tz.light_color_and_colortemp_via_color],
         ),
         meta: {supportsHueAndSaturation: false},
     },

@@ -760,6 +760,31 @@ const converters = {
             }
         },
     },
+    light_color_and_colortemp_via_color: {
+        key: ['color', 'color_temp', 'color_temp_percent'],
+        options: [exposes.options.color_sync(), exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key == 'color') {
+                const result = await converters.light_color.convertSet(entity, key, value, meta);
+                return result;
+            } else if (key == 'color_temp' || key == 'color_temp_percent') {
+                const xy = libColor.ColorXY.fromMireds(value);
+                const payload = {
+                    transtime: utils.getTransition(entity, key, meta).time,
+                    colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
+                    colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
+                };
+                await entity.command('lightingColorCtrl', 'moveToColor', payload, utils.getOptions(meta.mapped, entity));
+                return {
+                    state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
+                        entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
+                };
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', light.readColorAttributes(entity, meta));
+        },
+    },
     light_hue_saturation_step: {
         key: ['hue_step', 'saturation_step'],
         options: [exposes.options.transition()],

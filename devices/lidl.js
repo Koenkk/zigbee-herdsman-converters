@@ -8,6 +8,7 @@ const ea = exposes.access;
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
 
 const tuyaLocal = {
     dataPoints: {
@@ -542,6 +543,11 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
         ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        toZigbee: utils.replaceInArray(
+            extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}).toZigbee,
+            [tz.light_color_colortemp],
+            [tz.light_color_and_colortemp_via_color],
+        ),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
