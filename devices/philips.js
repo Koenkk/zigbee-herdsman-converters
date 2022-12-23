@@ -226,6 +226,22 @@ const tzLocal = {
             },
         };
     },
+    effect: {
+        key: ['effect'],
+        convertSet: async (entity, key, value, meta) => {
+            const hueEffects = {
+                'candle': '21000101',
+                'fireplace': '21000102',
+                'colorloop': '21000103',
+                'stop_hue_effect': '200000',
+            };
+            if (Object.keys(hueEffects).includes(value.toLowerCase())) {
+                await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(hueEffects[value.toLowerCase()], 'hex')});
+            } else {
+                return await tz.effect.convertSet(entity, key, value, meta);
+            }
+        },
+    },
 };
 
 module.exports = [
