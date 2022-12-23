@@ -498,9 +498,9 @@ const definition = [
         },
         exposes: [
             e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
-            exposes.enum('alarm', ea.STATE_SET, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
+            exposes.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
             exposes.text('siren_state', ea.STATE).withDescription('Siren state'),
-            exposes.binary('self_test', ea.STATE_SET, true, false).withDescription('Initiate self-test'),
+            exposes.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
             exposes.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
             exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
             exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
