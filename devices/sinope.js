@@ -429,7 +429,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            
+
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
@@ -495,7 +495,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            
+
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
