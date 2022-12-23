@@ -11,18 +11,18 @@ const ea = exposes.access;
 // Radiator Thermostat II
 const boschManufacturer = {manufacturerCode: 0x1209};
 
-//     Twinguard
+// Twinguard
 const smokeSensitivity = {
-    'LOW': 3,
-    'MEDIUM': 2,
-    'HIGH': 1,
+    'low': 3,
+    'medium': 2,
+    'high': 1,
 };
 
 // Twinguard
 const sirenState = {
     'stop': 0,
-    'pre_alarm' : 1,
-    'fire' : 2,
+    'pre_alarm': 1,
+    'fire': 2,
     'burglar': 3,
 };
 
@@ -142,20 +142,20 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === 'sensitivity') {
                 value = value.toUpperCase();
-                const index = smokeSensitivity[value]
+                const index = smokeSensitivity[value];
                 await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, boschManufacturer);
                 return {state: {sensitivity: value}};
             }
             if (key === 'pre_alarm') {
                 value = value.toUpperCase();
-                const index = stateOffOn[value]
+                const index = stateOffOn[value];
                 await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {pre_alarm: value}};
             }
             if (key === 'heartbeat') {
                 const endpoint = meta.device.getEndpoint(12);
                 value = value.toUpperCase();
-                const index = stateOffOn[value]
+                const index = stateOffOn[value];
                 await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, boschManufacturer);
                 return {state: {heartbeat: value}};
             }
@@ -166,12 +166,11 @@ const tzLocal = {
             }
             if (key === 'alarm') {
                 const endpoint = meta.device.getEndpoint(12);
-                const index = sirenState[value]
+                const index = sirenState[value];
                 if (index == 0) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
                     await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 0}, boschManufacturer);
-//                    return {state: {siren_state: 'clear'}};
                 } else if (index == 1) {
                     await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x11, clusterid: 0xe000}, {direction: 1});
                     return {state: {siren_state: 'pre-alarm'}};
@@ -192,8 +191,7 @@ const tzLocal = {
                 await entity.read('manuSpecificBosch5', [0x4001], boschManufacturer);
                 break;
             case 'heartbeat':
-                const endpoint = meta.device.getEndpoint(12);
-                await endpoint.read('manuSpecificBosch7', [0x5005], boschManufacturer);
+                await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], boschManufacturer);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
@@ -266,24 +264,25 @@ const fzLocal = {
         cluster: 'manuSpecificBosch3',
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
-        exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
-        exposes.options.calibration('illuminance_lux', 'percentual')],
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
+            exposes.options.calibration('illuminance_lux', 'percentual')],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('humidity')) {
-                result.humidity = msg.data['humidity'] / 100.0 ;
+                result.humidity = utils.calibrateAndPrecisionRoundOptions(msg.data['humidity'] / 100.0, options, 'humidity');
             }
             if (msg.data.hasOwnProperty('airpurity')) {
-                result.co2 = msg.data['airpurity'] * 10.0 + 500.0 ;
+                result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
             }
             if (msg.data.hasOwnProperty('temperature')) {
-                result.temperature = msg.data['temperature'] / 100.0 ;
+                result.temperature = utils.calibrateAndPrecisionRoundOptions(msg.data['temperature'] / 100.0, options, 'temperature');
             }
             if (msg.data.hasOwnProperty('illuminance_lux')) {
-                result.illuminance_lux = msg.data['illuminance_lux'] / 2.0 ;
+                result.illuminance_lux = utils.calibrateAndPrecisionRoundOptions(
+                    msg.data['illuminance_lux'] / 2.0, options, 'illuminance_lux');
             }
             if (msg.data.hasOwnProperty('battery')) {
-                result.battery = msg.data['battery'] / 2.0 ;
+                result.battery = msg.data['battery'] / 2.0;
             }
             return result;
         },
@@ -319,22 +318,22 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const lookup = {
-                0x00200020: 'clear', 
-                0x01200020: 'self_test', 
-                0x02200020: 'burglar', 
-                0x00200082: 'pre-alarm', 
-                0x00200081: 'fire', 
+                0x00200020: 'clear',
+                0x01200020: 'self_test',
+                0x02200020: 'burglar',
+                0x00200082: 'pre-alarm',
+                0x00200081: 'fire',
                 0x00200040: 'silenced',
             };
-            
+
             if (msg.data.hasOwnProperty('alarm_status')) {
-                result.self_test  = (msg.data['alarm_status'] & 1<<24) > 0;
+                result.self_test = (msg.data['alarm_status'] & 1<<24) > 0;
                 result.smoke = (msg.data['alarm_status'] & 1<<7) > 0;
                 result.siren_state = lookup[msg.data['alarm_status']];
             }
             return result;
         },
-    },    
+    },
     bosch_twinguard_smoke_alarm_state: {
         cluster: 'genAlarms',
         type: ['commandAlarm', 'readResponse'],
@@ -342,18 +341,19 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             const result = {};
             const lookup = {
-                0x10: 'fire', 
-                0x11: 'pre-alarm', 
-                0x14: 'clear', 
-                0x16: 'silenced', 
+                0x10: 'fire',
+                0x11: 'pre-alarm',
+                0x14: 'clear',
+                0x16: 'silenced',
             };
             result.siren_state = lookup[msg.data.alarmcode];
-             if (msg.data.alarmcode == 0x10 || msg.data.alarmcode == 0x11) {
-                await msg.endpoint.commandResponse('genAlarms', 'alarm', {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
+            if (msg.data.alarmcode == 0x10 || msg.data.alarmcode == 0x11) {
+                await msg.endpoint.commandResponse('genAlarms', 'alarm',
+                    {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
             }
             return result;
         },
-    }, 
+    },
 };
 
 const definition = [
@@ -466,11 +466,13 @@ const definition = [
         },
     },
     {
-        zigbeeModel: ['Champion'], // The model ID from: Device with modelID 'lumi.sens' is not supported.
-        model: 'Twinguard', // Vendor model number, look on the device for a model number
-        vendor: 'Bosch ST', // Vendor of the device (only used for documentation and startup logging)
-        description: 'Twinguard', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
-        fromZigbee: [fzLocal.bosch_twinguard_measurements, fzLocal.bosch_twinguard_sensitivity, fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state, fzLocal.bosch_twinguard_heartbeat],
+        zigbeeModel: ['Champion'],
+        model: '8750001213',
+        vendor: 'Bosch',
+        description: 'Twinguard',
+        fromZigbee: [fzLocal.bosch_twinguard_measurements, fzLocal.bosch_twinguard_sensitivity,
+            fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state,
+            fzLocal.bosch_twinguard_heartbeat],
         toZigbee: [tzLocal.bosch_twinguard],
         configure: async (device, coordinatorEndpoint, logger) => {
             const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
@@ -482,35 +484,27 @@ const definition = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe004]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe006]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe007]);
-            await device.getEndpoint(1).read('manuSpecificBosch5',['unknown_attribute'], boschManufacturer); // Needed for pairing
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], boschManufacturer); // Needed for pairing
             await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', boschManufacturer); // Needed for pairing
-            await device.getEndpoint(1).write('manuSpecificBosch', {0x4003: {value: 0x0002, type: 0x21}}, boschManufacturer); // Setting defaults
-            await device.getEndpoint(1).write('manuSpecificBosch5', {0x4001: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
-            await device.getEndpoint(12).write('manuSpecificBosch7', {0x5005: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
-            await device.getEndpoint(1).read('manuSpecificBosch',['sensitivity'], boschManufacturer);
-            await device.getEndpoint(1).read('manuSpecificBosch5',['pre_alarm'], boschManufacturer);
-            await device.getEndpoint(12).read('manuSpecificBosch7',['heartbeat'], boschManufacturer);
+            await device.getEndpoint(1).write('manuSpecificBosch',
+                {0x4003: {value: 0x0002, type: 0x21}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch5',
+                {0x4001: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(12).write('manuSpecificBosch7',
+                {0x5005: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], boschManufacturer);
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], boschManufacturer);
+            await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], boschManufacturer);
         },
         exposes: [
-            e.smoke(),
-            e.temperature(),
-            e.humidity(),
-            e.co2(),
-            e.illuminance_lux(),
-            exposes.enum('alarm', ea.STATE_SET, Object.keys(sirenState))
-                    .withDescription('Mode of the alarm (sound effect)'),
-            exposes.text('siren_state', ea.STATE)
-                    .withDescription('Siren state'),
-            exposes.binary('self_test', ea.STATE_SET, true, false)
-                    .withDescription('Initiate self-test'),
-            e.battery(),
-            exposes.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity))
-                    .withDescription('Sensitivity of the smoke alarm'),
-            exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn))
-                    .withDescription('Enable/disable pre-alarm'),
-            exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn))
-                    .withDescription('Enable/disable heartbeat'),
-            ],
+            e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
+            exposes.enum('alarm', ea.STATE_SET, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
+            exposes.text('siren_state', ea.STATE).withDescription('Siren state'),
+            exposes.binary('self_test', ea.STATE_SET, true, false).withDescription('Initiate self-test'),
+            exposes.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
+            exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
+        ],
     },
 ];
 
