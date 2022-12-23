@@ -5541,7 +5541,9 @@ const converters = {
                     extensionfieldsets.push({'clstId': 8, 'len': 1, 'extField': [val]});
                     state['brightness'] = val;
                 } else if (attribute === 'position') {
-                    extensionfieldsets.push({'clstId': 258, 'len': 1, 'extField': [100 - val]});
+                    const invert = utils.getMetaValue(entity, meta.mapped, 'coverInverted', 'allEqual', false) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+                    extensionfieldsets.push({'clstId': 258, 'len': 1, 'extField': [invert ? 100 - val : val]});
                     state['position'] = val;
                 } else if (attribute === 'color_temp') {
                     /*
