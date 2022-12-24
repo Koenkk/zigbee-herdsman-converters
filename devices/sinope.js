@@ -7,23 +7,27 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const {precisionRound} = require('../lib/utils');
 
 const manuSinope = {manufacturerCode: 0x119C};
+
 const fzLocal = {
-    sinope_thermostat: {
+    thermostat: {
         cluster: 'hvacThermostat',
-        type: ['readResponse'],
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.legacy()],
         convert: (model, msg, publish, options, meta) => {
+            delete msg['running_state'];
             const result = {};
+            const occupancyLookup = {0: 'unoccupied', 1: 'occupied'};
             const cycleOutputLookup = {15: '15_sec', 300: '5_min', 600: '10_min',
                 900: '15_min', 1200: '20_min', 1800: '30_min', 65535: 'off'};
+
             if (msg.data.hasOwnProperty('1024')) {
-                const lookup = {0: 'unoccupied', 1: 'occupied'};
-                result.thermostat_occupancy = lookup[msg.data['1024']];
+                result.thermostat_occupancy = occupancyLookup[msg.data['1024']];
             }
             if (msg.data.hasOwnProperty('SinopeOccupancy')) {
-                const lookup = {0: 'unoccupied', 1: 'occupied'};
-                result.thermostat_occupancy = lookup[msg.data['SinopeOccupancy']];
+                result.thermostat_occupancy = occupancyLookup[msg.data['SinopeOccupancy']];
             }
             if (msg.data.hasOwnProperty('1025')) {
                 result.main_cycle_output = cycleOutputLookup[msg.data['1025']];
@@ -42,29 +46,67 @@ const fzLocal = {
             if (msg.data.hasOwnProperty('1028')) {
                 result.aux_cycle_output = cycleOutputLookup[msg.data['1028']];
             }
+            if (msg.data.hasOwnProperty('localTemp')) {
+                result.local_temperature = precisionRound(msg.data['localTemp'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('localTemperatureCalibration')) {
+                result.local_temperature_calibration = precisionRound(msg.data['localTemperatureCalibration'], 2) / 10;
+            }
+            if (msg.data.hasOwnProperty('outdoorTemp')) {
+                result.outdoor_temperature = precisionRound(msg.data['outdoorTemp'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+                result.occupied_heating_setpoint = precisionRound(msg.data['occupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('unoccupiedHeatingSetpoint')) {
+                result.unoccupied_heating_setpoint = precisionRound(msg.data['unoccupiedHeatingSetpoint'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
+                result.occupied_cooling_setpoint = precisionRound(msg.data['occupiedCoolingSetpoint'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('unoccupiedCoolingSetpoint')) {
+                result.unoccupied_cooling_setpoint = precisionRound(msg.data['unoccupiedCoolingSetpoint'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('ctrlSeqeOfOper')) {
+                result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data['ctrlSeqeOfOper']];
+            }
+            if (msg.data.hasOwnProperty('systemMode')) {
+                result.system_mode = constants.thermostatSystemModes[msg.data['systemMode']];
+            }
+            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+                result.pi_heating_demand = precisionRound(msg.data['pIHeatingDemand'], 0);
+            }
+            if (msg.data.hasOwnProperty('minHeatSetpointLimit')) {
+                result.min_heat_setpoint_limit = precisionRound(msg.data['minHeatSetpointLimit'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('maxHeatSetpointLimit')) {
+                result.max_heat_setpoint_limit = precisionRound(msg.data['maxHeatSetpointLimit'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('absMinHeatSetpointLimit')) {
+                result.abs_min_heat_setpoint_limit = precisionRound(msg.data['absMinHeatSetpointLimit'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('absMaxHeatSetpointLimit')) {
+                result.abs_max_heat_setpoint_limit = precisionRound(msg.data['absMaxHeatSetpointLimit'], 2) / 100;
+            }
+            if (msg.data.hasOwnProperty('pIHeatingDemand')) {
+                result.running_state = msg.data['pIHeatingDemand'] >= 10 ? 'heat' : 'idle';
+            }
             return result;
         },
     },
-    sinope_TH1300ZB_specific: {
+    sinope: {
         cluster: 'manuSpecificSinope',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const lookup = {0: 'off', 1: 'on'};
             const result = {};
             if (msg.data.hasOwnProperty('GFCiStatus')) {
+                const lookup = {0: 'off', 1: 'on'};
                 result.gfci_status = lookup[msg.data['GFCiStatus']];
             }
             if (msg.data.hasOwnProperty('floorLimitStatus')) {
+                const lookup = {0: 'off', 1: 'on'};
                 result.floor_limit_status = lookup[msg.data['floorLimitStatus']];
             }
-            return result;
-        },
-    },
-    sinope_TH1400ZB_specific: {
-        cluster: 'manuSpecificSinope',
-        type: ['readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
             if (msg.data.hasOwnProperty('outdoorTempToDisplayTimeout')) {
                 result.enable_outdoor_temperature = msg.data['outdoorTempToDisplayTimeout'] == 10800 ? 'ON' : 'OFF';
             }
@@ -115,11 +157,11 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    }
 };
 
 const tzLocal = {
-    sinope_thermostat_occupancy: {
+    thermostat_occupancy: {
         key: ['thermostat_occupancy'],
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: 'unoccupied', 1: 'occupied'};
@@ -131,7 +173,7 @@ const tzLocal = {
             await entity.read('hvacThermostat', ['SinopeOccupancy'], manuSinope);
         },
     },
-    sinope_thermostat_backlight_autodim_param: {
+    backlight_autodim: {
         key: ['backlight_auto_dim'],
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: 'on_demand', 1: 'sensing'};
@@ -143,8 +185,7 @@ const tzLocal = {
             await entity.read('hvacThermostat', ['SinopeBacklight'], manuSinope);
         },
     },
-    sinope_thermostat_main_cycle_output: {
-        // TH1400ZB specific
+    main_cycle_output: {
         key: ['main_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {'15_sec': 15, '5_min': 300, '10_min': 600, '15_min': 900, '20_min': 1200, '30_min': 1800};
@@ -155,7 +196,7 @@ const tzLocal = {
             await entity.read('hvacThermostat', ['SinopeMainCycleOutput'], manuSinope);
         },
     },
-    sinope_thermostat_aux_cycle_output: {
+    aux_cycle_output: {
         // TH1400ZB specific
         key: ['aux_cycle_output'],
         convertSet: async (entity, key, value, meta) => {
@@ -167,7 +208,7 @@ const tzLocal = {
             await entity.read('hvacThermostat', ['SinopeAuxCycleOutput']);
         },
     },
-    sinope_thermostat_enable_outdoor_temperature: {
+    enable_outdoor_temperature: {
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
@@ -182,7 +223,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['outdoorTempToDisplayTimeout'], manuSinope);
         },
     },
-    sinope_thermostat_outdoor_temperature: {
+    outdoor_temperature: {
         key: ['thermostat_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value > -100 && value < 100) {
@@ -190,7 +231,7 @@ const tzLocal = {
             }
         },
     },
-    sinope_thermostat_time: {
+    thermostat_time: {
         key: ['thermostat_time'],
         convertSet: async (entity, key, value, meta) => {
             if (value === '') {
@@ -204,7 +245,7 @@ const tzLocal = {
             }
         },
     },
-    sinope_floor_control_mode: {
+    floor_control_mode: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_control_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -222,7 +263,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['floorControlMode']);
         },
     },
-    sinope_ambiant_max_heat_setpoint: {
+    ambiant_max_heat_setpoint: {
         // TH1300ZB and TH1400ZBspecific
         key: ['ambiant_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
@@ -235,7 +276,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['ambiantMaxHeatSetpointLimit']);
         },
     },
-    sinope_floor_min_heat_setpoint: {
+    floor_min_heat_setpoint: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_min_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
@@ -248,7 +289,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['floorMinHeatSetpointLimit']);
         },
     },
-    sinope_floor_max_heat_setpoint: {
+    floor_max_heat_setpoint: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_max_heat_setpoint'],
         convertSet: async (entity, key, value, meta) => {
@@ -261,7 +302,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['floorMaxHeatSetpointLimit']);
         },
     },
-    sinope_temperature_sensor: {
+    temperature_sensor: {
         // TH1300ZB and TH1400ZB specific
         key: ['floor_temperature_sensor'],
         convertSet: async (entity, key, value, meta) => {
@@ -279,7 +320,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['temperatureSensor']);
         },
     },
-    sinope_time_format: {
+    time_format: {
         key: ['time_format'],
         convertSet: async (entity, key, value, meta) => {
             if (typeof value !== 'string') {
@@ -296,7 +337,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['timeFormatToDisplay'], manuSinope);
         },
     },
-    sinope_connected_load: {
+    connected_load: {
         // TH1400ZB specific
         key: ['connected_load'],
         convertSet: async (entity, key, value, meta) => {
@@ -307,7 +348,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['connectedLoad']);
         },
     },
-    sinope_aux_connected_load: {
+    aux_connected_load: {
         // TH1400ZB specific
         key: ['aux_connected_load'],
         convertSet: async (entity, key, value, meta) => {
@@ -318,7 +359,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['auxConnectedLoad']);
         },
     },
-    sinope_pump_protection: {
+    pump_protection: {
         // TH1400ZB specific
         key: ['pump_protection'],
         convertSet: async (entity, key, value, meta) => {
@@ -333,7 +374,7 @@ const tzLocal = {
             await entity.read('manuSpecificSinope', ['pumpProtection']);
         },
     },
-    sinope_led_intensity_on: {
+    led_intensity_on: {
         // DM2500ZB and SW2500ZB
         key: ['led_intensity_on'],
         convertSet: async (entity, key, value, meta) => {
@@ -342,7 +383,7 @@ const tzLocal = {
             }
         },
     },
-    sinope_led_intensity_off: {
+    led_intensity_off: {
         // DM2500ZB and SW2500ZB
         key: ['led_intensity_off'],
         convertSet: async (entity, key, value, meta) => {
@@ -351,7 +392,7 @@ const tzLocal = {
             }
         },
     },
-    sinope_led_color_on: {
+    led_color_on: {
         // DM2500ZB and SW2500ZB
         key: ['led_color_on'],
         convertSet: async (entity, key, value, meta) => {
@@ -363,7 +404,7 @@ const tzLocal = {
             await entity.write('manuSpecificSinope', {ledColorOn: valueHex});
         },
     },
-    sinope_led_color_off: {
+    led_color_off: {
         // DM2500ZB and SW2500ZB
         key: ['led_color_off'],
         convertSet: async (entity, key, value, meta) => {
@@ -375,7 +416,7 @@ const tzLocal = {
             await entity.write('manuSpecificSinope', {ledColorOff: valueHex});
         },
     },
-    sinope_minimum_brightness: {
+    minimum_brightness: {
         // DM2500ZB
         key: ['minimum_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -383,7 +424,7 @@ const tzLocal = {
                 await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
         },
-    },
+    }
 };
 
 module.exports = [
@@ -392,14 +433,12 @@ module.exports = [
         model: 'TH1123ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -435,9 +474,6 @@ module.exports = [
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
             try {
                 await reporting.thermostatSystemMode(endpoint);
-            } catch (error) {/* Not all support this */}
-            try {
-                await reporting.thermostatRunningState(endpoint);
             } catch (error) {/* Not all support this */}
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
@@ -458,14 +494,12 @@ module.exports = [
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -502,9 +536,6 @@ module.exports = [
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Not all support this */}
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
@@ -524,14 +555,12 @@ module.exports = [
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_thermostat_main_cycle_output, tz.electrical_measurement_power],
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.thermostat_occupancy,
+            tzLocal.main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -582,10 +611,7 @@ module.exports = [
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
-            } catch (error) {/* Do nothing */} // Not enought space but shall pass
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Do nothing */} // Not enought space
+            } catch (error) {/* Do nothing */}
         },
     },
     {
@@ -593,15 +619,13 @@ module.exports = [
         model: 'TH1300ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart floor heating thermostat',
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report, fzLocal.sinope_TH1300ZB_specific],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_thermostat_occupancy, tzLocal.sinope_floor_control_mode, tzLocal.sinope_ambiant_max_heat_setpoint,
-            tzLocal.sinope_floor_min_heat_setpoint, tzLocal.sinope_floor_max_heat_setpoint, tzLocal.sinope_temperature_sensor],
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.thermostat_occupancy,
+            tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
+            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
@@ -626,10 +650,6 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Not all support this */}
 
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
@@ -664,17 +684,14 @@ module.exports = [
         model: 'TH1400ZB',
         vendor: 'Sinopé',
         description: 'Zigbee low volt thermostat',
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.legacy.sinope_thermostat_att_report, fz.legacy.hvac_user_interface, fz.legacy.sinope_thermostat_state,
-            fz.metering, fz.ignore_temperature_report, fzLocal.sinope_thermostat, fzLocal.sinope_TH1400ZB_specific],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_display_mode,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.thermostat_running_state,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_floor_control_mode, tzLocal.sinope_ambiant_max_heat_setpoint, tzLocal.sinope_floor_min_heat_setpoint,
-            tzLocal.sinope_floor_max_heat_setpoint, tzLocal.sinope_temperature_sensor, tz.thermostat_min_heat_setpoint_limit,
-            tz.thermostat_max_heat_setpoint_limit, tzLocal.sinope_connected_load, tzLocal.sinope_aux_connected_load,
-            tzLocal.sinope_thermostat_main_cycle_output, tzLocal.sinope_thermostat_aux_cycle_output, tzLocal.sinope_pump_protection],
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim, tzLocal.thermostat_time,
+            tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.floor_control_mode,
+            tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint, tzLocal.floor_max_heat_setpoint,
+            tzLocal.temperature_sensor, tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
+            tzLocal.connected_load, tzLocal.aux_connected_load, tzLocal.main_cycle_output, tzLocal.aux_cycle_output, tzLocal.pump_protection],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
@@ -763,12 +780,11 @@ module.exports = [
         model: 'TH1500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee dual pole line volt thermostat',
-        fromZigbee: [fz.legacy.thermostat_att_report],
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode,
-            tzLocal.sinope_thermostat_backlight_autodim_param, tzLocal.sinope_thermostat_time, tzLocal.sinope_time_format,
-            tzLocal.sinope_thermostat_enable_outdoor_temperature, tzLocal.sinope_thermostat_outdoor_temperature,
-            tzLocal.sinope_thermostat_occupancy],
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, tzLocal.thermostat_occupancy],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
@@ -794,10 +810,6 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
-
-            try {
-                await reporting.thermostatRunningState(endpoint);
-            } catch (error) {/* Do nothing*/}
         },
     },
     {
@@ -806,8 +818,7 @@ module.exports = [
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off, tzLocal.sinope_led_intensity_on, tzLocal.sinope_led_intensity_off, tzLocal.sinope_led_color_on,
-            tzLocal.sinope_led_color_off],
+        toZigbee: [tz.on_off, tzLocal.led_intensity_on, tzLocal.led_intensity_off, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.switch(),
             exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
@@ -836,8 +847,8 @@ module.exports = [
         vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_brightness, tzLocal.sinope_led_intensity_on, tzLocal.sinope_led_intensity_off,
-            tzLocal.sinope_minimum_brightness, tzLocal.sinope_led_color_on, tzLocal.sinope_led_color_off],
+        toZigbee: [tz.light_onoff_brightness, tzLocal.led_intensity_on, tzLocal.led_intensity_off, tzLocal.minimum_brightness,
+        tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
             exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED when load ON'),
@@ -1045,5 +1056,5 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
             await reporting.temperature(endpoint, {min: 60, max: 3600, change: 1});
         },
-    },
+    }
 ];
