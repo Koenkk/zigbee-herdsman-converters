@@ -697,8 +697,8 @@ module.exports = [
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat'])
-                .withRunningState(['idle', 'heat']), ea.STATE)
-                .withPiHeatingDemand(),
+                .withPiHeatingDemand()
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
                 .withDescription('Showing outdoor temperature on secondary display'),
             exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
