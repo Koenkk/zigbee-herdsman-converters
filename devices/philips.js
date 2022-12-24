@@ -27,38 +27,38 @@ const hueExtend = {
         ]),
     }),
     light_onoff_brightness_colortemp: (options={}) => {
-        options = {disableHueScenes: true, ...options};
+        options = {supportedHueScenes: [], ...options};
         const result = extendDontUse.light_onoff_brightness_colortemp(options);
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (!options.disableHueScenes) {
+        if (options.supportedHueScenes.length > 0) {
             result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
         }
         return result;
     },
     light_onoff_brightness_color: (options={}) => {
-        options = {disableHueScenes: true, ...options};
+        options = {supportedHueScenes: [], ...options};
         const result = extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (!options.disableHueScenes) {
+        if (options.supportedHueScenes.length > 0) {
             result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
         }
         return result;
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
-        options = {disableHueScenes: true, ...options};
+        options = {supportedHueScenes: [], ...options};
         const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (!options.disableHueScenes) {
+        if (options.supportedHueScenes.length > 0) {
             result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
         }
         return result;
     },
@@ -949,7 +949,9 @@ module.exports = [
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueScenes: false}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({
+            colorTempRange: [153, 500], supportedHueScenes: Object.keys(normalScenes),
+        }),
     },
     {
         zigbeeModel: ['LWA003', 'LWW002'],
@@ -1222,7 +1224,9 @@ module.exports = [
         model: '929002471601',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27 1600lm',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueScenes: false}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({
+            colorTempRange: [153, 500], supportedHueScenes: Object.keys(normalScenes),
+        }),
     },
     {
         zigbeeModel: ['LCA009'],
@@ -1341,7 +1345,7 @@ module.exports = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disableHueScenes: false}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], supportedHueScenes: ['candle', 'none']}),
     },
     {
         zigbeeModel: ['LTD005'],
