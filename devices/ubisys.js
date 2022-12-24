@@ -17,7 +17,6 @@ const manufacturerOptions = {
      */
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     ubisysNull: {manufacturerCode: null},
-    tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
 };
 
 const ubisysOnEventReadCurrentSummDelivered = async function(type, data, devic) {
