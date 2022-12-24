@@ -557,7 +557,7 @@ module.exports = [
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, 
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature,
             tzLocal.thermostat_occupancy, tzLocal.main_cycle_output, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
@@ -621,7 +621,7 @@ module.exports = [
             fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
-            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature, 
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature,
             tzLocal.thermostat_occupancy, tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
             tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor],
         exposes: [
