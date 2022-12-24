@@ -6,6 +6,8 @@ const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
 const philips = require('../lib/philips');
 const utils = require('../lib/utils');
+const libColor = require('../lib/color');
+const herdsman = require('zigbee-herdsman');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -13,34 +15,53 @@ const ea = exposes.access;
 const extendDontUse = require('../lib/extend');
 const extend = {switch: extendDontUse.switch};
 
+const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS};
+
 const hueExtend = {
     light_onoff_brightness: (options={}) => ({
         ...extendDontUse.light_onoff_brightness(options),
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
-        toZigbee: extendDontUse.light_onoff_brightness(options).toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: extendDontUse.light_onoff_brightness(options).toZigbee.concat([
+            tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error,
+        ]),
     }),
-    light_onoff_brightness_colortemp: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness_colortemp(options),
-        ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
-        toZigbee: extendDontUse.light_onoff_brightness_colortemp(options).toZigbee
-            .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
-    }),
-    light_onoff_brightness_color: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options}),
-        ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
-        toZigbee: extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options}).toZigbee
-            .concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
-    }),
-    light_onoff_brightness_colortemp_color: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}),
-        ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
-        toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
-            .toZigbee.concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
-    }),
+    light_onoff_brightness_colortemp: (options={}) => {
+        options = {disableHueScenes: true, ...options};
+        const result = extendDontUse.light_onoff_brightness_colortemp(options);
+        result['ota'] = ota.zigbeeOTA;
+        result['meta'] = {turnsOffAtBrightness1: true};
+        result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
+        if (!options.disableHueScenes) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+        }
+        return result;
+    },
+    light_onoff_brightness_color: (options={}) => {
+        options = {disableHueScenes: true, ...options};
+        const result = extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options});
+        result['ota'] = ota.zigbeeOTA;
+        result['meta'] = {turnsOffAtBrightness1: true};
+        result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
+        if (!options.disableHueScenes) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+        }
+        return result;
+    },
+    light_onoff_brightness_colortemp_color: (options={}) => {
+        options = {disableHueScenes: true, ...options};
+        const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
+        result['ota'] = ota.zigbeeOTA;
+        result['meta'] = {turnsOffAtBrightness1: true};
+        result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
+        if (!options.disableHueScenes) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes))]);
+        }
+        return result;
+    },
     light_onoff_brightness_colortemp_color_gradient: (options={}) => ({
         ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, noConfigure: true, ...options}),
         ota: ota.zigbeeOTA,
@@ -53,7 +74,9 @@ const hueExtend = {
             }
         },
         exposes: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).exposes.concat([
+            exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes)),
             // gradient_scene is deprecated, use gradient instead
+            //  (do we want to merge these into normalScenes for gradient lights?)
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
             exposes.list('gradient', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
                 .withLengthMin(1)
@@ -63,66 +86,9 @@ const hueExtend = {
         fromZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).fromZigbee.concat(
             [fzLocal.gradient({reverse: true})]),
         toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).toZigbee.concat(
-            [tz.hue_power_on_behavior, tz.hue_power_on_error, tzLocal.gradient_scene, tzLocal.gradient({reverse: true})]),
+            [tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error, tzLocal.hue_scene,
+                tzLocal.gradient_scene, tzLocal.gradient({reverse: true})]),
     }),
-};
-
-const fzLocal = {
-    hue_tap_dial: {
-        cluster: 'manuSpecificPhilips',
-        type: 'commandHueNotification',
-        options: [exposes.options.simulated_brightness()],
-        convert: (model, msg, publish, options, meta) => {
-            const buttonLookup = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
-            const button = buttonLookup[msg.data['button']];
-            const typeLookup = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
-            const type = typeLookup[msg.data['type']];
-            const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
-            const time = msg.data['time'];
-            const payload = {};
-
-            if (button === 'dial') {
-                const adjustedTime = direction === 'right' ? time : 256 - time;
-                const dialType = 'rotate';
-                const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
-                payload.action = `${button}_${dialType}_${direction}_${speed}`;
-
-                // simulated brightness
-                if (options.simulated_brightness) {
-                    const opts = options.simulated_brightness;
-                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
-                    const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
-                    const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
-                    payload.brightness = utils.numberWithinRange(brightness, 0, 255);
-                    globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
-                }
-            } else {
-                payload.action = `${button}_${type}`;
-                // duration
-                if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
-                else if (type === 'hold' || type === 'hold_release') {
-                    payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, 'press_start')) / 1000;
-                }
-            }
-            return payload;
-        },
-    },
-    gradient: (opts = {reverse: false}) => {
-        return {
-            cluster: 'manuSpecificPhilips2',
-            type: ['attributeReport', 'readResponse'],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data && msg.data.hasOwnProperty('state')) {
-                    const input = msg.data['state'].toString('hex');
-                    const decoded = philips.decodeGradientColors(input, opts);
-                    if (decoded.color_mode === 'gradient') {
-                        return {gradient: decoded.colors};
-                    }
-                }
-                return {};
-            },
-        };
-    },
 };
 
 const gradientScenes = {
@@ -203,6 +169,71 @@ const gradientScenes = {
     'crystalline': '5001040013500000006ea96a92a85e58074e18543d9cf3332800',
 };
 
+const normalScenes = {
+    'candle': '21000101',
+    'fireplace': '21000102',
+    'colorloop': '21000103',
+    'none': '200000',
+};
+
+const fzLocal = {
+    hue_tap_dial: {
+        cluster: 'manuSpecificPhilips',
+        type: 'commandHueNotification',
+        options: [exposes.options.simulated_brightness()],
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
+            const button = buttonLookup[msg.data['button']];
+            const typeLookup = {0: 'press', 1: 'hold', 2: 'press_release', 3: 'hold_release'};
+            const type = typeLookup[msg.data['type']];
+            const direction = msg.data['unknown2'] <127 ? 'right' : 'left';
+            const time = msg.data['time'];
+            const payload = {};
+
+            if (button === 'dial') {
+                const adjustedTime = direction === 'right' ? time : 256 - time;
+                const dialType = 'rotate';
+                const speed = adjustedTime <= 25 ? 'step' : adjustedTime <= 75 ? 'slow' : 'fast';
+                payload.action = `${button}_${dialType}_${direction}_${speed}`;
+
+                // simulated brightness
+                if (options.simulated_brightness) {
+                    const opts = options.simulated_brightness;
+                    const deltaOpts = typeof opts === 'object' && opts.hasOwnProperty('delta') ? opts.delta : 35;
+                    const delta = direction === 'right' ? deltaOpts : deltaOpts * -1;
+                    const brightness = globalStore.getValue(msg.endpoint, 'brightness', 255) + delta;
+                    payload.brightness = utils.numberWithinRange(brightness, 0, 255);
+                    globalStore.putValue(msg.endpoint, 'brightness', payload.brightness);
+                }
+            } else {
+                payload.action = `${button}_${type}`;
+                // duration
+                if (type === 'press') globalStore.putValue(msg.endpoint, 'press_start', Date.now());
+                else if (type === 'hold' || type === 'hold_release') {
+                    payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, 'press_start')) / 1000;
+                }
+            }
+            return payload;
+        },
+    },
+    gradient: (opts = {reverse: false}) => {
+        return {
+            cluster: 'manuSpecificPhilips2',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data && msg.data.hasOwnProperty('state')) {
+                    const input = msg.data['state'].toString('hex');
+                    const decoded = philips.decodeGradientColors(input, opts);
+                    if (decoded.color_mode === 'gradient') {
+                        return {gradient: decoded.colors};
+                    }
+                }
+                return {};
+            },
+        };
+    },
+};
+
 const tzLocal = {
     gradient_scene: {
         key: ['gradient_scene'],
@@ -226,20 +257,135 @@ const tzLocal = {
             },
         };
     },
-    effect: {
-        key: ['effect'],
+    hue_scene: {
+        key: ['hue_scene'],
         convertSet: async (entity, key, value, meta) => {
-            const hueEffects = {
-                'candle': '21000101',
-                'fireplace': '21000102',
-                'colorloop': '21000103',
-                'stop_hue_effect': '200000',
-            };
-            if (Object.keys(hueEffects).includes(value.toLowerCase())) {
-                await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(hueEffects[value.toLowerCase()], 'hex')});
+            if (Object.keys(normalScenes).includes(value.toLowerCase())) {
+                await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(normalScenes[value.toLowerCase()], 'hex')});
             } else {
-                return await tz.effect.convertSet(entity, key, value, meta);
+                throw new Error(`requested scene '${value.toLowerCase()}' is unknown`);
             }
+        },
+    },
+    hue_power_on_behavior: {
+        key: ['hue_power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'default') {
+                value = 'on';
+            }
+
+            let supports = {colorTemperature: false, colorXY: false};
+            if (entity.constructor.name === 'Endpoint' && entity.supportsInputCluster('lightingColorCtrl')) {
+                const readResult = await entity.read('lightingColorCtrl', ['colorCapabilities']);
+                supports = {
+                    colorTemperature: (readResult.colorCapabilities & 1 << 4) > 0,
+                    colorXY: (readResult.colorCapabilities & 1 << 3) > 0,
+                };
+            } else if (entity.constructor.name === 'Group') {
+                supports = {colorTemperature: true, colorXY: true};
+            }
+
+            if (value === 'off') {
+                await entity.write('genOnOff', {0x4003: {value: 0x00, type: 0x30}});
+            } else if (value === 'recover') {
+                await entity.write('genOnOff', {0x4003: {value: 0xff, type: 0x30}});
+                await entity.write('genLevelCtrl', {0x4000: {value: 0xff, type: 0x20}});
+
+                if (supports.colorTemperature) {
+                    await entity.write('lightingColorCtrl', {0x4010: {value: 0xffff, type: 0x21}});
+                }
+
+                if (supports.colorXY) {
+                    await entity.write('lightingColorCtrl', {0x0003: {value: 0xffff, type: 0x21}}, manufacturerOptions);
+                    await entity.write('lightingColorCtrl', {0x0004: {value: 0xffff, type: 0x21}}, manufacturerOptions);
+                }
+            } else if (value === 'on') {
+                await entity.write('genOnOff', {0x4003: {value: 0x01, type: 0x30}});
+
+                let brightness = meta.message.hasOwnProperty('hue_power_on_brightness') ?
+                    meta.message.hue_power_on_brightness : 0xfe;
+                if (brightness === 255) {
+                    // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
+                    brightness = 254;
+                }
+                await entity.write('genLevelCtrl', {0x4000: {value: brightness, type: 0x20}});
+
+                if (entity.supportsInputCluster('lightingColorCtrl')) {
+                    if (
+                        meta.message.hasOwnProperty('hue_power_on_color_temperature') &&
+                        meta.message.hasOwnProperty('hue_power_on_color')
+                    ) {
+                        meta.logger.error(`Provide either color temperature or color, not both`);
+                    } else if (meta.message.hasOwnProperty('hue_power_on_color_temperature')) {
+                        const colortemp = meta.message.hue_power_on_color_temperature;
+                        await entity.write('lightingColorCtrl', {0x4010: {value: colortemp, type: 0x21}});
+                        // Set color to default
+                        if (supports.colorXY) {
+                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, manufacturerOptions);
+                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions);
+                        }
+                    } else if (meta.message.hasOwnProperty('hue_power_on_color')) {
+                        const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
+                        value = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
+
+                        // Set colortemp to default
+                        if (supports.colorTemperature) {
+                            await entity.write('lightingColorCtrl', {0x4010: {value: 366, type: 0x21}});
+                        }
+
+                        await entity.write('lightingColorCtrl', {0x0003: {value: value.x, type: 0x21}}, manufacturerOptions);
+                        await entity.write('lightingColorCtrl', {0x0004: {value: value.y, type: 0x21}}, manufacturerOptions);
+                    } else {
+                        // Set defaults for colortemp and color
+                        if (supports.colorTemperature) {
+                            await entity.write('lightingColorCtrl', {0x4010: {value: 366, type: 0x21}});
+                        }
+
+                        if (supports.colorXY) {
+                            await entity.write('lightingColorCtrl', {0x0003: {value: 0xFFFF, type: 0x21}}, manufacturerOptions);
+                            await entity.write('lightingColorCtrl', {0x0004: {value: 0xFFFF, type: 0x21}}, manufacturerOptions);
+                        }
+                    }
+                }
+            }
+
+            return {state: {hue_power_on_behavior: value}};
+        },
+    },
+    hue_power_on_error: {
+        key: ['hue_power_on_brightness', 'hue_power_on_color_temperature', 'hue_power_on_color'],
+        convertSet: async (entity, key, value, meta) => {
+            if (!meta.message.hasOwnProperty('hue_power_on_behavior')) {
+                throw new Error(`Provide a value for 'hue_power_on_behavior'`);
+            }
+        },
+    },
+    hue_motion_sensitivity: {
+        // motion detect sensitivity, philips specific
+        key: ['motion_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            // make sure you write to second endpoint!
+            const lookup = {'low': 0, 'medium': 1, 'high': 2, 'very_high': 3, 'max': 4};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+
+            const payload = {48: {value: lookup[value], type: 32}};
+            await entity.write('msOccupancySensing', payload, manufacturerOptions);
+            return {state: {motion_sensitivity: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('msOccupancySensing', [48], manufacturerOptions);
+        },
+    },
+    hue_motion_led_indication: {
+        key: ['led_indication'],
+        convertSet: async (entity, key, value, meta) => {
+            const payload = {0x0033: {value, type: 0x10}};
+            await entity.write('genBasic', payload, manufacturerOptions);
+            return {state: {led_indication: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genBasic', [0x0033], manufacturerOptions);
         },
     },
 };
@@ -803,7 +949,7 @@ module.exports = [
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueScenes: false}),
     },
     {
         zigbeeModel: ['LWA003', 'LWW002'],
@@ -1076,7 +1222,7 @@ module.exports = [
         model: '929002471601',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27 1600lm',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueScenes: false}),
     },
     {
         zigbeeModel: ['LCA009'],
@@ -1195,7 +1341,7 @@ module.exports = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disableHueScenes: false}),
     },
     {
         zigbeeModel: ['LTD005'],
@@ -2055,7 +2201,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        toZigbee: [tz.occupancy_timeout, tzLocal.hue_motion_sensitivity, tzLocal.hue_motion_led_indication],
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
@@ -2084,7 +2230,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']),
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        toZigbee: [tz.occupancy_timeout, tzLocal.hue_motion_sensitivity, tzLocal.hue_motion_led_indication],
         endpoint: (device) => {
             return {'default': 2, 'ep1': 1, 'ep2': 2};
         },
@@ -2113,7 +2259,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        toZigbee: [tz.occupancy_timeout, tzLocal.hue_motion_sensitivity, tzLocal.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -2139,7 +2285,7 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high', 'very_high', 'max']),
             exposes.binary('led_indication', ea.ALL, true, false).withDescription('Blink green LED on motion detection'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('second').withValueMin(0).withValueMax(65535)],
-        toZigbee: [tz.occupancy_timeout, tz.hue_motion_sensitivity, tz.hue_motion_led_indication],
+        toZigbee: [tz.occupancy_timeout, tzLocal.hue_motion_sensitivity, tzLocal.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(2);
             const binds = ['genPowerCfg', 'msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing'];
@@ -2160,7 +2306,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2174,7 +2320,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2188,7 +2334,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - UK',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2202,7 +2348,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2216,7 +2362,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2230,7 +2376,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - CH',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2244,7 +2390,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2258,7 +2404,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
         extend: extend.switch(),
-        toZigbee: [tz.on_off].concat([tz.hue_power_on_behavior, tz.hue_power_on_error]),
+        toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
