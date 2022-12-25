@@ -2304,43 +2304,59 @@ const converters = {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_cover');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
+            const result = {};
 
-            switch (dp) {
-            case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverArrived: { // Arrived at position
-                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
-                const running = dp !== tuya.dataPoints.coverArrived;
+            // Iterate through dpValues in case of some zigbee models returning multiple dp values in one message
+            // For example: [TS0601, _TZE200_3ylew7b4]
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
 
-                // Not all covers report coverArrived, so set running to false if device doesn't report position for a few seconds
-                clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
-                if (running) {
-                    const timer = setTimeout(() => publish({running: false}), 3 * 1000);
-                    globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                switch (dp) {
+                case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+                case tuya.dataPoints.coverArrived: { // Arrived at position
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
+                    const position = invert ? 100 - (value & 0xff) : value & 0xff;
+                    const running = dp !== tuya.dataPoints.coverArrived;
+
+                    // Not all covers report coverArrived, so set running to false if device doesn't report position
+                    // for a few seconds
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
+                    if (running) {
+                        const timer = setTimeout(() => publish({running: false}), 3 * 1000);
+                        globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                    }
+
+                    if (position > 0 && position <= 100) {
+                        result.running = running;
+                        result.position = position;
+                        result.state = 'OPEN';
+                    } else if (position == 0) {
+                    // Report fully closed
+                        result.running = running;
+                        result.position = position;
+                        result.state = 'CLOSE';
+                    } else {
+                        result.running = running; // Not calibrated yet, no position is available
+                    }
                 }
-
-                if (position > 0 && position <= 100) {
-                    return {running, position, state: 'OPEN'};
-                } else if (position == 0) { // Report fully closed
-                    return {running, position, state: 'CLOSE'};
-                } else {
-                    return {running}; // Not calibrated yet, no position is available
+                    break;
+                case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
+                    result.motor_speed = value;
+                    break;
+                case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+                    break;
+                case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+                    break;
+                case tuya.dataPoints.config: // Returned by configuration set; ignore
+                    break;
+                default: // Unknown code
+                    meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                    ${JSON.stringify(dpValue)}`);
                 }
             }
-            case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
-                return {motor_speed: value};
-            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
-            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
-                break;
-            case tuya.dataPoints.config: // Returned by configuration set; ignore
-                break;
-            default: // Unknown code
-                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
-                ${JSON.stringify(dpValue)}`);
-            }
+
+            return result;
         },
     },
     wiser_device_info: {
