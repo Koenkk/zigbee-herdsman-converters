@@ -1345,7 +1345,7 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p0gzbqct']),
-        model: 'TS0601_dimmer',
+        model: 'TS0601_dimmer_knob',
         vendor: 'TuYa',
         description: 'Zigbee smart knob dimmer',
         fromZigbee: [tuya.fz.datapoints],
