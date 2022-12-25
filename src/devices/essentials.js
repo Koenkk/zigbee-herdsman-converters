@@ -217,7 +217,7 @@ const device = {
             [104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
             [105, 'schedule_override_setpoint', tuya.valueConverter.divideBy10],
             [106, null, null], // TODO rapid heating
-            [107, 'window_open', tuya.valueConverter.lookup({'YES': true, 'NO': false})],
+            [107, 'window_open', tuya.valueConverterBasic.lookup({'YES': true, 'NO': false})],
             [108, null, null], // TODO hibernate
             [109, 'monday', essentialsValueConverter.day_schedule('monday', 1)],
             [110, 'tuesday', essentialsValueConverter.day_schedule('tuesday', 2)],
