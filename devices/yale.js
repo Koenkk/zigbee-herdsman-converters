@@ -29,12 +29,12 @@ const fzLocal = {
             if (msg.data.clusterid == 64512) {
                 const alarmcode = msg.data.alarmcode;
                 const lookup = {
-                    9: {action: 'error_jammed', state: 'UNLOCKED', lock_state: 'not_fully_locked'},
-                    21: {action: 'manual_lock', state: 'LOCKED', lock_state: 'locked'},
-                    22: {action: 'manual_unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
-                    24: {action: 'lock', state: 'LOCKED', lock_state: 'locked'},
-                    25: {action: 'unlock', state: 'UNLOCKED', lock_state: 'unlocked'},
-                    27: {action: 'auto_lock', state: 'LOCKED', lock_state: 'locked'},
+                    9: {action: 'error_jammed', state: 'UNLOCK', lock_state: 'not_fully_locked'},
+                    21: {action: 'manual_lock', state: 'LOCK', lock_state: 'locked'},
+                    22: {action: 'manual_unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    24: {action: 'lock', state: 'LOCK', lock_state: 'locked'},
+                    25: {action: 'unlock', state: 'UNLOCK', lock_state: 'unlocked'},
+                    27: {action: 'auto_lock', state: 'LOCK', lock_state: 'locked'},
                 };
                 if (!lookup[alarmcode]) {
                     result.action = 'unknown';
