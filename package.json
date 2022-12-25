@@ -38,7 +38,7 @@
     "buffer-crc32": "^0.2.13",
     "https-proxy-agent": "^5.0.1",
     "tar-stream": "^3.0.0",
-    "zigbee-herdsman": "^0.14.81"
+    "zigbee-herdsman": "^0.14.83"
   },
   "devDependencies": {
     "eslint": "*",
