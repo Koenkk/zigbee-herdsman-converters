@@ -76,7 +76,7 @@ function addDefinition(definition) {
     }
 
     definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write,
-        tz.command);
+        tz.command, tz.factory_reset);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);

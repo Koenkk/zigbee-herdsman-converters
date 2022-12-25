@@ -2969,7 +2969,7 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Environment controller',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
