@@ -1351,6 +1351,7 @@ module.exports = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
+    //    exposes: [tuya.exposes.lightBrightness(), tuya.exposes.lightType(), tuya.exposes.indicatorMode()],
         exposes: [tuya.exposes.lightBrightness(), tuya.exposes.lightType()],
         meta: {
             tuyaDatapoints: [
@@ -1358,7 +1359,7 @@ module.exports = [
                 [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
                 [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [4, 'light_type', tuya.valueConverter.lightType],
-                [21, 'indicator_light_mode', tuya.moesSwitch.indicateLight],
+    //            [21, 'indicator_light_mode', tuya.tuyaTz.backlight_indicator_mode],
             ],
         },
         whiteLabel: [
