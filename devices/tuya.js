@@ -1764,7 +1764,7 @@ module.exports = [
          */
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_xabckq1v'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_czuyt8lz'}],
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_xabckq1v', '_TZ3000_czuyt8lz', '_TZ3000_ja5osu5g']),
         model: 'TS004F',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
@@ -1782,10 +1782,13 @@ module.exports = [
             } catch (err) {/* do nothing */}
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            for (const ep of [1, 2, 3, 4]) {
+                // Not all variants have all endpoints
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15730#issuecomment-1364498358
+                if (device.getEndpoint(ep)) {
+                    await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+                }
+            }
         },
     },
     {
