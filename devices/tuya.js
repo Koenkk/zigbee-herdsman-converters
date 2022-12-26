@@ -1764,7 +1764,7 @@ module.exports = [
          */
     },
     {
-        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_xabckq1v', '_TZ3000_czuyt8lz', '_TZ3000_ja5osu5g']),
+        fingerprint: tuya.fingerprint('TS004F', ['_TZ3000_xabckq1v', '_TZ3000_czuyt8lz']),
         model: 'TS004F',
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
