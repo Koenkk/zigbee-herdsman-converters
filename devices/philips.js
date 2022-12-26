@@ -2272,6 +2272,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['929003098901'],
+        model: '929003098901',
+        vendor: 'Philips',
+        description: 'Hue White Inara outdoor light',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['1744530P7', '1744630P7', '1744430P7', '1744730P7'],
         model: '8718696170625',
         vendor: 'Philips',
