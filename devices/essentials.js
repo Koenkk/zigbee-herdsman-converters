@@ -138,7 +138,7 @@ const essentialsValueConverter = {
     },
 };
 
-const device = {
+const essentialsThermostat = {
     fingerprint: tuya.fingerprint('TS0601', ['_TZE200_i48qyn9s']),
     model: 'Essentials Zigbee Radiator Thermostat',
     vendor: 'TuYa',
@@ -235,5 +235,5 @@ const device = {
     },
 };
 
-module.exports = device;
+module.exports = [essentialsThermostat];
 
