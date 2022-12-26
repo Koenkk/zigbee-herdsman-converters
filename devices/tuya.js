@@ -3514,7 +3514,8 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'}],
+        fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_kjfzuycl'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_ja5osu5g'}],
         model: 'ERS-10TZBVB-AA',
         vendor: 'TuYa',
         description: 'Smart button',
