@@ -153,10 +153,10 @@ const essentialsThermostat = {
         e.battery(),
         e.battery_low(),
         e.child_lock(),
-        exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5)
-            .withLocalTemperature()
+        exposes.climate().withSetpoint('current_heating_setpoint', 0.5, 29.5, 0.5, ea.STATE_SET)
+            .withLocalTemperature(ea.STATE)
             .withLocalTemperatureCalibration(-12.5, 5.5, 0.1, ea.STATE_SET)
-            .withSystemMode(['auto', 'heat', 'off'], ea.ALL,
+            .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET,
                 'Mode auto: schedule active. Mode heat: manual temperature setting. Mode off: "away" setting active'),
         e.comfort_temperature(),
         e.eco_temperature(),
