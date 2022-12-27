@@ -27,43 +27,55 @@ const hueExtend = {
         ]),
     }),
     light_onoff_brightness_colortemp: (options={}) => {
-        options = {supportedHueScenes: [], ...options};
+        options = {disableHueEffects: true, ...options};
+        if (!options.disableHueEffects) options.disableEffect = true;
         const result = extendDontUse.light_onoff_brightness_colortemp(options);
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (options.supportedHueScenes.length > 0) {
-            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
+        if (!options.disableHueEffects) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.effect]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('effect', ea.SET,
+                ['blink', 'breathe', 'okay', 'channel_change', 'candle', 'finish_effect', 'stop_effect', 'stop_hue_effect'])]);
         }
         return result;
     },
     light_onoff_brightness_color: (options={}) => {
-        options = {supportedHueScenes: [], ...options};
+        options = {disableHueEffects: true, ...options};
+        if (!options.disableHueEffects) options.disableEffect = true;
         const result = extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (options.supportedHueScenes.length > 0) {
-            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
+        if (!options.disableHueEffects) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.effect]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('effect', ea.SET, [
+                'blink', 'breathe', 'okay', 'channel_change',
+                'candle', 'fireplace', 'colorloop',
+                'finish_effect', 'stop_effect', 'stop_hue_effect',
+            ])]);
         }
         return result;
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
-        options = {supportedHueScenes: [], ...options};
+        options = {disableHueEffects: true, ...options};
+        if (!options.disableHueEffects) options.disableEffect = true;
         const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
-        if (options.supportedHueScenes.length > 0) {
-            result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_scene]);
-            result['exposes'] = result['exposes'].concat([exposes.enum('hue_scene', ea.SET, options.supportedHueScenes)]);
+        if (!options.disableHueEffects) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.effect]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('effect', ea.SET, [
+                'blink', 'breathe', 'okay', 'channel_change',
+                'candle', 'fireplace', 'colorloop',
+                'finish_effect', 'stop_effect', 'stop_hue_effect',
+            ])]);
         }
         return result;
     },
     light_onoff_brightness_colortemp_color_gradient: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, noConfigure: true, ...options}),
+        ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, disableEffect: true, noConfigure: true, ...options}),
         ota: ota.zigbeeOTA,
         meta: {turnsOffAtBrightness1: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -74,19 +86,22 @@ const hueExtend = {
             }
         },
         exposes: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).exposes.concat([
-            exposes.enum('hue_scene', ea.SET, Object.keys(normalScenes)),
             // gradient_scene is deprecated, use gradient instead
-            //  (do we want to merge these into normalScenes for gradient lights?)
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
             exposes.list('gradient', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
                 .withLengthMin(1)
                 .withLengthMax(9)
                 .withDescription('List of RGB HEX colors'),
+            exposes.enum('effect', ea.SET, [
+                'blink', 'breathe', 'okay', 'channel_change',
+                'candle', 'fireplace', 'colorloop',
+                'finish_effect', 'stop_effect', 'stop_hue_effect',
+            ]),
         ]),
         fromZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).fromZigbee.concat(
             [fzLocal.gradient({reverse: true})]),
         toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).toZigbee.concat(
-            [tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error, tzLocal.hue_scene,
+            [tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error, tzLocal.effect,
                 tzLocal.gradient_scene, tzLocal.gradient({reverse: true})]),
     }),
 };
@@ -169,11 +184,11 @@ const gradientScenes = {
     'crystalline': '5001040013500000006ea96a92a85e58074e18543d9cf3332800',
 };
 
-const normalScenes = {
+const hueEffects = {
     'candle': '21000101',
     'fireplace': '21000102',
     'colorloop': '21000103',
-    'none': '200000',
+    'stop_hue_effect': '200000',
 };
 
 const fzLocal = {
@@ -257,13 +272,13 @@ const tzLocal = {
             },
         };
     },
-    hue_scene: {
-        key: ['hue_scene'],
+    effect: {
+        key: ['effect'],
         convertSet: async (entity, key, value, meta) => {
-            if (Object.keys(normalScenes).includes(value.toLowerCase())) {
-                await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(normalScenes[value.toLowerCase()], 'hex')});
+            if (Object.keys(hueEffects).includes(value.toLowerCase())) {
+                await entity.command('manuSpecificPhilips2', 'multiColor', {data: Buffer.from(hueEffects[value.toLowerCase()], 'hex')});
             } else {
-                throw new Error(`requested scene '${value.toLowerCase()}' is unknown`);
+                return await tz.effect.convertSet(entity, key, value, meta);
             }
         },
     },
@@ -950,7 +965,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
         extend: hueExtend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500], supportedHueScenes: Object.keys(normalScenes),
+            colorTempRange: [153, 500], disableHueEffects: false,
         }),
     },
     {
@@ -1225,7 +1240,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27 1600lm',
         extend: hueExtend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500], supportedHueScenes: Object.keys(normalScenes),
+            colorTempRange: [153, 500], disableHueEffects: false,
         }),
     },
     {
@@ -1345,7 +1360,7 @@ module.exports = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], supportedHueScenes: ['candle', 'none']}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LTD005'],
