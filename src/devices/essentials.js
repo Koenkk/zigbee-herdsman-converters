@@ -4,6 +4,12 @@ const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('../lib/tuya');
 
+const essentialsRefresh = {
+    key: ['refresh'],
+    convertGet: async (entity, key, value, meta) => {
+        await tuya.sendDataPointEnum(entity, 120, 0);
+    },
+};
 
 const essentialsValueConverter = {
     battery: {
@@ -147,7 +153,10 @@ const essentialsThermostat = {
         fz.ignore_basic_report,
         tuya.fzDataPoints,
     ],
-    toZigbee: [tuya.tzDataPoints],
+    toZigbee: [
+        tuya.tzDataPoints,
+        essentialsRefresh,
+    ],
     onEvent: tuya.onEventSetLocalTime,
     exposes: [
         e.battery(),
@@ -202,6 +211,7 @@ const essentialsThermostat = {
             });
             return composite;
         }),
+        exposes.binary('refresh', ea.GET, false, true),
     ],
     meta: {
         tuyaDatapoints: [
@@ -230,7 +240,6 @@ const essentialsThermostat = {
             [117, 'detectwindow_timeminute', tuya.valueConverterBasic.raw],
             [118, null, null], // TODO rapidHeatCntdownTimer
             [119, null, null], // TODO tempControl
-            [120, null, null], // TODO requestUpdate
         ],
     },
 };
