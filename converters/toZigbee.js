@@ -7166,6 +7166,17 @@ const converters = {
             }
         },
     },
+    led_on_motion: {
+        key: ['led_on_motion'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write('ssIasZone', {0x4000: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: 4919});
+            return {state: {led_on_motion: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('ssIasZone', [0x4000], {manufacturerCode: 4919});
+        },
+    },
     // #endregion
 
     // #region Ignore converters

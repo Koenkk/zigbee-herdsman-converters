@@ -8320,6 +8320,17 @@ const converters = {
             return result;
         },
     },
+    led_on_motion: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (0x4000 in msg.data) {
+                result.led_on_motion = msg.data[0x4000] == 1 ? true : false;
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
