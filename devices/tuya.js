@@ -1255,7 +1255,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [3, 'humidity', tuya.valueConverter.raw],
-                [5, 'temperature', tuya.valueConverter.divideBy10],
+                [5, 'temperature', tuya.valueConverter.raw],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
