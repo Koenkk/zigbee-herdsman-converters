@@ -521,8 +521,8 @@ module.exports = [
     {
         zigbeeModel: ['WISZB-137'],
         model: 'WISZB-137',
-        vendor: 'Develco Products A/S',
-        description: 'Vibration Sensor',
+        vendor: 'Develco',
+        description: 'Vibration sensor',
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1, fz.temperature],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2100'}},
