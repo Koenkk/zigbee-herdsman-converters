@@ -3784,19 +3784,19 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.smoke(), 
-            exposes.numeric('smoke_level', ea.STATE).withUnit("ppm").withDescription("Parts per million of smoke detected"), 
-            exposes.binary('device_fault', ea.STATE, true, false).withDescription("Indicates a fault with the device"), 
-            e.battery(), 
+            e.smoke(),
+            exposes.numeric('smoke_level', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected'),
+            exposes.binary('device_fault', ea.STATE, true, false).withDescription('Indicates a fault with the device'),
+            e.battery(),
             e.test()],
         meta: {
             tuyaDatapoints: [
-                    [1, 'smoke', tuya.valueConverter.true0ElseFalse],
-                    [2, 'smoke_level', tuya.valueConverter.raw],
-                    [11,'device_fault', tuya.valueConverter.raw],
-                    [15,'battery', tuya.valueConverter.raw],
-                    [101,'test', tuya.valueConverter.raw]
+                [1, 'smoke', tuya.valueConverter.true0ElseFalse],
+                [2, 'smoke_level', tuya.valueConverter.raw],
+                [11,'device_fault', tuya.valueConverter.raw],
+                [15,'battery', tuya.valueConverter.raw],
+                [101,'test', tuya.valueConverter.raw]
                 ],
-        },          
+        },
     }
 ];
