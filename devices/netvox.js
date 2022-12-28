@@ -30,6 +30,6 @@ module.exports = [
         description: 'Netvox wireless wall switch',
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
-        exposes: [e.action(['toggle'])]
-    }
+        exposes: [e.action(['toggle'])],
+    },
 ];
