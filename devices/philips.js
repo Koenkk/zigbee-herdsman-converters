@@ -2496,6 +2496,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['5047130P6'],
+        model: '5047130P6',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Buckram single spotlight with bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['HML006'],
         model: '7531609',
         vendor: 'Philips',
