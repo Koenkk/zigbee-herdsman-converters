@@ -310,7 +310,8 @@ module.exports = [
             exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900).withValueStep(100)],
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)
+                .withValueStep(100)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
