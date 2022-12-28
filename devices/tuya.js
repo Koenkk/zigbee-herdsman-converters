@@ -1094,6 +1094,9 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_otvn3lne'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_ykwcwxmz'},
+            // _TZ3000_kmh5qpmb = NAS-PD07 without temperature/humidity sensor
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15481#issuecomment-1366003011
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_kmh5qpmb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_hgu1dlak'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
