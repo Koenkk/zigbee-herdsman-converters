@@ -85,7 +85,7 @@ module.exports = [
             e.voltage_phase_c(), e.temperature()],
     },
     {
-        zigbeeModel: ['Motion Sensor'],
+        fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
         model: 'HSE2927E',
         vendor: 'Datek',
         description: 'Eva motion sensor',
