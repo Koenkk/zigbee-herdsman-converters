@@ -3793,10 +3793,10 @@ module.exports = [
             tuyaDatapoints: [
                 [1, 'smoke', tuya.valueConverter.true0ElseFalse],
                 [2, 'smoke_level', tuya.valueConverter.raw],
-                [11,'device_fault', tuya.valueConverter.raw],
-                [15,'battery', tuya.valueConverter.raw],
-                [101,'test', tuya.valueConverter.raw]
-                ],
+                [11, 'device_fault', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverter.raw],
+                [101, 'test', tuya.valueConverter.raw],
+            ],
         },
-    }
+    },
 ];
