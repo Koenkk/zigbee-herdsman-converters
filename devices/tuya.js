@@ -1351,7 +1351,8 @@ module.exports = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [tuya.exposes.lightBrightness().withMinBrightness().setAccess('min_brightness', ea.STATE_SET), tuya.exposes.lightType(), /*tuya.exposes.indicatorModeNoneRelayPos()*/],
+        exposes: [tuya.exposes.lightBrightness().withMinBrightness().setAccess('min_brightness', ea.STATE_SET), tuya.exposes.lightType()
+		    /* tuya.exposes.indicatorModeNoneRelayPos() */],
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
