@@ -74,18 +74,24 @@ const hueExtend = {
         }
         return result;
     },
-    light_onoff_brightness_colortemp_color_gradient: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, disableEffect: true, noConfigure: true, ...options}),
-        ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options})
+    light_onoff_brightness_colortemp_color_gradient: (options={}) => {
+        options = {supportsHS: true, disableEffect: true, noConfigure: true, ...options};
+        const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
+        result['ota'] = ota.zigbeeOTA;
+        result['meta'] = {turnsOffAtBrightness1: true};
+        result['toZigbee'] = result['toZigbee'].concat([
+            tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error, tzLocal.effect,
+            tzLocal.gradient_scene, tzLocal.gradient({reverse: true}),
+        ]);
+        result['fromZigbee'] = result['fromZigbee'].concat([fzLocal.gradient({reverse: true})]);
+        result['configure'] = async (device, coordinatorEndpoint, logger) => {
+            await extendDontUse.light_onoff_brightness_colortemp_color(options)
                 .configure(device, coordinatorEndpoint, logger);
             for (const ep of device.endpoints) {
                 await ep.bind('manuSpecificPhilips2', coordinatorEndpoint);
             }
-        },
-        exposes: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).exposes.concat([
+        };
+        result['exposes'] = result['exposes'].concat([
             // gradient_scene is deprecated, use gradient instead
             exposes.enum('gradient_scene', ea.SET, Object.keys(gradientScenes)),
             exposes.list('gradient', ea.ALL, exposes.text('hex', 'Color in RGB HEX format (eg #663399)'))
@@ -97,13 +103,9 @@ const hueExtend = {
                 'candle', 'fireplace', 'colorloop',
                 'finish_effect', 'stop_effect', 'stop_hue_effect',
             ]),
-        ]),
-        fromZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).fromZigbee.concat(
-            [fzLocal.gradient({reverse: true})]),
-        toZigbee: extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options}).toZigbee.concat(
-            [tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error, tzLocal.effect,
-                tzLocal.gradient_scene, tzLocal.gradient({reverse: true})]),
-    }),
+        ]);
+        return result;
+    },
 };
 
 const gradientScenes = {
