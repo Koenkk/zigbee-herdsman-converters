@@ -1227,14 +1227,14 @@ module.exports = [
         model: '9290024896',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA006'],
         model: '9290024689',
         vendor: 'Philips',
         description: 'Hue white and color ambiance B22 1100lm',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA008'],
@@ -1250,7 +1250,7 @@ module.exports = [
         model: '9290024717',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/A19 1600lm',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCT021'],
@@ -2809,7 +2809,7 @@ module.exports = [
         model: '9290024687',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance A19 1100 lumen',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['RDM002'],
@@ -2848,7 +2848,7 @@ module.exports = [
         model: '9290022266A',
         vendor: 'Philips',
         description: 'Hue White and color ambiance A19 800 lumen',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LWE003'],
