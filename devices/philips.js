@@ -190,6 +190,8 @@ const hueEffects = {
     'candle': '21000101',
     'fireplace': '21000102',
     'colorloop': '21000103',
+    'sunrise': '21000109',
+    'sparkle': '2100010a',
     'stop_hue_effect': '200000',
 };
 
