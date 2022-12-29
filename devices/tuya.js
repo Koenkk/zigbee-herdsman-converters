@@ -2573,6 +2573,24 @@ module.exports = [
         onEvent: tuya.onEventsetTime,
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_cjbofhxw']),
+        model: 'TS0601_clamp_meter',
+        vendor: 'TuYa',
+        description: 'Clamp meter',
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.current(), e.power(), e.voltage(), e.energy()],
+        meta: {
+            tuyaDatapoints: [
+                [18, 'current', tuya.valueConverter.divideBy1000],
+                [19, 'power', tuya.valueConverter.divideBy10],
+                [20, 'voltage', tuya.valueConverter.divideBy10],
+                [101, 'energy', tuya.valueConverter.divideBy1000],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_bkkmqmyo', '_TZE200_eaac7dkw']),
         model: 'TS0601_din_1',
         vendor: 'TuYa',
