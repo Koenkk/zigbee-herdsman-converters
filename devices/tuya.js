@@ -1346,6 +1346,30 @@ module.exports = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_p0gzbqct']),
+        model: 'TS0601_dimmer_knob',
+        vendor: 'TuYa',
+        description: 'Zigbee smart knob dimmer',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.lightBrightness().withMinBrightness().setAccess('min_brightness', ea.STATE_SET), tuya.exposes.lightType(),
+            tuya.exposes.indicatorModeNoneRelayPos()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'light_type', tuya.valueConverter.lightType],
+                [21, 'indicator_mode', tuya.valueConverterBasic.lookup({0: 'none', 1: 'relay', 2: 'pos'})],
+            ],
+        },
+        whiteLabel: [
+            {vendor: 'Moes', model: 'WS-SY-EURD'},
+            {vendor: 'Moes', model: 'WS-SY-EURD-WH-MS'},
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_oiymh3qu'}],
         model: 'TS011F_socket_module',
         vendor: 'TuYa',
