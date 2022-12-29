@@ -109,7 +109,7 @@ module.exports = [
             await endpoint.read('ssIasZone', [0x4000], options);
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
-            exposes.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/Disable LED on Motion'),
+            exposes.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
     },
     {
@@ -231,7 +231,7 @@ module.exports = [
         zigbeeModel: ['Door/Window Sensor'],
         model: 'HSE2920E',
         vendor: 'Datek',
-        description: 'Door/Window sensor',
+        description: 'Door/window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
