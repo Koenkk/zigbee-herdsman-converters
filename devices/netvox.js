@@ -27,7 +27,7 @@ module.exports = [
         zigbeeModel: ['ZB02AE0ED'],
         model: 'ZB02A',
         vendor: 'Netvox',
-        description: 'Netvox wireless wall switch',
+        description: 'Wireless wall switch',
         fromZigbee: [fz.command_toggle],
         toZigbee: [],
         exposes: [e.action(['toggle'])],
