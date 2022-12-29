@@ -30,6 +30,7 @@ describe('lib/philips.js', () => {
             ["0f0000b2ff004c628461", 178],
             ["0b00015c842b32b3", 92],
             ["0b00011d842b32b3", 29],
+            ["ab000153df7e446a0180", 83],
         ])("brightness(%s) should be %s", (input, expected) => {
             const ret = philips.decodeGradientColors(input);
             expect(ret.brightness).toBe(expected);
@@ -42,6 +43,8 @@ describe('lib/philips.js', () => {
             ["0f0001044d01ab6f7067", true],
             ["0b00015c842b32b3", true], 
             ["0b00001d842b32b3", false],
+            ["ab000153df7e446a0180", true],
+            ["ab000053df7e446a0180", false],
             ,
         ])("power(%s) should be %s", (input, expected) => {
             const ret = philips.decodeGradientColors(input);
@@ -69,9 +72,20 @@ describe('lib/philips.js', () => {
             ["0f00011dfa0094611b61", "color_temp"],
             ["0b00015c842b32b3", "xy"],
             ["4b010164ee2df18f1350000000e8b3aac7589f2dba903f4a7720ba602800", "gradient"],
+            ["ab000153df7e446a0180", "effect"],
         ])(`color_mode(%s) should be %s`, (input, expected) => {
             const ret = philips.decodeGradientColors(input);
             expect(ret.color_mode).toBe(expected);
+        });
+
+        test.each([
+            ["ab000153df7e446a0180", "candle"],
+            ["ab0001febd9238660280", "fireplace"],
+            ["ab0001febe92ab650380", "colorloop"],
+            ["ab0001febe92ab659999", "unknown_9999"],
+        ])("effect(%s) should be %s", (input, expected) => {
+            const ret = philips.decodeGradientColors(input);
+            expect(ret.name).toBe(expected);
         });
     });
 
