@@ -54,7 +54,7 @@ module.exports = [
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412171',
-        description: 'DIN contactor module ( Bticino FC80CC )',
+        description: 'DIN contactor module (BTicino FC80CC )',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
@@ -78,7 +78,7 @@ module.exports = [
         zigbeeModel: [' Teleruptor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412170',
-        description: 'DIN smart relay for light control ( Bticino FC80RC ) ',
+        description: 'DIN smart relay for light control (BTicino FC80RC ) ',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
