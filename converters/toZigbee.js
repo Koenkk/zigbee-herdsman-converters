@@ -369,8 +369,16 @@ const converters = {
     warning_simple: {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
-            const alarmState = (value === 'OFF' ? 0 : 1);
-            const info = (3 << 6) + ((alarmState) << 2);
+            const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
+
+            let info;
+            // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
+            if (['SMSZB-120'].includes(meta.mapped.model)) {
+                info = ((alarmState) << 7) + ((alarmState) << 6);
+            } else {
+                info = (3 << 6) + ((alarmState) << 2);
+            }
+
             await entity.command(
                 'ssIasWd',
                 'startWarning',

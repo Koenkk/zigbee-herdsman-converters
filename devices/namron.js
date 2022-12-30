@@ -725,4 +725,12 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
     },
+    {
+        zigbeeModel: ['3802968'],
+        model: '3802968',
+        vendor: 'Namron',
+        description: 'LED Filament Flex 5W CCT E27 Clear',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        meta: {turnsOffAtBrightness1: true},
+    },
 ];
