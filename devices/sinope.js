@@ -616,7 +616,7 @@ module.exports = [
             // Disable default reporting (not used by Sinope)
             await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xFFFF});
             try {
-                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);   
+                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch (error) {/* Do nothing */}
         },
     },
