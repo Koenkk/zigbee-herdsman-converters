@@ -527,7 +527,9 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-
+            try {
+                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 1, max: 0xFFFF}); 
+            } catch (error) {/* Do nothing */} // Bad design from Sinope, this might change in the futur
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
@@ -549,7 +551,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TH1123ZB-G2'],
+        zigbeeModel: ['TH1123ZB-G2'], // This G2 Version seems to have limited memory space
         model: 'TH1123ZB-G2',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
@@ -596,7 +598,10 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-
+            
+            try {
+                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 1, max: 0xFFFF}); 
+            } catch (error) {/* Do nothing */} // Bad design from Sinope, this might change in the future
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
@@ -607,8 +612,11 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+
+            // Disable default reporting (not used by Sinope)
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xFFFF});
             try {
-                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);   
             } catch (error) {/* Do nothing */}
         },
     },
