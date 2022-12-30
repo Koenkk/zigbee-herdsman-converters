@@ -728,7 +728,7 @@ const fzLocal = {
             //  0x00: The gateway is not connected to the internet.
             // 0x01: The gateway is connected to the internet.
             // 0x02: The request timed out after three seconds.
-            const payload = {payloadSize: 1,payload: 1}
+            const payload = {payloadSize: 1, payload: 1};
             await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
         },
     },
@@ -1725,7 +1725,7 @@ module.exports = [
                 // [9, 'temperature_unit', tuya.valueConverter.raw], Does not have any effect on the device
             ],
         },
-},
+    },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
         model: 'TS011F_2_gang_2_usb_wall',
