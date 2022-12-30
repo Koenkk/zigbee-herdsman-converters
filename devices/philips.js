@@ -75,7 +75,7 @@ const hueExtend = {
         return result;
     },
     light_onoff_brightness_colortemp_color_gradient: (options={}) => {
-        options = {supportsHS: true, disableEffect: true, noConfigure: true, ...options};
+        options = {supportsHS: true, disableEffect: true, noConfigure: true, extraEffects: [], ...options};
         const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
@@ -100,8 +100,9 @@ const hueExtend = {
                 .withDescription('List of RGB HEX colors'),
             exposes.enum('effect', ea.SET, [
                 'blink', 'breathe', 'okay', 'channel_change',
-                'candle', 'fireplace', 'colorloop',
+                'candle', 'fireplace', 'colorloop', 'sunrise',
                 'finish_effect', 'stop_effect', 'stop_hue_effect',
+                ...options.extraEffects,
             ]),
         ]);
         return result;
@@ -190,6 +191,8 @@ const hueEffects = {
     'candle': '21000101',
     'fireplace': '21000102',
     'colorloop': '21000103',
+    'sunrise': '21000109',
+    'sparkle': '2100010a',
     'stop_hue_effect': '200000',
 };
 
@@ -3205,7 +3208,7 @@ module.exports = [
         model: '929003535301',
         vendor: 'Philips',
         description: 'Hue Festavia gradient light string 250',
-        extend: hueExtend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500], extraEffects: ['sparkle']}),
     },
     {
         zigbeeModel: ['915005987101'],
