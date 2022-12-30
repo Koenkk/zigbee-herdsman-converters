@@ -1144,7 +1144,7 @@ module.exports = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3040_6ygjfyll']),
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3000_6ygjfyll', '_TZ3040_6ygjfyll']),
         model: 'IH012-RT01',
         vendor: 'TuYa',
         description: 'Motion sensor',
