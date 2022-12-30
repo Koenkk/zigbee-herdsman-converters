@@ -370,9 +370,6 @@ const converters = {
         key: ['alarm'],
         convertSet: async (entity, key, value, meta) => {
             const alarmState = (value === 'alarm' || value === 'OFF' ? 0 : 1);
-            const values = {
-                duration: value.hasOwnProperty('maxDuration') ? value.duration : 300,
-            };
 
             let info;
             // For Develco SMSZB-120, introduced change in fw 4.0.5, tested backward with 4.0.4
