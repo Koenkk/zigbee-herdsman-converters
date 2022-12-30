@@ -1668,7 +1668,6 @@ module.exports = [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9yapgbuv'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yjjdcqsq'},
         ],
         model: 'WSD500A',
         vendor: 'TuYa',
