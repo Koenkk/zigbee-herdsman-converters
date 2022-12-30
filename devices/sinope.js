@@ -527,9 +527,7 @@ module.exports = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            try {
-                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 1, max: 0xFFFF}); 
-            } catch (error) {/* Do nothing */} // Bad design from Sinope, this might change in the futur
+
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
@@ -598,9 +596,9 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-            
+
             try {
-                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 1, max: 0xFFFF}); 
+                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 1, max: 0xFFFF});
             } catch (error) {/* Do nothing */} // Bad design from Sinope, this might change in the future
             await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
             await endpoint.configureReporting('msTemperatureMeasurement', [{
