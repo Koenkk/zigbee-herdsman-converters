@@ -720,6 +720,18 @@ const fzLocal = {
             return result;
         },
     },
+    gateway_connection_status: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandMcuGatewayConnectionStatus'],
+        convert: async (model, msg, publish, options, meta) => {
+            // "payload" can have the following values:
+            //  0x00: The gateway is not connected to the internet.
+            // 0x01: The gateway is connected to the internet.
+            // 0x02: The request timed out after three seconds.
+            const payload = {payloadSize: 1,payload: 1}
+            await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
+        },
+    },
 };
 
 module.exports = [
@@ -1696,6 +1708,24 @@ module.exports = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq']),
+        model: 'ZTH01',
+        vendor: 'TuYa',
+        description: 'Temperature and humidity',
+        fromZigbee: [tuya.fz.datapoints, fzLocal.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), e.battery_low()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [3, 'battery_state', tuya.valueConverter.batteryState],
+                // [9, 'temperature_unit', tuya.valueConverter.raw], Does not have any effect on the device
+            ],
+        },
+},
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
         model: 'TS011F_2_gang_2_usb_wall',
