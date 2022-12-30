@@ -1722,7 +1722,7 @@ module.exports = [
                 [1, 'temperature', tuya.valueConverter.divideBy10],
                 [2, 'humidity', tuya.valueConverter.raw],
                 [3, 'battery_state', tuya.valueConverter.batteryState],
-                // [9, 'temperature_unit', tuya.valueConverter.raw], Does not have any effect on the device
+                // [9, 'temperature_unit', tuya.valueConverter.raw], This DP is not properly supported by the device, therefore commented out here
             ],
         },
     },
