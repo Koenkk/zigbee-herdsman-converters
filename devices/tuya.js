@@ -1712,7 +1712,7 @@ module.exports = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq']),
         model: 'ZTH01',
         vendor: 'TuYa',
-        description: 'Temperature and humidity',
+        description: 'Temperature and humidity sensor',
         fromZigbee: [tuya.fz.datapoints, fzLocal.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
