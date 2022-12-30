@@ -383,9 +383,11 @@ const converters = {
     device_temperature: {
         cluster: 'genDeviceTempCfg',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('device_temperature')],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('currentTemperature')) {
-                return {device_temperature: parseInt(msg.data['currentTemperature'])};
+                const value = parseInt(msg.data['currentTemperature']);
+                return {device_temperature: calibrateAndPrecisionRoundOptions(value, options, 'device_temperature')};
             }
         },
     },
@@ -648,7 +650,7 @@ const converters = {
             const result = converters.metering.convert(model, msg, publish, options, meta);
             // Filter incorrect 0 energy values reported by the device:
             // https://github.com/Koenkk/zigbee2mqtt/issues/7852
-            if (result.energy === 0) {
+            if (result && result.energy === 0) {
                 delete result.energy;
             }
             return result;
@@ -680,6 +682,17 @@ const converters = {
          */
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'power')) {
+                result.push(exposes.options.precision('power'), exposes.options.calibration('power', 'percentual'));
+            }
+            if (definition.exposes.find((e) => e.name === 'energy')) {
+                result.push(exposes.options.precision('energy'), exposes.options.calibration('energy', 'percentual'));
+            }
+            return result;
+        },
+
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
@@ -692,7 +705,7 @@ const converters = {
                 if (factor != null) {
                     power = (power * factor) * 1000; // kWh to Watt
                 }
-                payload.power = precisionRound(power, 2);
+                payload.power = calibrateAndPrecisionRoundOptions(power, options, 'power');
             }
 
             if (factor != null && (msg.data.hasOwnProperty('currentSummDelivered') ||
@@ -708,7 +721,7 @@ const converters = {
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
                     energy -= value * factor;
                 }
-                payload.energy = precisionRound(energy, 2);
+                payload.energy = calibrateAndPrecisionRoundOptions(energy, options, 'energy');
             }
 
             return payload;
@@ -735,8 +748,11 @@ const converters = {
          */
         cluster: 'haElectricalMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.calibration('power', 'percentual'), exposes.options.calibration('current', 'percentual'),
-            exposes.options.calibration('voltage', 'percentual')],
+        options: [
+            exposes.options.calibration('power', 'percentual'), exposes.options.precision('power'),
+            exposes.options.calibration('current', 'percentual'), exposes.options.precision('current'),
+            exposes.options.calibration('voltage', 'percentual'), exposes.options.precision('voltage'),
+        ],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const getFactor = (key) => {
@@ -750,6 +766,7 @@ const converters = {
                 {key: 'activePower', name: 'power', factor: 'acPower'},
                 {key: 'activePowerPhB', name: 'power_phase_b', factor: 'acPower'},
                 {key: 'activePowerPhC', name: 'power_phase_c', factor: 'acPower'},
+                {key: 'apparentPower', name: 'power_apparent', factor: 'acPower'},
                 {key: 'rmsCurrent', name: 'current', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhB', name: 'current_phase_b', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhC', name: 'current_phase_c', factor: 'acCurrent'},
@@ -2287,43 +2304,59 @@ const converters = {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_cover');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
+            const result = {};
 
-            switch (dp) {
-            case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-            case tuya.dataPoints.coverArrived: { // Arrived at position
-                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
-                const running = dp !== tuya.dataPoints.coverArrived;
+            // Iterate through dpValues in case of some zigbee models returning multiple dp values in one message
+            // For example: [TS0601, _TZE200_3ylew7b4]
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = tuya.getDataValue(dpValue);
 
-                // Not all covers report coverArrived, so set running to false if device doesn't report position for a few seconds
-                clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
-                if (running) {
-                    const timer = setTimeout(() => publish({running: false}), 3 * 1000);
-                    globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                switch (dp) {
+                case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+                case tuya.dataPoints.coverArrived: { // Arrived at position
+                    const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
+                    const position = invert ? 100 - (value & 0xff) : value & 0xff;
+                    const running = dp !== tuya.dataPoints.coverArrived;
+
+                    // Not all covers report coverArrived, so set running to false if device doesn't report position
+                    // for a few seconds
+                    clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
+                    if (running) {
+                        const timer = setTimeout(() => publish({running: false}), 3 * 1000);
+                        globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                    }
+
+                    if (position > 0 && position <= 100) {
+                        result.running = running;
+                        result.position = position;
+                        result.state = 'OPEN';
+                    } else if (position == 0) {
+                    // Report fully closed
+                        result.running = running;
+                        result.position = position;
+                        result.state = 'CLOSE';
+                    } else {
+                        result.running = running; // Not calibrated yet, no position is available
+                    }
                 }
-
-                if (position > 0 && position <= 100) {
-                    return {running, position, state: 'OPEN'};
-                } else if (position == 0) { // Report fully closed
-                    return {running, position, state: 'CLOSE'};
-                } else {
-                    return {running}; // Not calibrated yet, no position is available
+                    break;
+                case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
+                    result.motor_speed = value;
+                    break;
+                case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
+                    break;
+                case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
+                    break;
+                case tuya.dataPoints.config: // Returned by configuration set; ignore
+                    break;
+                default: // Unknown code
+                    meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                    ${JSON.stringify(dpValue)}`);
                 }
             }
-            case tuya.dataPoints.coverSpeed: // Cover is reporting its current speed setting
-                return {motor_speed: value};
-            case tuya.dataPoints.state: // Ignore the cover state, it's not reliable between different covers!
-            case tuya.dataPoints.coverChange: // Ignore manual cover change, it's not reliable between different covers!
-                break;
-            case tuya.dataPoints.config: // Returned by configuration set; ignore
-                break;
-            default: // Unknown code
-                meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
-                ${JSON.stringify(dpValue)}`);
-            }
+
+            return result;
         },
     },
     wiser_device_info: {
@@ -5386,47 +5419,23 @@ const converters = {
     xiaomi_power: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('power', 'percentual'), exposes.options.precision('power')],
         convert: (model, msg, publish, options, meta) => {
-            return {power: precisionRound(msg.data['presentValue'], 2)};
+            return {power: calibrateAndPrecisionRoundOptions(msg.data['presentValue'], options, 'power')};
         },
     },
     xiaomi_basic: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.calibration('illuminance', 'percentual'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance_lux')) {
-                result.push(exposes.options.calibration('illuminance_lux', 'percentual'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
-            const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-            return payload;
+            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
@@ -5439,22 +5448,9 @@ const converters = {
     aqara_opple: {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
-        options: (definition) => {
-            const result = [];
-            if (definition.exposes.find((e) => e.name === 'temperature')) {
-                result.push(exposes.options.precision('temperature'), exposes.options.calibration('temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'device_temperature')) {
-                result.push(exposes.options.calibration('device_temperature'));
-            }
-            if (definition.exposes.find((e) => e.name === 'illuminance')) {
-                result.push(exposes.options.calibration('illuminance', 'percentual'));
-            }
-            return result;
-        },
+        options: xiaomi.numericAttributes2Options,
         convert: (model, msg, publish, options, meta) => {
-            const payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
-            return payload;
+            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_on_off_action: {
@@ -5512,6 +5508,9 @@ const converters = {
                     51: 'left_center', 52: 'left_right', 53: 'center_right',
                     61: 'all',
                 };
+            }
+            if (['WS-USC02'].includes(model.model)) {
+                buttonLookup = {41: 'top', 42: 'bottom', 51: 'both'};
             }
 
             const action = actionLookup[msg.data['presentValue']];
@@ -5789,8 +5788,9 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            if (model.model === 'ZNCLDJ12LM' && msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
-                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM)
+            if ((model.model === 'ZNCLDJ12LM' || model.model === 'ZNCLDJ14LM') &&
+              msg.type === 'attributeReport' && [0, 2].includes(msg.data['presentValue'])) {
+                // Incorrect reports from the device, ignore (re-read by onEvent of ZNCLDJ12LM and ZNCLDJ14LM)
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1427#issuecomment-663862724
                 return;
             }
@@ -5822,6 +5822,29 @@ const converters = {
         },
     },
     xiaomi_curtain_hagl04_status: {
+        cluster: 'genMultistateOutput',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            let running = false;
+            const data = msg.data;
+            const lookup = {
+                0: 'closing',
+                1: 'opening',
+                2: 'stop',
+            };
+            if (data && data.hasOwnProperty('presentValue')) {
+                const value = data['presentValue'];
+                if (value < 2) {
+                    running = true;
+                }
+                return {
+                    motor_state: lookup[value],
+                    running: running,
+                };
+            }
+        },
+    },
+    xiaomi_curtain_hagl07_status: {
         cluster: 'genMultistateOutput',
         type: ['attributeReport'],
         convert: (model, msg, publish, options, meta) => {
@@ -6323,17 +6346,6 @@ const converters = {
                 result.state = result.position === 0 ? 'CLOSE' : 'OPEN';
             }
             return result;
-        },
-    },
-    D10110_cover_position_tilt: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('currentPositionLiftPercentage') && msg.data['currentPositionLiftPercentage'] <= 100) {
-                // The Yookee D10110 SENDs it's position reversed, relative to the spec.
-                msg.data['currentPositionLiftPercentage'] = 100 - msg.data['currentPositionLiftPercentage'];
-            }
-            return converters.cover_position_tilt.convert(model, msg, publish, options, meta);
         },
     },
     PGC410EU_presence: {
@@ -8369,6 +8381,17 @@ const converters = {
                 break;
             default:
                 meta.logger.warn(`fromZigbee.moes_cover: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+            }
+            return result;
+        },
+    },
+    led_on_motion: {
+        cluster: 'ssIasZone',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (0x4000 in msg.data) {
+                result.led_on_motion = msg.data[0x4000] == 1 ? true : false;
             }
             return result;
         },

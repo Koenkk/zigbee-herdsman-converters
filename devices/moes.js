@@ -290,9 +290,9 @@ module.exports = [
             e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             exposes.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withSystemMode(['heat'], ea.STATE_SET)
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
@@ -310,7 +310,8 @@ module.exports = [
             exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
             exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
-                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100).withValueMax(900)],
+                .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
+                .withValueMax(900).withValueStep(100)],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
@@ -399,7 +400,7 @@ module.exports = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({backlightMode: true, switchType: true}),
+        extend: tuya.extend.switch({backlightModeLowMediumHigh: true, switchType: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

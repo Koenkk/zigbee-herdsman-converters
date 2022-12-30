@@ -88,10 +88,29 @@ module.exports = [
         fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
         model: 'HSE2927E',
         vendor: 'Datek',
-        description: 'Eva Zigbee motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.temperature],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux(), e.temperature()],
+        description: 'Eva motion sensor',
+        fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout, fz.illuminance, fz.temperature,
+            fz.ias_enroll, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.led_on_motion],
+        toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 4919};
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing', 'ssIasZone'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.occupancy(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.illuminance(endpoint);
+            const payload = [{
+                attribute: {ID: 0x4000, type: 0x10},
+            }];
+            await endpoint.configureReporting('ssIasZone', payload, options);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('ssIasZone', [0x4000], options);
+        },
+        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
+            exposes.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
     },
     {
         zigbeeModel: ['ID Lock 150'],
@@ -207,5 +226,20 @@ module.exports = [
         exposes: [e.battery(), e.temperature(),
             e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off',
                 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
+    {
+        zigbeeModel: ['Door/Window Sensor'],
+        model: 'HSE2920E',
+        vendor: 'Datek',
+        description: 'Door/window sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
 ];

@@ -3,7 +3,23 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const ota = require('../lib/ota');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const utils = require('../lib/utils');
 const e = exposes.presets;
+
+const fzLocal = {
+    pbc_level_to_action: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveWithOnOff', 'commandStopWithOnOff', 'commandMove', 'commandStop', 'commandMoveToLevelWithOnOff'],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const lookup = {
+                commandMoveWithOnOff: 'hold', commandMove: 'hold', commandStopWithOnOff: 'release',
+                commandStop: 'release', commandMoveToLevelWithOnOff: 'toggle',
+            };
+            return {[utils.postfixWithEndpointName('action', msg, model, meta)]: lookup[msg.type]};
+        },
+    },
+};
 
 module.exports = [
     {
@@ -475,5 +491,29 @@ module.exports = [
         description: 'Lightify under cabinet tunable white',
         extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['PBC'],
+        model: '4052899930377',
+        vendor: 'OSRAM',
+        description: 'Lightify pro push button controller (PBC)',
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        fromZigbee: [fzLocal.pbc_level_to_action],
+        exposes: [
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l1'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l2'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l3'),
+            e.action(['hold', 'release', 'toggle']).withEndpoint('l4'),
+        ],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genLevelCtrl']);
+        },
     },
 ];

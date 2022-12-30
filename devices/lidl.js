@@ -671,7 +671,7 @@ module.exports = [
         model: 'HG06106C',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});

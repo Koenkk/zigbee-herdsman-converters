@@ -124,7 +124,7 @@ module.exports = [
             'brightness_move_down_3', 'brightness_stop_3', 'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4',
             'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_yluvwhjc'}],

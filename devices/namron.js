@@ -5,6 +5,7 @@ const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const globalStore = require('../lib/store');
+const ota = require('../lib/ota');
 const utils = require('../lib/utils');
 const extend = require('../lib/extend');
 const ea = exposes.access;
@@ -159,6 +160,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['1402755'],
@@ -190,6 +192,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512721'],
@@ -207,6 +210,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512701'],
@@ -231,7 +235,7 @@ module.exports = [
         zigbeeModel: ['4512719'],
         model: '4512719',
         vendor: 'Namron',
-        description: 'Zigbee 2 channel switch K4 white',
+        description: 'Zigbee 2 channel switch K4 (white)',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         meta: {multiEndpoint: true},
         exposes: [e.battery(), e.action(['on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
@@ -240,6 +244,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512726'],
@@ -259,12 +264,13 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512729'],
         model: '4512729',
         vendor: 'Namron',
-        description: 'Zigbee 2 channel switch K4 white',
+        description: 'Zigbee 2 channel switch K4 (black)',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         meta: {multiEndpoint: true},
         exposes: [e.battery(), e.action(['on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
@@ -273,6 +279,7 @@ module.exports = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['4512706'],
@@ -589,6 +596,29 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A, 0x100B], options);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
+        ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['4512735'],
+        model: '4512735',
+        vendor: 'Namron',
+        description: 'Multiprise with 4 AC outlets and 2 USB super charging ports (16A)',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const ID of [1, 2, 3, 4, 5]) {
+                const endpoint = device.getEndpoint(ID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            }
+            device.powerSource = 'Mains (single phase)';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399', '5401395'],
@@ -694,5 +724,13 @@ module.exports = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
+    },
+    {
+        zigbeeModel: ['3802968'],
+        model: '3802968',
+        vendor: 'Namron',
+        description: 'LED Filament Flex 5W CCT E27 Clear',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        meta: {turnsOffAtBrightness1: true},
     },
 ];

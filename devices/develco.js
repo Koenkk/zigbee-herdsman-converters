@@ -519,6 +519,22 @@ module.exports = [
         exposes: [e.contact(), e.battery_low()],
     },
     {
+        zigbeeModel: ['WISZB-137'],
+        model: 'WISZB-137',
+        vendor: 'Develco',
+        description: 'Vibration sensor',
+        fromZigbee: [fz.battery, fz.ias_vibration_alarm_1, fz.temperature],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        exposes: [e.battery_low(), e.battery(), e.temperature(), e.vibration(), e.tamper()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint38);
+            await reporting.batteryVoltage(endpoint38);
+        },
+    },
+    {
         zigbeeModel: ['MOSZB-130'],
         model: 'MOSZB-130',
         vendor: 'Develco',
@@ -556,6 +572,7 @@ module.exports = [
             dynExposes.push(e.linkquality());
             return dynExposes;
         },
+        ota: ota.zigbeeOTA,
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         endpoint: (device) => {
             return {default: 35};
