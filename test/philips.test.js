@@ -31,6 +31,9 @@ describe('lib/philips.js', () => {
             ["0b00015c842b32b3", 92],
             ["0b00011d842b32b3", 29],
             ["ab000153df7e446a0180", 83],
+            ["030001b2", 178],
+            ["03000164", 100],
+            ["030001fe", 254],
         ])("brightness(%s) should be %s", (input, expected) => {
             const ret = philips.decodeGradientColors(input);
             expect(ret.brightness).toBe(expected);
@@ -45,6 +48,8 @@ describe('lib/philips.js', () => {
             ["0b00001d842b32b3", false],
             ["ab000153df7e446a0180", true],
             ["ab000053df7e446a0180", false],
+            ["03000164", true],
+            ["0300004f", false],
         ])("power(%s) should be %s", (input, expected) => {
             const ret = philips.decodeGradientColors(input);
             expect(ret.on).toBe(expected);
