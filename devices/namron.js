@@ -305,6 +305,7 @@ module.exports = [
         description: 'Zigbee 4 channel remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.action([
             'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
             'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
