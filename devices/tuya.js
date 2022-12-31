@@ -720,18 +720,6 @@ const fzLocal = {
             return result;
         },
     },
-    gateway_connection_status: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandMcuGatewayConnectionStatus'],
-        convert: async (model, msg, publish, options, meta) => {
-            // "payload" can have the following values:
-            //  0x00: The gateway is not connected to the internet.
-            // 0x01: The gateway is connected to the internet.
-            // 0x02: The request timed out after three seconds.
-            const payload = {payloadSize: 1, payload: 1};
-            await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
-        },
-    },
 };
 
 module.exports = [
@@ -1713,7 +1701,7 @@ module.exports = [
         model: 'ZTH01',
         vendor: 'TuYa',
         description: 'Temperature and humidity sensor',
-        fromZigbee: [tuya.fz.datapoints, fzLocal.gateway_connection_status],
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), e.battery_low()],
