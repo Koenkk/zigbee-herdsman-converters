@@ -123,7 +123,7 @@ module.exports = [
         zigbeeModel: ['Extended Color LED Strip V1.0'],
         model: '81863',
         vendor: 'AduroSmart',
-        description: 'AduroSmart Eria Color LED Strip',
+        description: 'Eria color LED strip',
         extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true},
     },
