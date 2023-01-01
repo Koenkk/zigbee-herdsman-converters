@@ -2935,7 +2935,7 @@ module.exports = [
         model: '929002966501',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Surimu rectangle panel',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['5060930P7_01', '5060930P7_02', '5060930P7_03', '5060930P7_04'],
