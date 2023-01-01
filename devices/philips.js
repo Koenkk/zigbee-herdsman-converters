@@ -3259,4 +3259,11 @@ module.exports = [
         description: 'Hue white E27 1100lm with Bluetooth',
         extend: hueExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['LTD017'],
+        model: '578526',
+        vendor: 'Philips',
+        description: 'Hue white ambiance extra bright high lumen dimmable LED smart retrofit recessed 6" downlight',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
 ];
