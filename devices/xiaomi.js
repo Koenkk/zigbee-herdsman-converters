@@ -773,6 +773,9 @@ module.exports = [
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.flip_indicator_light(),
+            e.power(),
+            e.energy(),
+            e.voltage(),
             e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
