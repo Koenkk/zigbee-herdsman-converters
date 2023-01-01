@@ -6,7 +6,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['SMARTCODE_CONVERT_GEN1'],
+        zigbeeModel: ['SMARTCODE_CONVERT_GEN1', 'Smartcode'],
         model: '66492-001',
         vendor: 'Kwikset',
         description: 'Home connect smart lock conversion kit',
