@@ -130,7 +130,9 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position()],
+        exposes: [e.cover_position(),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+            allowing to see it in the dark`)],
     },
     {
         // swbuildid 001a requires coverInverted: https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
