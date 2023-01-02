@@ -790,6 +790,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['LTE004'],
+        model: '9290031451',
+        vendor: 'Philips',
+        description: 'Hue white ambiance filament E12 with Bluetooth',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LWA007'],
         model: '929002277501',
         vendor: 'Philips',
