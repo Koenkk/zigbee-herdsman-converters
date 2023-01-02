@@ -476,7 +476,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['GASSensor-EM'],
+        zigbeeModel: ['GASSensor-EM', '358e4e3e03c644709905034dae81433e'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',
