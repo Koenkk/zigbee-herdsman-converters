@@ -155,6 +155,18 @@ const fzLocal = {
             if (msg.data.hasOwnProperty('pumpProtection')) {
                 result.pump_protection = msg.data['pumpProtection'] == 1 ? 'ON' : 'OFF';
             }
+            if (msg.data.hasOwnProperty('dimmerTimmer')) {
+                result.timer_seconds = msg.data['dimmerTimmer'];
+            }
+            if (msg.data.hasOwnProperty('ledIntensityOn')) {
+                result.led_intensity_on = msg.data['ledIntensityOn'];
+            }
+            if (msg.data.hasOwnProperty('ledIntensityOff')) {
+                result.led_intensity_off = msg.data['ledIntensityOff'];
+            }
+            if (msg.data.hasOwnProperty('minimumBrightness')) {
+                result.minimum_brightness = msg.data['minimumBrightness'];
+            }
             return result;
         },
     },
@@ -380,6 +392,10 @@ const tzLocal = {
             if (value >= 0 && value <= 100) {
                 await entity.write('manuSpecificSinope', {ledIntensityOn: value});
             }
+            return {readAfterWriteTime: 250, state: {ledIntensityOn: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['ledIntensityOn']);
         },
     },
     led_intensity_off: {
@@ -389,6 +405,10 @@ const tzLocal = {
             if (value >= 0 && value <= 100) {
                 await entity.write('manuSpecificSinope', {ledIntensityOff: value});
             }
+            return {readAfterWriteTime: 250, state: {ledIntensityOff: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['ledIntensityOff']);
         },
     },
     led_color_on: {
@@ -422,6 +442,23 @@ const tzLocal = {
             if (value >= 0 && value <= 3000) {
                 await entity.write('manuSpecificSinope', {minimumBrightness: value});
             }
+            return {readAfterWriteTime: 250, state: {minimumBrightness: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['minimumBrightness']);
+        },
+    },
+    timer_seconds: {
+        // DM2500ZB and SW2500ZB
+        key: ['timer_seconds'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value >= 0 && value <= 10800) {
+                await entity.write('manuSpecificSinope', {dimmerTimmer: value});
+            }
+            return {readAfterWriteTime: 250, state: {dimmerTimmer: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['dimmerTimmer']);
         },
     },
 };
@@ -819,22 +856,25 @@ module.exports = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off, tzLocal.led_intensity_on, tzLocal.led_intensity_off, tzLocal.led_color_on, tzLocal.led_color_off],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.sinope],
+        toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
+            tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.switch(),
-            exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
+            exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
+                .withDescription('Automatically turn off load after x seconds'),
+            exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
-            exposes.numeric('led_intensity_off', ea.SET).withValueMin(0).withValueMax(100)
+            exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load OFF'),
             exposes.composite('led_color_on', 'led_color_on')
-                .withFeature(exposes.numeric('r', ea.ALL))
-                .withFeature(exposes.numeric('g', ea.ALL))
-                .withFeature(exposes.numeric('b', ea.ALL))
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
             exposes.composite('led_color_off', 'led_color_off')
-                .withFeature(exposes.numeric('r', ea.ALL))
-                .withFeature(exposes.numeric('g', ea.ALL))
-                .withFeature(exposes.numeric('b', ea.ALL))
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load OFF')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -848,25 +888,27 @@ module.exports = [
         model: 'DM2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_brightness, tzLocal.led_intensity_on, tzLocal.led_intensity_off, tzLocal.minimum_brightness,
-            tzLocal.led_color_on, tzLocal.led_color_off],
+        fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fzLocal.sinope],
+        toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
+            tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
-            exposes.numeric('led_intensity_on', ea.SET).withValueMin(0).withValueMax(100)
+            exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
+                .withDescription('Automatically turn off load after x seconds'),
+            exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED when load ON'),
-            exposes.numeric('led_intensity_off', ea.SET).withValueMin(0).withValueMax(100)
+            exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED when load OFF'),
-            exposes.numeric('minimum_brightness', ea.SET).withValueMin(0).withValueMax(3000)
+            exposes.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
                 .withDescription('Control minimum dimmer brightness'),
             exposes.composite('led_color_on', 'led_color_on')
-                .withFeature(exposes.numeric('r', ea.ALL))
-                .withFeature(exposes.numeric('g', ea.ALL))
-                .withFeature(exposes.numeric('b', ea.ALL))
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
             exposes.composite('led_color_off', 'led_color_off')
-                .withFeature(exposes.numeric('r', ea.ALL))
-                .withFeature(exposes.numeric('g', ea.ALL))
-                .withFeature(exposes.numeric('b', ea.ALL))
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load OFF')],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
