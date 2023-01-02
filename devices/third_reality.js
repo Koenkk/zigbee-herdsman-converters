@@ -109,6 +109,9 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
+        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
+        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
+        exposes: [e.switch(), e.power_on_behavior()],
     },
     {
         zigbeeModel: ['3RSB015BZ'],
