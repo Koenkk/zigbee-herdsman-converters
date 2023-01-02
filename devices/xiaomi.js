@@ -710,7 +710,9 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (no neutral, double rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light, tz.aqara_switch_mode_switch],
+        toZigbee: [
+            tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light,
+            tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch],
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
@@ -728,6 +730,7 @@ module.exports = [
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.flip_indicator_light(),
+            e.power_outage_memory(),
             e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -759,8 +762,10 @@ module.exports = [
         model: 'WS-USC04',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (neutral, double rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_flip_indicator_light],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [
+            tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light],
         exposes: [
             e.switch().withEndpoint('top'),
             e.switch().withEndpoint('bottom'),
@@ -773,9 +778,10 @@ module.exports = [
             e.power_outage_count(),
             e.device_temperature().withAccess(ea.STATE),
             e.flip_indicator_light(),
-            e.power(),
+            e.power().withAccess(ea.STATE_GET),
             e.energy(),
             e.voltage(),
+            e.power_outage_memory(),
             e.action(['single_top', 'single_bottom', 'single_both', 'double_top', 'double_bottom', 'double_both'])],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
