@@ -803,7 +803,7 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
  
             try {
-            await reporting.thermostatSystemMode(endpoint);
+                await reporting.thermostatSystemMode(endpoint);
             } catch (error) {/* Not all support this */}
 
             await endpoint.read('hvacThermostat', ['occupiedHeatingSetpoint', 'localTemp', 'systemMode', 'pIHeatingDemand',
