@@ -3246,6 +3246,14 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003074801_01', '929003074801_02', '929003074801_03'],
+        model: '929003074801',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Xamento)',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
         zigbeeModel: ['LWE008'],
         model: '929003021301',
         vendor: 'Philips',
