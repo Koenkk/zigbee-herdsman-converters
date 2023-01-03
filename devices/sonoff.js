@@ -211,8 +211,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
     },
