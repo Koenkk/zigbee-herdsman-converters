@@ -983,5 +983,5 @@ module.exports = [
         vendor: 'IKEA',
         description: 'PILSKOTT LED floor lamp',
         extend: tradfriExtend.light_onoff_brightness(),
-    }
+    },
 ];
