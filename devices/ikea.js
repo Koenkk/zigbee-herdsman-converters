@@ -602,11 +602,6 @@ module.exports = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        // power_on_behavior 'toggle' does not seem to be supported
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

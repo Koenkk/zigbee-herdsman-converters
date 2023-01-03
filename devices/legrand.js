@@ -262,8 +262,8 @@ module.exports = [
         description: 'Wired micromodule switch',
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off],
-        toZigbee: [tz.on_off, tz.legrand_identify],
+        fromZigbee: [...extend.switch().fromZigbee, fz.identify],
+        toZigbee: [...extend.switch().toZigbee, tz.legrand_identify],
         whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

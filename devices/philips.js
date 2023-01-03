@@ -2357,7 +2357,7 @@ module.exports = [
         model: '929002240401',
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2371,7 +2371,7 @@ module.exports = [
         model: '046677552343',
         vendor: 'Philips',
         description: 'Hue smart plug bluetooth',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2385,7 +2385,7 @@ module.exports = [
         model: '8718699689308',
         vendor: 'Philips',
         description: 'Hue smart plug - UK',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2399,7 +2399,7 @@ module.exports = [
         model: '9290022408',
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2413,7 +2413,7 @@ module.exports = [
         model: '8719514342361',
         vendor: 'Philips',
         description: 'Hue smart plug - AU',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2427,7 +2427,7 @@ module.exports = [
         model: '9290024426',
         vendor: 'Philips',
         description: 'Hue smart plug - CH',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2441,7 +2441,7 @@ module.exports = [
         model: '929003050601',
         vendor: 'Philips',
         description: 'Hue smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
@@ -2455,7 +2455,7 @@ module.exports = [
         model: '9290030509',
         vendor: 'Philips',
         description: 'Hue smart plug - EU',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.on_off].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
