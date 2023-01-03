@@ -1230,7 +1230,7 @@ module.exports = [
         model: '8718699703424',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
-        extend: hueExtend.light_onoff_brightness_colortemp_color(),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LCL002'],
