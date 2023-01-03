@@ -1,8 +1,8 @@
-const fz = require('.../converters/fromZigbee');
-const tz = require('.../converters/toZigbee');
-const exposes = require('.../lib/exposes');
-const reporting = require('.../lib/reporting');
-const extend = require('.../lib/extend');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
+const exposes = require('../lib/exposes');
+const reporting = require('../lib/reporting');
+const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
