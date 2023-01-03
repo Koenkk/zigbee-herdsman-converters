@@ -643,6 +643,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['LWO004'],
+        model: '8719514279155',
+        vendor: 'Philips',
+        description: 'Hue white G125 B22 LED bulb filament giant globe',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['LTD011'],
         model: '5110131H5',
         vendor: 'Philips',
