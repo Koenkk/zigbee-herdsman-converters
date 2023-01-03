@@ -39,18 +39,20 @@ module.exports = [
         model: 'HS2SK',
         description: 'Smart metering plug',
         vendor: 'HEIMAN',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
     {
         fingerprint: [{modelID: 'SmartPlug-N', manufacturerName: 'HEIMAN'}],
@@ -474,7 +476,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['GASSensor-EM'],
+        zigbeeModel: ['GASSensor-EM', '358e4e3e03c644709905034dae81433e'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
         description: 'Combustible gas sensor',

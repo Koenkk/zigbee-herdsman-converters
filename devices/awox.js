@@ -172,5 +172,6 @@ module.exports = [
         vendor: 'AwoX',
         description: 'LED light with color temperature',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        whiteLabel: [{vendor: 'EGLO', model: '900316'}, {vendor: 'EGLO', model: '900317'}, {vendor: 'EGLO', model: '900053'}],
     },
 ];

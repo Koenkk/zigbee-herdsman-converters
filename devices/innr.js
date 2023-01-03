@@ -9,6 +9,21 @@ const ota = require('../lib/ota');
 
 module.exports = [
     {
+        zigbeeModel: ['RC 210'],
+        model: 'RC 210',
+        vendor: 'Innr',
+        description: 'Remote control',
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_level,
+            fz.command_move_to_color_temp],
+        toZigbee: [],
+        exposes: [e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop', 'brightness_move_to_level',
+            'color_temperature_move'])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ['genBasic', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+        },
+    },
+    {
         zigbeeModel: ['RC 250'],
         model: 'RC 250',
         vendor: 'Innr',

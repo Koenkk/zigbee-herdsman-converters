@@ -437,7 +437,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: 'Flower sensor with rechargeable battery',
         fromZigbee: [fz.temperature, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
@@ -458,7 +458,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Plant Wattering Sensor, CR2450, CR2477 batteries, temperature ]',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery, fzLocal.node_config],
-        toZigbee: [tz.factory_reset, tzLocal.node_config],
+        toZigbee: [tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -482,7 +482,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: 'DIY outdoor long-range sensor for temperature, humidity and atmospheric pressure',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -503,7 +503,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Plant wattering sensor with e-ink display](https://efektalab.com/epws102)',
         fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement', 'msSoilMoisture']);
@@ -521,7 +521,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Temperature and humidity sensor with e-ink2.13](http://efektalab.com/eON213z)',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -540,7 +540,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Mini plant wattering sensor](http://efektalab.com/miniPWS)',
         fromZigbee: [fz.soil_moisture, fz.battery, fzLocal.node_config],
-        toZigbee: [tz.factory_reset, tzLocal.node_config],
+        toZigbee: [tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['genPowerCfg', 'msSoilMoisture']);
@@ -555,7 +555,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Mini weather station, digital barometer, forecast, charts, temperature, humidity](http://efektalab.com/eON213wz)',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -576,7 +576,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[DIY temperature, humidity and atmospheric pressure sensor, long battery life](http://efektalab.com/eON_THP)',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -597,7 +597,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Plant watering sensor EFEKTA PWS max](http://efektalab.com/PWS_Max)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -618,7 +618,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Plant watering sensor EFEKTA PWS Max Pro,  long battery life](http://efektalab.com/PWS_MaxPro)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -639,7 +639,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Mini weather station, barometer, forecast, charts, temperature, humidity, light](http://efektalab.com/eON290wz)',
         fromZigbee: [fz.temperature, fz.humidity, fz.pressure, fz.illuminance, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -661,7 +661,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Plant Wattering Sensor with e-ink display 2.13](https://efektalab.com/eFlowerPro)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, [
@@ -682,7 +682,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Mini digital thermometer & hygrometer with e-ink1.02](http://efektalab.com/eTH102)',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -702,7 +702,7 @@ module.exports = [
         description: '[CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time](http://efektalab.com/iAQ)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fzLocal.co2, fzLocal.co2_config,
             fzLocal.temperature_config, fzLocal.humidity_config],
-        toZigbee: [tz.factory_reset, tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config, tzLocal.local_time],
+        toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config, tzLocal.local_time],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msIlluminanceMeasurement', 'msCO2'];
@@ -762,7 +762,7 @@ module.exports = [
         description: '[EFEKTA CO2 Smart Monitor, ws2812b indicator, can control the relay, binding](https://efektalab.com/CO2_Monitor)',
         fromZigbee: [fz.temperature, fz.humidity, fzLocal.co2, fzLocal.co2_config, fzLocal.temperature_config,
             fzLocal.humidity_config, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.co2_gasstat_config],
-        toZigbee: [tz.factory_reset, tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
+        toZigbee: [tzLocal.co2_config, tzLocal.temperature_config, tzLocal.humidity_config,
             tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.co2_gasstat_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -813,7 +813,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.node_config],
-        toZigbee: [tz.factory_reset, tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
+        toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [

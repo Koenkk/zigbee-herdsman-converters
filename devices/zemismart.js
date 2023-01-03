@@ -83,6 +83,9 @@ module.exports = [
         description: 'Smart light switch and socket - 2 gang with neutral wire',
         extend: tuya.extend.switch({endpoints: ['left', 'center', 'right']}),
         meta: {multiEndpoint: true},
+        endpoint: () => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             for (const endpointID of [1, 2, 3]) {
@@ -121,7 +124,7 @@ module.exports = [
             'button_6_hold', 'button_6_single', 'button_6_double'])],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_zigisuyh'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_v4mevirn'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_zigisuyh', '_TZ3000_v4mevirn', '_TZ3000_mlswgkc3']),
         model: 'ZIGBEE-B09-UK',
         vendor: 'Zemismart',
         description: 'Zigbee smart outlet universal socket with USB port',

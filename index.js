@@ -76,7 +76,7 @@ function addDefinition(definition) {
     }
 
     definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write,
-        tz.command);
+        tz.command, tz.factory_reset);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
@@ -142,14 +142,21 @@ function findByDevice(device) {
         return candidates[0];
     } else {
         // First try to match based on fingerprint, return the first matching one.
+        const fingerprintMatch = {priority: null, definition: null};
         for (const candidate of candidates) {
             if (candidate.hasOwnProperty('fingerprint')) {
                 for (const fingerprint of candidate.fingerprint) {
-                    if (fingerprintMatch(fingerprint, device)) {
-                        return candidate;
+                    const priority = fingerprint.hasOwnProperty('priority') ? fingerprint.priority : 0;
+                    if (isFingerprintMatch(fingerprint, device) && (!fingerprintMatch.definition || priority > fingerprintMatch.priority)) {
+                        fingerprintMatch.definition = candidate;
+                        fingerprintMatch.priority = priority;
                     }
                 }
             }
+        }
+
+        if (fingerprintMatch.definition) {
+            return fingerprintMatch.definition;
         }
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel
@@ -163,7 +170,7 @@ function findByDevice(device) {
     return null;
 }
 
-function fingerprintMatch(fingerprint, device) {
+function isFingerprintMatch(fingerprint, device) {
     let match =
         (!fingerprint.applicationVersion || device.applicationVersion === fingerprint.applicationVersion) &&
         (!fingerprint.manufacturerID || device.manufacturerID === fingerprint.manufacturerID) &&

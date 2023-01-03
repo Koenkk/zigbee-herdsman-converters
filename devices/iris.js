@@ -58,7 +58,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['3320-L'],
@@ -74,7 +74,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+        exposes: [e.contact(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['3450-L', '3450-L2'],

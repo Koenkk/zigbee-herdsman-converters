@@ -30,7 +30,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_7jnk7l3k'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_7jnk7l3k', '_TZ3210_raqjcxo5']),
         model: 'SPP02GIP',
         vendor: 'Mercator',
         description: 'Ikuü double outdoors power point',

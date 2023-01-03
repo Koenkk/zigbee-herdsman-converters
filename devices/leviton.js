@@ -48,6 +48,19 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['DG3HL'],
+        model: 'DG3HL-1BW',
+        vendor: 'Leviton',
+        description: 'Indoor Decora smart Zigbee 3.0 certified plug-in dimmer',
+        extend: extend.light_onoff_brightness({disableEffect: true, noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['DG15A'],
         model: 'DG15A-1BW',
         vendor: 'Leviton',
@@ -77,7 +90,7 @@ module.exports = [
         vendor: 'Leviton',
         description: 'Omnistat2 wireless thermostat',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration, tz.thermostat_occupancy,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_unoccupied_cooling_setpoint, tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode, tz.thermostat_weekly_schedule,

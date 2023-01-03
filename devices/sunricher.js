@@ -603,4 +603,13 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
     },
+    {
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturer: 'Sunricher'}],
+        model: 'SR-ZG9010A',
+        vendor: 'Sunricher',
+        description: 'Door windows sensor',
+        fromZigbee: [fz.U02I007C01_contact, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery()],
+    },
 ];

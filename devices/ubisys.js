@@ -17,7 +17,14 @@ const manufacturerOptions = {
      */
     ubisys: {manufacturerCode: herdsman.Zcl.ManufacturerCode.UBISYS},
     ubisysNull: {manufacturerCode: null},
-    tint: {manufacturerCode: herdsman.Zcl.ManufacturerCode.MUELLER_LICHT_INT},
+};
+
+const ubisysOnEventReadCurrentSummDelivered = async function(type, data, devic) {
+    if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
+        try {
+            await data.endpoint.read('seMetering', ['currentSummDelivered']);
+        } catch (error) {/* Do nothing*/}
+    }
 };
 
 const ubisys = {
@@ -528,18 +535,23 @@ module.exports = [
         model: 'S1',
         vendor: 'Ubisys',
         description: 'Power switch S1',
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+        exposes: [
+            e.switch(),
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior()],
+            e.power_on_behavior(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 3};
         },
+        meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -561,6 +573,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -570,15 +584,20 @@ module.exports = [
         model: 'S1-R',
         vendor: 'Ubisys',
         description: 'Power switch S1-R',
-        exposes: [e.switch(), e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+        exposes: [
+            e.switch(),
             e.action([
                 'toggle', 'on', 'off', 'recall_*',
                 'brightness_move_up', 'brightness_move_down', 'brightness_stop',
             ]),
-            e.power_on_behavior()],
+            e.power_on_behavior(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, tz.currentsummdelivered, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        meta: {multiEndpointEnforce: {'power': 4, 'energy': 4}},
         endpoint: (device) => {
             return {'l1': 1, 's1': 2, 'meter': 4};
         },
@@ -603,6 +622,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -613,19 +634,23 @@ module.exports = [
         vendor: 'Ubisys',
         description: 'Power switch S2',
         exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power'),
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
             e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
-            e.power_on_behavior().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l2')],
+            e.power_on_behavior().withEndpoint('l1'),
+            e.power_on_behavior().withEndpoint('l2'),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         fromZigbee: [fz.on_off, fz.metering, fz.command_toggle, fz.command_on, fz.command_off, fz.command_recall, fz.command_move,
             fz.command_stop, fz.power_on_behavior, ubisys.fz.configure_device_setup],
-        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.metering_power, ubisys.tz.configure_device_setup, tz.power_on_behavior, tz.currentsummdelivered],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 's1': 3, 's2': 4, 'meter': 5};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointEnforce: {'power': 5, 'energy': 5}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
@@ -655,6 +680,8 @@ module.exports = [
                 const ep4 = device.getEndpoint(4);
                 ep3.addBinding('genOnOff', ep1);
                 ep4.addBinding('genOnOff', ep2);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -669,14 +696,43 @@ module.exports = [
             ubisys.fz.dimmer_setup_genLevelCtrl, ubisys.fz.configure_device_setup],
         toZigbee: [tz.light_onoff_brightness, tz.ballast_config, tz.level_config, ubisys.tz.dimmer_setup,
             ubisys.tz.dimmer_setup_genLevelCtrl, ubisys.tz.configure_device_setup, tz.ignore_transition, tz.light_brightness_move,
-            tz.light_brightness_step],
-        exposes: [e.light_brightness().withLevelConfig(), e.power(), e.energy(),
+            tz.light_brightness_step, tz.metering_power, tz.currentsummdelivered],
+        exposes: [
+            e.action(['toggle_s1', 'toggle_s2', 'on_s1', 'on_s2', 'off_s1', 'off_s2', 'recall_*_s1', 'recal_*_s2', 'brightness_move_up_s1',
+                'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
+                'brightness_stop_s2']),
+            e.light_brightness(),
+            exposes.composite('level_config', 'level_config')
+                .withFeature(exposes.numeric('on_off_transition_time', ea.ALL)
+                    .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
+                    'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))
+                .withFeature(exposes.numeric('on_level', ea.ALL)
+                    .withValueMin(1).withValueMax(254)
+                    .withPreset('previous', 255, 'Use previous value')
+                    .withDescription('Specifies the level that shall be applied, when an on/toggle command causes the light to turn on.'))
+                .withFeature(exposes.binary('execute_if_off', ea.ALL, true, false)
+                    .withDescription('Defines if you can send a brightness change without to turn on the light'))
+                .withFeature(exposes.numeric('current_level_startup', ea.ALL)
+                    .withValueMin(1).withValueMax(254)
+                    .withPreset('previous', 255, 'Use previous value')
+                    .withDescription('Specifies the initial level to be applied after the device is supplied with power')),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
             exposes.numeric('minimum_on_level', ea.ALL).withValueMin(0).withValueMax(255)
-                .withDescription('Specifies the minimum light output after switching on'),
+                .withDescription('Specifies the minimum level that shall be applied, when an on/toggle command causes the ' +
+                'light to turn on. When this attribute is set to the invalid value (255) this feature is disabled ' +
+                'and standard rules apply: The light will either return to the previously active level (before it ' +
+                'was turned off) if the OnLevel attribute is set to the invalid value (255/previous); or to the specified ' +
+                'value of the OnLevel attribute if this value is in the range 0…254. Otherwise, if the ' +
+                'MinimumOnLevel is in the range 0…254, the light will be set to the the previously ' +
+                'active level (before it was turned off), or the value specified here, whichever is the larger ' +
+                'value. For example, if the previous level was 30 and the MinimumOnLevel was 40 then ' +
+                'the light would turn on and move to level 40. Conversely, if the previous level was 50, ' +
+                'and the MinimumOnLevel was 40, then the light would turn on and move to level 50.'),
             exposes.binary('capabilities_forward_phase_control', ea.ALL, true, false)
                 .withDescription('The dimmer supports AC forward phase control.'),
             exposes.binary('capabilities_reverse_phase_control', ea.ALL, true, false)
@@ -705,13 +761,11 @@ module.exports = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
+        meta: {multiEndpoint: true, multiEndpointSkip: ['state', 'brightness'], multiEndpointEnforce: {'power': 4, 'energy': 4}},
+        endpoint: (device) => {
+            return {'default': 1, 's1': 2, 's2': 3, 'meter': 4};
+        },
         onEvent: async (type, data, device) => {
-            if (data.type === 'attributeReport' && data.cluster === 'seMetering') {
-                const endpoint = device.getEndpoint(4);
-                try {
-                    await endpoint.read('seMetering', ['currentSummDelivered']);
-                } catch (error) {/* Do nothing*/}
-            }
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
@@ -723,6 +777,8 @@ module.exports = [
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('genOnOff', ep1);
                 ep2.addBinding('genLevelCtrl', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,
@@ -734,9 +790,13 @@ module.exports = [
         description: 'Shutter control J1',
         fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.metering_power,
-            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup],
-        exposes: [e.cover_position_tilt(),
-            e.power().withAccess(ea.STATE_GET).withEndpoint('meter').withProperty('power')],
+            ubisys.tz.configure_j1, ubisys.tz.configure_device_setup,
+            tz.currentsummdelivered],
+        exposes: [
+            e.cover_position_tilt(),
+            e.power().withAccess(ea.STATE_GET),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -749,6 +809,7 @@ module.exports = [
         endpoint: (device) => {
             return {'default': 1, 'meter': 3};
         },
+        meta: {multiEndpointEnforce: {'power': 3, 'energy': 3}},
         onEvent: async (type, data, device) => {
             /*
              * As per technical doc page 21 section 7.3.4
@@ -760,6 +821,8 @@ module.exports = [
                 const ep1 = device.getEndpoint(1);
                 const ep2 = device.getEndpoint(2);
                 ep2.addBinding('closuresWindowCovering', ep1);
+            } else {
+                await ubisysOnEventReadCurrentSummDelivered(type, data, device);
             }
         },
         ota: ota.ubisys,

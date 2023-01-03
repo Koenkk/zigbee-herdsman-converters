@@ -42,10 +42,12 @@ module.exports = [
         model: '14593',
         vendor: 'Vimar',
         description: '16A outlet IoT connected',
-        extend: extend.switch(),
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
         },
     },
     {

@@ -54,7 +54,7 @@ module.exports = [
         zigbeeModel: [' Contactor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412171',
-        description: 'DIN contactor module ( Bticino FC80CC )',
+        description: 'DIN contactor module (BTicino FC80CC )',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
@@ -78,7 +78,7 @@ module.exports = [
         zigbeeModel: [' Teleruptor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412170',
-        description: 'DIN smart relay for light control ( Bticino FC80RC ) ',
+        description: 'DIN smart relay for light control (BTicino FC80RC ) ',
         vendor: 'Legrand',
         extend: extend.switch(),
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.legrand_cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
@@ -123,15 +123,26 @@ module.exports = [
         model: '067776',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
-        // the physical LED will be green when permit join is true, off otherwise and red when not linked
-        fromZigbee: [
-            // Devices can send an identify message when the configuration button is pressed
-            // (behind the physical buttons)
-            // Used on the official gateway to send to every devices an identify command (green)
-            fz.identify, fz.ignore_basic_report,
-            // support binary report on moving state (supposed)
-            fz.legrand_binary_input_moving, fz.cover_position_tilt],
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+        exposes: [e.cover_position(),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+            allowing to see it in the dark`)],
+    },
+    {
+        // swbuildid 001a requires coverInverted: https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
+        fingerprint: [{modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'}],
+        model: '067776_001a',
+        vendor: 'Legrand',
+        description: 'Netatmo wired shutter switch',
+        fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.legrand_identify, tz.legrand_settingEnableLedInDark],
+        meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBinaryInput', 'closuresWindowCovering', 'genIdentify']);
@@ -209,8 +220,8 @@ module.exports = [
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum brightness value'),
             exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to 
-                see the switch in the dark`),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+                ` see the switch in the dark`),
             exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
             e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -231,7 +242,7 @@ module.exports = [
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn,
             tz.power_on_behavior],
-        exposes: [e.switch(), e.action(['identify']), e.power(),
+        exposes: [e.switch(), e.action(['identify']), e.power(), e.power_apparent(),
             exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
                 allowing to see it in the dark`),
             exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
@@ -251,9 +262,9 @@ module.exports = [
         description: 'Wired micromodule switch',
         extend: extend.switch(),
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.identify, fz.on_off],
-        toZigbee: [tz.on_off, tz.legrand_identify],
-        whiteLabel: [{vendor: 'Bticino', model: '3584C'}],
+        fromZigbee: [...extend.switch().fromZigbee, fz.identify],
+        toZigbee: [...extend.switch().toZigbee, tz.legrand_identify],
+        whiteLabel: [{vendor: 'BTicino', model: '3584C'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genBinaryInput']);
@@ -269,6 +280,7 @@ module.exports = [
         exposes: [e.battery(), e.action(['enter', 'leave', 'sleep', 'wakeup', 'center'])],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        whiteLabel: [{vendor: 'BTicino', model: 'LN4570CWI'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
@@ -358,6 +370,7 @@ module.exports = [
         model: '064882',
         vendor: 'Legrand',
         description: 'Cable outlet with pilot wire and consumption measurement',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.legrand_cluster_fc01, fz.legrand_cable_outlet_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
         toZigbee: [tz.legrand_deviceMode, tz.legrand_cableOutletMode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
         exposes: [exposes.binary('device_mode', ea.ALL, 'pilot_on', 'pilot_off'),
@@ -383,8 +396,8 @@ module.exports = [
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
         exposes: [e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to 
-                see the switch in the dark`),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+                ` see the switch in the dark`),
             exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -413,6 +426,25 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Remote dimmer switch'],
+        model: 'WNAL63',
+        vendor: 'Legrand',
+        // led blink RED when battery is low
+        description: 'Remote dimmer switch',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+            fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
+            'brightness_move_down', 'brightness_stop'])],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
+        onEvent: readInitialBatteryState,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl']);
         },
     },
 ];

@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const e = exposes.presets;
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const ota = require('../lib/ota');
 
 module.exports = [
     {
@@ -48,6 +49,7 @@ module.exports = [
         model: 'Eco-Dim.07/Eco-Dim.10',
         vendor: 'EcoDim',
         description: 'Zigbee & Z-wave dimmer',
+        ota: ota.zigbeeOTA,
         extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -122,7 +124,7 @@ module.exports = [
             'brightness_move_down_3', 'brightness_stop_3', 'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4',
             'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
     },
     {
         fingerprint: [{modelID: 'TS0501B', manufacturerName: '_TZ3210_yluvwhjc'}],
