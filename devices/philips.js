@@ -75,8 +75,8 @@ const hueExtend = {
         return result;
     },
     light_onoff_brightness_colortemp_color_gradient: (options={}) => {
-        options = {supportsHS: true, disableEffect: true, noConfigure: true, extraEffects: [], ...options};
-        const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
+        options = {supportsHS: true, disableEffect: true, extraEffects: [], ...options};
+        const result = extendDontUse.light_onoff_brightness_colortemp_color({noConfigure: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([
