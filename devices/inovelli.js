@@ -1304,9 +1304,9 @@ module.exports = [
             ]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
 
-            await reporting.activePower(endpoint, {min: 1, max: 3600, change: 1});
+            await reporting.activePower(endpoint, {min: 15, max: 3600, change: 1});
             await reporting.currentSummDelivered(endpoint, {
-                min: 1,
+                min: 15,
                 max: 3600,
                 change: 0,
             });
