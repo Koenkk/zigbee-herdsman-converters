@@ -211,6 +211,8 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            // 3600/7200 prevents disconnect
+            // https://github.com/Koenkk/zigbee2mqtt/issues/13600#issuecomment-1283827935
             await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
             await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
