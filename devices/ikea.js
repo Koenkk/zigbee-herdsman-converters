@@ -977,7 +977,7 @@ module.exports = [
         description: 'TRADFRI E26 PAR38 LED bulb 900 lumen, dimmable, white spectrum, downlight',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
-	{
+    {
         zigbeeModel: ['Floor lamp WW'],
         model: 'G2015',
         vendor: 'IKEA',
