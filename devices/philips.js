@@ -1086,6 +1086,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['929003047001'],
+        model: '929003047001',
+        vendor: 'Philips',
+        description: 'Hue White ambiance Milliskin (round)',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['LWA017'],
         model: '929002469202',
         vendor: 'Philips',
