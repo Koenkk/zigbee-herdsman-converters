@@ -428,4 +428,23 @@ module.exports = [
             await reporting.activePower(endpoint);
         },
     },
+    {
+        zigbeeModel: ['Remote dimmer switch'],
+        model: 'WNAL63',
+        vendor: 'Legrand',
+        // led blink RED when battery is low
+        description: 'Remote dimmer switch',
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.legacy.cmd_move, fz.legacy.cmd_stop,
+            fz.battery],
+        exposes: [e.battery(), e.action(['identify', 'on', 'off', 'toggle', 'brightness_move_up',
+            'brightness_move_down', 'brightness_stop'])],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
+        onEvent: readInitialBatteryState,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl']);
+        },
+    },
 ];
