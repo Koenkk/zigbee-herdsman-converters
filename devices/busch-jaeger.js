@@ -15,9 +15,10 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter) and
-        // 6711 U (Relay) back-ends. The dimmer has not been verified to work yet, though it's
-        // safe to assume that it can at least been turned on or off with this integration.
+        // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter),
+        // 6711 U (Relay) and 6715 U (dimmer) back-ends. Unfortunately all three of these types
+        // report as model 'RM01' so we cannot distinguish these. That's why whe set all of them
+        // up as dimmable lights.
         //
         // In order to manually capture scenes as described in the devices manual, the endpoint
         // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
@@ -30,21 +31,26 @@ module.exports = [
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
-        exposes: [e.switch(), e.action(['row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
+        exposes: [e.light_brightness().withEndpoint('relay'), e.action(['row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
             'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
             'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
             'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint10 = device.getEndpoint(0x0a);
-            if (endpoint10 != null) {
-                // The total number of bindings seems to be severely limited with these devices.
-                // In order to be able to toggle groups, we need to remove the scenes cluster
-
-                await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+            // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints for
+            // the rockers. If the module is installed on a dimmer or relay, there is an additional endpoint (18).
+            const endpoint18 = device.getEndpoint(0x12);
+            if (endpoint18 != null) {
+                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            } else {
+                // We only need to bind endpoint 10 (top rocker) if endoint 18 (relay/dimmer) is not present.
+                // Otherwise the top rocker is hard-wired to the relay/dimmer and cannot be used anyways.
+                const endpoint10 = device.getEndpoint(0x0a);
+                if (endpoint10 != null) {
+                    await reporting.bind(endpoint10, coordinatorEndpoint, ['genLevelCtrl']);
+                }
             }
-            // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints.
-            // Thef 1st endpoint ist most bound to hardware switch
+
             const endpoint11 = device.getEndpoint(0x0b);
             if (endpoint11 != null) {
                 // The total number of bindings seems to be severely limited with these devices.
@@ -74,10 +80,6 @@ module.exports = [
                     endpoint13.outputClusters.splice(index, 1);
                 }
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
-            }
-            const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             }
         },
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.legacy.RM01_on_click, fz.legacy.RM01_off_click,
