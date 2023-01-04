@@ -447,4 +447,23 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl']);
         },
     },
+    {
+        zigbeeModel: [' Centralized ventilation SW', ' Centralized ventilation SW\u0000\u0000\u0000\u0000'],
+        model: '067766',
+        vendor: 'Legrand',
+        description: 'Centralized ventilation switch',
+        fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn,
+            tz.power_on_behavior],
+        exposes: [e.switch(), e.action(['identify']),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+                allowing to see it in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
+            e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
