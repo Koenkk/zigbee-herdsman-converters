@@ -19,13 +19,12 @@ const fzLocal = {
     },
 };
 
-
 module.exports = [
     {
         zigbeeModel: ['DCH-B112'],
         model: 'DCH-B112',
         vendor: 'D-Link',
-        description: 'D-Link wireless smart door window sensor with vibration',
+        description: 'Wireless smart door window sensor with vibration',
         fromZigbee: [fzLocal.DCH_B112, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
