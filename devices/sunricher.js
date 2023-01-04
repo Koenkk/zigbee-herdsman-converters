@@ -359,6 +359,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000057e.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x000000001fa.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x00000000f12.....$/}],
         model: 'SR-ZGP2801K4-DIM',
         vendor: 'Sunricher',
