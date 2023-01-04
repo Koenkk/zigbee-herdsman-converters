@@ -3769,7 +3769,6 @@ module.exports = [
             .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
         toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
             .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
-        meta: {multiEndpoint: true},
         exposes: [e.light_brightness(), e.power_on_behavior(), tuya.exposes.switchType()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
