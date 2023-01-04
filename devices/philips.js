@@ -3106,6 +3106,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003531702'],
+        model: '929003531702',
+        vendor: 'Philips',
+        description: 'Hue Bluetooth white & color ambiance ceiling lamp Infuse medium',
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003045001_01', '929003045001_02', '929003045001_03'],
         model: '9290019533',
         vendor: 'Philips',
