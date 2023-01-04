@@ -303,7 +303,7 @@ module.exports = [
         description: 'DIN power consumption module',
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
         toZigbee: [tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
-        exposes: [e.power().withAccess(ea.STATE_GET), exposes.binary('power_alarm_active', ea.STATE, true, false),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.power_apparent(), exposes.binary('power_alarm_active', ea.STATE, true, false),
             exposes.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
