@@ -2622,10 +2622,10 @@ const converters = {
                 result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
             }
             if (typeof msg.data[0x4008] == 'number') {
-                result.child_protection = (result.eurotronic_host_flags & (1 << 7)) != 0;
-                result.mirror_display = (result.eurotronic_host_flags & (1 << 1)) != 0;
-                result.boost = (result.eurotronic_host_flags & 1 << 2) != 0;
-                result.window_open = (result.eurotronic_host_flags & (1 << 4)) != 0;
+                result.child_protection = (msg.data[0x4008] & (1 << 7)) != 0;
+                result.mirror_display = (msg.data[0x4008] & (1 << 1)) != 0;
+                result.boost = (msg.data[0x4008] & 1 << 2) != 0;
+                result.window_open = (msg.data[0x4008] & (1 << 4)) != 0;
 
                 if (result.boost) result.system_mode = constants.thermostatSystemModes[4];
                 else if (result.window_open) result.system_mode = constants.thermostatSystemModes[0];
