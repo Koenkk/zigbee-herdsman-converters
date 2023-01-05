@@ -86,7 +86,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = {};
+                const result = meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {};
                 if (msg.data['inputConfigurations'] != null) {
                     result['input_configurations'] = msg.data['inputConfigurations'];
                 }
@@ -516,7 +516,9 @@ const ubisys = {
 
             convertGet: async (entity, key, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations', 'inputActions'],
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'],
+                    manufacturerOptions.ubisysNull);
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'],
                     manufacturerOptions.ubisysNull);
             },
         },
