@@ -1386,7 +1386,7 @@ module.exports = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disableHueEffects: false}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LTD005'],
