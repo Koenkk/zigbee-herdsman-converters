@@ -122,7 +122,7 @@ module.exports = [
     {
         zigbeeModel: ['RH3070'],
         model: 'HS1CG',
-        vendor: 'Heiman',
+        vendor: 'HEIMAN',
         description: 'Smart combustible gas sensor',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
@@ -403,7 +403,7 @@ module.exports = [
         zigbeeModel: ['STHM-I1H'],
         model: 'STHM-I1H',
         vendor: 'HEIMAN',
-        description: 'Heiman temperature & humidity sensor',
+        description: 'Temperature & humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
