@@ -501,7 +501,7 @@ const ubisys = {
                         endpoint += 1;
                     }
 
-                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
+                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
                         JSON.stringify(resultingInputActions));
                     await devMgmtEp.write(
                         'manuSpecificUbisysDeviceSetup',
