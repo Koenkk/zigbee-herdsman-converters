@@ -511,7 +511,7 @@ const ubisys = {
                 }
 
                 // re-read effective settings and dump them to the log
-                ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
+                await ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
             },
 
             convertGet: async (entity, key, meta) => {
