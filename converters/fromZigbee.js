@@ -2853,6 +2853,23 @@ const converters = {
             return {action: `${button}${clickMapping[msg.data[3]]}`};
         },
     },
+    tuya_switch_on_off_action: {
+        cluster: 'genOnOff',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            let mapping = null;
+            if (['TS0012'].includes(model.model)) mapping = {1: 'left', 2: 'right'};
+            if (['TS0013'].includes(model.model)) mapping = {1: 'left', 2: 'center', 3: 'right'};
+            if (['TS0014'].includes(model.model)) mapping = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4'};
+
+            const actionLookup = {0: 'off', 1: 'on'};
+
+            const action = actionLookup[msg.data['onOff']];
+            const button = mapping && mapping[msg.endpoint.ID] ? `${mapping[msg.endpoint.ID]}_` : '';
+
+            return {action: `${button}${action}`};
+        },
+    },
     tuya_water_leak: {
         cluster: 'manuSpecificTuya',
         type: 'commandDataReport',
