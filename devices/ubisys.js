@@ -86,7 +86,7 @@ const ubisys = {
             cluster: 'manuSpecificUbisysDeviceSetup',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
-                const result = {};
+                const result = meta.state.hasOwnProperty('configure_device_setup') ? meta.state.configure_device_setup : {};
                 if (msg.data['inputConfigurations'] != null) {
                     result['input_configurations'] = msg.data['inputConfigurations'];
                 }
@@ -501,7 +501,7 @@ const ubisys = {
                         endpoint += 1;
                     }
 
-                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendlyName}': ` +
+                    meta.logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ` +
                         JSON.stringify(resultingInputActions));
                     await devMgmtEp.write(
                         'manuSpecificUbisysDeviceSetup',
@@ -511,12 +511,14 @@ const ubisys = {
                 }
 
                 // re-read effective settings and dump them to the log
-                ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
+                await ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
             },
 
             convertGet: async (entity, key, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations', 'inputActions'],
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputConfigurations'],
+                    manufacturerOptions.ubisysNull);
+                await devMgmtEp.read('manuSpecificUbisysDeviceSetup', ['inputActions'],
                     manufacturerOptions.ubisysNull);
             },
         },
