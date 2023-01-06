@@ -253,6 +253,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.apparentPower(endpoint);
         },
     },
     {
@@ -310,6 +311,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.apparentPower(endpoint);
             // Read configuration values that are not sent periodically as well as current power (activePower).
             await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
         },
@@ -377,6 +379,7 @@ module.exports = [
             exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
             exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
             e.power().withAccess(ea.STATE_GET),
+            e.power_apparent(),
             e.power_on_behavior().withDescription(`Controls the behavior when the device is powered on. Works only when the pilot wire is
                 deactivated`)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -385,6 +388,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.apparentPower(endpoint);
         },
     },
     {
