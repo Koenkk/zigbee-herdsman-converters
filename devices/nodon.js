@@ -47,6 +47,9 @@ module.exports = [
             await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(ep);
         },
+        endpoint: (device) => {
+            return {default: 1};
+        },
     },
     {
         zigbeeModel: ['SIN-4-2-20'],
