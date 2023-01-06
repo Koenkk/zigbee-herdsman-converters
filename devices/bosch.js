@@ -5,6 +5,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
 const constants = require('../lib/constants');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -396,6 +397,7 @@ const definition = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
