@@ -837,13 +837,17 @@ module.exports = [
         fromZigbee: [fz.legacy.ubisys_c4_scenes, fz.legacy.ubisys_c4_onoff, fz.legacy.ubisys_c4_level, fz.legacy.ubisys_c4_cover,
             ubisys.fz.configure_device_setup],
         toZigbee: [ubisys.tz.configure_device_setup],
-        exposes: [e.action([
-            '1_scene_*', '1_on', '1_off', '1_toggle', '1_level_move_down', '1_level_move_up',
-            '2_scene_*', '2_on', '2_off', '2_toggle', '2_level_move_down', '2_level_move_up',
-            '3_scene_*', '3_on', '3_off', '3_toggle', '3_level_move_down', '3_level_move_up',
-            '4_scene_*', '4_on', '4_off', '4_toggle', '4_level_move_down', '4_level_move_up',
-            '5_scene_*', '5_cover_open', '5_cover_close', '5_cover_stop',
-            '6_scene_*', '6_cover_open', '6_cover_close', '6_cover_stop'])],
+        exposes: [
+            e.action([
+                'toggle_s1', 'toggle_s2', 'toggle_s3', 'toggle_s4', 'on_s1', 'on_s2', 'on_s3', 'on_s4',
+                'off_s1', 'off_s2', 'off_s3', 'off_s4', 'recall_*_s1', 'recal_*_s2', 'recall_*_s3', 'recal_*_s4',
+                'brightness_move_up_s1', 'brightness_move_up_s2', 'brightness_move_up_s3', 'brightness_move_up_s4',
+                'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_move_down_s3', 'brightness_move_down_s4',
+                'brightness_stop_s1', 'brightness_stop_s2', 'brightness_stop_s3', 'brightness_stop_s4',
+                'cover_open_s5', 'cover_close_s5', 'cover_stop_s5',
+                'cover_open_s6', 'cover_close_s6', 'cover_stop_s6',
+            ]),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             for (const ep of [1, 2, 3, 4]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'genOnOff', 'genLevelCtrl']);
@@ -851,6 +855,10 @@ module.exports = [
             for (const ep of [5, 6]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genScenes', 'closuresWindowCovering']);
             }
+        },
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {'s1': 1, 's2': 2, 's3': 3, 's4': 4, 's5': 5, 's6': 6};
         },
         ota: ota.ubisys,
     },
