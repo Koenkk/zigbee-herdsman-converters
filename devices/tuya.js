@@ -1253,10 +1253,10 @@ module.exports = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
+        exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
-                [3, 'humidity', tuya.valueConverter.raw],
+                [3, 'soil_moisture', tuya.valueConverter.raw],
                 [5, 'temperature', tuya.valueConverter.raw],
                 [9, 'temperature_unit', tuya.valueConverter.temperatureUnit],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
