@@ -63,11 +63,11 @@ module.exports = [
                     'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
                     'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
                     'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
-                    'property: If `Radiator_covered` is `true` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
+                    'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
                     'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
                     '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
                     'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
-                    'If `Radiator_covered` is `false` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property at ' +
+                    'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property at ' +
                     'least every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
                     '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
                     'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
