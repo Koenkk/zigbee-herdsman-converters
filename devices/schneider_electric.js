@@ -173,7 +173,7 @@ const fzLocal = {
     ias_smoke_alarm_1: {
         cluster: 'ssIasZone',
         // added readResponse to get sensor to trigger status updates upon pairing
-        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],        
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -991,8 +991,8 @@ module.exports = [
         zigbeeModel: ['W599001'],
         model: 'W599001',
         vendor: 'Schneider Electric',
-        description: 'Wiser smoke alarm CCT599001',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], // NB: ias_smoke_alarm_1 functionality is yet to be verified
+        description: 'Wiser smoke alarm CCT599001',        
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], 
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(), e.temperature()],
