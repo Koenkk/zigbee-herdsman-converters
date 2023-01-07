@@ -1278,7 +1278,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
+                [2, 'brightness', tuya.valueConverter.scale0_254to0_,0],
                 [3, 'min_brightness', tuya.valueConverter.scale0_254to0_1000],
                 [4, 'light_type', tuya.valueConverter.lightType],
                 [5, 'max_brightness', tuya.valueConverter.scale0_254to0_1000],
@@ -2561,7 +2561,8 @@ module.exports = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 device.applicationVersion !== 66, // polling for voltage, current and power
-                device.applicationVersion === 160 || device.applicationVersion === 100 || device.applicationVersion === 66, // polling for energy
+                device.applicationVersion === 160 || device.applicationVersion === 100 ||
+                device.applicationVersion === 66, // polling for energy
             ),
     },
     {
