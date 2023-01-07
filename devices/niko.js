@@ -42,7 +42,7 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
                 if (msg.data.hasOwnProperty('outletLedState')) {
-                    state['led_enable'] = (msg.data['outletLedState'] == 1 ? 'ON' : 'OFF');
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
                 }
                 if (msg.data.hasOwnProperty('outletLedColor')) {
                     state['led_state'] = (msg.data['outletLedColor'] == 255 ? 'ON' : 'OFF');
@@ -59,7 +59,7 @@ const local = {
                     state['child_lock'] = (msg.data['outletChildLock'] == 0 ? 'LOCK' : 'UNLOCK');
                 }
                 if (msg.data.hasOwnProperty('outletLedState')) {
-                    state['led_enable'] = (msg.data['outletLedState'] == 1 ? 'ON' : 'OFF');
+                    state['led_enable'] = (msg.data['outletLedState'] == 1);
                 }
                 return state;
             },
@@ -86,9 +86,9 @@ const local = {
         switch_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificNiko1', {'outletLedState': ((value.toLowerCase() === 'off') ? 0 : 1)});
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
                 await entity.read('manuSpecificNiko1', ['outletLedColor']);
-                return {state: {led_enable: ((value.toLowerCase() === 'off') ? 'OFF' : 'ON')}};
+                return {state: {led_enable: ((value) ? true : false)}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
@@ -117,8 +117,8 @@ const local = {
         outlet_led_enable: {
             key: ['led_enable'],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write('manuSpecificNiko1', {'outletLedState': ((value.toLowerCase() === 'off') ? 0 : 1)});
-                return {state: {led_enable: ((value.toLowerCase() === 'off') ? 'OFF' : 'ON')}};
+                await entity.write('manuSpecificNiko1', {'outletLedState': ((value) ? 1 : 0)});
+                return {state: {led_enable: ((value) ? true : false)}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read('manuSpecificNiko1', ['outletLedState']);
@@ -163,7 +163,7 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(),
             e.energy().withAccess(ea.STATE_GET),
             exposes.binary('child_lock', ea.ALL, 'LOCK', 'UNLOCK').withDescription('Enables/disables physical input on the device'),
-            exposes.binary('led_enable', ea.ALL, 'ON', 'OFF').withDescription('Enable LED'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
         ],
     },
     {
@@ -245,7 +245,7 @@ module.exports = [
             e.switch(),
             e.action(['single', 'hold', 'release']),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
-            exposes.binary('led_enable', ea.ALL, 'ON', 'OFF').withDescription('Enable LED'),
+            exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
             exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
         ],
     },
@@ -276,8 +276,8 @@ module.exports = [
             e.action(['single', 'hold', 'release']).withEndpoint('l2'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
-            exposes.binary('led_enable', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('Enable LED'),
-            exposes.binary('led_enable', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('Enable LED'),
+            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
+            exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
             exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
             exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l2').withDescription('LED State'),
         ],
