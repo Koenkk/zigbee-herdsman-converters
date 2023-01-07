@@ -172,7 +172,8 @@ const fzLocal = {
     },
     ias_smoke_alarm_1: {
         cluster: 'ssIasZone',
-        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'], // added readResponse to get sensor to trigger status updates upon pairing
+        // added readResponse to get sensor to trigger status updates upon pairing
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],        
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -187,7 +188,7 @@ const fzLocal = {
                 battery_defect: (zoneStatus & 1<<9) > 0,
             };
         },
-    },    
+    },
 };
 
 module.exports = [
@@ -987,23 +988,23 @@ module.exports = [
         ],
     },
     {
-            zigbeeModel: ['W599001'],
-            model: 'W599001',
-            vendor: 'Schneider Electric',
-            description: 'Wiser smoke alarm CCT599001',
-            fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], // NB: ias_smoke_alarm_1 functionality is yet to be verified
-            toZigbee: [],
-            ota: ota.zigbeeOTA, // local OTA updates are untested
-            exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(), e.temperature()],
-            configure: async (device, coordinatorEndpoint, logger) => {
-                const endpoint = device.getEndpoint(20);
-                const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
-                await reporting.bind(endpoint, coordinatorEndpoint, binds);
-                await reporting.batteryPercentageRemaining(endpoint);
-                await reporting.batteryVoltage(endpoint);
-                await reporting.temperature(endpoint);
-                await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
-                await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
-            },
+        zigbeeModel: ['W599001'],
+        model: 'W599001',
+        vendor: 'Schneider Electric',
+        description: 'Wiser smoke alarm CCT599001',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], // NB: ias_smoke_alarm_1 functionality is yet to be verified
+        toZigbee: [],
+        ota: ota.zigbeeOTA, // local OTA updates are untested
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(), e.temperature()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(20);
+            const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+        },
     },
 ];
