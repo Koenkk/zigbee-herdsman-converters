@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const utils = require('../lib/utils');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -169,6 +170,24 @@ const fzLocal = {
             return ret;
         },
     },
+    ias_smoke_alarm_1: {
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'], // added readResponse to get sensor to trigger status updates upon pairing
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                smoke: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+                battery_low: (zoneStatus & 1<<3) > 0,
+                supervision_reports: (zoneStatus & 1<<4) > 0,
+                restore_reports: (zoneStatus & 1<<5) > 0,
+                trouble: (zoneStatus & 1<<6) > 0,
+                ac_status: (zoneStatus & 1<<7) > 0,
+                test: (zoneStatus & 1<<8) > 0,
+                battery_defect: (zoneStatus & 1<<9) > 0,
+            };
+        },
+    },    
 };
 
 module.exports = [
@@ -967,4 +986,24 @@ module.exports = [
                 .withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
         ],
     },
+    {
+            zigbeeModel: ['W599001'],
+            model: 'W599001',
+            vendor: 'Schneider Electric',
+            description: 'Wiser smoke alarm CCT599001',
+            fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], // NB: ias_smoke_alarm_1 functionality is yet to be verified
+            toZigbee: [],
+            ota: ota.zigbeeOTA, // local OTA updates are untested
+            exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(), e.temperature()],
+            configure: async (device, coordinatorEndpoint, logger) => {
+                const endpoint = device.getEndpoint(20);
+                const binds = ['msTemperatureMeasurement', 'genPowerCfg'];
+                await reporting.bind(endpoint, coordinatorEndpoint, binds);
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
+                await reporting.temperature(endpoint);
+                await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
+                await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+            },
+    };
 ];
