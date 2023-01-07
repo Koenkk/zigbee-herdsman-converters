@@ -1668,7 +1668,6 @@ module.exports = [
             {modelID: 'TS0201', manufacturerName: '_TZ3000_yd2e749y'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_6uzkisv2'},
             {modelID: 'TS0201', manufacturerName: '_TZ3000_xr3htd96'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_9yapgbuv'},
         ],
         model: 'WSD500A',
         vendor: 'TuYa',
@@ -1698,7 +1697,7 @@ module.exports = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv']),
         model: 'ZTH01',
         vendor: 'TuYa',
         description: 'Temperature and humidity sensor',
