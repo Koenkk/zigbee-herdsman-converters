@@ -1005,5 +1005,5 @@ module.exports = [
                 await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
                 await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
             },
-    };
+    },
 ];
