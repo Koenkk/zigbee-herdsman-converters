@@ -991,8 +991,8 @@ module.exports = [
         zigbeeModel: ['W599001'],
         model: 'W599001',
         vendor: 'Schneider Electric',
-        description: 'Wiser smoke alarm CCT599001',        
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1], 
+        description: 'Wiser smoke alarm CCT599001',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fzLocal.ias_smoke_alarm_1],
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(), e.temperature()],
