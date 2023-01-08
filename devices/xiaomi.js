@@ -10,8 +10,8 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
-const { printNumberAsHex, printNumbersAsHexSequence, readNumberLike } = utils;
-const { xiaomiDefinitions: definitions, xiaomiMappers: mappers } = constants;
+const {printNumberAsHex, printNumbersAsHexSequence, readNumberLike} = utils;
+const {xiaomiDefinitions: definitions, xiaomiMappers: mappers, manufacturerCodes} = constants;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -43,6 +43,8 @@ const preventReset = async (type, data, device) => {
     await device.getEndpoint(1).write('genBasic', payload, options);
 };
 
+// Note: this is valid typescript-flavored JSDoc
+// eslint-disable-next-line valid-jsdoc
 /**
  * @param {string} deviceKey
  * @returns {(message: string) => string}
@@ -54,7 +56,7 @@ const createLoggerMsgMaker = (deviceKey) => (message) => {
 /**
  * @template {Record<string, unknown>} ErrorType
  * @param {ErrorType} error
- * @returns { { isSuccess: false, error: ErrorType } }
+ * @return { { isSuccess: false, error: ErrorType } }
  */
 const failure = (error) => {
     return {
@@ -78,12 +80,14 @@ const failure = (error) => {
  * @typedef {AqaraFP1RegionConfigUpsertCommand | AqaraFP1RegionConfigDeleteCommand} AqaraFP1RegionConfigCommand
  */
 
+// Note: let TypeScript infer the return type to enable union discrimination
+// eslint-disable-next-line valid-jsdoc
 /**
  * @param {string} input
  */
 const parseAqaraFp1RegionsConfigInput = (input) => {
     if (!input.length) {
-        return failure({ isEmpty: true });
+        return failure({isEmpty: true});
     }
 
     let inputJSON;
@@ -91,11 +95,11 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
     try {
         inputJSON = JSON.parse(input);
     } catch (error) {
-        return failure({ isInvalid: true, invalidReason: 'INVALID_JSON' });
+        return failure({isInvalid: true, invalidReason: 'INVALID_JSON'});
     }
 
     if (!Array.isArray(inputJSON)) {
-        return failure({ isInvalid: true, invalidReason: 'NOT_ARRAY' });
+        return failure({isInvalid: true, invalidReason: 'NOT_ARRAY'});
     }
 
     const hasInvalidEntry = inputJSON.some((entry) => {
@@ -109,7 +113,7 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
         }
 
         // Invalid action
-        if (![ ...mappers.aqara_fp1.region_config_cmd_type_names.values() ].includes(entry.action)) {
+        if (![...mappers.aqara_fp1.region_config_cmd_type_names.values()].includes(entry.action)) {
             return true;
         }
 
@@ -128,7 +132,7 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
             return true;
         }
 
-        const hasInvalidDefinition = Object.entries(entry.definition).some(([ rowYIdx, rowXMarkers ]) => {
+        const hasInvalidDefinition = Object.entries(entry.definition).some(([rowYIdx, rowXMarkers]) => {
             const rowYIdxNumber = parseInt(rowYIdx, 10);
 
             // Invalid Y coordinate
@@ -170,7 +174,7 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
     });
 
     if (hasInvalidEntry) {
-        return failure({ hasInvalidCommand: true });
+        return failure({hasInvalidCommand: true});
     }
 
     return {
@@ -190,6 +194,7 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
 
 /**
  * @param {number} cellXIdx
+ * @return {number}
  */
 const encodeXCellIdx = (cellXIdx) => {
     return 2 ** (cellXIdx - 1);
@@ -197,6 +202,7 @@ const encodeXCellIdx = (cellXIdx) => {
 
 /**
  * @param {number[]} xCells
+ * @return {number}
  */
 const encodeXCellsDefinition = (xCells) => {
     if (!xCells.length) {
@@ -206,7 +212,7 @@ const encodeXCellsDefinition = (xCells) => {
     return xCells.reduce((accumulator, marker) => {
         return accumulator + encodeXCellIdx(marker);
     }, 0);
-}
+};
 
 const daysLookup = {
     0x7f: 'everyday',
@@ -391,6 +397,7 @@ const fzLocal = {
 
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = parseInt(key);
+                const eventKeyHex = printNumberAsHex(eventKey, 4);
 
                 switch (eventKey) {
                 case definitions.aqara_fp1.region_event_key: {
@@ -407,7 +414,7 @@ const fzLocal = {
                     /**
                      * @type {[ regionId: number | string, eventTypeCode: number | string ]}
                      */
-                    const [ regionIdRaw, eventTypeCodeRaw ] = value;
+                    const [regionIdRaw, eventTypeCodeRaw] = value;
                     const regionId = readNumberLike(regionIdRaw);
                     const eventTypeCode = readNumberLike(eventTypeCodeRaw);
 
@@ -431,7 +438,9 @@ const fzLocal = {
                     break;
                 }
                 case 0xf7: {
-                    meta.logger.debug(createLoggerMsg(`Unhandled key ${printNumberAsHex(eventKey, 4)} = ${printNumbersAsHexSequence(value, 2)}`));
+                    const valueHexSequence = printNumbersAsHexSequence(value, 2);
+
+                    meta.logger.debug(createLoggerMsg(`Unhandled key ${eventKeyHex} = ${valueHexSequence}`));
 
                     break;
                 }
@@ -439,12 +448,12 @@ const fzLocal = {
                 case 0x0143:
                 case 0x0144:
                 case 0x0146: {
-                    meta.logger.debug(createLoggerMsg(`Unhandled key ${printNumberAsHex(eventKey, 4)} = ${value}`));
+                    meta.logger.debug(createLoggerMsg(`Unhandled key ${eventKeyHex} = ${value}`));
 
                     break;
                 }
                 default: {
-                    meta.logger.warn(createLoggerMsg(`Unknown key ${printNumberAsHex(eventKey, 4)} = ${value}`));
+                    meta.logger.warn(createLoggerMsg(`Unknown key ${eventKeyHex} = ${value}`));
                 }
                 }
             });
@@ -670,7 +679,10 @@ const tzLocal = {
                     return;
                 }
                 if (commandsListWrapper.error.isInvalid) {
-                    meta.logger.warn(createLoggerMsg(`regions_config: ignoring invalid JSON (input: ${value}) (reason: ${commandsListWrapper.error.invalidReason})`));
+                    meta.logger.warn(createLoggerMsg(
+                        `regions_config: ignoring invalid JSON (input: ${value}) ` +
+                        `(reason: ${commandsListWrapper.error.invalidReason})`,
+                    ));
 
                     return;
                 }
@@ -688,13 +700,16 @@ const tzLocal = {
             for (const command of commandsListWrapper.payload.commandsList) {
                 meta.logger.debug(createLoggerMsg(`trying to ${command.action} region ${command.regionId}`));
 
-                const actionTypeCodeEntry = [ ...mappers.aqara_fp1.region_config_cmd_type_names.entries() ]
-                    .find(([ actionTypeCode, actionName ]) => {
+                const actionTypeCodeEntry = [...mappers.aqara_fp1.region_config_cmd_type_names.entries()]
+                    .find(([actionTypeCode, actionName]) => {
                         return actionName === command.action;
                     });
 
                 if (!actionTypeCodeEntry) {
-                    meta.logger.debug(createLoggerMsg(`regions_config: unexpected error, could not find action type mapping for action '${command.action}', ignoring command`));
+                    meta.logger.debug(createLoggerMsg(
+                        `regions_config: unexpected error, ` +
+                        `no action type mapping for '${command.action}', ignoring`,
+                    ));
 
                     continue;
                 }
@@ -706,9 +721,9 @@ const tzLocal = {
 
                 deviceConfig[0] = actionTypeCode;
                 deviceConfig[1] = command.regionId;
-                deviceConfig[6] = isDeleteCommand
-                    ? definitions.aqara_fp1.region_config_cmd_suffix_delete
-                    : definitions.aqara_fp1.region_config_cmd_suffix_upsert;
+                deviceConfig[6] = isDeleteCommand ?
+                    definitions.aqara_fp1.region_config_cmd_suffix_delete :
+                    definitions.aqara_fp1.region_config_cmd_suffix_upsert;
 
                 if (!isDeleteCommand) {
                     deviceConfig[2] |= encodeXCellsDefinition(command.definition['1'] || []);
@@ -719,13 +734,16 @@ const tzLocal = {
                     deviceConfig[4] |= encodeXCellsDefinition(command.definition['6'] || []) << 4;
                     deviceConfig[5] |= encodeXCellsDefinition(command.definition['7'] || []);
                 } else {
-                    deviceConfig[2] |= 0
-                    deviceConfig[3] |= 0
-                    deviceConfig[4] |= 0
-                    deviceConfig[5] |= 0
+                    deviceConfig[2] |= 0;
+                    deviceConfig[3] |= 0;
+                    deviceConfig[4] |= 0;
+                    deviceConfig[5] |= 0;
                 }
 
-                meta.logger.info(createLoggerMsg(`regions_config: ${command.action} region ${command.regionId}: ${printNumbersAsHexSequence([ ...deviceConfig ], 2)}`));
+                meta.logger.info(createLoggerMsg(
+                    `regions_config: ${command.action} region ${command.regionId} ` +
+                    `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
+                ));
 
                 await entity.write(
                     'aqaraOpple',
@@ -733,9 +751,11 @@ const tzLocal = {
                         [definitions.aqara_fp1.region_config_write_attribute]: {
                             value: deviceConfig,
                             type: definitions.aqara_fp1.region_config_write_attribute_type,
-                        }
+                        },
                     },
-                    manufacturerOptions.xiaomi,
+                    {
+                        manufacturerCode: manufacturerCodes.xiaomi,
+                    },
                 );
             }
         },
@@ -1820,12 +1840,11 @@ module.exports = [
                 'Creating or modifying a region requires zone definitions, specifying which zones of a 7x4 detection grid ' +
                 'should be active for that zone. An example command for creating a new zone: ' +
                 '[{"regionId": 1, "action": "create", "definition": {"1": [1, 2]}}]. ' +
-                'More information available in the Z2M documentation page (https://www.zigbee2mqtt.io/devices/RTCZCGQ11LM.html).'),
+                'More information available on the Z2M documentation page (https://www.zigbee2mqtt.io/devices/RTCZCGQ11LM.html).'),
             exposes.enum('region_event', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
                 'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
                 'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
                 '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
-            exposes.text('exits_entrances', ea.SET), exposes.text('interference_sources', ea.SET), exposes.text('edges', ea.SET),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
