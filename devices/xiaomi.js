@@ -1798,8 +1798,10 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara presence detector FP1 (experimental region support)',
         fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
-        toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
-            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_regions_config],
+        toZigbee: [
+            tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
+            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_regions_config,
+        ],
         exposes: [
             e.presence().withAccess(ea.STATE_GET),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
@@ -1812,7 +1814,13 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
-            e.device_temperature(), e.power_outage_count(), exposes.text('regions_config', ea.SET),
+            e.device_temperature(), e.power_outage_count(),
+            exposes.text('regions_config', ea.SET).withDescription('Input used to update device\'s regions configuration. ' +
+                'Provide a JSON-encoded array of commands to be sent to the device, to either "create", "modify" or "delete" regions. ' +
+                'Creating or modifying a region requires zone definitions, specifying which zones of a 7x4 detection grid ' +
+                'should be active for that zone. An example command for creating a new zone: ' +
+                '[{"regionId": 1, "action": "create", "definition": {"1": [1, 2]}}]. ' +
+                'More information available in the Z2M documentation page (https://www.zigbee2mqtt.io/devices/RTCZCGQ11LM.html).'),
             exposes.enum('region_event', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
                 'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
                 'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
