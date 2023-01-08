@@ -997,7 +997,7 @@ module.exports = [
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(),
-            en('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device')
+            en('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(20);
