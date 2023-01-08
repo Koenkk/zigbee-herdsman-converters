@@ -15,10 +15,13 @@ module.exports = [
         extend: extend.switch(),
     },
     {
-        // Busch-Jaeger 6735, 6736, and 6737 have been tested with the 6710 U (Power Adapter),
-        // 6711 U (Relay) and 6715 U (dimmer) back-ends. Unfortunately all three of these types
-        // report as model 'RM01' so we cannot distinguish these. That's why whe set all of them
-        // up as dimmable lights.
+        // Busch-Jaeger 6735, 6736 and 6737 have been tested with the 6710 U (Power Adapter),
+        // 6711 U (Relay) and 6715 U (dimmer) back-ends. Unfortunately both the relay and the dimmer
+        // report as model 'RM01' with genLevelCtrl clusters, so we need to set up both of them
+        // as dimmable lights.
+        //
+        // The battery-powered version of the device ('RB01') is supported as well. These devices are
+        // sold as Busch-Jaeger 6735/01, 6736/01 and 6737/01.
         //
         // In order to manually capture scenes as described in the devices manual, the endpoint
         // corresponding to the row needs to be unbound (https://www.zigbee2mqtt.io/information/binding.html)
@@ -27,14 +30,31 @@ module.exports = [
         zigbeeModel: ['RM01', 'RB01'],
         model: '6735/6736/6737',
         vendor: 'Busch-Jaeger',
-        description: 'Zigbee Light Link power supply/relay/dimmer',
+        description: 'Zigbee Light Link power supply/relay/dimmer/wall-switch',
         endpoint: (device) => {
             return {'row_1': 0x0a, 'row_2': 0x0b, 'row_3': 0x0c, 'row_4': 0x0d, 'relay': 0x12};
         },
-        exposes: [e.light_brightness().withEndpoint('relay'), e.action(['row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
-            'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
-            'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
-            'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop'])],
+        exposes: (device, options) => {
+            const expose = [];
+
+            // If endpoint 0x12 (18) is present this means the following two things:
+            //  1. The device is connected to a relay or dimmer and needs to be exposed as a dimmable light
+            //  2. The top rocker will not be usable (not emit any events) as it's hardwired to the relay/dimmer
+            if (!device || device.getEndpoint(0x12) != null) {
+                expose.push(e.light_brightness().withEndpoint('relay'));
+            }
+            // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
+            // but defining all possible actions here won't do any harm.
+            expose.push(e.action([
+                'row_1_on', 'row_1_off', 'row_1_up', 'row_1_down', 'row_1_stop',
+                'row_2_on', 'row_2_off', 'row_2_up', 'row_2_down', 'row_2_stop',
+                'row_3_on', 'row_3_off', 'row_3_up', 'row_3_down', 'row_3_stop',
+                'row_4_on', 'row_4_off', 'row_4_up', 'row_4_down', 'row_4_stop',
+            ]));
+            expose.push(e.linkquality());
+
+            return expose;
+        },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints for
