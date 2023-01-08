@@ -6607,30 +6607,6 @@ const converters = {
             }
         },
     },
-    tuya_radar_sensor_fall: {
-        key: ['radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'radar_scene':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
-                break;
-            case 'radar_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsfSensitivity, value);
-                break;
-            case 'tumble_switch':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfTumbleSwitch, {'on': true, 'off': false}[value.toLowerCase()]);
-                break;
-            case 'tumble_alarm_time':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfTumbleAlarmTime, value-1);
-                break;
-            case 'fall_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsfFallSensitivity, value);
-                break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.tuya_radar_sensor_fall: Unhandled Key ${key}`);
-            }
-        },
-    },
     javis_microwave_sensor: {
         key: [
             'illuminance_calibration', 'led_enable',
