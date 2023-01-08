@@ -50,7 +50,7 @@ const displayOrientation = {
 const displayedTemperature = {
     'target': 0,
     'measured': 1,
-}
+};
 
 // Radiator Thermostat II
 const tzLocal = {
@@ -86,8 +86,9 @@ const tzLocal = {
                 return {state: {system_mode: value}};
             }
             if (key === 'remote_temperature') {
-                const remoteTemperature = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100
-                await entity.write('hvacThermostat', {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
+                const remoteTemperature = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100;
+                await entity.write('hvacThermostat',
+                    {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
                 return {state: {remote_temperature: value}};
             }
         },
