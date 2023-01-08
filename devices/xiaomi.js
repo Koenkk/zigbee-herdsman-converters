@@ -1577,7 +1577,8 @@ module.exports = [
         fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
             tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
-        exposes: [e.presence().withAccess(ea.STATE_GET),
+        exposes: [
+            e.presence().withAccess(ea.STATE_GET),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
                 '"right_enter", "left_leave", "approach", "away"'),
@@ -1588,7 +1589,13 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
-            e.device_temperature(), e.power_outage_count()],
+            e.device_temperature(), e.power_outage_count(), exposes.text('regions_config', ea.SET),
+            exposes.enum('region_event', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
+                'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
+                'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
+                '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
+            exposes.text('exits_entrances', ea.SET), exposes.text('interference_sources', ea.SET), exposes.text('edges', ea.SET),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
