@@ -11,45 +11,7 @@ const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const { printNumberAsHex, printNumbersAsHexSequence, readNumberLike } = utils;
-
-const definitions = {
-    aqara_fp1_region_event_key: 0x0151,
-    aqara_fp1_region_event_types: {
-        Enter: 1,
-        Leave: 2,
-        Occupied: 4,
-        Unoccupied: 8,
-    },
-    aqara_fp1_region_config_write_attribute: 0x0150,
-    aqara_fp1_region_config_write_attribute_type: 0x41,
-    aqara_fp1_region_config_cmd_types: {
-        Create: 1,
-        Modify: 2,
-        Delete: 3,
-    },
-    aqara_fp1_region_config_regionId_min: 1,
-    aqara_fp1_region_config_regionId_max: 10,
-    aqara_fp1_region_config_zoneY_min: 1,
-    aqara_fp1_region_config_zoneY_max: 7,
-    aqara_fp1_region_config_zoneX_min: 1,
-    aqara_fp1_region_config_zoneX_max: 4,
-    aqara_fp1_region_config_cmd_suffix_upsert: 0xff,
-    aqara_fp1_region_config_cmd_suffix_delete: 0x00,
-};
-
-const mappers = {
-    aqara_fp1_region_event_type_names: {
-        [definitions.aqara_fp1_region_event_types.Enter]: 'enter',
-        [definitions.aqara_fp1_region_event_types.Leave]: 'leave',
-        [definitions.aqara_fp1_region_event_types.Occupied]: 'occupied',
-        [definitions.aqara_fp1_region_event_types.Unoccupied]: 'unoccupied'
-    },
-    aqara_fp1_region_config_cmd_type_names: new Map([
-        [ definitions.aqara_fp1_region_config_cmd_types.Create, 'create' ],
-        [ definitions.aqara_fp1_region_config_cmd_types.Modify, 'modify' ],
-        [ definitions.aqara_fp1_region_config_cmd_types.Delete, 'delete' ],
-    ]),
-};
+const { xiaomiDefinitions: definitions, xiaomiMappers: mappers } = constants;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -135,20 +97,20 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
             // Missing / invalid regionId
             if (
                 typeof entry.regionId !== 'number' ||
-                entry.regionId < definitions.aqara_fp1_region_config_regionId_min ||
-                entry.regionId > definitions.aqara_fp1_region_config_regionId_max
+                entry.regionId < definitions.aqara_fp1.region_config_regionId_min ||
+                entry.regionId > definitions.aqara_fp1.region_config_regionId_max
             ) {
                 return true;
             }
 
             // Invalid action
-            if (![ ...mappers.aqara_fp1_region_config_cmd_type_names.values() ].includes(entry.action)) {
+            if (![ ...mappers.aqara_fp1.region_config_cmd_type_names.values() ].includes(entry.action)) {
                 return true;
             }
 
             // For "delete" action, there's nothing else to validate
-            const deleteActionType = definitions.aqara_fp1_region_config_cmd_types.Delete;
-            const deleteActionName = mappers.aqara_fp1_region_config_cmd_type_names.get(deleteActionType);
+            const deleteActionType = definitions.aqara_fp1.region_config_cmd_types.Delete;
+            const deleteActionName = mappers.aqara_fp1.region_config_cmd_type_names.get(deleteActionType);
             if (entry.action === deleteActionName) {
                 return false;
             }
@@ -167,8 +129,8 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
                 // Invalid Y coordinate
                 if (
                     Number.isNaN(rowYIdxNumber) ||
-                    rowYIdxNumber < definitions.aqara_fp1_region_config_zoneY_min ||
-                    rowYIdxNumber > definitions.aqara_fp1_region_config_zoneY_max
+                    rowYIdxNumber < definitions.aqara_fp1.region_config_zoneY_min ||
+                    rowYIdxNumber > definitions.aqara_fp1.region_config_zoneY_max
                 ) {
                     return true;
                 }
@@ -187,8 +149,8 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
                     // Invalid X coordinate
                     if (
                         Number.isNaN(rowXIdxNumber) ||
-                        rowXIdxNumber < definitions.aqara_fp1_region_config_zoneX_min ||
-                        rowXIdxNumber > definitions.aqara_fp1_region_config_zoneX_max
+                        rowXIdxNumber < definitions.aqara_fp1.region_config_zoneX_min ||
+                        rowXIdxNumber > definitions.aqara_fp1.region_config_zoneX_max
                     ) {
                         return true;
                     }
@@ -429,7 +391,7 @@ const fzLocal = {
                 const eventKey = parseInt(key);
 
                 switch (eventKey) {
-                case definitions.aqara_fp1_region_event_key: {
+                case definitions.aqara_fp1.region_event_key: {
                     if (
                         !Buffer.isBuffer(value) ||
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
@@ -452,13 +414,13 @@ const fzLocal = {
 
                         break;
                     }
-                    if (!Object.values(definitions.aqara_fp1_region_event_types).includes(eventTypeCode)) {
+                    if (!Object.values(definitions.aqara_fp1.region_event_types).includes(eventTypeCode)) {
                         meta.logger.warn(createLoggerMsg(`region_event: Unknown region event type "${eventTypeCode}"`));
 
                         break;
                     }
 
-                    const eventTypeName = mappers.aqara_fp1_region_event_type_names[eventTypeCode];
+                    const eventTypeName = mappers.aqara_fp1.region_event_type_names[eventTypeCode];
 
                     meta.logger.debug(createLoggerMsg(`region_event: Triggered event (region "${regionId}", type "${eventTypeName}")`));
 
@@ -724,7 +686,7 @@ const tzLocal = {
             for (const command of commandsListWrapper.payload.commandsList) {
                 meta.logger.debug(createLoggerMsg(`trying to ${command.action} region ${command.regionId}`));
 
-                const actionTypeCodeEntry = [ ...mappers.aqara_fp1_region_config_cmd_type_names.entries() ]
+                const actionTypeCodeEntry = [ ...mappers.aqara_fp1.region_config_cmd_type_names.entries() ]
                     .find(([ actionTypeCode, actionName ]) => {
                         return actionName === command.action;
                     });
@@ -736,15 +698,15 @@ const tzLocal = {
                 }
 
                 const actionTypeCode = actionTypeCodeEntry[0];
-                const isDeleteCommand = (actionTypeCode == definitions.aqara_fp1_region_config_cmd_types.Delete);
+                const isDeleteCommand = (actionTypeCode == definitions.aqara_fp1.region_config_cmd_types.Delete);
 
                 const deviceConfig = new Uint8Array(7);
 
                 deviceConfig[0] = actionTypeCode;
                 deviceConfig[1] = command.regionId;
                 deviceConfig[6] = isDeleteCommand
-                    ? definitions.aqara_fp1_region_config_cmd_suffix_delete
-                    : definitions.aqara_fp1_region_config_cmd_suffix_upsert;
+                    ? definitions.aqara_fp1.region_config_cmd_suffix_delete
+                    : definitions.aqara_fp1.region_config_cmd_suffix_upsert;
 
                 if (!isDeleteCommand) {
                     deviceConfig[2] |= encodeXCellsDefinition(command.definition['1'] || []);
@@ -766,9 +728,9 @@ const tzLocal = {
                 await entity.write(
                     'aqaraOpple',
                     {
-                        [definitions.aqara_fp1_region_config_write_attribute]: {
+                        [definitions.aqara_fp1.region_config_write_attribute]: {
                             value: deviceConfig,
-                            type: definitions.aqara_fp1_region_config_write_attribute_type,
+                            type: definitions.aqara_fp1.region_config_write_attribute_type,
                         }
                     },
                     manufacturerOptions.xiaomi,
