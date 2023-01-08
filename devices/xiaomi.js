@@ -12,6 +12,45 @@ const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const { printNumberAsHex, printNumbersAsHexSequence, readNumberLike } = utils;
 
+const definitions = {
+    aqara_fp1_region_event_key: 0x0151,
+    aqara_fp1_region_event_types: {
+        Enter: 1,
+        Leave: 2,
+        Occupied: 4,
+        Unoccupied: 8,
+    },
+    aqara_fp1_region_config_write_attribute: 0x0150,
+    aqara_fp1_region_config_write_attribute_type: 0x41,
+    aqara_fp1_region_config_cmd_types: {
+        Create: 1,
+        Modify: 2,
+        Delete: 3,
+    },
+    aqara_fp1_region_config_regionId_min: 1,
+    aqara_fp1_region_config_regionId_max: 10,
+    aqara_fp1_region_config_zoneY_min: 1,
+    aqara_fp1_region_config_zoneY_max: 7,
+    aqara_fp1_region_config_zoneX_min: 1,
+    aqara_fp1_region_config_zoneX_max: 4,
+    aqara_fp1_region_config_cmd_suffix_upsert: 0xff,
+    aqara_fp1_region_config_cmd_suffix_delete: 0x00,
+};
+
+const mappers = {
+    aqara_fp1_region_event_type_names: {
+        [definitions.aqara_fp1_region_event_types.Enter]: 'enter',
+        [definitions.aqara_fp1_region_event_types.Leave]: 'leave',
+        [definitions.aqara_fp1_region_event_types.Occupied]: 'occupied',
+        [definitions.aqara_fp1_region_event_types.Unoccupied]: 'unoccupied'
+    },
+    aqara_fp1_region_config_cmd_type_names: new Map([
+        [ definitions.aqara_fp1_region_config_cmd_types.Create, 'create' ],
+        [ definitions.aqara_fp1_region_config_cmd_types.Modify, 'modify' ],
+        [ definitions.aqara_fp1_region_config_cmd_types.Delete, 'delete' ],
+    ]),
+};
+
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
         ...extend.light_onoff_brightness_colortemp(options),
@@ -50,6 +89,161 @@ const createLoggerMsgMaker = (deviceKey) => (message) => {
     return `zigbee-herdsman-converters:xiaomi:${deviceKey}: ${message}`;
 };
 
+/**
+ * @template {Record<string, unknown>} ErrorType
+ * @param {ErrorType} error
+ * @returns { { isSuccess: false, error: ErrorType } }
+ */
+const failure = (error) => {
+    return {
+        isSuccess: false,
+        error,
+    };
+};
+
+/**
+ * @typedef {{
+ *  regionId: number,
+ *  action: 'create' | 'update',
+ *  definition: Record<string, number[]>
+ * }} AqaraFP1RegionConfigUpsertCommand
+ *
+ * @typedef {{
+ *  regionId: number,
+ *  action: 'delete',
+ * }} AqaraFP1RegionConfigDeleteCommand
+ *
+ * @typedef {AqaraFP1RegionConfigUpsertCommand | AqaraFP1RegionConfigDeleteCommand} AqaraFP1RegionConfigCommand
+ */
+
+/**
+ * @param {string} input
+ */
+const parseAqaraFp1RegionsConfigInput = (input) => {
+    if (!input.length) {
+        return failure({ isEmpty: true });
+    }
+
+    try {
+        const inputJSON = JSON.parse(input);
+
+        if (!Array.isArray(inputJSON)) {
+            return failure({ isInvalid: true });
+        }
+
+        const hasInvalidEntry = inputJSON.some((entry) => {
+            // Missing / invalid regionId
+            if (
+                typeof entry.regionId !== 'number' ||
+                entry.regionId < definitions.aqara_fp1_region_config_regionId_min ||
+                entry.regionId > definitions.aqara_fp1_region_config_regionId_max
+            ) {
+                return true;
+            }
+
+            // Invalid action
+            if (![ ...mappers.aqara_fp1_region_config_cmd_type_names.values() ].includes(entry.action)) {
+                return true;
+            }
+
+            // For "delete" action, there's nothing else to validate
+            const deleteActionType = definitions.aqara_fp1_region_config_cmd_types.Delete;
+            const deleteActionName = mappers.aqara_fp1_region_config_cmd_type_names.get(deleteActionType);
+            if (entry.action === deleteActionName) {
+                return false;
+            }
+
+            // Missing / invalid definition
+            if (
+                !entry.definition ||
+                !Object.entries(entry.definition).length
+            ) {
+                return true;
+            }
+
+            const hasInvalidDefinition = Object.entries(entry.definition).some(([ rowYIdx, rowXMarkers ]) => {
+                const rowYIdxNumber = parseInt(rowYIdx, 10);
+
+                // Invalid Y coordinate
+                if (
+                    Number.isNaN(rowYIdxNumber) ||
+                    rowYIdxNumber < definitions.aqara_fp1_region_config_zoneY_min ||
+                    rowYIdxNumber > definitions.aqara_fp1_region_config_zoneY_max
+                ) {
+                    return true;
+                }
+
+                // Invalid / empty X markers list
+                if (
+                    !Array.isArray(rowXMarkers) ||
+                    !rowXMarkers.length
+                ) {
+                    return true;
+                }
+
+                const hasInvalidXMarker = rowXMarkers.some((rowXIdx) => {
+                    const rowXIdxNumber = parseInt(rowXIdx, 10);
+
+                    // Invalid X coordinate
+                    if (
+                        Number.isNaN(rowXIdxNumber) ||
+                        rowXIdxNumber < definitions.aqara_fp1_region_config_zoneX_min ||
+                        rowXIdxNumber > definitions.aqara_fp1_region_config_zoneX_max
+                    ) {
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                return hasInvalidXMarker;
+            });
+
+            return hasInvalidDefinition;
+        });
+
+        if (hasInvalidEntry) {
+            return failure({ hasInvalidCommand: true });
+        }
+
+        return {
+            /**
+             * Ensure proper type narrowing & enable type discrimination
+             * @type true
+             */
+            isSuccess: true,
+            payload: {
+                /**
+                 * @type { Array<AqaraFP1RegionConfigCommand> }
+                 */
+                commandsList: inputJSON,
+            },
+        };
+    } catch (error) {
+        return failure({ isInvalid: true });
+    }
+};
+
+/**
+ * @param {number} cellXIdx
+ */
+const encodeXCellIdx = (cellXIdx) => {
+    return 2 ** (cellXIdx - 1);
+};
+
+/**
+ * @param {number[]} xCells
+ */
+const encodeXCellsDefinition = (xCells) => {
+    if (!xCells.length) {
+        return 0;
+    }
+
+    return xCells.reduce((accumulator, marker) => {
+        return accumulator + encodeXCellIdx(marker);
+    }, 0);
+}
+
 const daysLookup = {
     0x7f: 'everyday',
     0x1f: 'workdays',
@@ -63,25 +257,6 @@ const daysLookup = {
     0x40: 'sun',
     0x55: 'mon-wed-fri-sun',
     0x2a: 'tue-thu-sat',
-};
-
-const definitions = {
-    aqara_fp1_region_event_key: 0x0151,
-    aqara_fp1_region_event_types: {
-        Enter: 1,
-        Leave: 2,
-        Occupied: 4,
-        Unoccupied: 8,
-    },
-};
-
-const mappers = {
-    aqara_fp1_region_event_type_names: {
-        [definitions.aqara_fp1_region_event_types.Enter]: 'enter',
-        [definitions.aqara_fp1_region_event_types.Leave]: 'leave',
-        [definitions.aqara_fp1_region_event_types.Occupied]: 'occupied',
-        [definitions.aqara_fp1_region_event_types.Unoccupied]: 'unoccupied'
-    },
 };
 
 
@@ -515,6 +690,90 @@ const tzLocal = {
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
             }
             return {state: {[key]: value}};
+        },
+    },
+    aqara_fp1_regions_config: {
+        key: ['regions_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const createLoggerMsg = createLoggerMsgMaker('aqara_fp1');
+
+            const commandsListWrapper = parseAqaraFp1RegionsConfigInput(value);
+
+            if (!commandsListWrapper.isSuccess) {
+                if (commandsListWrapper.error.isEmpty) {
+                    meta.logger.debug(createLoggerMsg(`regions_config: no configuration commands provided, ignoring`));
+
+                    return;
+                }
+                if (commandsListWrapper.error.isInvalid) {
+                    meta.logger.warn(createLoggerMsg(`regions_config: ignoring invalid JSON (input: ${value})`));
+
+                    return;
+                }
+                if (commandsListWrapper.error.hasInvalidCommand) {
+                    meta.logger.warn(createLoggerMsg(`regions_config: provided input contains an invalid command (input: ${value})`));
+
+                    return;
+                }
+
+                meta.logger.warn(createLoggerMsg(`regions_config: unknown error while parsing configuration commands (input: ${value})`));
+
+                return;
+            }
+
+            for (const command of commandsListWrapper.payload.commandsList) {
+                meta.logger.debug(createLoggerMsg(`trying to ${command.action} region ${command.regionId}`));
+
+                const actionTypeCodeEntry = [ ...mappers.aqara_fp1_region_config_cmd_type_names.entries() ]
+                    .find(([ actionTypeCode, actionName ]) => {
+                        return actionName === command.action;
+                    });
+
+                if (!actionTypeCodeEntry) {
+                    meta.logger.debug(createLoggerMsg(`regions_config: unexpected error, could not find action type mapping for action '${command.action}', ignoring command`));
+
+                    continue;
+                }
+
+                const actionTypeCode = actionTypeCodeEntry[0];
+                const isDeleteCommand = (actionTypeCode == definitions.aqara_fp1_region_config_cmd_types.Delete);
+
+                const deviceConfig = new Uint8Array(7);
+
+                deviceConfig[0] = actionTypeCode;
+                deviceConfig[1] = command.regionId;
+                deviceConfig[6] = isDeleteCommand
+                    ? definitions.aqara_fp1_region_config_cmd_suffix_delete
+                    : definitions.aqara_fp1_region_config_cmd_suffix_upsert;
+
+                if (!isDeleteCommand) {
+                    deviceConfig[2] |= encodeXCellsDefinition(command.definition['1'] || []);
+                    deviceConfig[2] |= encodeXCellsDefinition(command.definition['2'] || []) << 4;
+                    deviceConfig[3] |= encodeXCellsDefinition(command.definition['3'] || []);
+                    deviceConfig[3] |= encodeXCellsDefinition(command.definition['4'] || []) << 4;
+                    deviceConfig[4] |= encodeXCellsDefinition(command.definition['5'] || []);
+                    deviceConfig[4] |= encodeXCellsDefinition(command.definition['6'] || []) << 4;
+                    deviceConfig[5] |= encodeXCellsDefinition(command.definition['7'] || []);
+                } else {
+                    deviceConfig[2] |= 0
+                    deviceConfig[3] |= 0
+                    deviceConfig[4] |= 0
+                    deviceConfig[5] |= 0
+                }
+
+                meta.logger.info(createLoggerMsg(`regions_config: ${command.action} region ${command.regionId}: ${printNumbersAsHexSequence([ ...deviceConfig ], 2)}`));
+
+                await entity.write(
+                    'aqaraOpple',
+                    {
+                        [definitions.aqara_fp1_region_config_write_attribute]: {
+                            value: deviceConfig,
+                            type: definitions.aqara_fp1_region_config_write_attribute_type,
+                        }
+                    },
+                    manufacturerOptions.xiaomi,
+                );
+            }
         },
     },
 };
@@ -1576,7 +1835,7 @@ module.exports = [
         description: 'Aqara presence detector FP1 (experimental region support)',
         fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
-            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
+            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_regions_config],
         exposes: [
             e.presence().withAccess(ea.STATE_GET),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
