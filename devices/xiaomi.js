@@ -10,6 +10,7 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
+const { printNumberAsHex, printNumbersAsHexSequence, readNumberLike } = utils;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -41,6 +42,14 @@ const preventReset = async (type, data, device) => {
     await device.getEndpoint(1).write('genBasic', payload, options);
 };
 
+/**
+ * @param {string} deviceKey
+ * @returns {(message: string) => string}
+ */
+const createLoggerMsgMaker = (deviceKey) => (message) => {
+    return `zigbee-herdsman-converters:xiaomi:${deviceKey}: ${message}`;
+};
+
 const daysLookup = {
     0x7f: 'everyday',
     0x1f: 'workdays',
@@ -54,6 +63,25 @@ const daysLookup = {
     0x40: 'sun',
     0x55: 'mon-wed-fri-sun',
     0x2a: 'tue-thu-sat',
+};
+
+const definitions = {
+    aqara_fp1_region_event_key: 0x0151,
+    aqara_fp1_region_event_types: {
+        Enter: 1,
+        Leave: 2,
+        Occupied: 4,
+        Unoccupied: 8,
+    },
+};
+
+const mappers = {
+    aqara_fp1_region_event_type_names: {
+        [definitions.aqara_fp1_region_event_types.Enter]: 'enter',
+        [definitions.aqara_fp1_region_event_types.Leave]: 'leave',
+        [definitions.aqara_fp1_region_event_types.Occupied]: 'occupied',
+        [definitions.aqara_fp1_region_event_types.Unoccupied]: 'unoccupied'
+    },
 };
 
 
@@ -209,6 +237,80 @@ const fzLocal = {
                 }
             });
             return result;
+        },
+    },
+    aqara_fp1_region_events: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            /**
+             * @type {{ region_event?: string; }}
+             */
+            const payload = {};
+
+            const createLoggerMsg = createLoggerMsgMaker('aqara_fp1');
+
+            Object.entries(msg.data).forEach(([key, value]) => {
+                const eventKey = parseInt(key);
+
+                switch (eventKey) {
+                case definitions.aqara_fp1_region_event_key: {
+                    if (
+                        !Buffer.isBuffer(value) ||
+                        !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
+                        !(typeof value[1] === 'string' || typeof value[1] === 'number')
+                    ) {
+                        meta.logger.warn(createLoggerMsg(`region_event: Unrecognized payload structure '${JSON.stringify(value)}'`));
+
+                        break;
+                    }
+
+                    /**
+                     * @type {[ regionId: number | string, eventTypeCode: number | string ]}
+                     */
+                    const [ regionIdRaw, eventTypeCodeRaw ] = value;
+                    const regionId = readNumberLike(regionIdRaw);
+                    const eventTypeCode = readNumberLike(eventTypeCodeRaw);
+
+                    if (Number.isNaN(regionId)) {
+                        meta.logger.warn(createLoggerMsg(`region_event: Invalid regionId "${regionIdRaw}"`));
+
+                        break;
+                    }
+                    if (!Object.values(definitions.aqara_fp1_region_event_types).includes(eventTypeCode)) {
+                        meta.logger.warn(createLoggerMsg(`region_event: Unknown region event type "${eventTypeCode}"`));
+
+                        break;
+                    }
+
+                    const eventTypeName = mappers.aqara_fp1_region_event_type_names[eventTypeCode];
+
+                    meta.logger.debug(createLoggerMsg(`region_event: Triggered event (region "${regionId}", type "${eventTypeName}")`));
+
+                    payload.region_event = `region_${regionId}_${eventTypeName}`;
+
+                    break;
+                }
+                case 0xf7: {
+                    meta.logger.debug(createLoggerMsg(`Unhandled key ${printNumberAsHex(eventKey, 4)} = ${printNumbersAsHexSequence(value, 2)}`));
+
+                    break;
+                }
+                case 0x0142:
+                case 0x0143:
+                case 0x0144:
+                case 0x0146: {
+                    meta.logger.debug(createLoggerMsg(`Unhandled key ${printNumberAsHex(eventKey, 4)} = ${value}`));
+
+                    break;
+                }
+                default: {
+                    meta.logger.warn(createLoggerMsg(`Unknown key ${printNumberAsHex(eventKey, 4)} = ${value}`));
+                }
+                }
+            });
+
+            return payload;
         },
     },
 };
@@ -1471,8 +1573,8 @@ module.exports = [
         zigbeeModel: ['lumi.motion.ac01'],
         model: 'RTCZCGQ11LM',
         vendor: 'Xiaomi',
-        description: 'Aqara presence detector FP1 (regions not supported for now)',
-        fromZigbee: [fz.aqara_opple],
+        description: 'Aqara presence detector FP1 (experimental region support)',
+        fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
         toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
             tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
         exposes: [e.presence().withAccess(ea.STATE_GET),
