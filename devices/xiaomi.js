@@ -86,104 +86,106 @@ const parseAqaraFp1RegionsConfigInput = (input) => {
         return failure({ isEmpty: true });
     }
 
-    try {
-        const inputJSON = JSON.parse(input);
+    let inputJSON;
 
-        if (!Array.isArray(inputJSON)) {
-            return failure({ isInvalid: true });
+    try {
+        inputJSON = JSON.parse(input);
+    } catch (error) {
+        return failure({ isInvalid: true, invalidReason: 'INVALID_JSON' });
+    }
+
+    if (!Array.isArray(inputJSON)) {
+        return failure({ isInvalid: true, invalidReason: 'NOT_ARRAY' });
+    }
+
+    const hasInvalidEntry = inputJSON.some((entry) => {
+        // Missing / invalid regionId
+        if (
+            typeof entry.regionId !== 'number' ||
+            entry.regionId < definitions.aqara_fp1.region_config_regionId_min ||
+            entry.regionId > definitions.aqara_fp1.region_config_regionId_max
+        ) {
+            return true;
         }
 
-        const hasInvalidEntry = inputJSON.some((entry) => {
-            // Missing / invalid regionId
+        // Invalid action
+        if (![ ...mappers.aqara_fp1.region_config_cmd_type_names.values() ].includes(entry.action)) {
+            return true;
+        }
+
+        // For "delete" action, there's nothing else to validate
+        const deleteActionType = definitions.aqara_fp1.region_config_cmd_types.Delete;
+        const deleteActionName = mappers.aqara_fp1.region_config_cmd_type_names.get(deleteActionType);
+        if (entry.action === deleteActionName) {
+            return false;
+        }
+
+        // Missing / invalid definition
+        if (
+            !entry.definition ||
+            !Object.entries(entry.definition).length
+        ) {
+            return true;
+        }
+
+        const hasInvalidDefinition = Object.entries(entry.definition).some(([ rowYIdx, rowXMarkers ]) => {
+            const rowYIdxNumber = parseInt(rowYIdx, 10);
+
+            // Invalid Y coordinate
             if (
-                typeof entry.regionId !== 'number' ||
-                entry.regionId < definitions.aqara_fp1.region_config_regionId_min ||
-                entry.regionId > definitions.aqara_fp1.region_config_regionId_max
+                Number.isNaN(rowYIdxNumber) ||
+                rowYIdxNumber < definitions.aqara_fp1.region_config_zoneY_min ||
+                rowYIdxNumber > definitions.aqara_fp1.region_config_zoneY_max
             ) {
                 return true;
             }
 
-            // Invalid action
-            if (![ ...mappers.aqara_fp1.region_config_cmd_type_names.values() ].includes(entry.action)) {
+            // Invalid / empty X markers list
+            if (
+                !Array.isArray(rowXMarkers) ||
+                !rowXMarkers.length
+            ) {
                 return true;
             }
 
-            // For "delete" action, there's nothing else to validate
-            const deleteActionType = definitions.aqara_fp1.region_config_cmd_types.Delete;
-            const deleteActionName = mappers.aqara_fp1.region_config_cmd_type_names.get(deleteActionType);
-            if (entry.action === deleteActionName) {
+            const hasInvalidXMarker = rowXMarkers.some((rowXIdx) => {
+                const rowXIdxNumber = parseInt(rowXIdx, 10);
+
+                // Invalid X coordinate
+                if (
+                    Number.isNaN(rowXIdxNumber) ||
+                    rowXIdxNumber < definitions.aqara_fp1.region_config_zoneX_min ||
+                    rowXIdxNumber > definitions.aqara_fp1.region_config_zoneX_max
+                ) {
+                    return true;
+                }
+
                 return false;
-            }
-
-            // Missing / invalid definition
-            if (
-                !entry.definition ||
-                !Object.entries(entry.definition).length
-            ) {
-                return true;
-            }
-
-            const hasInvalidDefinition = Object.entries(entry.definition).some(([ rowYIdx, rowXMarkers ]) => {
-                const rowYIdxNumber = parseInt(rowYIdx, 10);
-
-                // Invalid Y coordinate
-                if (
-                    Number.isNaN(rowYIdxNumber) ||
-                    rowYIdxNumber < definitions.aqara_fp1.region_config_zoneY_min ||
-                    rowYIdxNumber > definitions.aqara_fp1.region_config_zoneY_max
-                ) {
-                    return true;
-                }
-
-                // Invalid / empty X markers list
-                if (
-                    !Array.isArray(rowXMarkers) ||
-                    !rowXMarkers.length
-                ) {
-                    return true;
-                }
-
-                const hasInvalidXMarker = rowXMarkers.some((rowXIdx) => {
-                    const rowXIdxNumber = parseInt(rowXIdx, 10);
-
-                    // Invalid X coordinate
-                    if (
-                        Number.isNaN(rowXIdxNumber) ||
-                        rowXIdxNumber < definitions.aqara_fp1.region_config_zoneX_min ||
-                        rowXIdxNumber > definitions.aqara_fp1.region_config_zoneX_max
-                    ) {
-                        return true;
-                    }
-
-                    return false;
-                });
-
-                return hasInvalidXMarker;
             });
 
-            return hasInvalidDefinition;
+            return hasInvalidXMarker;
         });
 
-        if (hasInvalidEntry) {
-            return failure({ hasInvalidCommand: true });
-        }
+        return hasInvalidDefinition;
+    });
 
-        return {
-            /**
-             * Ensure proper type narrowing & enable type discrimination
-             * @type true
-             */
-            isSuccess: true,
-            payload: {
-                /**
-                 * @type { Array<AqaraFP1RegionConfigCommand> }
-                 */
-                commandsList: inputJSON,
-            },
-        };
-    } catch (error) {
-        return failure({ isInvalid: true });
+    if (hasInvalidEntry) {
+        return failure({ hasInvalidCommand: true });
     }
+
+    return {
+        /**
+         * Ensure proper type narrowing & enable type discrimination
+         * @type true
+         */
+        isSuccess: true,
+        payload: {
+            /**
+             * @type { Array<AqaraFP1RegionConfigCommand> }
+             */
+            commandsList: inputJSON,
+        },
+    };
 };
 
 /**
@@ -668,7 +670,7 @@ const tzLocal = {
                     return;
                 }
                 if (commandsListWrapper.error.isInvalid) {
-                    meta.logger.warn(createLoggerMsg(`regions_config: ignoring invalid JSON (input: ${value})`));
+                    meta.logger.warn(createLoggerMsg(`regions_config: ignoring invalid JSON (input: ${value}) (reason: ${commandsListWrapper.error.invalidReason})`));
 
                     return;
                 }
