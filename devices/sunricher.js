@@ -606,7 +606,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TERNCY-DC01', manufacturer: 'Sunricher'}],
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}],
         model: 'SR-ZG9010A',
         vendor: 'Sunricher',
         description: 'Door windows sensor',

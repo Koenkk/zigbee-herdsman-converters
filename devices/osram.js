@@ -205,7 +205,7 @@ module.exports = [
         model: 'AB3257001NJ',
         description: 'Smart+ plug',
         vendor: 'OSRAM',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         whiteLabel: [{vendor: 'LEDVANCE', model: 'AB3257001NJ'}, {vendor: 'LEDVANCE', model: 'AC03360'}],
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -226,7 +226,7 @@ module.exports = [
         model: 'AC10691',
         description: 'Smart+ plug',
         vendor: 'OSRAM',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         ota: ota.ledvance,
         whiteLabel: [{vendor: 'LEDVANCE', model: 'AC10691'}],
         configure: async (device, coordinatorEndpoint, logger) => {

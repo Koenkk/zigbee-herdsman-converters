@@ -1561,7 +1561,7 @@ module.exports = [
         model: '4090230P9',
         vendor: 'Philips',
         description: 'Hue Liane (black)',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['929003053201'],
@@ -1589,14 +1589,14 @@ module.exports = [
         model: '3261030P6',
         vendor: 'Philips',
         description: 'Hue Being black',
-        extend: hueExtend.light_onoff_brightness_colortemp(),
+        extend: hueExtend.light_onoff_brightness_colortemp({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['3261031P6', '929003055001', '929003055101'],
         model: '3261031P6',
         vendor: 'Philips',
         description: 'Hue Being white',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 454], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['3261048P6'],
@@ -2560,7 +2560,7 @@ module.exports = [
         model: '1741530P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
-        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: hueExtend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['1741730V7'],

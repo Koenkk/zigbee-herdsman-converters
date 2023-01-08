@@ -51,7 +51,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}],
+        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}, {modelID: 'HK_DIM_A', manufacturerName: 'Samotech'}],
         model: 'SM323',
         vendor: 'Samotech',
         description: 'ZigBee retrofit dimmer 250W',

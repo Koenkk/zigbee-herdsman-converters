@@ -1513,6 +1513,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ji1gn7rw'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_3t91nb6k'},
         ],
         model: 'TS0601_switch_2_gang',
         vendor: 'TuYa',
@@ -2126,6 +2127,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_9sfg7gm0'}, // HomeCloud
             {modelID: 'TS0601', manufacturerName: '_TZE200_2atgpdho'}, // HY367
             {modelID: 'TS0601', manufacturerName: '_TZE200_cpmgn2cf'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_8thwkzxl'}, // Tervix eva2
             {modelID: 'TS0601', manufacturerName: '_TZE200_4eeyebrt'}, // Immax 07732B
             {modelID: 'TS0601', manufacturerName: '_TZE200_8whxpsiw'}, // EVOLVEO
             {modelID: 'TS0601', manufacturerName: '_TZE200_xby0s3ta'}, // Sandy Beach HY367
@@ -2539,14 +2541,14 @@ module.exports = [
         },
     },
     {
-        fingerprint: [160, 69, 68, 65, 64, 66].map((applicationVersion) => {
+        fingerprint: [160, 100, 69, 68, 65, 64, 66].map((applicationVersion) => {
             return {modelID: 'TS011F', applicationVersion, priority: -1};
         }),
         model: 'TS011F_plug_3',
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
-            {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}],
+            {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'}],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2560,7 +2562,7 @@ module.exports = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 device.applicationVersion !== 66, // polling for voltage, current and power
-                device.applicationVersion === 160 || device.applicationVersion === 66, // polling for energy
+                [66, 100, 160].includes(device.applicationVersion), // polling for energy
             ),
     },
     {
@@ -3366,34 +3368,60 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_lu01t0zl'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_vrfecyku'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lu01t0zl', '_TZE200_vrfecyku']),
         model: 'MIR-HE200-TY',
         vendor: 'TuYa',
         description: 'Human presence sensor with fall function',
-        fromZigbee: [fz.tuya_radar_sensor_fall],
-        toZigbee: [tz.tuya_radar_sensor_fall],
-        exposes: [
-            e.illuminance_lux(), e.presence(), e.occupancy(),
-            exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, Object.values(tuya.tuyaRadar.motionDirection))
-                .withDescription('direction of movement from the point of view of the radar'),
-            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
-                .withDescription('sensitivity of the radar'),
-            exposes.enum('radar_scene', ea.STATE_SET, Object.values(tuya.tuyaRadar.radarScene))
-                .withDescription('presets for sensitivity for presence and movement'),
-            exposes.enum('tumble_switch', ea.STATE_SET, ['ON', 'OFF']).withDescription('Tumble status switch'),
-            exposes.numeric('fall_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
-                .withDescription('fall sensitivity of the radar'),
-            exposes.numeric('tumble_alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
-                .withUnit('min').withDescription('tumble alarm time'),
-            exposes.enum('fall_down_status', ea.STATE, Object.values(tuya.tuyaRadar.fallDown))
-                .withDescription('fall down status'),
-            exposes.text('static_dwell_alarm', ea.STATE).withDescription('static dwell alarm'),
-        ],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.sendDataPointEnum(endpoint, tuya.dataPoints.trsfTumbleSwitch, false);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+        },
+        exposes: [
+            e.illuminance_lux(), e.presence(), e.occupancy(),
+            exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
+            exposes.enum('motion_direction', ea.STATE, ['standing_still', 'moving_forward', 'moving_backward'])
+                .withDescription('direction of movement from the point of view of the radar'),
+            exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
+                .withDescription('Sensitivity of the radar'),
+            exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
+                .withDescription('Presets for sensitivity for presence and movement'),
+            exposes.enum('tumble_switch', ea.STATE_SET, ['ON', 'OFF']).withDescription('Tumble status switch'),
+            exposes.numeric('fall_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
+                .withDescription('Fall sensitivity of the radar'),
+            exposes.numeric('tumble_alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+                .withUnit('min').withDescription('Tumble alarm time'),
+            exposes.enum('fall_down_status', ea.STATE, ['none', 'maybe_fall', 'fall'])
+                .withDescription('Fall down status'),
+            exposes.text('static_dwell_alarm', ea.STATE).withDescription('Static dwell alarm'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'presence', tuya.valueConverter.trueFalse],
+                [2, 'radar_sensitivity', tuya.valueConverter.raw],
+                [102, 'occupancy', tuya.valueConverterBasic.lookup({false: 1, true: 2})],
+                [103, 'illuminance_lux', tuya.valueConverter.raw],
+                [105, 'tumble_switch', tuya.valueConverter.plus1],
+                [106, 'tumble_alarm_time', tuya.valueConverter.raw],
+                [112, 'radar_scene', tuya.valueConverterBasic.lookup(
+                    {'default': 0, 'area': 1, 'toilet': 2, 'bedroom': 3, 'parlour': 4, 'office': 5, 'hotel': 6})],
+                [114, 'motion_direction', tuya.valueConverterBasic.lookup(
+                    {'standing_still': 0, 'moving_forward': 1, 'moving_backward': 2})],
+                [115, 'motion_speed', tuya.valueConverter.raw],
+                [116, 'fall_down_status', tuya.valueConverterBasic.lookup({'none': 0, 'maybe_fall': 1, 'fall': 2})],
+                [117, 'static_dwell_alarm', tuya.valueConverter.raw],
+                [118, 'fall_sensitivity', tuya.valueConverter.raw],
+                // Below are ignored
+                [101, null, null], // reset_flag_code
+                [104, null, null], // detection_flag_code
+                [107, null, null], // radar_check_end_code
+                [108, null, null], // radar_check_start_code
+                [109, null, null], // hw_version_code
+                [110, null, null], // sw_version_code
+                [111, null, null], // radar_id_code
+            ],
         },
     },
     {
