@@ -90,15 +90,7 @@ module.exports = [
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
-        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_tfxwxklq'}],
-        model: 'SPBS01G',
-        vendor: 'Mercator',
-        description: 'Ikuü Plug Base',
-        extend: tuya.extend.switch(),
-        meta: {disableDefaultResponse: true},
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_tfxwxklq'}],
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_raqjcxo5'}],
         model: 'SPP02G',
         vendor: 'Mercator',
         description: 'Ikuü Double Indoors Power Point',
@@ -160,38 +152,6 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0011', manufacturerName: '_TZ3000_l8fsgo6p'}],
-        model: 'SSW01G',
-        vendor: 'Mercator',
-        description: 'Ikuü Single Switch',
-        extend: tuya.extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0012', manufacturerName: '_TZ3000_4zf0crgo'}],
-        model: 'SSW02G',
-        vendor: 'Mercator',
-        description: 'Ikuü Double Switch',
-        extend: tuya.extend.switch({switchType: true, endpoints: ['left', 'right']}),
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_khtlvdfc'}],
         model: 'SSW03G',
         vendor: 'Mercator',
@@ -205,30 +165,6 @@ module.exports = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             try {
                 for (const ID of [1, 2, 3]) {
-                    const endpoint = device.getEndpoint(ID);
-                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                }
-            } catch (e) {
-                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
-            }
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0014', manufacturerName: '_TZ3000_fxjdcikv'}],
-        model: 'SSW04G',
-        vendor: 'Mercator',
-        description: 'Ikuü Quad Switch',
-        extend: tuya.extend.switch({backlightModeLowMediumHigh: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            try {
-                for (const ID of [1, 2, 3, 4]) {
                     const endpoint = device.getEndpoint(ID);
                     await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
                 }
