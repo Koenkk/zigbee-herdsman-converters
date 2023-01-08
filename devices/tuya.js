@@ -2561,8 +2561,7 @@ module.exports = [
         onEvent: (type, data, device, options) =>
             tuya.onEventMeasurementPoll(type, data, device, options,
                 device.applicationVersion !== 66, // polling for voltage, current and power
-                device.applicationVersion === 160 || device.applicationVersion === 100 ||
-                device.applicationVersion === 66, // polling for energy
+                [66, 100, 160].includes(device.applicationVersion), // polling for energy
             ),
     },
     {
