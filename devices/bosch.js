@@ -47,9 +47,15 @@ const displayOrientation = {
 };
 
 // Radiator Thermostat II
+const displayedTemperature = {
+    'target': 0,
+    'measured': 1,
+}
+
+// Radiator Thermostat II
 const tzLocal = {
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode'],
+        key: ['window_open', 'boost', 'system_mode', 'remote_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 value = value.toUpperCase();
@@ -79,6 +85,11 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x4007: {value: opMode, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {system_mode: value}};
             }
+            if (key === 'remote_temperature') {
+                const remoteTemperature = (Math.round((value * 2).toFixed(1)) / 2).toFixed(1) * 100
+                await entity.write('hvacThermostat', {0x4040: {value: remoteTemperature, type: herdsman.Zcl.DataType.int16}}, boschManufacturer);
+                return {state: {remote_temperature: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -91,6 +102,9 @@ const tzLocal = {
             case 'system_mode':
                 await entity.read('hvacThermostat', [0x4007], boschManufacturer);
                 break;
+            case 'remote_temperature':
+                await entity.read('hvacThermostat', [0x4040], boschManufacturer);
+                break;
 
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_thermostat.convertGet ${key}`);
@@ -98,7 +112,7 @@ const tzLocal = {
         },
     },
     bosch_userInterface: {
-        key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock'],
+        key: ['display_orientation', 'display_ontime', 'display_brightness', 'child_lock', 'displayed_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'display_orientation') {
                 const index = displayOrientation[value];
@@ -118,6 +132,11 @@ const tzLocal = {
                 await entity.write('hvacUserInterfaceCfg', {keypadLockout});
                 return {state: {child_lock: value}};
             }
+            if (key === 'displayed_temperature') {
+                const index = displayedTemperature[value];
+                await entity.write('hvacUserInterfaceCfg', {0x4039: {value: index, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                return {state: {displayed_temperature: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -132,6 +151,9 @@ const tzLocal = {
                 break;
             case 'child_lock':
                 await entity.read('hvacUserInterfaceCfg', ['keypadLockout']);
+                break;
+            case 'displayed_temperature':
+                await entity.read('hvacUserInterfaceCfg', [0x4039], boschManufacturer);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bosch_userInterface.convertGet ${key}`);
@@ -210,6 +232,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const data = msg.data;
+            if (data.hasOwnProperty(0x4040)) {
+                result.remote_temperature = utils.precisionRound(data[0x4040], 2) / 100;
+            }
             if (data.hasOwnProperty(0x4042)) {
                 result.window_open = (Object.keys(stateOffOn)[data[0x4042]]);
             }
@@ -235,6 +260,9 @@ const fzLocal = {
             const data = msg.data;
             if (data.hasOwnProperty(0x400b)) {
                 result.display_orientation = (Object.keys(displayOrientation)[data[0x400b]]);
+            }
+            if (data.hasOwnProperty(0x4039)) {
+                result.displayed_temperature = (Object.keys(displayedTemperature)[data[0x4039]]);
             }
             if (data.hasOwnProperty(0x403a)) {
                 result.display_ontime = data[0x403a];
@@ -410,7 +438,7 @@ const definition = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.5)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
@@ -419,14 +447,22 @@ const definition = [
                 .withDescription('Window open'),
             exposes.enum('display_orientation', ea.ALL, Object.keys(displayOrientation))
                 .withDescription('Display orientation'),
+            exposes.numeric('remote_temperature', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withValueStep(0.1)
+                .withUnit('°C')
+                .withDescription('Input for remote temperature sensor'),
             exposes.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
-                .withDescription('Specifies the diplay On-time'),
+                .withDescription('Specifies the display on-time'),
             exposes.numeric('display_brightness', ea.ALL)
                 .withValueMin(0)
                 .withValueMax(10)
                 .withDescription('Specifies the brightness value of the display'),
+            exposes.enum('displayed_temperature', ea.ALL, Object.keys(displayedTemperature))
+                .withDescription('Temperature displayed on the thermostat'),
             e.child_lock().setAccess('state', ea.ALL),
             e.battery(),
         ],
@@ -461,10 +497,10 @@ const definition = [
             }], boschManufacturer);
 
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
+            await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4040, 0x4042, 0x4043], boschManufacturer);
 
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
-            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
+            await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x4039, 0x403a, 0x403b], boschManufacturer);
         },
     },
     {
