@@ -71,33 +71,37 @@ module.exports = [
                 }
             }
 
+            // The total number of bindings seems to be severely limited with some of these devices.
+            // In order to be able to toggle groups, we need to remove the scenes cluster from RM01.
+            const dropScenesCluster = device.modelID == 'RM01';
+
             const endpoint11 = device.getEndpoint(0x0b);
             if (endpoint11 != null) {
-                // The total number of bindings seems to be severely limited with these devices.
-                // In order to be able to toggle groups, we need to remove the scenes cluster
-                const index = endpoint11.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint11.outputClusters.splice(index, 1);
+                if (dropScenesCluster) {
+                    const index = endpoint11.outputClusters.indexOf(5);
+                    if (index > -1) {
+                        endpoint11.outputClusters.splice(index, 1);
+                    }
                 }
                 await reporting.bind(endpoint11, coordinatorEndpoint, ['genLevelCtrl']);
             }
             const endpoint12 = device.getEndpoint(0x0c);
             if (endpoint12 != null) {
-                // The total number of bindings seems to be severely limited with these devices.
-                // In order to be able to toggle groups, we need to remove the scenes cluster
-                const index = endpoint12.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint12.outputClusters.splice(index, 1);
+                if (dropScenesCluster) {
+                    const index = endpoint12.outputClusters.indexOf(5);
+                    if (index > -1) {
+                        endpoint12.outputClusters.splice(index, 1);
+                    }
                 }
                 await reporting.bind(endpoint12, coordinatorEndpoint, ['genLevelCtrl']);
             }
             const endpoint13 = device.getEndpoint(0x0d);
             if (endpoint13 != null) {
-                // The total number of bindings seems to be severely limited with these devices.
-                // In order to be able to toggle groups, we need to remove the scenes cluster
-                const index = endpoint13.outputClusters.indexOf(5);
-                if (index > -1) {
-                    endpoint13.outputClusters.splice(index, 1);
+                if (dropScenesCluster) {
+                    const index = endpoint13.outputClusters.indexOf(5);
+                    if (index > -1) {
+                        endpoint13.outputClusters.splice(index, 1);
+                    }
                 }
                 await reporting.bind(endpoint13, coordinatorEndpoint, ['genLevelCtrl']);
             }
