@@ -794,37 +794,58 @@ const converters = {
     on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.switch_action()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
+                const payload = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[property] = state;
+                if (options && options.switch_action) {
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
+                }
+                return payload;
             }
         },
     },
     on_off_force_multiendpoint: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.switch_action()],
         convert: (model, msg, publish, options, meta) => {
             // This converted is need instead of `fz.on_off` when no meta: {multiEndpoint: true} can be defined for this device
             // but it is needed for the `state`. E.g. when a switch has 3 channels (state_l1, state_l2, state_l3) but
             // has combined power measurements (power, energy))
             if (msg.data.hasOwnProperty('onOff')) {
+                const payload = {};
                 const endpointName = model.hasOwnProperty('endpoint') ?
                     utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
-                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[`state_${endpointName}`] = state;
+                if (options && options.switch_action) {
+                    payload['action'] = `${state.toLowerCase()}_${endpointName}`;
+                }
+                return payload;
             }
         },
     },
     on_off_skip_duplicate_transaction: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.switch_action()],
         convert: (model, msg, publish, options, meta) => {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
+                const payload = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[property] = state;
+                if (options && options.switch_action) {
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
+                }
+                return payload;
             }
         },
     },
@@ -2851,23 +2872,6 @@ const converters = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/8149
             msg.endpoint.defaultResponse(0xfd, 0, 6, msg.data[1]).catch((error) => {});
             return {action: `${button}${clickMapping[msg.data[3]]}`};
-        },
-    },
-    tuya_switch_on_off_action: {
-        cluster: 'genOnOff',
-        type: ['attributeReport'],
-        convert: (model, msg, publish, options, meta) => {
-            let mapping = null;
-            if (['TS0012'].includes(model.model)) mapping = {1: 'left', 2: 'right'};
-            if (['TS0013'].includes(model.model)) mapping = {1: 'left', 2: 'center', 3: 'right'};
-            if (['TS0014'].includes(model.model)) mapping = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4'};
-
-            const actionLookup = {0: 'off', 1: 'on'};
-
-            const action = actionLookup[msg.data['onOff']];
-            const button = mapping && mapping[msg.endpoint.ID] ? `${mapping[msg.endpoint.ID]}_` : '';
-
-            return {action: `${button}${action}`};
         },
     },
     tuya_water_leak: {
