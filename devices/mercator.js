@@ -34,7 +34,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_qjqgmqxr'}],
         model: 'SMA02P',
         vendor: 'Mercator',
-        description: 'Ikuü Battery Motion Sensor',
+        description: 'Ikuü battery motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -50,7 +50,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0201', manufacturerName: '_TZ3000_82ptnsd4'}],
         model: 'SMA03P',
         vendor: 'Mercator',
-        description: 'Ikuü Temperature & Humidity Sensor',
+        description: 'Ikuü temperature & humidity sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
@@ -60,7 +60,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0203', manufacturerName: '_TZ3000_wbrlnkm9'}],
         model: 'SMA04P',
         vendor: 'Mercator',
-        description: 'Ikuü Battery Contact Sensor',
+        description: 'Ikuü battery contact sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -77,14 +77,14 @@ module.exports = [
         fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3000_6dwfra5l'}],
         model: 'SMCL01-ZB',
         vendor: 'Mercator',
-        description: 'Ikuü Ikon Ceiling Light CCT',
+        description: 'Ikuü Ikon ceiling light CCT',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_xr5m6kfg'}],
         model: 'SMD4109W-RGB-ZB',
         vendor: 'Mercator',
-        description: 'Ikuü Walter Downlight RGB + CCT',
+        description: 'Ikuü Walter downlight RGB + CCT',
         extend: extend.light_onoff_brightness_colortemp_color(
             {colorTempRange: [153, 500], disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
@@ -93,7 +93,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_raqjcxo5'}],
         model: 'SPP02G',
         vendor: 'Mercator',
-        description: 'Ikuü Double Indoors Power Point',
+        description: 'Ikuü double indoors power point',
         extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.current().withEndpoint('left'),
@@ -124,7 +124,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_7jnk7l3k'}],
         model: 'SPP02GIP',
         vendor: 'Mercator',
-        description: 'Ikuü Double Outdoors Power Point',
+        description: 'Ikuü double outdoors power point',
         extend: tuya.extend.switch({powerOutageMemory: true, electricalMeasurements: true, endpoints: ['left', 'right']}),
         exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right'),
             e.power().withEndpoint('left'), e.current().withEndpoint('left'),
@@ -155,7 +155,7 @@ module.exports = [
         fingerprint: [{modelID: 'TS0013', manufacturerName: '_TZ3000_khtlvdfc'}],
         model: 'SSW03G',
         vendor: 'Mercator',
-        description: 'Ikuü Triple Switch',
+        description: 'Ikuü triple switch',
         extend: tuya.extend.switch({backlightModeLowMediumHigh: true, endpoints: ['left', 'center', 'right']}),
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
@@ -163,13 +163,9 @@ module.exports = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
-            try {
-                for (const ID of [1, 2, 3]) {
-                    const endpoint = device.getEndpoint(ID);
-                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-                }
-            } catch (e) {
-                // Fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/4872
+            for (const ID of [1, 2, 3]) {
+                const endpoint = device.getEndpoint(ID);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             }
             device.powerSource = 'Mains (single phase)';
             device.save();
