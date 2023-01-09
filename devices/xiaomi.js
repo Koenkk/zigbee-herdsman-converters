@@ -121,10 +121,10 @@ const fzLocal = {
                 case 0x027c: // 0x00
                 case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
-                    meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
+                    meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = 0x${value.toString(16)}`);
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unknown key ${key} = ${value}`);
+                    meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unknown key ${key} = 0x${value.toString(16)}`);
                 }
             });
             return result;
