@@ -78,7 +78,7 @@ module.exports = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
