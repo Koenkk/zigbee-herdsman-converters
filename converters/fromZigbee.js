@@ -957,7 +957,7 @@ const converters = {
     },
     ias_smoke_alarm_1: {
         cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -969,6 +969,7 @@ const converters = {
                 trouble: (zoneStatus & 1<<6) > 0,
                 ac_status: (zoneStatus & 1<<7) > 0,
                 test: (zoneStatus & 1<<8) > 0,
+                battery_defect: (zoneStatus & 1<<9) > 0,
             };
         },
     },
