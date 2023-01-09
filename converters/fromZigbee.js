@@ -7431,6 +7431,17 @@ const converters = {
                 const lookup = {1: 'manual', 2: 'schedule', 3: 'energy_saver', 6: 'holiday'};
                 result['zone_mode'] = lookup[msg.data[0xe010]];
             }
+            if (msg.data.hasOwnProperty(0xe011)) {
+                // wiserSmartHactConfig
+                const lookup = {0x00: 'unconfigured', 0x80: 'setpoint_switch', 0x82: 'setpoint_fip', 0x83: 'fip_fip'};
+                result['hact_config'] = lookup[msg.data[0xe011]];
+            }
+            if (msg.data.hasOwnProperty(0xe020)) {
+                // wiserSmartCurrentFilPiloteMode
+                const lookup = {0: 'comfort', 1: 'comfort_-1', 2: 'comfort_-2', 3: 'energy_saving',
+                    4: 'frost_protection', 5: 'off'};
+                result['fip_setting'] = lookup[msg.data[0xe020]];
+            }
             if (msg.data.hasOwnProperty(0xe030)) {
                 // wiserSmartValvePosition
                 result['pi_heating_demand'] = msg.data[0xe030];
