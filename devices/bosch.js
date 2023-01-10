@@ -443,7 +443,7 @@ const definition = [
                 .withLocalTemperatureCalibration(-5, 5, 0.5)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.STATE)
-                .withRunningState(['idle', 'heat']),
+                .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
             exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
