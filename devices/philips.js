@@ -1459,6 +1459,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp(),
     },
     {
+        zigbeeModel: ['LTO003'],
+        model: '9290024782',
+        vendor: 'Philips',
+        description: 'Hue G125 B22 White Ambiance filament bulb',
+        extend: hueExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['LTW010', 'LTW001', 'LTW004'],
         model: '8718696548738',
         vendor: 'Philips',
