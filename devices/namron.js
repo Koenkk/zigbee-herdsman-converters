@@ -757,7 +757,7 @@ module.exports = [
             await reporting.rmsVoltage(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.activePower(endpoint);
-       	}
-    };
+       	},
+    },
 
 ];
