@@ -248,6 +248,7 @@ const fzLocal = {
             }
             if (data.hasOwnProperty(0x4020)) {
                 result.pi_heating_demand = data[0x4020];
+                result.running_state = result.pi_heating_demand >= 10 ? 'heat' : 'idle';
             }
 
             return result;
@@ -441,7 +442,8 @@ const definition = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.5)
                 .withSystemMode(['off', 'heat', 'auto'])
-                .withPiHeatingDemand(ea.STATE),
+                .withPiHeatingDemand(ea.STATE)
+                .withRunningState(['idle', 'heat']),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
             exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
@@ -453,7 +455,8 @@ const definition = [
                 .withValueMax(30)
                 .withValueStep(0.1)
                 .withUnit('°C')
-                .withDescription('Input for remote temperature sensor'),
+                .withDescription('Input for remote temperature sensor. ' +
+                    'Setting this will disable the internal temperature sensor until batteries are removed!'),
             exposes.numeric('display_ontime', ea.ALL)
                 .withValueMin(5)
                 .withValueMax(30)
