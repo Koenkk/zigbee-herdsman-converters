@@ -3658,7 +3658,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_k1msuvg6', '_TZ3210_ngqk6jia']),
         model: 'TS110E_1gang_1',
         vendor: 'TuYa',
         description: '1 channel dimmer',
