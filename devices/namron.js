@@ -741,8 +741,9 @@ module.exports = [
         description: 'Namron - Zigbee Thermostat Outlet Socket',
         fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [ e.temperature(), e.power(), e.current(), e.voltage(), e.switch(),
-        exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage'),
+        exposes: [
+            e.temperature(), e.power(), e.current(), e.voltage(), e.switch(),
+            exposes.enum('power_on_behavior', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
