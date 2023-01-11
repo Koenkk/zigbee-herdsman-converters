@@ -738,7 +738,7 @@ module.exports = [
         zigbeeModel: ['4512749'],
         model: '4512749',
         vendor: 'Namron',
-        description: 'Zigbee thermostat outlet socket',
+        description: 'Namron - Zigbee thermostat outlet socket',
         fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
