@@ -8318,7 +8318,7 @@ const converters = {
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
-            return result;  
+            return result;
         },
     },
     // #endregion
