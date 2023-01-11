@@ -1941,6 +1941,30 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_zmy4lslw'}],
+        model: 'TS0002_switch_module',
+        vendor: 'TuYa',
+        description: '2 gang switch module',
+        fromZigbee: [fz.on_off, tuya.tz.power_on_behavior, tuya.fz.switch_type],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.switch_type],
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+            e.power_on_behavior(),
+            tuya.exposes.switchType()
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            await ep1.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0002'],
         model: 'TS0002',
         vendor: 'TuYa',
