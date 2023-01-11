@@ -35,7 +35,7 @@ module.exports = [
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fzLocal.hw_version],
+        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fz.hw_version],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
