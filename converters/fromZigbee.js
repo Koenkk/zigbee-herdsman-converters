@@ -802,7 +802,6 @@ const converters = {
                 const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
                 payload[property] = state;
                 if (options && options.state_action) {
-                    console.log(meta, model);
                     payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
                 }
                 return payload;
