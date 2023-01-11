@@ -3029,6 +3029,13 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LTA006'],
+        model: '8719514301443',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance B22 filament screw globe',
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LWE006'],
         model: '929002294102',
         vendor: 'Philips',
