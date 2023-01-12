@@ -794,37 +794,58 @@ const converters = {
     on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('onOff')) {
+                const payload = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[property] = state;
+                if (options && options.state_action) {
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
+                }
+                return payload;
             }
         },
     },
     on_off_force_multiendpoint: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
             // This converted is need instead of `fz.on_off` when no meta: {multiEndpoint: true} can be defined for this device
             // but it is needed for the `state`. E.g. when a switch has 3 channels (state_l1, state_l2, state_l3) but
             // has combined power measurements (power, energy))
             if (msg.data.hasOwnProperty('onOff')) {
+                const payload = {};
                 const endpointName = model.hasOwnProperty('endpoint') ?
                     utils.getKey(model.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
-                return {[`state_${endpointName}`]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[`state_${endpointName}`] = state;
+                if (options && options.state_action) {
+                    payload['action'] = `${state.toLowerCase()}_${endpointName}`;
+                }
+                return payload;
             }
         },
     },
     on_off_skip_duplicate_transaction: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
             // Device sends multiple messages with the same transactionSequenceNumber,
             // prevent that multiple messages get send.
             // https://github.com/Koenkk/zigbee2mqtt/issues/3687
             if (msg.data.hasOwnProperty('onOff') && !hasAlreadyProcessedMessage(msg, model)) {
+                const payload = {};
                 const property = postfixWithEndpointName('state', msg, model, meta);
-                return {[property]: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+                const state = msg.data['onOff'] === 1 ? 'ON' : 'OFF';
+                payload[property] = state;
+                if (options && options.state_action) {
+                    payload['action'] = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
+                }
+                return payload;
             }
         },
     },
@@ -8289,6 +8310,15 @@ const converters = {
             if (0x4000 in msg.data) {
                 result.led_on_motion = msg.data[0x4000] == 1 ? true : false;
             }
+            return result;
+        },
+    },
+    hw_version: {
+        cluster: 'genBasic',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
             return result;
         },
     },

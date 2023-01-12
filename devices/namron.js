@@ -734,4 +734,25 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {turnsOffAtBrightness1: true},
     },
+    {
+        zigbeeModel: ['4512749'],
+        model: '4512749',
+        vendor: 'Namron',
+        description: 'Thermostat outlet socket',
+        fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.temperature(), e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
+        },
+    },
 ];
