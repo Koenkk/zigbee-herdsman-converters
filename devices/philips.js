@@ -18,14 +18,20 @@ const extend = {switch: extendDontUse.switch};
 const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode.PHILIPS};
 
 const hueExtend = {
-    light_onoff_brightness: (options={}) => ({
-        ...extendDontUse.light_onoff_brightness(options),
-        ota: ota.zigbeeOTA,
-        meta: {turnsOffAtBrightness1: true},
-        toZigbee: extendDontUse.light_onoff_brightness(options).toZigbee.concat([
-            tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error,
-        ]),
-    }),
+    light_onoff_brightness: (options={}) => {
+        options = {disableHueEffects: true, ...options};
+        if (!options.disableHueEffects) options.disableEffect = true;
+        const result = extendDontUse.light_onoff_brightness(options);
+        result['ota'] = ota.zigbeeOTA;
+        result['meta'] = {turnsOffAtBrightness1: true};
+        result['toZigbee'] = result['toZigbee'].concat([tzLocal.hue_power_on_behavior, tzLocal.hue_power_on_error]);
+        if (!options.disableHueEffects) {
+            result['toZigbee'] = result['toZigbee'].concat([tzLocal.effect]);
+            result['exposes'] = result['exposes'].concat([exposes.enum('effect', ea.SET,
+                ['blink', 'breathe', 'okay', 'channel_change', 'candle', 'finish_effect', 'stop_effect', 'stop_hue_effect'])]);
+        }
+        return result;
+    },
     light_onoff_brightness_colortemp: (options={}) => {
         options = {disableHueEffects: true, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
