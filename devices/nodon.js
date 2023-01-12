@@ -65,7 +65,7 @@ module.exports = [
         endpoint: (device) => {
             return {default: 1};
         },
-    },    
+    },
     {
         zigbeeModel: ['SIN-4-2-20'],
         model: 'SIN-4-2-20',
@@ -105,5 +105,5 @@ module.exports = [
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
         },
-    },    
+    },
 ];
