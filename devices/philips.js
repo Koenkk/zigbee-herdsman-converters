@@ -998,7 +998,7 @@ module.exports = [
         model: '9290022268',
         vendor: 'Philips',
         description: 'Hue White A19 bulb with Bluetooth',
-        extend: hueExtend.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWO002'],
@@ -1159,7 +1159,7 @@ module.exports = [
         model: '9290022267A',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 434]}),
+        extend: hueExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 434], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LCP003'],
@@ -3158,7 +3158,7 @@ module.exports = [
         model: '046677562229',
         vendor: 'Philips',
         description: 'Hue White PAR20 with Bluetooth',
-        extend: hueExtend.light_onoff_brightness(),
+        extend: hueExtend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LTO005', '929002980901'],
