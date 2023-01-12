@@ -512,7 +512,7 @@ const definition = [
         zigbeeModel: ['RBSH-SP-ZB-EU'],
         model: 'BSP-FZ2',
         vendor: 'Bosch',
-        description: 'Plug Compact EU',
+        description: 'Plug compact EU',
         fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint, logger) => {
