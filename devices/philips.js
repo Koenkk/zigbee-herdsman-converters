@@ -1963,7 +1963,7 @@ module.exports = [
         extend: hueExtend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['915005987701'],
+        zigbeeModel: ['929003479701'],
         model: '915005987701',
         vendor: 'Philips',
         description: 'Hue Gradient Signe floor lamp (wood)',
