@@ -15,7 +15,7 @@ module.exports = [
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -28,7 +28,7 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(),e.power_on_behavior()],
     },
     {
         zigbeeModel: ['Meter Reader'],
