@@ -327,8 +327,12 @@ module.exports = [
             tuyaDatapoints: [
                 [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [3, 'min_brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [4, 'light_type_l1', tuya.valueConverter.lightType],
                 [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [9, 'min_brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+                [10, 'light_type_l2', tuya.valueConverter.lightType],
             ],
         },
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -336,8 +340,10 @@ module.exports = [
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
         exposes: [
-            tuya.exposes.lightBrightness().withEndpoint('l1'),
-            tuya.exposes.lightBrightness().withEndpoint('l2'),
+            tuya.exposes.lightBrightness().withMinBrightness().setAccess('min_brightness', ea.STATE_SET).withEndpoint('l1'),
+            tuya.exposes.lightType().withEndpoint('l1'),
+            tuya.exposes.lightBrightness().withMinBrightness().setAccess('min_brightness', ea.STATE_SET).withEndpoint('l2'),
+            tuya.exposes.lightType().withEndpoint('l2'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1};
