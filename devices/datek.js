@@ -28,7 +28,7 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(),e.power_on_behavior()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
         zigbeeModel: ['Meter Reader'],
