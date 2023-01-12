@@ -8,7 +8,6 @@ const utils = require('../lib/utils');
 const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
-const en = exposes.numeric;
 
 const tzLocal = {
     lift_duration: {
@@ -988,11 +987,12 @@ module.exports = [
         model: 'W599001',
         vendor: 'Schneider Electric',
         description: 'Wiser smoke alarm',
-        fromZigbee: [fz.schneider_temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
         toZigbee: [],
         ota: ota.zigbeeOTA, // local OTA updates are untested
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(),
-            en('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
+            // the temperature readings are unreliable and may need more investigation.
+            e.temperature(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(20);
