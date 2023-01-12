@@ -319,15 +319,26 @@ module.exports = [
         model: 'MS-105B',
         vendor: 'Moes',
         description: 'Smart dimmer module (2 gang)',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105_dimmer],
-        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
+        fromZigbee: [tuya.fz.datapoints, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        toZigbee: [tz.moes_105_dimmer, tuya.tz.datapoints],
+        meta: {
+            turnsOffAtBrightness1: true,
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, 'brightness_l1', tuya.valueConverter.scale0_254to0_1000],
+                [7, 'state_l2', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [8, 'brightness_l2', tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
-        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
+        exposes: [
+            tuya.exposes.lightBrightness().withEndpoint('l1'),
+            tuya.exposes.lightBrightness().withEndpoint('l2'),
+        ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1};
         },

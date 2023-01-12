@@ -1911,35 +1911,6 @@ const converters = {
             return result;
         },
     },
-    moes_105_dimmer: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const multiEndpoint = model.meta && model.meta.multiEndpoint;
-            const dpValue = tuya.firstDpValue(msg, meta, 'moes_105_dimmer');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            meta.logger.debug(`from moes_105_dimmer, dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`);
-
-            const state = value ? 'ON': 'OFF';
-            const brightness = mapNumberRange(value, 0, 1000, 0, 254);
-
-            switch (dp) {
-            case tuya.dataPoints.moes105DimmerState1:
-                return {[multiEndpoint ? 'state_l1' : 'state']: state};
-            case tuya.dataPoints.moes105DimmerLevel1:
-                return {[multiEndpoint ? 'brightness_l1' : 'brightness']: brightness};
-            case tuya.dataPoints.moes105DimmerState2:
-                return {state_l2: state};
-            case tuya.dataPoints.moes105DimmerLevel2:
-                return {brightness_l2: brightness};
-            default:
-                meta.logger.debug(`zigbee-herdsman-converters:moes_105_dimmer:` +
-                    `NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
     ias_smoke_alarm_1_develco: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
