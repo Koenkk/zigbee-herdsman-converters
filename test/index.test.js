@@ -1,6 +1,6 @@
-const index = require('../index');
-const exposes = require('../lib/exposes');
-const tuya = require('../lib/tuya');
+const index = require('../src/index');
+const exposes = require('../src/lib/exposes');
+const tuya = require('../src/lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -514,10 +514,11 @@ describe('index.js', () => {
     });
 
     it('Verify imports', () => {
-        const files = fs.readdirSync('devices');
+        const files = fs.readdirSync('src/devices');
         for (const file of files) {
-            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            const content = fs.readFileSync(`src/devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
+            expect(content).not.toContain(`from 'zigbee-herdsman-converters`);
         }
     });
 
@@ -533,10 +534,10 @@ describe('index.js', () => {
         const itemType = exposes.numeric('temperature', exposes.access.STATE_SET);
         const list = exposes.list('temperatures', exposes.access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
-            "access": 3, 
-            "item_type": {"access": 3, "name": "temperature", "type": "numeric"}, 
-            "name": "temperatures", 
-            "property": "temperatures", 
+            "access": 3,
+            "item_type": {"access": 3, "name": "temperature", "type": "numeric"},
+            "name": "temperatures",
+            "property": "temperatures",
             "type": "list"
         });
     });
@@ -561,22 +562,22 @@ describe('index.js', () => {
                 name: 'dayTime',
                 features: [
                     {
-                        access: 3, 
-                        name: "day", 
-                        property: "day", 
+                        access: 3,
+                        name: "day",
+                        property: "day",
                         type: "enum",
                         values: ['monday', 'tuesday', 'wednesday'],
                     },
                     {
-                        access: 3, 
-                        name: "hour", 
-                        property: "hour", 
+                        access: 3,
+                        name: "hour",
+                        property: "hour",
                         type: "numeric",
                     },
                     {
-                        access: 3, 
-                        name: "minute", 
-                        property: "minute", 
+                        access: 3,
+                        name: "minute",
+                        property: "minute",
                         type: "numeric",
                     },
                 ]

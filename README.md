@@ -4,7 +4,10 @@
 Collection of device converters to be used with zigbee-herdsman.
 
 ## Breaking changes
-15.0.0
+### 16.0.0
+- Individual modules have been moved from the package root folder into the `dist` folder and module imports need to be updated (e.g. from `import zigbeeOTA from 'zigbee-herdsman-converters/lib/ota/zigbeeOTA';` to `import zigbeeOTA from 'zigbee-herdsman-converters/dist/lib/ota/zigbeeOTA';`). Package imports are unaffected (e.g. `import zhc from 'zigbee-herdsman-converters';`).
+
+### 15.0.0
 - OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
 - OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
 
@@ -17,6 +20,7 @@ If you'd like to submit a pull request, you should run the following commands to
 npm install
 npm run lint
 npm test
+npm run build
 ```
 
 If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.

@@ -1,4 +1,4 @@
-const libColor = require('../lib/color');
+const libColor = require('../src/lib/color');
 
 describe('lib/color.js', () => {
     describe('ColorRGB', () => {

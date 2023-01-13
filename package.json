@@ -2,13 +2,10 @@
   "name": "zigbee-herdsman-converters",
   "version": "15.0.21",
   "description": "Collection of device converters to be used with zigbee-herdsman",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "/index.js",
-    "/converters",
-    "/devices.js",
-    "/devices",
-    "/lib"
+    "dist"
   ],
   "repository": {
     "type": "git",
@@ -25,7 +22,10 @@
   "scripts": {
     "lint": "eslint .",
     "test": "ZHC_TEST=true jest test",
-    "test-watch": "ZHC_TEST=true jest test --watch"
+    "test-watch": "ZHC_TEST=true jest test --watch",
+    "clean": "rimraf dist",
+    "build": "tsc",
+    "prepack": "npm run clean && npm run build"
   },
   "author": "Koen Kanters",
   "license": "MIT",
@@ -41,10 +41,16 @@
     "zigbee-herdsman": "^0.14.84"
   },
   "devDependencies": {
+    "@types/jest": "^29.2.5",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
     "eslint": "*",
     "eslint-config-google": "*",
     "eslint-plugin-jest": "*",
     "fast-deep-equal": "*",
-    "jest": "*"
+    "jest": "*",
+    "rimraf": "^4.0.4",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.4"
   }
 }

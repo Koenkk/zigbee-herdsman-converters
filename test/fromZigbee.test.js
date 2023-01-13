@@ -1,5 +1,5 @@
-const fz = require('../converters/fromZigbee');
-const tuya = require('../lib/tuya');
+const fz = require('../src/converters/fromZigbee');
+const tuya = require('../src/lib/tuya');
 
 jest.mock('fs');
 const fs = require('fs');

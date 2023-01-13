@@ -3,7 +3,12 @@
         "es6": true,
         "node": true
     },
-    "extends": ["eslint:recommended", "google"],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "google"],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "root": true,
     "parserOptions": {
         "ecmaVersion": 2018,
         "sourceType": "module"
@@ -12,6 +17,18 @@
         "require-jsdoc": "off",
         "indent": ["error", 4],
         "no-prototype-builtins": "off",
-        "max-len": ["error", { "code": 140 }]
-    }
+        "max-len": ["error", { "code": 140 }],
+        "@typescript-eslint/no-empty-function": "off"
+    },
+    "overrides": [
+        {
+            "files": [
+                "**/*.js"
+            ],
+            "rules": {
+                "@typescript-eslint/no-var-requires": "off",
+                "@typescript-eslint/no-unused-vars": "off"
+            }
+        }
+    ]
 }
