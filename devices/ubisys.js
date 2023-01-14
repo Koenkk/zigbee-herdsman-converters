@@ -704,7 +704,7 @@ module.exports = [
                 'brightness_move_up_s2', 'brightness_move_down_s1', 'brightness_move_down_s2', 'brightness_stop_s1',
                 'brightness_stop_s2']),
             e.light_brightness(),
-            exposes.composite('level_config', 'level_config')
+            exposes.composite('level_config', 'level_config', ea.ALL)
                 .withFeature(exposes.numeric('on_off_transition_time', ea.ALL)
                     .withDescription('Specifies the amount of time, in units of 0.1 seconds, which will be used during a transition to ' +
                     'either the on or off state, when an on/off/toggle command of the on/off cluster is used to turn the light on or off'))

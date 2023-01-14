@@ -860,12 +860,12 @@ module.exports = [
                 .withDescription('Control status LED intensity when load ON'),
             exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load OFF'),
-            exposes.composite('led_color_on', 'led_color_on')
+            exposes.composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(exposes.numeric('r', ea.SET))
                 .withFeature(exposes.numeric('g', ea.SET))
                 .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
-            exposes.composite('led_color_off', 'led_color_off')
+            exposes.composite('led_color_off', 'led_color_off', ea.SET)
                 .withFeature(exposes.numeric('r', ea.SET))
                 .withFeature(exposes.numeric('g', ea.SET))
                 .withFeature(exposes.numeric('b', ea.SET))
@@ -894,12 +894,12 @@ module.exports = [
                 .withDescription('Control status LED when load OFF'),
             exposes.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
                 .withDescription('Control minimum dimmer brightness'),
-            exposes.composite('led_color_on', 'led_color_on')
+            exposes.composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(exposes.numeric('r', ea.SET))
                 .withFeature(exposes.numeric('g', ea.SET))
                 .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load ON'),
-            exposes.composite('led_color_off', 'led_color_off')
+            exposes.composite('led_color_off', 'led_color_off', ea.SET)
                 .withFeature(exposes.numeric('r', ea.SET))
                 .withFeature(exposes.numeric('g', ea.SET))
                 .withFeature(exposes.numeric('b', ea.SET))
