@@ -126,7 +126,7 @@ module.exports = [
         model: 'GP-WOU019BBDWG',
         vendor: 'SmartThings',
         description: 'Outlet with power meter',
-        extend: e.switch({fromZigbee: [fz.electrical_measurement, fz.metering], exposes: [e.power(), e.energy()]}),
+        extend: extend.switch({fromZigbee: [fz.electrical_measurement, fz.metering], exposes: [e.power(), e.energy()]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
