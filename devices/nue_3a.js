@@ -379,8 +379,8 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('button_light'),
             e.switch().withEndpoint('button_fan_high'),
-            e.switch().withEndpoint('button_fan_med'), 
-            e.switch().withEndpoint('button_fan_low')
+            e.switch().withEndpoint('button_fan_med'),
+            e.switch().withEndpoint('button_fan_low'),
         ],
         endpoint: (device) => {
             return {'button_light': 1, 'button_fan_high': 2, 'button_fan_med': 3, 'button_fan_low': 4};
