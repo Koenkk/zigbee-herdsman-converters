@@ -308,9 +308,9 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
+            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('minutes').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
-            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
+            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('seconds')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
                 .withValueMax(900).withValueStep(100)],
     },
