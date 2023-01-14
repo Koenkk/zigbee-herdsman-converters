@@ -1,7 +1,4 @@
-const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
-const e = exposes.presets;
 
 module.exports = [
     {
