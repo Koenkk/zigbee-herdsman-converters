@@ -30,8 +30,10 @@ const converters = {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const key = getKey(constants.fanMode, msg.data.fanMode);
-            return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+            if (msg.data.hasOwnProperty('fanMode')) {
+                const key = getKey(constants.fanMode, msg.data.fanMode);
+                return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+            }
         },
     },
     thermostat: {
