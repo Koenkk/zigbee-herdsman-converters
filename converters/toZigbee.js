@@ -61,6 +61,12 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, utils.getOptions(meta.mapped, entity));
         },
     },
+    identify: {
+        key: ['identify'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genIdentify', 'identify', {identifytime: value}, utils.getOptions(meta.mapped, entity));
+        },
+    },
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -6483,6 +6489,58 @@ const converters = {
                 // also? await entity.write('aqaraOpple', {0x0402: {value: 0x00, type: 0x10}}, manufacturerOptions.xiaomi);
                 break;
             }
+        },
+    },
+    wiser_fip_setting: {
+        key: ['fip_setting'],
+        convertSet: async (entity, key, value, meta) => {
+            const zoneLookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
+            const zonemodeNum = zoneLookup[meta.state.zone_mode];
+
+            const fipLookup = {'comfort': 0, 'comfort_-1': 1, 'comfort_-2': 2, 'energy_saving': 3,
+                'frost_protection': 4, 'off': 5};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(fipLookup));
+            const fipmodeNum = fipLookup[value];
+
+            const payload = {
+                zonemode: zonemodeNum,
+                fipmode: fipmodeNum,
+                reserved: 0xff,
+            };
+            await entity.command('hvacThermostat', 'wiserSmartSetFipMode', payload,
+                {srcEndpoint: 11, disableDefaultResponse: true});
+
+            return {state: {'fip_setting': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe020]);
+        },
+    },
+    wiser_hact_config: {
+        key: ['hact_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'unconfigured': 0x00, 'setpoint_switch': 0x80, 'setpoint_fip': 0x82, 'fip_fip': 0x83};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const mode = lookup[value];
+            await entity.write('hvacThermostat', {0xe011: {value: mode, type: 0x18}});
+            return {state: {'hact_config': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe011]);
+        },
+    },
+    wiser_zone_mode: {
+        key: ['zone_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
+            const zonemodeNum = lookup[value];
+            await entity.write('hvacThermostat', {0xe010: {value: zonemodeNum, type: 0x30}});
+            return {state: {'zone_mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe010]);
         },
     },
     wiser_vact_calibrate_valve: {

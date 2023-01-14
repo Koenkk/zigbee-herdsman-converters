@@ -766,14 +766,28 @@ module.exports = [
         model: 'EER50000',
         vendor: 'Schneider Electric',
         description: 'Wiser H-Relay (HACT)',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat, fz.metering,
+            fz.identify],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.wiser_fip_setting,
+            tz.wiser_hact_config, tz.wiser_zone_mode, tz.identify],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature(),
+            e.power(), e.energy(),
+            exposes.enum('identify', ea.SET, ['0', '30', '60', '600', '900']).withDescription('Flash green tag for x seconds'),
+            exposes.enum('zone_mode',
+                ea.ALL, ['manual', 'schedule', 'energy_saver', 'holiday']),
+            exposes.enum('hact_config',
+                ea.ALL, ['unconfigured', 'setpoint_switch', 'setpoint_fip', 'fip_fip'])
+                .withDescription('Input (command) and output (control) behavior of actuator'),
+            exposes.enum('fip_setting',
+                ea.ALL, ['comfort', 'comfort_-1', 'comfort_-2', 'energy_saving', 'frost_protection', 'off'])
+                .withDescription('Output signal when operating in fil pilote mode (fip_fip)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
-            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement'];
+            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
     },
     {
