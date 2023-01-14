@@ -371,10 +371,10 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['LXX60-FN27LX1.0'],
+        zigbeeModel: ['LXN56-1S27LX1.2', 'LXX60-FN27LX1.0'],
         model: 'NUE-ZBFLB',
-        vendor: 'Nue / 3A ',
-        description: 'Zigbee 3.0 Smart Fan Light Switch',
+        vendor: 'Nue / 3A',
+        description: 'Smart fan light switch',
         extend: extend.switch(),
         exposes: [
             e.switch().withEndpoint('button_light'),
