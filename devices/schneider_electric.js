@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const utils = require('../lib/utils');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -980,5 +981,29 @@ module.exports = [
             exposes.numeric('current_phase_c', ea.STATE)
                 .withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
         ],
+    },
+    {
+        zigbeeModel: ['W599001'],
+        model: 'W599001',
+        vendor: 'Schneider Electric',
+        description: 'Wiser smoke alarm',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        ota: ota.zigbeeOTA, // local OTA updates are untested
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(),
+            // the temperature readings are unreliable and may need more investigation.
+            e.temperature(),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(20);
+            const binds = ['msTemperatureMeasurement', 'ssIasZone', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint);
+            await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+        },
     },
 ];
