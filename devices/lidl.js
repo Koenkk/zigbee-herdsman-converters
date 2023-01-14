@@ -524,7 +524,7 @@ module.exports = [
         description: 'Melinera smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET)],
+        exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],
@@ -874,7 +874,8 @@ module.exports = [
             exposes.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
             exposes.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
             exposes.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),
-            exposes.composite('away_setting', 'away_setting').withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
+            exposes.composite('away_setting', 'away_setting', ea.STATE_SET)
+                .withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
                 .withFeature(e.away_preset_temperature()).setAccess('away_preset_temperature', ea.ALL)
                 .withFeature(exposes.numeric('away_preset_year', ea.ALL).withUnit('year').withDescription('Start away year 20xx'))
                 .withFeature(exposes.numeric('away_preset_month', ea.ALL).withUnit('month').withDescription('Start away month'))
@@ -882,7 +883,7 @@ module.exports = [
                 .withFeature(exposes.numeric('away_preset_hour', ea.ALL).withUnit('hour').withDescription('Start away hours'))
                 .withFeature(exposes.numeric('away_preset_minute', ea.ALL).withUnit('min').withDescription('Start away minutes')),
             ...['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                const expose = exposes.composite(day, day);
+                const expose = exposes.composite(day, day, ea.STATE_SET);
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
                     expose.withFeature(exposes.numeric(`${day}_temp_${i}`, ea.ALL).withValueMin(0.5)
                         .withValueMax(29.5).withValueStep(0.5).withUnit('°C').withDescription(`Temperature ${i}`));

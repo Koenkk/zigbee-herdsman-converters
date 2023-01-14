@@ -114,7 +114,7 @@ module.exports = [
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
-            exposes.composite('program', 'program').withDescription('Time of day and setpoint to use when in program mode')
+            exposes.composite('program', 'program', ea.STATE_SET).withDescription('Time of day and setpoint to use when in program mode')
                 .withFeature(exposesLocal.hour('weekdays_p1_hour'))
                 .withFeature(exposesLocal.minute('weekdays_p1_minute'))
                 .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))

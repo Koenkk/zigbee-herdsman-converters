@@ -2311,17 +2311,17 @@ module.exports = [
                 .withDescription('Standby LCD brightness'),
             exposes.enum('available_switches', ea.STATE_SET, ['none', '1', '2', '3', '1 and 2', '1 and 3', '2 and 3', 'all'])
                 .withDescription('Control which switches are available in the switches screen (none disables switches screen)'),
-            exposes.composite('switch_1_text_icon', 'switch_1_text_icon').withDescription('Switch 1 text and icon')
+            exposes.composite('switch_1_text_icon', 'switch_1_text_icon', ea.STATE_SET).withDescription('Switch 1 text and icon')
                 .withFeature(exposes.enum('switch_1_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_1_text', ea.STATE_SET)
                     .withDescription('Text')),
-            exposes.composite('switch_2_text_icon', 'switch_2_text_icon').withDescription('Switch 2 text and icon')
+            exposes.composite('switch_2_text_icon', 'switch_2_text_icon', ea.STATE_SET).withDescription('Switch 2 text and icon')
                 .withFeature(exposes.enum('switch_2_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_2_text', ea.STATE_SET)
                     .withDescription('Text')),
-            exposes.composite('switch_3_text_icon', 'switch_3_text_icon').withDescription('Switch 3 text and icon')
+            exposes.composite('switch_3_text_icon', 'switch_3_text_icon', ea.STATE_SET).withDescription('Switch 3 text and icon')
                 .withFeature(exposes.enum('switch_3_icon', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'])
                     .withDescription('Icon'))
                 .withFeature(exposes.text('switch_3_text', ea.STATE_SET)
@@ -2714,7 +2714,7 @@ module.exports = [
             exposes.numeric('weight_per_day', ea.STATE).withDescription('Weight per day').withUnit('g'),
             exposes.binary('error', ea.STATE, true, false)
                 .withDescription('Indicates wether there is an error with the feeder'),
-            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', exposes.access.STATE_SET)
+            exposes.list('schedule', ea.STATE_SET, exposes.composite('dayTime', 'dayTime', exposes.access.STATE_SET)
                 .withFeature(exposes.enum('days', exposes.access.STATE_SET, [
                     'everyday', 'workdays', 'weekend', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
                     'mon-wed-fri-sun', 'tue-thu-sat']))

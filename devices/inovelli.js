@@ -1077,10 +1077,10 @@ const exposesList = [
     e.power(),
     e.energy(),
     exposes
-        .composite('led_effect', 'led_effect')
+        .composite('led_effect', 'led_effect', ea.STATE_SET)
         .withFeature(
             exposes
-                .enum('effect', ea.SET_STATE, [
+                .enum('effect', ea.STATE_SET, [
                     'off',
                     'solid',
                     'fast_blink',
@@ -1107,7 +1107,7 @@ const exposesList = [
         )
         .withFeature(
             exposes
-                .numeric('color', ea.SET_STATE)
+                .numeric('color', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
@@ -1116,14 +1116,14 @@ const exposesList = [
         )
         .withFeature(
             exposes
-                .numeric('level', ea.SET_STATE)
+                .numeric('level', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Brightness of the LEDs'),
         )
         .withFeature(
             exposes
-                .numeric('duration', ea.SET_STATE)
+                .numeric('duration', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
@@ -1133,15 +1133,15 @@ const exposesList = [
                 ),
         ),
     exposes
-        .composite('individual_led_effect', 'individual_led_effect')
+        .composite('individual_led_effect', 'individual_led_effect', ea.STATE_SET)
         .withFeature(
             exposes
-                .enum('led', ea.SET_STATE, ['1', '2', '3', '4', '5', '6', '7'])
+                .enum('led', ea.STATE_SET, ['1', '2', '3', '4', '5', '6', '7'])
                 .withDescription('Individual LED to target.'),
         )
         .withFeature(
             exposes
-                .enum('effect', ea.SET_STATE, [
+                .enum('effect', ea.STATE_SET, [
                     'off',
                     'solid',
                     'fast_blink',
@@ -1157,7 +1157,7 @@ const exposesList = [
         )
         .withFeature(
             exposes
-                .numeric('color', ea.SET_STATE)
+                .numeric('color', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
@@ -1166,14 +1166,14 @@ const exposesList = [
         )
         .withFeature(
             exposes
-                .numeric('level', ea.SET_STATE)
+                .numeric('level', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Brightness of the LED'),
         )
         .withFeature(
             exposes
-                .numeric('duration', ea.SET_STATE)
+                .numeric('duration', ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
