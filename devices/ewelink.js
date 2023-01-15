@@ -4,6 +4,18 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 
+const fzLocal = {
+    WS01_rain: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            if (msg.endpoint.ID != 1) return;
+            return {rain: (zoneStatus & 1) > 0};
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['SA-003-Zigbee'],
@@ -159,5 +171,14 @@ module.exports = [
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
         },
+    },
+    {
+        zigbeeModel: ['WS01'],
+        model: 'WS01',
+        vendor: 'eWeLink',
+        description: 'Rainfall sensor',
+        fromZigbee: [fzLocal.WS01_rain],
+        toZigbee: [],
+        exposes: [e.rain()],
     },
 ];
