@@ -30,8 +30,10 @@ const converters = {
         cluster: 'hvacFanCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const key = getKey(constants.fanMode, msg.data.fanMode);
-            return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+            if (msg.data.hasOwnProperty('fanMode')) {
+                const key = getKey(constants.fanMode, msg.data.fanMode);
+                return {fan_mode: key, fan_state: key === 'off' ? 'OFF' : 'ON'};
+            }
         },
     },
     thermostat: {
@@ -978,9 +980,9 @@ const converters = {
     },
     ias_smoke_alarm_1: {
         cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
+            const zoneStatus = msg.type === 'commandStatusChangeNotification' ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 smoke: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & 1<<2) > 0,
@@ -990,6 +992,7 @@ const converters = {
                 trouble: (zoneStatus & 1<<6) > 0,
                 ac_status: (zoneStatus & 1<<7) > 0,
                 test: (zoneStatus & 1<<8) > 0,
+                battery_defect: (zoneStatus & 1<<9) > 0,
             };
         },
     },
@@ -4018,7 +4021,7 @@ const converters = {
                 return {deadzone_temperature: value};
             case tuya.dataPoints.moesLocalTemp:
                 temperature = value & 1<<15 ? value - (1<<16) + 1 : value;
-                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
+                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb', '_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11980
                     temperature = temperature / 10;
                 }

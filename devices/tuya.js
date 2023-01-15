@@ -1009,6 +1009,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
         extend: extend.light_onoff_brightness_color({disablePowerOnBehavior: true}),
+        exposes: [e.light_brightness_color({disablePowerOnBehavior: true})
+            .setAccess('color_xy', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
         toZigbee: utils.replaceInArray(extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
     },
@@ -1153,11 +1155,18 @@ module.exports = [
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
             exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_m0vaazab'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_ufttklsz'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_nkkl7uzv'},
+            {modelID: 'TS0207', manufacturerName: '_TZ3000_misw04hq'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_gszjt2xx'},
             {modelID: 'TS0207', manufacturerName: '_TZ3000_5k5vh43t'}],
         model: 'TS0207_repeater',
@@ -2109,7 +2118,7 @@ module.exports = [
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options')
+            exposes.composite('options', 'options', ea.STATE_SET)
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(0)
                     .withValueMax(255)
@@ -2168,7 +2177,7 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
-            exposes.composite('programming_mode').withDescription('Schedule MODE ⏱ - In this mode, ' +
+            exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature.')
                 .withFeature(e.week())
                 .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
@@ -2224,7 +2233,7 @@ module.exports = [
                 '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
                 'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
                 '- schedule for each day is defined separately.'),
-            exposes.composite('schedule', 'schedule').withFeature(exposes.enum('week_day', ea.SET, ['monday', 'tuesday',
+            exposes.composite('schedule', 'schedule', ea.SET).withFeature(exposes.enum('week_day', ea.SET, ['monday', 'tuesday',
                 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.SET))
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
                 'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
@@ -2447,7 +2456,7 @@ module.exports = [
                     'ON - In this mode, the thermostat stays open ' +
                     'OFF - In this mode, the thermostat stays closed')
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET),
-            exposes.composite('programming_mode').withDescription('Auto MODE ⏱ - In this mode, ' +
+            exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Auto MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature. ')
                 .withFeature(exposes.text('monday_schedule', ea.STATE))
                 .withFeature(exposes.text('tuesday_schedule', ea.STATE))

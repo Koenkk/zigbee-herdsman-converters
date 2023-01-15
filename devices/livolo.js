@@ -205,7 +205,7 @@ module.exports = [
         toZigbee: [tz.livolo_cover_state, tz.livolo_cover_position, tz.livolo_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options')
+            exposes.composite('options', 'options', ea.STATE_SET)
                 .withDescription('Motor options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(20)

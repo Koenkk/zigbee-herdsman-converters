@@ -373,6 +373,7 @@ describe('index.js', () => {
                 "property":"color_rgb",
                 "name":"color_xy",
                 "description": "Color of this light in the CIE 1931 color space (x/y)",
+                "access":7,
                 "features":[
                   {
                     "type":"numeric",
@@ -407,7 +408,7 @@ describe('index.js', () => {
                 for (const expose of expss) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
-                    } else if (expose.features && expose.type !== 'composite') {
+                    } else if (expose.features) {
                         toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
                     }
                 }
@@ -425,7 +426,7 @@ describe('index.js', () => {
                     }
 
                     if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
                     }
                 }
             }

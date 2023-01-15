@@ -272,6 +272,14 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['HK-DIM'],
+        model: '50208702',
+        vendor: 'Sunricher',
+        description: 'LED dimmable driver',
+        extend: extend.light_onoff_brightness(),
+        whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
+    },
+    {
         zigbeeModel: ['SR-ZG9040A-S'],
         model: 'SR-ZG9040A-S',
         vendor: 'Sunricher',
