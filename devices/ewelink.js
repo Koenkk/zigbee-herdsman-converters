@@ -160,4 +160,13 @@ module.exports = [
             device.skipDefaultResponse = true;
         },
     },
+    {
+        zigbeeModel: ['WS01'],
+        model: 'WS01',
+        vendor: 'eWeLink',
+        description: 'Zigbee Rainfall Sensor',
+        fromZigbee: [fz.WS01_rain],
+        toZigbee: [],
+        exposes: [e.rain()],
+    },
 ];
