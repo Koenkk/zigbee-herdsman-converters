@@ -164,7 +164,7 @@ module.exports = [
         zigbeeModel: ['WS01'],
         model: 'WS01',
         vendor: 'eWeLink',
-        description: 'Zigbee Rainfall Sensor',
+        description: 'Rainfall sensor',
         fromZigbee: [fz.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
