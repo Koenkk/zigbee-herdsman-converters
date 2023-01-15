@@ -566,7 +566,7 @@ module.exports = [
         model: '14156408L',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED ceiling light',
-        ...extend.light_onoff_brightness_colortemp_color(
+        ...extend.light_onoff_brightness_colortemp(
             {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
