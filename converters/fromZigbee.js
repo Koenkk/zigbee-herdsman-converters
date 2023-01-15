@@ -4010,7 +4010,8 @@ const converters = {
             case tuya.dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
-                return {current_heating_setpoint: value};
+                if (!['_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                return {current_heating_setpoint: (value / 10).toFixed(1)};
             case tuya.dataPoints.moesMinTempLimit:
                 return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
@@ -4025,7 +4026,6 @@ const converters = {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11980
                     temperature = temperature / 10;
                 }
-
                 return {local_temperature: parseFloat(temperature.toFixed(1))};
             case tuya.dataPoints.moesTempCalibration:
                 temperature = value;
