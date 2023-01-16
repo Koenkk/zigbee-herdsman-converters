@@ -57,6 +57,6 @@ module.exports = [
         model: 'HAL800',
         vendor: 'Schwaiger',
         description: 'LED candle bulb E14 470 lumen, dimmable, color, white 1800-6500K',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555]}),
     },
 ];
