@@ -52,4 +52,11 @@ module.exports = [
         description: 'LED Schwaiger HAL400 GU10 dimmable, warm white',
         extend: extend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['ZBT-RGBWLight-C4700114'],
+        model: 'HAL800',
+        vendor: 'Schwaiger',
+        description: 'LED candle bulb E14 470 lumen, dimmable, color, white 1800-6500K',
+        extend: extend.light_onoff_brightness_colortemp_color(),
+    },
 ];
