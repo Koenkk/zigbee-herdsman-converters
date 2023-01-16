@@ -34,21 +34,4 @@ module.exports = [
         configure: tuya.configureMagicPacket,
 
     },
-    {
-        model: 'SS100',
-        vendor: 'Cleverio',
-        description: 'Door sensor',
-        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_yet4gkcj'}],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            try {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-                await reporting.batteryPercentageRemaining(endpoint);
-                await reporting.batteryVoltage(endpoint);
-            } catch (error) {/* Fails for some*/}
-        },
-    },
 ];
