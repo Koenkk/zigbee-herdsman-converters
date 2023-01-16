@@ -2537,6 +2537,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LWV005'],
+        model: '9290030517',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E27 ST64 filament bulb',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTO001'],
         model: '8719514301481',
         vendor: 'Philips',
