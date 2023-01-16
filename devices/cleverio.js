@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const tuya = require('../lib/tuya');
@@ -32,6 +32,5 @@ module.exports = [
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-
     },
 ];
