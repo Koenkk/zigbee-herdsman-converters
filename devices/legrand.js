@@ -253,6 +253,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.apparentPower(endpoint);
         },
     },
     {
@@ -303,15 +304,22 @@ module.exports = [
         description: 'DIN power consumption module',
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.ignore_basic_report, fz.ignore_genOta, fz.legrand_power_alarm],
         toZigbee: [tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.electrical_measurement_power, tz.legrand_powerAlarm],
-        exposes: [e.power().withAccess(ea.STATE_GET), exposes.binary('power_alarm_active', ea.STATE, true, false),
+        exposes: [e.power().withAccess(ea.STATE_GET), e.power_apparent(), exposes.binary('power_alarm_active', ea.STATE, true, false),
             exposes.binary('power_alarm', ea.ALL, true, false).withDescription('Enable/disable the power alarm')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'genIdentify']);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
-            // Read configuration values that are not sent periodically as well as current power (activePower).
-            await endpoint.read('haElectricalMeasurement', ['activePower', 0xf000, 0xf001, 0xf002]);
+            await endpoint.read('haElectricalMeasurement', ['activePower']);
+            try {
+                await reporting.apparentPower(endpoint);
+                await endpoint.read('haElectricalMeasurement', ['apparentPower']);
+            } catch (e) {
+                // Some version/firmware don't seem to support this.
+            }
+            // Read configuration values that are not sent periodically.
+            await endpoint.read('haElectricalMeasurement', [0xf000, 0xf001, 0xf002]);
         },
         onEvent: async (type, data, device, options, state) => {
             /**
@@ -377,6 +385,7 @@ module.exports = [
             exposes.enum('cable_outlet_mode', ea.ALL, ['comfort', 'comfort-1', 'comfort-2', 'eco', 'frost_protection', 'off']),
             exposes.switch().withState('state', true, 'Works only when the pilot wire is deactivated'),
             e.power().withAccess(ea.STATE_GET),
+            e.power_apparent(),
             e.power_on_behavior().withDescription(`Controls the behavior when the device is powered on. Works only when the pilot wire is
                 deactivated`)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -385,6 +394,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            await reporting.apparentPower(endpoint);
         },
     },
     {
@@ -445,6 +455,25 @@ module.exports = [
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
+        zigbeeModel: [' Centralized ventilation SW', ' Centralized ventilation SW\u0000\u0000\u0000\u0000'],
+        model: '067766',
+        vendor: 'Legrand',
+        description: 'Centralized ventilation switch',
+        fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_identify, tz.legrand_settingEnableLedIfOn,
+            tz.power_on_behavior],
+        exposes: [e.switch(), e.action(['identify']),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the power socket is turned off,
+                allowing to see it in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the device is turned on'),
+            e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
 ];

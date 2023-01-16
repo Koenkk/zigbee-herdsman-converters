@@ -78,7 +78,7 @@ module.exports = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
@@ -90,7 +90,7 @@ module.exports = [
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -116,8 +116,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -132,8 +132,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -165,8 +165,8 @@ module.exports = [
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
                 await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint);
-                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
             }

@@ -409,14 +409,15 @@ module.exports = [
         model: 'HG08164',
         vendor: 'Lidl',
         description: 'Silvercrest smart button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, fz.tuya_on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down']), e.battery()],
+        exposes: [e.action(
+            ['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'single', 'double']), e.battery()],
     },
     {
         fingerprint: [{modelID: 'TS0211', manufacturerName: '_TZ1800_ladpngdx'}],
@@ -510,7 +511,7 @@ module.exports = [
         model: 'HG06104A',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED light strip 2.5m',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -523,14 +524,14 @@ module.exports = [
         description: 'Melinera smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
         fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET)],
+        exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {
         fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],
         model: 'HG06106B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -541,7 +542,8 @@ module.exports = [
         model: '14153806L',
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -552,7 +554,8 @@ module.exports = [
         model: '14156506L',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED mood light',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -563,7 +566,8 @@ module.exports = [
         model: '14156408L',
         vendor: 'Lidl',
         description: 'Livarno Lux smart LED ceiling light',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
@@ -574,7 +578,8 @@ module.exports = [
         model: 'HG08010',
         vendor: 'Lidl',
         description: 'Livarno Home outdoor spotlight',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -585,7 +590,8 @@ module.exports = [
         model: 'HG08008',
         vendor: 'Lidl',
         description: 'Livarno Home LED ceiling light',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -596,7 +602,8 @@ module.exports = [
         model: 'HG08007',
         vendor: 'TuYa',
         description: 'Livarno Home outdoor LED band',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
@@ -604,7 +611,8 @@ module.exports = [
         model: '14158704L',
         vendor: 'Lidl',
         description: 'Livarno Home LED floor lamp, RGBW',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -615,7 +623,8 @@ module.exports = [
         model: '14158804L',
         vendor: 'Lidl',
         description: 'Livarno Home LED desk lamp RGBW',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -626,7 +635,8 @@ module.exports = [
         model: 'HG07834A',
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -638,7 +648,8 @@ module.exports = [
         model: 'HG07834B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -649,7 +660,8 @@ module.exports = [
         model: 'HG08131C',
         vendor: 'Lidl',
         description: 'Livarno Home outdoor E27 bulb in set with flare',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -660,7 +672,7 @@ module.exports = [
         model: 'HG06106A',
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -682,7 +694,8 @@ module.exports = [
         model: 'HG07834C',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb RGB',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp_color(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -693,7 +706,7 @@ module.exports = [
         model: 'HG06492A',
         vendor: 'Lidl',
         description: 'Livarno Lux GU10 spot CCT',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -703,7 +716,8 @@ module.exports = [
         model: 'HG06492B',
         vendor: 'Lidl',
         description: 'Livarno Lux E14 candle CCT',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 500]}),
+        ...extend.light_onoff_brightness_colortemp(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 500]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -713,7 +727,7 @@ module.exports = [
         model: 'HG06492C',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 bulb CCT',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -724,7 +738,7 @@ module.exports = [
         model: '14147206L',
         vendor: 'Lidl',
         description: 'Livarno Lux ceiling light',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -734,7 +748,8 @@ module.exports = [
         model: '14153905L',
         vendor: 'Lidl',
         description: 'Livarno Home LED floor lamp',
-        ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, colorTempRange: [153, 333]}),
+        ...extend.light_onoff_brightness_colortemp(
+            {disableColorTempStartup: true, disablePowerOnBehavior: true, colorTempRange: [153, 333]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -744,7 +759,7 @@ module.exports = [
         model: '14148906L',
         vendor: 'Lidl',
         description: 'Livarno Lux mood light RGB+CCT',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -756,7 +771,7 @@ module.exports = [
         model: '14149505L/14149506L',
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
-        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
@@ -779,7 +794,7 @@ module.exports = [
         model: 'HG06463A',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 ST64 filament bulb',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: extend.light_onoff_brightness({disableEffect: true, disablePowerOnBehavior: true}),
         meta: {turnsOffAtBrightness1: false},
     },
     {
@@ -787,7 +802,7 @@ module.exports = [
         model: 'HG06463B',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 G95 filament bulb',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: extend.light_onoff_brightness({disableEffect: true, disablePowerOnBehavior: true}),
         meta: {turnsOffAtBrightness1: false},
     },
     {
@@ -810,7 +825,7 @@ module.exports = [
         model: 'HG06462A',
         vendor: 'Lidl',
         description: 'Livarno Lux E27 A60 filament bulb',
-        extend: extend.light_onoff_brightness({disableEffect: true}),
+        extend: extend.light_onoff_brightness({disableEffect: true, disablePowerOnBehavior: true}),
         meta: {turnsOffAtBrightness1: false},
     },
     {
@@ -830,7 +845,8 @@ module.exports = [
         model: 'HG08633',
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, preferHS: true, colorTempRange: [153, 500]}),
+        extend: extend.light_onoff_brightness_colortemp_color({supportsHS: true, preferHS: true, colorTempRange: [153, 500],
+            disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {enhancedHue: false},
     },
     {
@@ -838,7 +854,8 @@ module.exports = [
         model: 'HG08383B',
         vendor: 'Lidl',
         description: 'Livarno outdoor LED light chain',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 500], disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
@@ -873,7 +890,8 @@ module.exports = [
             exposes.binary('binary_one', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary one'),
             exposes.binary('binary_two', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown binary two'),
             exposes.binary('away_mode', ea.STATE, 'ON', 'OFF').withDescription('Away mode'),
-            exposes.composite('away_setting', 'away_setting').withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
+            exposes.composite('away_setting', 'away_setting', ea.STATE_SET)
+                .withFeature(e.away_preset_days()).setAccess('away_preset_days', ea.ALL)
                 .withFeature(e.away_preset_temperature()).setAccess('away_preset_temperature', ea.ALL)
                 .withFeature(exposes.numeric('away_preset_year', ea.ALL).withUnit('year').withDescription('Start away year 20xx'))
                 .withFeature(exposes.numeric('away_preset_month', ea.ALL).withUnit('month').withDescription('Start away month'))
@@ -881,7 +899,7 @@ module.exports = [
                 .withFeature(exposes.numeric('away_preset_hour', ea.ALL).withUnit('hour').withDescription('Start away hours'))
                 .withFeature(exposes.numeric('away_preset_minute', ea.ALL).withUnit('min').withDescription('Start away minutes')),
             ...['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                const expose = exposes.composite(day, day);
+                const expose = exposes.composite(day, day, ea.STATE_SET);
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
                     expose.withFeature(exposes.numeric(`${day}_temp_${i}`, ea.ALL).withValueMin(0.5)
                         .withValueMax(29.5).withValueStep(0.5).withUnit('°C').withDescription(`Temperature ${i}`));
@@ -901,7 +919,8 @@ module.exports = [
         model: 'HG08383A',
         vendor: 'Lidl',
         description: 'Livarno outdoor LED light chain',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        extend: extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 500], disableColorTempStartup: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
 ];

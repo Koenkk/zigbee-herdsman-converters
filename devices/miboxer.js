@@ -46,7 +46,7 @@ module.exports = [
         model: 'FUT036Z',
         description: 'Single color LED controller',
         vendor: 'Miboxer',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
         onEvent: tuya.onEventSetTime,
     },
     {
