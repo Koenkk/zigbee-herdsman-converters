@@ -653,6 +653,73 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TH1124ZB-G2'],
+        model: 'TH1124ZB-G2',
+        vendor: 'Sinopé',
+        description: 'Zigbee line volt thermostat',
+        fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.legacy.hvac_user_interface,
+            fz.electrical_measurement, fz.metering, fz.ignore_temperature_report],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
+            tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature,
+            tzLocal.thermostat_occupancy, tzLocal.main_cycle_output, tz.electrical_measurement_power],
+        exposes: [
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+                .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat'], ea.ALL, 'Mode of the thermostat')
+                .withPiHeatingDemand()
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
+                .withDescription('Occupancy state of the thermostat'),
+            exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
+                .withDescription('Control backlight dimming behavior'),
+            exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
+                .withDescription('Enables or disables the device’s buttons'),
+            exposes.enum('main_cycle_output', ea.ALL, ['15_sec', '15_min'])
+                .withDescription('The length of the control cycle: 15_sec=normal 15_min=fan'),
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy(),
+        ],
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = [
+                'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
+                'msTemperatureMeasurement', 'haElectricalMeasurement', 'seMetering',
+                'manuSpecificSinope'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
+            const thermostatDate = new Date();
+            const thermostatTimeSec = thermostatDate.getTime() / 1000;
+            const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+            const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
+            await endpoint.write('manuSpecificSinope', {currentTimeToDisplay}, manuSinope);
+            await endpoint.write('manuSpecificSinope', {'secondScreenBehavior': 0}, manuSinope); // Mode auto
+
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+
+            await reporting.temperature(endpoint, {min: 1, max: 0xFFFF}); // Disable default reporting
+            await endpoint.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'tolerance', minimumReportInterval: 1, maximumReportInterval: 0xFFFF, reportableChange: 1}]);
+
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 100}); // divider 1000: 0.1Arms
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 5}); // divider 10: 0.5Vrms
+
+            // Disable default reporting (not used by Sinope)
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xFFFF});
+            try {
+                await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            } catch (error) {/* Do nothing */}
+        },
+    },
+    {
         zigbeeModel: ['TH1300ZB'],
         model: 'TH1300ZB',
         vendor: 'Sinopé',
