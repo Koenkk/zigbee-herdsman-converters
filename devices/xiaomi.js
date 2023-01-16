@@ -2696,6 +2696,9 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+
+            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
+            utils.attachOutputCluster(device, 'genOta');
         },
         ota: ota.zigbeeOTA,
     },
