@@ -391,6 +391,8 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
 ];
