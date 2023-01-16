@@ -61,6 +61,18 @@ const tzLocal = {
             if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
         },
     },
+    TS110E_light_onoff_brightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            if (message.state === 'ON' || message.brightness > 1) {
+                // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
+                await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
+            }
+            return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+    },
     SA12IZL_silence_siren: {
         key: ['silence_siren'],
         convertSet: async (entity, key, value, meta) => {
@@ -3827,8 +3839,12 @@ module.exports = [
         description: '1 channel dimmer',
         fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
             .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
-        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+        toZigbee: utils.replaceInArray(
+            extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+                .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+            [tz.light_onoff_brightness],
+            [tzLocal.TS110E_light_onoff_brightness],
+        ),
         exposes: [e.light_brightness(), e.power_on_behavior(), tuya.exposes.switchType()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
