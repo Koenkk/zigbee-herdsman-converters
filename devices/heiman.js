@@ -738,6 +738,20 @@ module.exports = [
         exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
     },
     {
+        fingerprint: [{modelID: 'DoorBell-EF-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS2SS-E_V03',
+        vendor: 'HEIMAN',
+        description: 'Smart doorbell button',
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['HS3AQ-EFA-3.0'],
         model: 'HS3AQ',
         vendor: 'HEIMAN',
