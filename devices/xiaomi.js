@@ -67,127 +67,111 @@ const failure = (error) => {
 
 /**
  * @typedef {{
- *  regionId: number,
- *  action: 'create' | 'update',
- *  definition: Record<string, number[]>
- * }} AqaraFP1RegionConfigUpsertCommand
- *
- * @typedef {{
- *  regionId: number,
- *  action: 'delete',
- * }} AqaraFP1RegionConfigDeleteCommand
- *
- * @typedef {AqaraFP1RegionConfigUpsertCommand | AqaraFP1RegionConfigDeleteCommand} AqaraFP1RegionConfigCommand
+ *  x: number,
+ *  y: number,
+ * }} AqaraFP1RegionZone
  */
+
+// Note: this is valid typescript JSDoc
+// eslint-disable-next-line valid-jsdoc
+/**
+ * @param {unknown} value
+ * @returns {value is AqaraFP1RegionZone}
+ */
+const isAqaraFp1RegionZoneDefinition = (value) => {
+    return (
+        value &&
+        typeof value === 'object' &&
+        'x' in value &&
+        'y' in value &&
+        typeof value.x === 'number' &&
+        typeof value.y === 'number' &&
+        value.x >= definitions.aqara_fp1.region_config_zoneX_min &&
+        value.x <= definitions.aqara_fp1.region_config_zoneX_max &&
+        value.y >= definitions.aqara_fp1.region_config_zoneY_min &&
+        value.y <= definitions.aqara_fp1.region_config_zoneY_max
+    );
+};
+
+// Note: this is valid typescript JSDoc
+// eslint-disable-next-line valid-jsdoc
+/**
+ * @param {unknown} value
+ * @returns {value is number}
+ */
+const isAqaraFp1RegionId = (value) => {
+    return (
+        typeof value === 'number' &&
+        value >= definitions.aqara_fp1.region_config_regionId_min &&
+        value <= definitions.aqara_fp1.region_config_regionId_max
+    );
+};
 
 // Note: let TypeScript infer the return type to enable union discrimination
 // eslint-disable-next-line valid-jsdoc
 /**
- * @param {string} input
+ * @param {unknown} input
  */
-const parseAqaraFp1RegionsConfigInput = (input) => {
-    if (!input.length) {
-        return failure({isEmpty: true});
+const parseAqaraFp1RegionUpsertInput = (input) => {
+    if (!input || typeof input !== 'object') {
+        return failure({reason: 'NOT_OBJECT'});
     }
 
-    let inputJSON;
-
-    try {
-        inputJSON = JSON.parse(input);
-    } catch (error) {
-        return failure({isInvalid: true, invalidReason: 'INVALID_JSON'});
+    if (
+        !('region_id' in input) ||
+        !isAqaraFp1RegionId(input.region_id)
+    ) {
+        return failure({reason: 'INVALID_REGION_ID'});
     }
 
-    if (!Array.isArray(inputJSON)) {
-        return failure({isInvalid: true, invalidReason: 'NOT_ARRAY'});
+    if (
+        !('zones' in input) ||
+        !Array.isArray(input.zones) ||
+        !input.zones.length
+    ) {
+        return failure({reason: 'ZONES_LIST_EMPTY'});
     }
 
-    const hasInvalidEntry = inputJSON.some((entry) => {
-        // Missing / invalid regionId
-        if (
-            typeof entry.regionId !== 'number' ||
-            entry.regionId < definitions.aqara_fp1.region_config_regionId_min ||
-            entry.regionId > definitions.aqara_fp1.region_config_regionId_max
-        ) {
-            return true;
-        }
-
-        // Invalid action
-        if (![...mappers.aqara_fp1.region_config_cmd_type_names.values()].includes(entry.action)) {
-            return true;
-        }
-
-        // For "delete" action, there's nothing else to validate
-        const deleteActionType = definitions.aqara_fp1.region_config_cmd_types.Delete;
-        const deleteActionName = mappers.aqara_fp1.region_config_cmd_type_names.get(deleteActionType);
-        if (entry.action === deleteActionName) {
-            return false;
-        }
-
-        // Missing / invalid definition
-        if (
-            !entry.definition ||
-            !Object.entries(entry.definition).length
-        ) {
-            return true;
-        }
-
-        const hasInvalidDefinition = Object.entries(entry.definition).some(([rowYIdx, rowXMarkers]) => {
-            const rowYIdxNumber = parseInt(rowYIdx, 10);
-
-            // Invalid Y coordinate
-            if (
-                Number.isNaN(rowYIdxNumber) ||
-                rowYIdxNumber < definitions.aqara_fp1.region_config_zoneY_min ||
-                rowYIdxNumber > definitions.aqara_fp1.region_config_zoneY_max
-            ) {
-                return true;
-            }
-
-            // Invalid / empty X markers list
-            if (
-                !Array.isArray(rowXMarkers) ||
-                !rowXMarkers.length
-            ) {
-                return true;
-            }
-
-            const hasInvalidXMarker = rowXMarkers.some((rowXIdx) => {
-                const rowXIdxNumber = parseInt(rowXIdx, 10);
-
-                // Invalid X coordinate
-                if (
-                    Number.isNaN(rowXIdxNumber) ||
-                    rowXIdxNumber < definitions.aqara_fp1.region_config_zoneX_min ||
-                    rowXIdxNumber > definitions.aqara_fp1.region_config_zoneX_max
-                ) {
-                    return true;
-                }
-
-                return false;
-            });
-
-            return hasInvalidXMarker;
-        });
-
-        return hasInvalidDefinition;
-    });
-
-    if (hasInvalidEntry) {
-        return failure({hasInvalidCommand: true});
+    if (!input.zones.every(isAqaraFp1RegionZoneDefinition)) {
+        return failure({reason: 'INVALID_ZONES'});
     }
 
     return {
-        /**
-         * Ensure proper type narrowing & enable type discrimination
-         * @type true
-         */
+        /** @type true */
         isSuccess: true,
         payload: {
-            /**
-             * @type { Array<AqaraFP1RegionConfigCommand> }
-             */
-            commandsList: inputJSON,
+            command: {
+                region_id: input.region_id,
+                zones: input.zones,
+            },
+        },
+    };
+};
+
+// Note: let TypeScript infer the return type to enable union discrimination
+// eslint-disable-next-line valid-jsdoc
+/**
+ * @param {unknown} input
+ */
+const parseAqaraFp1RegionDeleteInput = (input) => {
+    if (!input || typeof input !== 'object') {
+        return failure({reason: 'NOT_OBJECT'});
+    }
+
+    if (
+        !('region_id' in input) ||
+        !isAqaraFp1RegionId(input.region_id)
+    ) {
+        return failure({reason: 'INVALID_REGION_ID'});
+    }
+
+    return {
+        /** @type true */
+        isSuccess: true,
+        payload: {
+            command: {
+                region_id: input.region_id,
+            },
         },
     };
 };
@@ -201,15 +185,15 @@ const encodeXCellIdx = (cellXIdx) => {
 };
 
 /**
- * @param {number[]} xCells
+ * @param {undefined | Set<number>} xCells
  * @return {number}
  */
 const encodeXCellsDefinition = (xCells) => {
-    if (!xCells.length) {
+    if (!xCells || !xCells.size) {
         return 0;
     }
 
-    return xCells.reduce((accumulator, marker) => {
+    return [...xCells.values()].reduce((accumulator, marker) => {
         return accumulator + encodeXCellIdx(marker);
     }, 0);
 };
@@ -665,99 +649,123 @@ const tzLocal = {
             return {state: {[key]: value}};
         },
     },
-    aqara_fp1_regions_config: {
-        key: ['regions_config'],
+    aqara_fp1_region_upsert: {
+        key: ['region_upsert'],
         convertSet: async (entity, key, value, meta) => {
-            const createLoggerMsg = createLoggerMsgMaker('aqara_fp1');
+            const createLoggerMsg = createLoggerMsgMaker('aqara_fp1:region_upsert');
+            const commandWrapper = parseAqaraFp1RegionUpsertInput(value);
 
-            const commandsListWrapper = parseAqaraFp1RegionsConfigInput(value);
-
-            if (!commandsListWrapper.isSuccess) {
-                if (commandsListWrapper.error.isEmpty) {
-                    meta.logger.debug(createLoggerMsg(`regions_config: no configuration commands provided, ignoring`));
-
-                    return;
-                }
-                if (commandsListWrapper.error.isInvalid) {
-                    meta.logger.warn(createLoggerMsg(
-                        `regions_config: ignoring invalid JSON (input: ${value}) ` +
-                        `(reason: ${commandsListWrapper.error.invalidReason})`,
-                    ));
-
-                    return;
-                }
-                if (commandsListWrapper.error.hasInvalidCommand) {
-                    meta.logger.warn(createLoggerMsg(`regions_config: provided input contains an invalid command (input: ${value})`));
-
-                    return;
-                }
-
-                meta.logger.warn(createLoggerMsg(`regions_config: unknown error while parsing configuration commands (input: ${value})`));
+            if (!commandWrapper.isSuccess) {
+                meta.logger.warn(createLoggerMsg(
+                    `encountered an error (${commandWrapper.error.reason}) ` +
+                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                ));
 
                 return;
             }
 
-            for (const command of commandsListWrapper.payload.commandsList) {
-                meta.logger.debug(createLoggerMsg(`trying to ${command.action} region ${command.regionId}`));
+            const command = commandWrapper.payload.command;
 
-                const actionTypeCodeEntry = [...mappers.aqara_fp1.region_config_cmd_type_names.entries()]
-                    .find(([actionTypeCode, actionName]) => {
-                        return actionName === command.action;
-                    });
+            meta.logger.debug(createLoggerMsg(`trying to create region ${command.region_id}`));
 
-                if (!actionTypeCodeEntry) {
-                    meta.logger.debug(createLoggerMsg(
-                        `regions_config: unexpected error, ` +
-                        `no action type mapping for '${command.action}', ignoring`,
-                    ));
+            /** @type {Record<string, Set<number>>} */
+            const sortedZonesAccumulator = {};
+            const sortedZones = command.zones
+                .reduce(
+                    (accumulator, zone) => {
+                        if (!accumulator[zone.y]) {
+                            accumulator[zone.y] = new Set();
+                        }
 
-                    continue;
-                }
+                        accumulator[zone.y].add(zone.x);
 
-                const actionTypeCode = actionTypeCodeEntry[0];
-                const isDeleteCommand = (actionTypeCode == definitions.aqara_fp1.region_config_cmd_types.Delete);
+                        return accumulator;
+                    },
+                    sortedZonesAccumulator,
+                );
 
-                const deviceConfig = new Uint8Array(7);
+            const deviceConfig = new Uint8Array(7);
 
-                deviceConfig[0] = actionTypeCode;
-                deviceConfig[1] = command.regionId;
-                deviceConfig[6] = isDeleteCommand ?
-                    definitions.aqara_fp1.region_config_cmd_suffix_delete :
-                    definitions.aqara_fp1.region_config_cmd_suffix_upsert;
+            // Command parameters
+            deviceConfig[0] = definitions.aqara_fp1.region_config_cmds.create;
+            deviceConfig[1] = command.region_id;
+            deviceConfig[6] = definitions.aqara_fp1.region_config_cmd_suffix_upsert;
+            // Zones definition
+            deviceConfig[2] |= encodeXCellsDefinition(sortedZones['1']);
+            deviceConfig[2] |= encodeXCellsDefinition(sortedZones['2']) << 4;
+            deviceConfig[3] |= encodeXCellsDefinition(sortedZones['3']);
+            deviceConfig[3] |= encodeXCellsDefinition(sortedZones['4']) << 4;
+            deviceConfig[4] |= encodeXCellsDefinition(sortedZones['5']);
+            deviceConfig[4] |= encodeXCellsDefinition(sortedZones['6']) << 4;
+            deviceConfig[5] |= encodeXCellsDefinition(sortedZones['7']);
 
-                if (!isDeleteCommand) {
-                    deviceConfig[2] |= encodeXCellsDefinition(command.definition['1'] || []);
-                    deviceConfig[2] |= encodeXCellsDefinition(command.definition['2'] || []) << 4;
-                    deviceConfig[3] |= encodeXCellsDefinition(command.definition['3'] || []);
-                    deviceConfig[3] |= encodeXCellsDefinition(command.definition['4'] || []) << 4;
-                    deviceConfig[4] |= encodeXCellsDefinition(command.definition['5'] || []);
-                    deviceConfig[4] |= encodeXCellsDefinition(command.definition['6'] || []) << 4;
-                    deviceConfig[5] |= encodeXCellsDefinition(command.definition['7'] || []);
-                } else {
-                    deviceConfig[2] |= 0;
-                    deviceConfig[3] |= 0;
-                    deviceConfig[4] |= 0;
-                    deviceConfig[5] |= 0;
-                }
+            meta.logger.info(createLoggerMsg(
+                `create region ${command.region_id} ` +
+                `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
+            ));
 
-                meta.logger.info(createLoggerMsg(
-                    `regions_config: ${command.action} region ${command.regionId} ` +
-                    `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
+            await entity.write(
+                'aqaraOpple',
+                {
+                    [definitions.aqara_fp1.region_config_write_attribute]: {
+                        value: deviceConfig,
+                        type: definitions.aqara_fp1.region_config_write_attribute_type,
+                    },
+                },
+                {
+                    manufacturerCode: manufacturerCodes.xiaomi,
+                },
+            );
+        },
+    },
+    aqara_fp1_region_delete: {
+        key: ['region_delete'],
+        convertSet: async (entity, key, value, meta) => {
+            const createLoggerMsg = createLoggerMsgMaker('aqara_fp1:region_delete');
+            const commandWrapper = parseAqaraFp1RegionDeleteInput(value);
+
+            if (!commandWrapper.isSuccess) {
+                meta.logger.warn(createLoggerMsg(
+                    `encountered an error (${commandWrapper.error.reason}) ` +
+                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
                 ));
 
-                await entity.write(
-                    'aqaraOpple',
-                    {
-                        [definitions.aqara_fp1.region_config_write_attribute]: {
-                            value: deviceConfig,
-                            type: definitions.aqara_fp1.region_config_write_attribute_type,
-                        },
-                    },
-                    {
-                        manufacturerCode: manufacturerCodes.xiaomi,
-                    },
-                );
+                return;
             }
+
+            const command = commandWrapper.payload.command;
+
+            meta.logger.debug(createLoggerMsg(`trying to delete region ${command.region_id}`));
+
+            const deviceConfig = new Uint8Array(7);
+
+            // Command parameters
+            deviceConfig[0] = definitions.aqara_fp1.region_config_cmds.delete;
+            deviceConfig[1] = command.region_id;
+            deviceConfig[6] = definitions.aqara_fp1.region_config_cmd_suffix_delete;
+            // Zones definition
+            deviceConfig[2] = 0;
+            deviceConfig[3] = 0;
+            deviceConfig[4] = 0;
+            deviceConfig[5] = 0;
+
+            meta.logger.info(createLoggerMsg(
+                `delete region ${command.region_id} ` +
+                `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
+            ));
+
+            await entity.write(
+                'aqaraOpple',
+                {
+                    [definitions.aqara_fp1.region_config_write_attribute]: {
+                        value: deviceConfig,
+                        type: definitions.aqara_fp1.region_config_write_attribute_type,
+                    },
+                },
+                {
+                    manufacturerCode: manufacturerCodes.xiaomi,
+                },
+            );
         },
     },
 };
@@ -1820,7 +1828,8 @@ module.exports = [
         fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
         toZigbee: [
             tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
-            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_regions_config,
+            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status,
+            tzLocal.aqara_fp1_region_upsert, tzLocal.aqara_fp1_region_delete,
         ],
         exposes: [
             e.presence().withAccess(ea.STATE_GET),
@@ -1835,16 +1844,47 @@ module.exports = [
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
             e.device_temperature(), e.power_outage_count(),
-            exposes.text('regions_config', ea.SET).withDescription('Input used to update device\'s regions configuration. ' +
-                'Provide a JSON-encoded array of commands to be sent to the device, to either "create", "modify" or "delete" regions. ' +
-                'Creating or modifying a region requires zone definitions, specifying which zones of a 7x4 detection grid ' +
-                'should be active for that zone. An example command for creating a new zone: ' +
-                '[{"regionId": 1, "action": "create", "definition": {"1": [1, 2]}}]. ' +
-                'More information available on the Z2M documentation page (https://www.zigbee2mqtt.io/devices/RTCZCGQ11LM.html).'),
             exposes.enum('region_event', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
                 'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
                 'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
                 '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
+            exposes.composite('region_upsert', 'region_upsert', ea.SET)
+                .withDescription(
+                    'Definition of a new region to be added (or replace existing one). ' +
+                    'Creating or modifying a region requires you to define which zones of a 7x4 detection grid ' +
+                    'should be active for that zone. Regions can overlap, meaning that a zone can be defined ' +
+                    'in more than one region (eg. "zone x = 1 & y = 1" can be added to region 1 & 2). ' +
+                    '"Zone x = 1 & y = 1" is the nearest zone on the right (from sensor\'s perspective, along the detection path).',
+                )
+                .withFeature(
+                    exposes.numeric('region_id', ea.SET)
+                        .withValueMin(definitions.aqara_fp1.region_config_regionId_min)
+                        .withValueMax(definitions.aqara_fp1.region_config_regionId_max),
+                )
+                .withFeature(
+                    exposes.list(
+                        'zones',
+                        ea.SET,
+                        exposes.composite('zone_position', ea.SET)
+                            .withFeature(
+                                exposes.numeric('x', ea.SET)
+                                    .withValueMin(definitions.aqara_fp1.region_config_zoneX_min)
+                                    .withValueMax(definitions.aqara_fp1.region_config_zoneX_max),
+                            )
+                            .withFeature(
+                                exposes.numeric('y', ea.SET)
+                                    .withValueMin(definitions.aqara_fp1.region_config_zoneY_min)
+                                    .withValueMax(definitions.aqara_fp1.region_config_zoneY_max),
+                            ),
+                    ),
+                ),
+            exposes.composite('region_delete', 'region_delete', ea.SET)
+                .withDescription('Region definition to be deleted from the device.')
+                .withFeature(
+                    exposes.numeric('region_id', ea.SET)
+                        .withValueMin(definitions.aqara_fp1.region_config_regionId_min)
+                        .withValueMax(definitions.aqara_fp1.region_config_regionId_max),
+                ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
