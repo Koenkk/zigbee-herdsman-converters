@@ -135,9 +135,17 @@ module.exports = [
             allowing to see it in the dark`)],
     },
     {
-        // swbuildid 001a requires coverInverted: https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
-        fingerprint: [{modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'}],
-        model: '067776_001a',
+        // Some require coverInverted:
+        // - https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
+        // - https://github.com/Koenkk/zigbee2mqtt/issues/16090
+        fingerprint: [
+            {modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'},
+            {modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID:
+                '00d\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u00000\u0012\u0002\u0000' +
+                '\t\u0007\u0000\u0018\u0002\u0003\b\u0000 \u00132\u0000\u0000\u0000\u0000X\u0002\n\u0000\u0000\u0000\u0000d' +
+                '\u0017\u0000\u0018\u0000'},
+        ],
+        model: '067776_inverted',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
