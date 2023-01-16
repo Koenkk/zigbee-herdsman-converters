@@ -9,7 +9,7 @@ const ea = exposes.access;
 module.exports = [
     {
         fingerprint: [{modelID: 'TS0219', manufacturerName: '_TZ3000_vdfwjopk'}],
-        model: 'IK117089',
+        model: 'SA100',
         vendor: 'Cleverio',
         description: 'Smart siren',
         fromZigbee: [fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
@@ -24,9 +24,8 @@ module.exports = [
     },
     },
     {
-        zigbeeModel: ['TS0041A'],
-        fingerprint: [{manufacturerName: '_TYZB01_4qw4rl1u'}],
-        model: 'TS0041A',
+        fingerprint: [{modelID: 'TS0041A', manufacturerName: '_TYZB01_4qw4rl1u'}],
+        model: 'SB100',
         vendor: 'Cleverio',
         description: 'Wireless switch with 1 button',
         exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
@@ -36,11 +35,10 @@ module.exports = [
 
     },
     {
-        zigbeeModel: ['TS0203'],
-        model: 'TS0203',
+        model: 'SS100',
         vendor: 'Cleverio',
         description: 'Door sensor',
-        fingerprint: [{manufacturerName: '_TYZB01_yet4gkcj'}],
+        fingerprint: [{modelID: 'TS0203', manufacturerName: '_TYZB01_yet4gkcj'}],
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
