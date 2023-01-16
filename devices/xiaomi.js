@@ -115,11 +115,6 @@ const fzLocal = {
                 case 0x0275:
                     result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
-                case 0x00f7:
-                    result['valve_alarm'] ={1: true, 0: false}[value.readUInt32LE(36)];
-                    result['occupied_heating_setpoint'] = value.readUint16LE(32)/100;
-                    result['local_temperature'] = value.readUint16LE(28)/100;
-                    break;
                 case 0x027d:
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
