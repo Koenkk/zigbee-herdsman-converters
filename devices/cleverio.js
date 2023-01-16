@@ -20,8 +20,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
-        await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-    },
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0041A', manufacturerName: '_TYZB01_4qw4rl1u'}],
