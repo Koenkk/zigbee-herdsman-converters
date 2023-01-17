@@ -102,7 +102,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['915005996801', '915005996901'],
+        zigbeeModel: ['915005996801', '915005996901', '929003574401'],
         model: '915005996901',
         vendor: 'Philips',
         description: 'Hue white ambiance ceiling light Enrave L with Bluetooth',
