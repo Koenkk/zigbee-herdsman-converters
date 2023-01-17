@@ -69,7 +69,7 @@ module.exports = [
         model: 'SM324', 
         vendor: 'Samotech',
         description: 'Samotech 220V Zigbee CCT LED Dimmer',
-        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true, colorTempRange: [150, 500]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
