@@ -410,7 +410,7 @@ const definition = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
