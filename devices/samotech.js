@@ -64,9 +64,9 @@ module.exports = [
             await reporting.brightness(endpoint);
         },
     },
-        {
-        zigbeeModel: ['SM324'], 
-        model: 'SM324', 
+    {
+        zigbeeModel: ['SM324'],
+        model: 'SM324',
         vendor: 'Samotech',
         description: 'Samotech 220V Zigbee CCT LED Dimmer',
         extend: extend.light_onoff_brightness_colortemp({noConfigure: true, colorTempRange: [150, 500]}),
