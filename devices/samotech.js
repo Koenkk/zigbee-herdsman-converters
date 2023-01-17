@@ -64,4 +64,19 @@ module.exports = [
             await reporting.brightness(endpoint);
         },
     },
+        {
+        zigbeeModel: ['SM324'], 
+        model: 'SM324', 
+        vendor: 'Samotech',
+        description: 'Samotech 220V Zigbee CCT LED Dimmer',
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            await reporting.colorTemperature(endpoint);
+        },
+    },
 ];
