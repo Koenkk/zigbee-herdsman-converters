@@ -2551,12 +2551,6 @@ const converters = {
             }
         },
     },
-    lidl_watering_timer: {
-        key: ['timer'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointRaw(entity, tuya.dataPoints.lidlTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
-        },
-    },
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: async (entity, key, value, meta) => {

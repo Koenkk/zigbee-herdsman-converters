@@ -8,6 +8,13 @@ const ea = exposes.access;
 const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
+const utils = require('../lib/utils');
+
+const constantsLocal = {
+    parksideWateringDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+    parksideWateringScheduleMode: {WEEKDAY: 0, PERIODIC: 1},
+    parksideWateringCycles: [1, 2, 3, 4, 5, 6],
+};
 
 const tuyaLocal = {
     dataPoints: {
@@ -33,6 +40,20 @@ const tuyaLocal = {
         zsScheduleFriday: 113,
         zsScheduleSaturday: 114,
         zsScheduleSunday: 115,
+        parksideWateringTimer: 5,
+        parksideWateringTimeLeft: 6,
+        parksideWateringBattery: 11,
+        parksideWateringCycle: {
+            1: 101,
+            2: 102,
+            3: 103,
+            4: 104,
+            5: 105,
+            6: 106,
+        },
+        parksideWateringScheduleMode: 107,
+        parksideWateringFrostGuard: 108,
+        parksideWateringFrostGuardReset: 109,
     },
 };
 
@@ -139,6 +160,160 @@ const fzLocal = {
             default:
                 meta.logger.warn(`zigbee-herdsman-converters:zsThermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
+        },
+    },
+    parkside_watering_timer: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp; // First we get the data point ID
+                const value = tuya.getDataValue(dpValue); // This function will take care of converting the data to proper JS type
+                switch (dp) {
+                case tuya.dataPoints.state:
+                    result.state = value ? 'ON' : 'OFF';
+                    if (result.state === 'OFF') {
+                        result.time_left = 0;
+                    }
+                    break;
+                case tuyaLocal.dataPoints.parksideWateringTimer:
+                    // value reported in minutes
+                    result.timer = value;
+                    break;
+                case tuyaLocal.dataPoints.parksideWateringTimeLeft: {
+                    // value reported in minutes
+                    result.time_left = value;
+                    break;
+                }
+                case tuyaLocal.dataPoints.parksideWateringBattery: {
+                    // value reported in percent
+                    result.battery = value;
+                    break;
+                }
+                case tuyaLocal.dataPoints.parksideWateringFrostGuard: {
+                    result.frost_guard = value;
+                    break;
+                }
+                case tuyaLocal.dataPoints.parksideWateringCycle['1']:
+                case tuyaLocal.dataPoints.parksideWateringCycle['2']:
+                case tuyaLocal.dataPoints.parksideWateringCycle['3']:
+                case tuyaLocal.dataPoints.parksideWateringCycle['4']:
+                case tuyaLocal.dataPoints.parksideWateringCycle['5']:
+                case tuyaLocal.dataPoints.parksideWateringCycle['6']: {
+                    const buffer = value;
+                    const timeSlotNumber = Object.keys(tuyaLocal.dataPoints.parksideWateringCycle).find((key) =>
+                        tuyaLocal.dataPoints.parksideWateringCycle[key] === dp);
+                    if (timeSlotNumber != null) {
+                        result[`time_slot_${timeSlotNumber}_state`] = buffer.readUInt8(0) === 1 ? 'ON' : 'OFF';
+                        result[`time_slot_${timeSlotNumber}_start_hour`] = buffer.readUInt8(1);
+                        result[`time_slot_${timeSlotNumber}_start_minute`] = buffer.readUInt8(2);
+                        result[`time_slot_${timeSlotNumber}_timer`] = buffer.readUInt8(3) * 60 + buffer.readUInt8(4);
+                        result[`time_slot_${timeSlotNumber}_pause`] = buffer.readUInt8(6) * 60 + buffer.readUInt8(7);
+                        result[`time_slot_${timeSlotNumber}_iterations`] = buffer.readUInt8(9);
+                    }
+                    break;
+                }
+                case tuyaLocal.dataPoints.parksideWateringScheduleMode: {
+                    const [scheduleMode, scheduleValue] = value;
+
+                    // mode weekday
+                    constantsLocal.parksideWateringDays.forEach((dayName, index) => {
+                        result[`schedule_${dayName}`] = scheduleMode === constantsLocal.parksideWateringScheduleMode.WEEKDAY &&
+                            (scheduleValue & (1 << index)) > 0 ? 'ON' : 'OFF';
+                    });
+                    // mode periodic
+                    result.schedule_periodic = scheduleMode === constantsLocal.parksideWateringScheduleMode.PERIODIC ? scheduleValue : 0;
+                    // current mode
+                    result.schedule_mode = scheduleValue === 0 ?
+                        'OFF' : Object.keys(constantsLocal.parksideWateringScheduleMode)[scheduleMode];
+                    break;
+                }
+                default: {
+                    meta.logger.warn(`zigbee-herdsman-converters:Parkside Watering Timer: NOT RECOGNIZED DP #${dp}` +
+                        `with data ${JSON.stringify(dpValue)}`);
+                }
+                }
+            }
+
+            // Setup workaorund for time_left reporting
+            // Background: Device reports the real time_left value only on manual watering,
+            // for scheduled watering it will report just '0' in the beginning and at the end
+            // Indications when the watering was triggered by automatic scheduler:
+            // - current state is on
+            // - automatic scheduling was enabled before
+            // - time_left was reported as 0
+            // - current hour & minute matches scheduling period
+            if (!globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot') && result.state === 'ON' &&
+                meta.state.schedule_mode !== 'OFF' && meta.state.time_left === 0) {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                // todo verify that watering is on for today!!
+                const timeSlotNumber = constantsLocal.parksideWateringCycles.find((timeSlotNumber) =>
+                    meta.state[`time_slot_${timeSlotNumber}_state`] === 'ON' &&
+                    meta.state[`time_slot_${timeSlotNumber}_start_hour`] === hours &&
+                    meta.state[`time_slot_${timeSlotNumber}_start_minute`] === minutes &&
+                    meta.state[`time_slot_${timeSlotNumber}_timer`] > 0,
+                );
+
+                if (timeSlotNumber) {
+                    // automatic watering detected, store end time
+                    const wateringDuration = meta.state[`time_slot_${timeSlotNumber}_timer`];
+                    const wateringPause = meta.state[`time_slot_${timeSlotNumber}_pause`];
+                    const iterations = meta.state[`time_slot_${timeSlotNumber}_iterations`];
+
+                    globalStore.putValue(msg.endpoint, 'watering_timer_active_time_slot', {
+                        timeslot_start_timestamp: now.getTime(),
+                        timer: wateringDuration,
+                        pause: wateringPause,
+                        iteration_duration: wateringDuration + wateringPause,
+                        iterations: Math.max(iterations, 1),
+                        iteration_report: false, // will be set later
+                        iteration_timestamp: 0, // will be set later
+                    });
+                }
+            }
+
+            // Verify that we still have to workaround the missing time_left update
+            if (globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot')) {
+                const wateringTimeSlot = globalStore.getValue(msg.endpoint, 'watering_timer_active_time_slot');
+                const maximumEndTime = wateringTimeSlot.timeslot_start_timestamp +
+                    (wateringTimeSlot.iterations * wateringTimeSlot.iteration_duration * 60 * 1000);
+
+                // workaround is no longer necessary when:
+                // - time slot execution is already completed
+                // - time slot was interrupted by manual watering
+                const timeSlotCompleted = Date.now() > maximumEndTime;
+                const manualWateringDetected = result.state !== meta.state.state && result.state === 'ON' && meta.state.time_left > 0;
+                const turnOffDetected = result.state !== meta.state.state && result.state === 'OFF';
+                const automaticWateringDetected = result.state !== meta.state.state && result.state === 'ON' && meta.state.time_left === 0;
+                if (timeSlotCompleted || manualWateringDetected) {
+                    // reporting no longer necessary
+                    globalStore.clearValue(msg.endpoint, 'watering_timer_active_time_slot');
+                } else if (turnOffDetected) {
+                    // disable reporting for this iteration
+                    wateringTimeSlot.iteration_report = false;
+                } else if (automaticWateringDetected) {
+                    wateringTimeSlot.iteration_report = true;
+                    wateringTimeSlot.iteration_timestamp = Date.now();
+                }
+            }
+
+            // report manually
+            if (globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot')) {
+                const wateringTimeSlot = globalStore.getValue(msg.endpoint, 'watering_timer_active_time_slot');
+                if (result.time_left === undefined && wateringTimeSlot.iteration_report) {
+                    const now = Date.now();
+                    const wateringEndTime = wateringTimeSlot.iteration_timestamp + (wateringTimeSlot.timer * 60 * 1000);
+                    const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
+                    if (timeLeftInMinutes > 0) {
+                        result.time_left = timeLeftInMinutes;
+                    }
+                }
+            }
+
+            return result;
         },
     },
 };
@@ -355,6 +530,97 @@ const tzLocal = {
             if (value > 0) value = value*10;
             if (value < 0) value = value*10 + 0x100000000;
             await tuya.sendDataPointRaw(entity, (109+day-1), results);
+        },
+    },
+    parkside_watering_on_off: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            // use tuya dp to send state cause genOnOff is buggy and accept everything, even if the device is disabled due to frost
+            const state = value ? value.toLowerCase() : null;
+            utils.validateValue(state, ['off', 'on']);
+            await tuya.sendDataPointBool(entity, tuya.dataPoints.state, state === 'on');
+        },
+    },
+    parkside_watering_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointRaw(entity, tuyaLocal.dataPoints.parksideWateringTimer, tuya.convertDecimalValueTo4ByteHexArray(value));
+        },
+    },
+    parkside_watering_frost_guard_reset: {
+        key: ['frost_guard_reset'],
+        convertSet: async (entity, key, value, meta) => {
+            await tuya.sendDataPointEnum(entity, tuyaLocal.dataPoints.parksideWateringFrostGuardReset, 0 /* reset /*/);
+        },
+    },
+    parkside_watering_timer_schedule_weekday: {
+        key: ['schedule_weekday'],
+        convertSet: async (entity, key, value, meta) => {
+            const dayValues = constantsLocal.parksideWateringDays.map((dayName) =>
+                utils.getObjectProperty(value, `schedule_${dayName}`, meta.state[`schedule_${dayName}`]));
+
+            const scheduleValue = dayValues.reduce((dayConfig, value, index) => {
+                return dayConfig | (value === 'ON' ? 1 << index : 0);
+            }, 0);
+
+            const scheduleMode = constantsLocal.parksideWateringScheduleMode.WEEKDAY;
+            await tuya.sendDataPointRaw(entity, tuyaLocal.dataPoints.parksideWateringScheduleMode, [scheduleMode, scheduleValue]);
+        },
+    },
+    parkside_watering_timer_schedule_periodic: {
+        key: ['schedule_periodic'],
+        convertSet: async (entity, key, value, meta) => {
+            const scheduleValue = value;
+
+            if (!(scheduleValue >= 0 && scheduleValue <= 6)) {
+                throw new Error('schedule_periodic is out of bounds!');
+            }
+
+            const scheduleMode = scheduleValue > 0 ? constantsLocal.parksideWateringScheduleMode.PERIODIC :
+                constantsLocal.parksideWateringScheduleMode.WEEKDAY;
+            await tuya.sendDataPointRaw(entity, tuyaLocal.dataPoints.parksideWateringScheduleMode, [scheduleMode, scheduleValue]);
+        },
+    },
+    parkside_watering_timer_schedule_time_slot: {
+        key: constantsLocal.parksideWateringCycles.map((timeSlotNumber) => `time_slot_${timeSlotNumber}`),
+        convertSet: async (entity, key, value, meta) => {
+            const timeSlotNumber = Number(key.slice(-1));
+            const timeSlotDp = tuyaLocal.dataPoints.parksideWateringCycle[timeSlotNumber];
+
+            if (timeSlotDp == null) {
+                throw new Error(`Time slot ${timeSlotNumber} does not exist!`);
+            }
+
+            const state = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_state`,
+                meta.state[`time_slot_${timeSlotNumber}_state`]);
+            const startHour = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_start_hour`,
+                meta.state[`time_slot_${timeSlotNumber}_start_hour`]);
+            const startMinute = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_start_minute`,
+                meta.state[`time_slot_${timeSlotNumber}_start_minute`]);
+            const totalDurationInMinutes = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_timer`,
+                meta.state[`time_slot_${timeSlotNumber}_timer`]);
+            const durationHours = Math.floor(totalDurationInMinutes / 60);
+            const durationMinutes = totalDurationInMinutes % 60;
+            const totalPauseInMinutes = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_pause`,
+                meta.state[`time_slot_${timeSlotNumber}_pause`]);
+            const pauseHours = Math.floor(totalPauseInMinutes / 60);
+            const pauseMinutes = totalPauseInMinutes % 60;
+            const iterations = utils.getObjectProperty(value, `time_slot_${timeSlotNumber}_iterations`,
+                meta.state[`time_slot_${timeSlotNumber}_iterations`]);
+
+            // todo iterations is only working when there is a delay of >= 1min!!!
+            await tuya.sendDataPointRaw(entity, timeSlotDp, [
+                state === 'ON' ? 1 : 0, // time slot enabled or not
+                startHour, // start hour
+                startMinute, // start minute
+                durationHours, // duration for n hours
+                durationMinutes, // + n minutes
+                0, // ?? -> always 0???
+                pauseHours, // pause in hours
+                pauseMinutes, // pause in minutes
+                0, // ?? -> always 0? ??
+                iterations, // iterations
+            ]);
         },
     },
 };
@@ -782,12 +1048,71 @@ module.exports = [
         model: 'PSBZS A1',
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
-        fromZigbee: [fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tz.lidl_watering_timer],
-        onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint, logger) => {},
-        exposes: [e.switch(), exposes.numeric('timer', ea.SET).withValueMin(1).withValueMax(10000)
-            .withUnit('min').withDescription('Auto off after specific time.')],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, fzLocal.parkside_watering_timer],
+        toZigbee: [
+            tzLocal.parkside_watering_on_off,
+            tzLocal.parkside_watering_timer,
+            tzLocal.parkside_watering_frost_guard_reset,
+            tzLocal.parkside_watering_timer_schedule_weekday,
+            tzLocal.parkside_watering_timer_schedule_periodic,
+            tzLocal.parkside_watering_timer_schedule_time_slot,
+        ],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            // no idea why, but we have to wait, otherwise the next request will fail!
+            await utils.sleep(1000);
+            // activate reporting
+            await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            // set reporting interval of genOnOff to max to "disable" it
+            // background: genOnOff reporting does not respect timer or button, that makes the on/off reporting pretty unreliable
+            // the device is reporting it's state change anyway via tuya DPs, so we  just lose the continuous state report
+            await reporting.onOff(endpoint, {max: 0xFFFF});
+            await tuya.sendDataPointEnum(endpoint, tuyaLocal.dataPoints.parksideWateringFrostGuard, 0);
+            await tuya.sendDataPointEnum(endpoint, tuyaLocal.dataPoints.parksideWateringFrostGuardReset, 0);
+        },
+        exposes: [
+            e.battery(),
+            e.switch().setAccess('state', ea.STATE_SET),
+            exposes.numeric('timer', ea.STATE_SET).withValueMin(0).withValueMax(9 * 60 + 59).withUnit('min')
+                .withDescription('Auto off after specific time for manual watering.'),
+            exposes.numeric('time_left', ea.STATE).withUnit('min').withDescription('Remaining time until the watering turns off.'),
+            exposes.enum('schedule_mode', ea.STATE, ['OFF', ...Object.keys(constantsLocal.parksideWateringScheduleMode)])
+                .withDescription('Scheduling mode that is currently in use.'),
+            exposes.numeric('schedule_periodic', ea.STATE_SET).withValueMin(0).withValueMax(7).withUnit('day')
+                .withDescription('Periodic watering by interval: Irrigate every n days'),
+            // note: composite doesn't work with home assistant
+            (() => {
+                let composite = exposes .composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
+                    .withDescription('Watering by Weekday: Irrigate individually for each day.');
+                constantsLocal.parksideWateringDays.forEach((dayName) => {
+                    composite = composite.withFeature(exposes.binary(`schedule_${dayName}`, ea.STATE_SET, 'ON', 'OFF'));
+                });
+
+                return composite;
+            })(),
+            ...constantsLocal.parksideWateringCycles.map((timeSlotNumber) => exposes
+                .composite(`time_slot_${timeSlotNumber}`, `time_slot_${timeSlotNumber}`, ea.STATE_SET)
+                .withDescription(`Watering time slot ${timeSlotNumber}`)
+                .withFeature(exposes.binary(`time_slot_${timeSlotNumber}_state`, ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('On/off state of the time slot'))
+                .withFeature(exposes.numeric(`time_slot_${timeSlotNumber}_start_hour`, ea.STATE_SET).withUnit('h').withValueMin(0)
+                    .withValueMax(23).withDescription('Starting time (hour)'))
+                .withFeature(exposes.numeric(`time_slot_${timeSlotNumber}_start_minute`, ea.STATE_SET).withUnit('min').withValueMin(0)
+                    .withValueMax(59).withDescription('Starting time (minute)'))
+                .withFeature(exposes.numeric(`time_slot_${timeSlotNumber}_timer`, ea.STATE_SET).withUnit('min').withValueMin(1)
+                    .withValueMax(9 * 60 + 59).withDescription('Auto off after specific time for scheduled watering.'))
+                .withFeature(exposes.numeric(`time_slot_${timeSlotNumber}_pause`, ea.STATE_SET).withUnit('min').withValueMin(0)
+                    .withValueMax(9 * 60 + 59).withDescription('Pause after each iteration.'))
+                .withFeature(exposes.numeric(`time_slot_${timeSlotNumber}_iterations`, ea.STATE_SET).withValueMin(1).withValueMax(9)
+                    .withDescription('Number of watering iterations.')), // TODO MIN MAX
+            ),
+            exposes.binary('frost_guard', ea.STATE, 'true', 'false').withDescription('Indicates if the frost guard is currently active. ' +
+                'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
+                'You need to disable the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.'),
+            exposes.enum('frost_guard_reset', ea.SET, ['Reset']).withDescription('Resets frost_guard to make the device workable again.'),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_j2w1dw29'}],
