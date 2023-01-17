@@ -4010,7 +4010,11 @@ const converters = {
             case tuya.dataPoints.moesChildLock:
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             case tuya.dataPoints.moesHeatingSetpoint:
-                return {current_heating_setpoint: value};
+                temperature = value;
+                if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb', '_TZE200_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    temperature = value / 10;
+                }
+                return {current_heating_setpoint: parseFloat(temperature.toFixed(1))};
             case tuya.dataPoints.moesMinTempLimit:
                 return {min_temperature_limit: value};
             case tuya.dataPoints.moesMaxTempLimit:
