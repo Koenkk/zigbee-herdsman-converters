@@ -2715,13 +2715,38 @@ module.exports = [
             exposes.binary('window_open', ea.STATE, true, false),
             e.valve_detection().setAccess('state', ea.ALL),
             e.away_preset_temperature().withAccess(ea.ALL),
+            e.battery_voltage(),
+            e.battery(),
             exposes.switch().withState('schedule', true,
                 'When being ON, the thermostat will change its state based on your settings',
                 ea.ALL, 'ON', 'OFF'),
-            exposes.text('schedule_settings', ea.ALL)
-                .withDescription('Smart schedule configuration (also exposed as JSON object through "schedule_settings_json")'),
-            e.battery_voltage(),
-            e.battery(),
+            exposes.composite('Schedule', 'schedule_settings', ea.ALL)
+                .withFeature(exposes.composite('Days', 'days')
+                    .withFeature(exposes.switch().withState('mon', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('tue', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('wed', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('thu', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('fri', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('sat', true, undefined, ea.STATE_SET))
+                    .withFeature(exposes.switch().withState('sun', true, undefined, ea.STATE_SET)),
+                )
+                .withFeature(exposes.composite('Start', 'start')
+                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
+                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
+                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
+                .withFeature(exposes.composite('Intermediate 1', 'intermediate1')
+                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
+                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
+                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
+                .withFeature(exposes.composite('Intermediate 2', 'intermediate2')
+                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
+                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
+                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
+                .withFeature(exposes.composite('End', 'end')
+                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
+                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
+                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
+                .withDescription('Smart schedule configuration'),
         ],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
