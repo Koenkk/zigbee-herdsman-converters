@@ -2810,10 +2810,24 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003054501'],
+        model: '929003054501',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth (white)',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003054601'],
         model: '929003054601',
         vendor: 'Philips',
         description: 'Hue white ambiance Fair ceiling with Bluetooth white',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003054701'],
+        model: '929003054701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth (black)',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
