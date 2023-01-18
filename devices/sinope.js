@@ -1025,7 +1025,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 10]}); // divider 1
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]}); // divider 1
         },
     },
     {
@@ -1045,7 +1045,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 10]}); // divider 1
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]}); // divider 1
         },
     },
     {
