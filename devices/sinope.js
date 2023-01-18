@@ -7,7 +7,7 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
-const {precisionRound} = require('../lib/utils');
+const {precisionRound, calibrateAndPrecisionRoundOptions} = require('../lib/utils');
 
 const manuSinope = {manufacturerCode: 0x119C};
 
@@ -168,6 +168,34 @@ const fzLocal = {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
             return result;
+        },
+    },
+        plug_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        options: (definition) => {
+            const result = [];
+            if (definition.exposes.find((e) => e.name === 'energy')) {
+                result.push(exposes.options.precision('energy'), exposes.options.calibration('energy', 'percentual'));
+            }
+            return result;
+        },
+
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {};
+
+            if (msg.data.hasOwnProperty('currentSummDelivered'))  {
+                let energy = 0;
+                if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                    const data = msg.data['currentSummDelivered'];
+                    const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                    energy += value/1000 ;
+                }
+                payload.energy = calibrateAndPrecisionRoundOptions(energy, options, 'energy');
+            }
+
+            return payload;
         },
     },
 };
@@ -985,8 +1013,8 @@ module.exports = [
         model: 'SP2600ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.plug_metering],
+        toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -997,7 +1025,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 10]}); // divider 1
         },
     },
     {
@@ -1005,8 +1033,8 @@ module.exports = [
         model: 'SP2610ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off, tz.frequency],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.plug_metering],
+        toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1017,7 +1045,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 10]}); // divider 1
         },
     },
     {
