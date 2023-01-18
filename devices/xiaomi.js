@@ -11,7 +11,8 @@ const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const {printNumberAsHex, printNumbersAsHexSequence, readNumberLike} = utils;
-const {xiaomiDefinitions: definitions, xiaomiMappers: mappers, manufacturerCodes} = constants;
+const {manufacturerCodes} = constants;
+const {constants: xiaomiConstants, mappers} = xiaomi;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -86,10 +87,10 @@ const isAqaraFp1RegionZoneDefinition = (value) => {
         'y' in value &&
         typeof value.x === 'number' &&
         typeof value.y === 'number' &&
-        value.x >= definitions.aqara_fp1.region_config_zoneX_min &&
-        value.x <= definitions.aqara_fp1.region_config_zoneX_max &&
-        value.y >= definitions.aqara_fp1.region_config_zoneY_min &&
-        value.y <= definitions.aqara_fp1.region_config_zoneY_max
+        value.x >= xiaomiConstants.aqara_fp1.region_config_zoneX_min &&
+        value.x <= xiaomiConstants.aqara_fp1.region_config_zoneX_max &&
+        value.y >= xiaomiConstants.aqara_fp1.region_config_zoneY_min &&
+        value.y <= xiaomiConstants.aqara_fp1.region_config_zoneY_max
     );
 };
 
@@ -102,8 +103,8 @@ const isAqaraFp1RegionZoneDefinition = (value) => {
 const isAqaraFp1RegionId = (value) => {
     return (
         typeof value === 'number' &&
-        value >= definitions.aqara_fp1.region_config_regionId_min &&
-        value <= definitions.aqara_fp1.region_config_regionId_max
+        value >= xiaomiConstants.aqara_fp1.region_config_regionId_min &&
+        value <= xiaomiConstants.aqara_fp1.region_config_regionId_max
     );
 };
 
@@ -384,7 +385,7 @@ const fzLocal = {
                 const eventKeyHex = printNumberAsHex(eventKey, 4);
 
                 switch (eventKey) {
-                case definitions.aqara_fp1.region_event_key: {
+                case xiaomiConstants.aqara_fp1.region_event_key: {
                     if (
                         !Buffer.isBuffer(value) ||
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
@@ -407,7 +408,7 @@ const fzLocal = {
 
                         break;
                     }
-                    if (!Object.values(definitions.aqara_fp1.region_event_types).includes(eventTypeCode)) {
+                    if (!Object.values(xiaomiConstants.aqara_fp1.region_event_types).includes(eventTypeCode)) {
                         meta.logger.warn(createLoggerMsg(`region_event: Unknown region event type "${eventTypeCode}"`));
 
                         break;
@@ -687,9 +688,9 @@ const tzLocal = {
             const deviceConfig = new Uint8Array(7);
 
             // Command parameters
-            deviceConfig[0] = definitions.aqara_fp1.region_config_cmds.create;
+            deviceConfig[0] = xiaomiConstants.aqara_fp1.region_config_cmds.create;
             deviceConfig[1] = command.region_id;
-            deviceConfig[6] = definitions.aqara_fp1.region_config_cmd_suffix_upsert;
+            deviceConfig[6] = xiaomiConstants.aqara_fp1.region_config_cmd_suffix_upsert;
             // Zones definition
             deviceConfig[2] |= encodeXCellsDefinition(sortedZones['1']);
             deviceConfig[2] |= encodeXCellsDefinition(sortedZones['2']) << 4;
@@ -707,9 +708,9 @@ const tzLocal = {
             await entity.write(
                 'aqaraOpple',
                 {
-                    [definitions.aqara_fp1.region_config_write_attribute]: {
+                    [xiaomiConstants.aqara_fp1.region_config_write_attribute]: {
                         value: deviceConfig,
-                        type: definitions.aqara_fp1.region_config_write_attribute_type,
+                        type: xiaomiConstants.aqara_fp1.region_config_write_attribute_type,
                     },
                 },
                 {
@@ -740,9 +741,9 @@ const tzLocal = {
             const deviceConfig = new Uint8Array(7);
 
             // Command parameters
-            deviceConfig[0] = definitions.aqara_fp1.region_config_cmds.delete;
+            deviceConfig[0] = xiaomiConstants.aqara_fp1.region_config_cmds.delete;
             deviceConfig[1] = command.region_id;
-            deviceConfig[6] = definitions.aqara_fp1.region_config_cmd_suffix_delete;
+            deviceConfig[6] = xiaomiConstants.aqara_fp1.region_config_cmd_suffix_delete;
             // Zones definition
             deviceConfig[2] = 0;
             deviceConfig[3] = 0;
@@ -757,9 +758,9 @@ const tzLocal = {
             await entity.write(
                 'aqaraOpple',
                 {
-                    [definitions.aqara_fp1.region_config_write_attribute]: {
+                    [xiaomiConstants.aqara_fp1.region_config_write_attribute]: {
                         value: deviceConfig,
-                        type: definitions.aqara_fp1.region_config_write_attribute_type,
+                        type: xiaomiConstants.aqara_fp1.region_config_write_attribute_type,
                     },
                 },
                 {
@@ -1858,8 +1859,8 @@ module.exports = [
                 )
                 .withFeature(
                     exposes.numeric('region_id', ea.SET)
-                        .withValueMin(definitions.aqara_fp1.region_config_regionId_min)
-                        .withValueMax(definitions.aqara_fp1.region_config_regionId_max),
+                        .withValueMin(xiaomiConstants.aqara_fp1.region_config_regionId_min)
+                        .withValueMax(xiaomiConstants.aqara_fp1.region_config_regionId_max),
                 )
                 .withFeature(
                     exposes.list(
@@ -1868,13 +1869,13 @@ module.exports = [
                         exposes.composite('zone_position', ea.SET)
                             .withFeature(
                                 exposes.numeric('x', ea.SET)
-                                    .withValueMin(definitions.aqara_fp1.region_config_zoneX_min)
-                                    .withValueMax(definitions.aqara_fp1.region_config_zoneX_max),
+                                    .withValueMin(xiaomiConstants.aqara_fp1.region_config_zoneX_min)
+                                    .withValueMax(xiaomiConstants.aqara_fp1.region_config_zoneX_max),
                             )
                             .withFeature(
                                 exposes.numeric('y', ea.SET)
-                                    .withValueMin(definitions.aqara_fp1.region_config_zoneY_min)
-                                    .withValueMax(definitions.aqara_fp1.region_config_zoneY_max),
+                                    .withValueMin(xiaomiConstants.aqara_fp1.region_config_zoneY_min)
+                                    .withValueMax(xiaomiConstants.aqara_fp1.region_config_zoneY_max),
                             ),
                     ),
                 ),
@@ -1882,8 +1883,8 @@ module.exports = [
                 .withDescription('Region definition to be deleted from the device.')
                 .withFeature(
                     exposes.numeric('region_id', ea.SET)
-                        .withValueMin(definitions.aqara_fp1.region_config_regionId_min)
-                        .withValueMax(definitions.aqara_fp1.region_config_regionId_max),
+                        .withValueMin(xiaomiConstants.aqara_fp1.region_config_regionId_min)
+                        .withValueMax(xiaomiConstants.aqara_fp1.region_config_regionId_max),
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
