@@ -170,7 +170,7 @@ const fzLocal = {
             return result;
         },
     },
-        plug_metering: {
+    plug_metering: {
         cluster: 'seMetering',
         type: ['attributeReport', 'readResponse'],
         options: (definition) => {
@@ -185,12 +185,12 @@ const fzLocal = {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const payload = {};
 
-            if (msg.data.hasOwnProperty('currentSummDelivered'))  {
+            if (msg.data.hasOwnProperty('currentSummDelivered')) {
                 let energy = 0;
                 if (msg.data.hasOwnProperty('currentSummDelivered')) {
                     const data = msg.data['currentSummDelivered'];
                     const value = (parseInt(data[0]) << 32) + parseInt(data[1]);
-                    energy += value/1000 ;
+                    energy += value/1000;
                 }
                 payload.energy = calibrateAndPrecisionRoundOptions(energy, options, 'energy');
             }
