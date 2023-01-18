@@ -63,7 +63,7 @@ module.exports = [
         vendor: 'DIYRuZ',
         description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
         fromZigbee: [fz.diyruz_freepad_clicks, fz.diyruz_freepad_config, fz.battery],
-        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])].concat(((enpoinsCount) => {
+        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release', '*_hold'])].concat(((enpoinsCount) => {
             const features = [];
             for (let i = 1; i <= enpoinsCount; i++) {
                 const epName = `button_${i}`;
