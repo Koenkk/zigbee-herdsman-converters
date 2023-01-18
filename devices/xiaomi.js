@@ -2710,7 +2710,7 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_feeder],
         toZigbee: [tzLocal.aqara_feeder],
         exposes: [
-            exposes.enum('feed', ea.STATE_SET, ['','START']).withDescription('Start feeding'), 
+            exposes.enum('feed', ea.STATE_SET, ['', 'START']).withDescription('Start feeding'),
             exposes.enum('feeding_source', ea.STATE, ['schedule', 'manual', 'remote']).withDescription('Feeding source'),
             exposes.numeric('feeding_size', ea.STATE).withDescription('Feeding size').withUnit('portion'),
             exposes.numeric('portions_per_day', ea.STATE).withDescription('Portions per day'),
