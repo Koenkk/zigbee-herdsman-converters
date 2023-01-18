@@ -10,6 +10,8 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
+const {printNumberAsHex, printNumbersAsHexSequence} = utils;
+const {fp1, manufacturerCode} = xiaomi;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -209,6 +211,73 @@ const fzLocal = {
                 }
             });
             return result;
+        },
+    },
+    aqara_fp1_region_events: {
+        cluster: 'aqaraOpple',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            /**
+             * @type {{ region_event?: string; }}
+             */
+            const payload = {};
+            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
+
+            Object.entries(msg.data).forEach(([key, value]) => {
+                const eventKey = parseInt(key);
+                const eventKeyHex = printNumberAsHex(eventKey, 4);
+
+                switch (eventKey) {
+                case fp1.constants.region_event_key: {
+                    if (
+                        !Buffer.isBuffer(value) ||
+                        !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
+                        !(typeof value[1] === 'string' || typeof value[1] === 'number')
+                    ) {
+                        log('warn', `region_event: Unrecognized payload structure '${JSON.stringify(value)}'`);
+                        break;
+                    }
+
+                    /**
+                     * @type {[ regionId: number | string, eventTypeCode: number | string ]}
+                     */
+                    const [regionIdRaw, eventTypeCodeRaw] = value;
+                    const regionId = parseInt(regionIdRaw, 10);
+                    const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
+
+                    if (Number.isNaN(regionId)) {
+                        log('warn', `region_event: Invalid regionId "${regionIdRaw}"`);
+                        break;
+                    }
+                    if (!Object.values(fp1.constants.region_event_types).includes(eventTypeCode)) {
+                        log('warn', `region_event: Unknown region event type "${eventTypeCode}"`);
+                        break;
+                    }
+
+                    const eventTypeName = fp1.mappers.aqara_fp1.region_event_type_names[eventTypeCode];
+                    log('debug', `region_event: Triggered event (region "${regionId}", type "${eventTypeName}")`);
+                    payload.region_event = `region_${regionId}_${eventTypeName}`;
+                    break;
+                }
+                case 0xf7: {
+                    const valueHexSequence = printNumbersAsHexSequence(value, 2);
+                    log('debug', `Unhandled key ${eventKeyHex} = ${valueHexSequence}`);
+                    break;
+                }
+                case 0x0142:
+                case 0x0143:
+                case 0x0144:
+                case 0x0146: {
+                    log('debug', `Unhandled key ${eventKeyHex} = ${value}`);
+                    break;
+                }
+                default: {
+                    log('warn', `Unknown key ${eventKeyHex} = ${value}`);
+                }
+                }
+            });
+
+            return payload;
         },
     },
 };
@@ -413,6 +482,113 @@ const tzLocal = {
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_feeder: Unhandled key ${key}`);
             }
             return {state: {[key]: value}};
+        },
+    },
+    aqara_fp1_region_upsert: {
+        key: ['region_upsert'],
+        convertSet: async (entity, key, value, meta) => {
+            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1:region_upsert');
+            const commandWrapper = fp1.parseAqaraFp1RegionUpsertInput(value);
+
+            if (!commandWrapper.isSuccess) {
+                log('warn',
+                    `encountered an error (${commandWrapper.error.reason}) ` +
+                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                );
+
+                return;
+            }
+
+            const command = commandWrapper.payload.command;
+
+            log('debug', `trying to create region ${command.region_id}`);
+
+            /** @type {Record<string, Set<number>>} */
+            const sortedZonesAccumulator = {};
+            const sortedZones = command.zones
+                .reduce(
+                    (accumulator, zone) => {
+                        if (!accumulator[zone.y]) {
+                            accumulator[zone.y] = new Set();
+                        }
+
+                        accumulator[zone.y].add(zone.x);
+
+                        return accumulator;
+                    },
+                    sortedZonesAccumulator,
+                );
+
+            const deviceConfig = new Uint8Array(7);
+
+            // Command parameters
+            deviceConfig[0] = fp1.constants.region_config_cmds.create;
+            deviceConfig[1] = command.region_id;
+            deviceConfig[6] = fp1.constants.region_config_cmd_suffix_upsert;
+            // Zones definition
+            deviceConfig[2] |= fp1.encodeXCellsDefinition(sortedZones['1']);
+            deviceConfig[2] |= fp1.encodeXCellsDefinition(sortedZones['2']) << 4;
+            deviceConfig[3] |= fp1.encodeXCellsDefinition(sortedZones['3']);
+            deviceConfig[3] |= fp1.encodeXCellsDefinition(sortedZones['4']) << 4;
+            deviceConfig[4] |= fp1.encodeXCellsDefinition(sortedZones['5']);
+            deviceConfig[4] |= fp1.encodeXCellsDefinition(sortedZones['6']) << 4;
+            deviceConfig[5] |= fp1.encodeXCellsDefinition(sortedZones['7']);
+
+            log('info', `create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`);
+
+            const payload = {
+                [fp1.constants.region_config_write_attribute]: {
+                    value: deviceConfig,
+                    type: fp1.constants.region_config_write_attribute_type,
+                },
+            };
+
+            await entity.write('aqaraOpple', payload, {manufacturerCode});
+        },
+    },
+    aqara_fp1_region_delete: {
+        key: ['region_delete'],
+        convertSet: async (entity, key, value, meta) => {
+            const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1:region_delete');
+            const commandWrapper = fp1.parseAqaraFp1RegionDeleteInput(value);
+
+            if (!commandWrapper.isSuccess) {
+                log('warn',
+                    `encountered an error (${commandWrapper.error.reason}) ` +
+                    `while parsing configuration commands (input: ${JSON.stringify(value)})`,
+                );
+                return;
+            }
+
+            const command = commandWrapper.payload.command;
+
+            log('debug', `trying to delete region ${command.region_id}`);
+
+            const deviceConfig = new Uint8Array(7);
+
+            // Command parameters
+            deviceConfig[0] = fp1.constants.region_config_cmds.delete;
+            deviceConfig[1] = command.region_id;
+            deviceConfig[6] = fp1.constants.region_config_cmd_suffix_delete;
+            // Zones definition
+            deviceConfig[2] = 0;
+            deviceConfig[3] = 0;
+            deviceConfig[4] = 0;
+            deviceConfig[5] = 0;
+
+            log('info',
+                `delete region ${command.region_id} ` +
+                `(${printNumbersAsHexSequence([...deviceConfig], 2)})`,
+            );
+
+            const payload = {
+                [fp1.constants.region_config_write_attribute]: {
+                    value: deviceConfig,
+                    type: fp1.constants.region_config_write_attribute_type,
+                },
+            };
+
+            await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
     },
 };
@@ -1471,11 +1647,14 @@ module.exports = [
         zigbeeModel: ['lumi.motion.ac01'],
         model: 'RTCZCGQ11LM',
         vendor: 'Xiaomi',
-        description: 'Aqara presence detector FP1 (regions not supported for now)',
-        fromZigbee: [fz.aqara_opple],
-        toZigbee: [tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance,
-            tz.aqara_motion_sensitivity, tz.RTCZCGQ11LM_reset_nopresence_status],
-        exposes: [e.presence().withAccess(ea.STATE_GET),
+        description: 'Aqara presence detector FP1',
+        fromZigbee: [fz.aqara_opple, fzLocal.aqara_fp1_region_events],
+        toZigbee: [
+            tz.RTCZCGQ11LM_presence, tz.RTCZCGQ11LM_monitoring_mode, tz.RTCZCGQ11LM_approach_distance, tz.aqara_motion_sensitivity,
+            tz.RTCZCGQ11LM_reset_nopresence_status, tzLocal.aqara_fp1_region_upsert, tzLocal.aqara_fp1_region_delete,
+        ],
+        exposes: [
+            e.presence().withAccess(ea.STATE_GET), e.device_temperature(), e.power_outage_count(),
             exposes.enum('presence_event', ea.STATE, ['enter', 'leave', 'left_enter', 'right_leave', 'right_enter', 'left_leave',
                 'approach', 'away']).withDescription('Presence events: "enter", "leave", "left_enter", "right_leave", ' +
                 '"right_enter", "left_leave", "approach", "away"'),
@@ -1486,7 +1665,41 @@ module.exports = [
             exposes.enum('motion_sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('Different sensitivities ' +
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
-            e.device_temperature(), e.power_outage_count()],
+            exposes.enum('action', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
+                'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
+                'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
+                '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
+            exposes.composite('region_upsert', 'region_upsert', ea.SET)
+                .withDescription(
+                    'Definition of a new region to be added (or replace existing one). ' +
+                    'Creating or modifying a region requires you to define which zones of a 7x4 detection grid ' +
+                    'should be active for that zone. Regions can overlap, meaning that a zone can be defined ' +
+                    'in more than one region (eg. "zone x = 1 & y = 1" can be added to region 1 & 2). ' +
+                    '"Zone x = 1 & y = 1" is the nearest zone on the right (from sensor\'s perspective, along the detection path).',
+                )
+                .withFeature(
+                    exposes.numeric('region_id', ea.SET)
+                        .withValueMin(fp1.constants.region_config_regionId_min)
+                        .withValueMax(fp1.constants.region_config_regionId_max),
+                )
+                .withFeature(
+                    exposes.list('zones', ea.SET,
+                        exposes.composite('zone_position', ea.SET)
+                            .withFeature(exposes.numeric('x', ea.SET)
+                                .withValueMin(fp1.constants.region_config_zoneX_min)
+                                .withValueMax(fp1.constants.region_config_zoneX_max))
+                            .withFeature(exposes.numeric('y', ea.SET)
+                                .withValueMin(fp1.constants.region_config_zoneY_min)
+                                .withValueMax(fp1.constants.region_config_zoneY_max)),
+                    ),
+                ),
+            exposes.composite('region_delete', 'region_delete', ea.SET)
+                .withDescription('Region definition to be deleted from the device.')
+                .withFeature(exposes.numeric('region_id', ea.SET)
+                    .withValueMin(fp1.constants.region_config_regionId_min)
+                    .withValueMax(fp1.constants.region_config_regionId_max),
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
