@@ -1845,7 +1845,7 @@ module.exports = [
                 'means different static human body recognition rate and response speed of occupied'),
             exposes.enum('reset_nopresence_status', ea.SET, ['']).withDescription('Reset the status of no presence'),
             e.device_temperature(), e.power_outage_count(),
-            exposes.enum('region_event', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
+            exposes.enum('action', ea.STATE, ['region_*_enter', 'region_*_leave', 'region_*_occupied',
                 'region_*_unoccupied']).withDescription('Most recent region event. Event template is "region_<REGION_ID>_<EVENT_TYPE>", ' +
                 'where <REGION_ID> is region number (1-10), <EVENT_TYPE> is one of "enter", "leave", "occupied", "unoccupied". ' +
                 '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.'),
