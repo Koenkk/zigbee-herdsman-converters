@@ -2271,7 +2271,7 @@ module.exports = [
         model: '046677551780',
         vendor: 'Philips',
         description: 'Hue white filament Edison ST19 LED',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWV003'],
