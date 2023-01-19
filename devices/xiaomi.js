@@ -608,6 +608,25 @@ const tzLocal = {
             await entity.write('aqaraOpple', payload, {manufacturerCode});
         },
     },
+    CTPR01_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {action_mode: 0, scene_mode: 1};
+            /**
+             * schedule the callback to run when the configuration window comes
+             */
+            const callback = async () => {
+                await entity.write(
+                    'aqaraOpple',
+                    {0x0148: {value: lookup[value], type: 0x20}},
+                    {manufacturerCode: 0x115f, disableDefaultResponse: true},
+                );
+                meta.logger.info('operation_mode switch success!');
+            };
+            globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
+            meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
+        },
+    },
 };
 
 module.exports = [
@@ -2990,5 +3009,56 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
+    },
+    {
+        zigbeeModel: ['lumi.remote.cagl02'],
+        model: 'CTP-R01',
+        vendor: 'Xiaomi',
+        description: 'Aqara magic cube T1 Pro',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.aqara_opple, fz.CTPR01_action_multistate, fz.CTPR01_action_analog, fz.ignore_onoff_report],
+        toZigbee: [tzLocal.CTPR01_operation_mode],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.device_temperature(),
+            e.power_outage_count(false),
+            exposes
+                .enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
+                .withDescription('[Soft Switch]: There is a configuration window, opens once an hour on itself, ' +
+                    'only during which the cube will respond to mode switch. ' +
+                    'Mode switch will be scheduled to take effect when the window becomes available. ' +
+                    'You can also give it a throw action (no backward motion) to force a respond! ' +
+                    'Otherwise, you may open lid and click LINK once to make the cube respond immediately. ' +
+                    '[Hard Switch]: Open lid and click LINK button 5 times.'),
+            e.cube_side('side'),
+            e.action([
+                'shake',
+                'throw',
+                'tap',
+                'slide',
+                'flip180',
+                'flip90',
+                'hold',
+                'side_up',
+                'rotate_left',
+                'rotate_right',
+                '1_min_inactivity',
+                'flip_to_side',
+            ]).withDescription('Triggered action'),
+            e.cube_side('action_from_side'),
+            e.angle('action_angle'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.softwareBuildID = `0.0.0_00${device.applicationVersion}`;
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('aqaraOpple', [0x148], {manufacturerCode: 0x115f, disableResponse: true});
+
+            setTimeout(() => logger.info('battery info takes longer to show up, ' +
+                'you may give device a "throw" to speed up the process.'), 3000);
+        },
     },
 ];
