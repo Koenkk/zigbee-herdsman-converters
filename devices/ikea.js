@@ -556,7 +556,9 @@ module.exports = [
         model: 'ICPSHC24-30-IL44-1',
         vendor: 'IKEA',
         description: 'SILVERGLANS IP44 LED driver for wireless control (30 watt)',
+        whiteLabel: [{vendor: 'IKEA', model: 'Pendant lamp WW', description: 'PILSKOTT LED pendant lamp'}],
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
