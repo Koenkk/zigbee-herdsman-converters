@@ -122,9 +122,12 @@ const fzLocal = {
 
                     meta.logger.debug(`${model.zigbeeModel}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
 
-                    // Overwrite device firmware default version with actual version
                     if (heartbeat.firmware_version) {
-                        // TODO How to trigger update in UI?
+                        // Overwrite the "placeholder" version `0.0.0_0025` advertised by `genBasic`
+                        // with the correct version from the heartbeat.
+                        // This is not reflected in the frontend unless the device is reconfigured
+                        // or the whole service restarted.
+                        // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
                         meta.device.softwareBuildID = heartbeat.firmware_version;
                         delete heartbeat.firmware_version;
                     }
