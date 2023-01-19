@@ -74,6 +74,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003047601'],
+        model: '929003047601',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Centura)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003047501'],
         model: '929003047501',
         vendor: 'Philips',
@@ -1576,6 +1583,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003516101'],
+        model: '929003516101',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (wood)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCT020'],
         model: '4080148P7',
         vendor: 'Philips',
@@ -2225,6 +2239,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LTV005'],
+        model: '9290029808',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST23 E26 LED warm-to-cool',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTO004'],
         model: '9290024785',
         vendor: 'Philips',
@@ -2250,7 +2271,7 @@ module.exports = [
         model: '046677551780',
         vendor: 'Philips',
         description: 'Hue white filament Edison ST19 LED',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWV003'],
