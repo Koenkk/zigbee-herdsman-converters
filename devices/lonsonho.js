@@ -205,7 +205,7 @@ module.exports = [
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
         extend: extend.switch(),
-        toZigbee: [tz.TYZB01_on_off],
+        toZigbee: [tz.power_on_behavior, tz.TYZB01_on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },

@@ -602,11 +602,6 @@ module.exports = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        // power_on_behavior 'toggle' does not seem to be supported
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -981,5 +976,12 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI E26 PAR38 LED bulb 900 lumen, dimmable, white spectrum, downlight',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['Floor lamp WW'],
+        model: 'G2015',
+        vendor: 'IKEA',
+        description: 'PILSKOTT LED floor lamp',
+        extend: tradfriExtend.light_onoff_brightness(),
     },
 ];

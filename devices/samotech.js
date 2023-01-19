@@ -51,10 +51,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}],
+        fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'Samotech'}, {modelID: 'HK_DIM_A', manufacturerName: 'Samotech'}],
         model: 'SM323',
         vendor: 'Samotech',
-        description: 'ZigBee retrofit dimmer 250W',
+        description: 'Zigbee retrofit dimmer 250W',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -62,6 +62,21 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SM324'],
+        model: 'SM324',
+        vendor: 'Samotech',
+        description: '220V Zigbee CCT LED dimmer',
+        extend: extend.light_onoff_brightness_colortemp({noConfigure: true, colorTempRange: [150, 500]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+            await reporting.colorTemperature(endpoint);
         },
     },
 ];
