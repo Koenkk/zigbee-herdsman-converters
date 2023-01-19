@@ -11,8 +11,7 @@ const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const {printNumberAsHex, printNumbersAsHexSequence} = utils;
-const {fp1, manufacturerCode} = xiaomi;
-const xiaomiTrvUtils = require('../lib/xiaomiTrvUtils');
+const {fp1, manufacturerCode, trv} = xiaomi;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -88,7 +87,7 @@ const fzLocal = {
                     result['system_mode'] = {1: 'heat', 0: 'off'}[value];
                     break;
                 case 0x0272:
-                    Object.assign(result, xiaomiTrvUtils.decodeTrvPreset(value));
+                    Object.assign(result, trv.decodePreset(value));
                     break;
                 case 0x0273:
                     result['window_detection'] = {1: 'ON', 0: 'OFF'}[value];
@@ -118,7 +117,7 @@ const fzLocal = {
                     result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
                 case 247: {
-                    const heartbeat = xiaomiTrvUtils.decodeTrvHeartbeat(meta, model, value);
+                    const heartbeat = trv.decodeHeartbeat(meta, model, value);
 
                     meta.logger.debug(`${model.zigbeeModel}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
 
