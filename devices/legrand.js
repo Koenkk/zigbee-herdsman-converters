@@ -490,6 +490,7 @@ module.exports = [
                 'genBinaryInput', 'lightingBallastCfg']);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
     },
     {
         zigbeeModel: ['Remote dimmer switch'],
