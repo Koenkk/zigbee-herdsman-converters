@@ -430,9 +430,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['Hospitality on off switch'],
-        model: 'WNAL10, WNRL10',
+        model: 'WNAL10/WNRL10',
         vendor: 'Legrand',
-        description: 'Smart Switch with Netatmo',
+        description: 'Smart switch with Netatmo',
         fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01],
         toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
         exposes: [e.switch(),
@@ -447,9 +447,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['Hospitality dimmer switch'],
-        model: 'WNAL50, WNRL50',
+        model: 'WNAL50/WNRL50',
         vendor: 'Legrand',
-        description: 'Smart Dimmer Switch with Netatmo',
+        description: 'Smart dimmer switch with Netatmo',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
             fz.power_on_behavior],
