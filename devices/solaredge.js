@@ -5,7 +5,7 @@ const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const e = exposes.presets;
 
 
-const definition = {
+module.exports = [{
     zigbeeModel: ['SE-SW'], //
     model: 'SEHAZB-DR-SWITCH-2', //
     vendor: 'SolarEdge', //
@@ -13,6 +13,5 @@ const definition = {
     fromZigbee: [fz.on_off], //
     toZigbee: [tz.on_off], //
     exposes: [e.switch()], //
-};
+},];
 
-module.exports = definition;
