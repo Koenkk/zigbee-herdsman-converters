@@ -484,6 +484,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -545,6 +551,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -606,6 +618,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -673,6 +691,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -741,6 +765,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -895,6 +925,12 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.enum('thermostat_occupancy', ea.ALL, ['unoccupied', 'occupied'])
                 .withDescription('Occupancy state of the thermostat'),
+            exposes.binary('enable_outdoor_temperature', ea.ALL, 'ON', 'OFF')
+                .withDescription('Showing outdoor temperature on secondary display'),
+            exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+                .withDescription('The temperature format displayed on the thermostat screen'),
+            exposes.enum('time_format', ea.ALL, ['24h', '12h'])
+                .withDescription('The time format featured on the thermostat display'),
             exposes.enum('backlight_auto_dim', ea.ALL, ['on_demand', 'sensing'])
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
@@ -987,7 +1023,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy().withUnit('Wh')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
@@ -997,6 +1033,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
         },
     },
@@ -1007,7 +1044,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy().withUnit('Wh')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
@@ -1017,6 +1054,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
         },
     },
