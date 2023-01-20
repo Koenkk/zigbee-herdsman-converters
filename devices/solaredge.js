@@ -13,5 +13,5 @@ module.exports = [{
     fromZigbee: [fz.on_off], //
     toZigbee: [tz.on_off], //
     exposes: [e.switch()], //
-},];
+}];
 
