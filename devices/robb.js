@@ -261,6 +261,10 @@ module.exports = [
             'color_move', 'color_temperature_move', 'hue_move', 'brightness_step_up', 'brightness_step_down',
             'recall_*', 'on', 'off', 'toggle', 'brightness_stop', 'brightness_move_up', 'brightness_move_down',
             'color_loop_set', 'enhanced_move_to_hue_and_saturation', 'hue_stop'])],
+        meta: {multiEndpoint: true, publishDuplicateTransaction: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
     },
     {
         zigbeeModel: ['ROB_200-026-0'],
