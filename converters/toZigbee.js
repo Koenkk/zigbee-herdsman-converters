@@ -6582,15 +6582,6 @@ const converters = {
             return {state: {keypad_lockout: value}};
         },
     },
-    moes_105_dimmer: {
-        key: ['brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === 'brightness') {
-                meta.message['state'] = value > 0 ? 'ON' : 'OFF';
-                return tuya.tz.datapoints.convertSet(entity, key, value, meta);
-            }
-        },
-    },
     tuya_do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
