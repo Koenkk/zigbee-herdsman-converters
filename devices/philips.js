@@ -3031,14 +3031,14 @@ module.exports = [
         zigbeeModel: ['915005988101'],
         model: '915005988101',
         vendor: 'Philips',
-        description: 'Hue Gradient Light Tube Large',
+        description: 'Hue Gradient light tube large',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['915005987901'],
         model: '915005987901',
         vendor: 'Philips',
-        description: 'Hue Gradient Light Tube Compact',
+        description: 'Hue Gradient light tube compact',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
 ];
