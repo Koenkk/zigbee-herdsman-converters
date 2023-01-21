@@ -1104,6 +1104,7 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TYZB01_zwvaj5wy'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_bsvqrxru'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_tv3wxhcz'},
+            {modelID: 'TS0202', manufacturerName: '_TYZB01_rwb0hxtf'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_hqbdru35'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_otvn3lne'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_tiwq83wk'},
