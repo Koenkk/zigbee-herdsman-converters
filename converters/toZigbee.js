@@ -3271,7 +3271,12 @@ const converters = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+            if (meta.device.manufacturerName === '_TZE200_5toc8efa') {
+                const temp = Math.round(value*10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, temp);
+            } else {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+            }
         },
     },
     moes_thermostat_deadzone_temperature: {

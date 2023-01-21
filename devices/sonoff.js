@@ -177,21 +177,16 @@ module.exports = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
-            try {
-                const endpoint = device.getEndpoint(1);
-                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint);
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
-                logger.error(`Configure failed: ${e}`);
-            }
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
+            await reporting.humidity(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {

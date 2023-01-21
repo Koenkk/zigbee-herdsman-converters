@@ -135,9 +135,17 @@ module.exports = [
             allowing to see it in the dark`)],
     },
     {
-        // swbuildid 001a requires coverInverted: https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
-        fingerprint: [{modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'}],
-        model: '067776_001a',
+        // Some require coverInverted:
+        // - https://github.com/Koenkk/zigbee2mqtt/issues/15101#issuecomment-1356787490
+        // - https://github.com/Koenkk/zigbee2mqtt/issues/16090
+        fingerprint: [
+            {modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID: '001a'},
+            {modelID: ' Shutter switch with neutral\u0000\u0000\u0000', softwareBuildID:
+                '00d\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u00000\u0012\u0002\u0000' +
+                '\t\u0007\u0000\u0018\u0002\u0003\b\u0000 \u00132\u0000\u0000\u0000\u0000X\u0002\n\u0000\u0000\u0000\u0000d' +
+                '\u0017\u0000\u0018\u0000'},
+        ],
+        model: '067776_inverted',
         vendor: 'Legrand',
         description: 'Netatmo wired shutter switch',
         fromZigbee: [fz.identify, fz.ignore_basic_report, fz.legrand_binary_input_moving, fz.cover_position_tilt],
@@ -436,6 +444,52 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Hospitality on off switch'],
+        model: 'WNAL10/WNRL10',
+        vendor: 'Legrand',
+        description: 'Smart switch with Netatmo',
+        fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fz.legrand_cluster_fc01],
+        toZigbee: [tz.on_off, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn],
+        exposes: [e.switch(),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+                ` see the switch in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['Hospitality dimmer switch'],
+        model: 'WNAL50/WNRL50',
+        vendor: 'Legrand',
+        description: 'Smart dimmer switch with Netatmo',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
+            fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value'),
+            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+                ` see the switch in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl',
+                'genBinaryInput', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
         },
     },
     {

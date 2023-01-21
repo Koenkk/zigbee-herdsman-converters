@@ -74,6 +74,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003047601'],
+        model: '929003047601',
+        vendor: 'Philips',
+        description: 'Hue White and Color Ambiance GU10 (Centura)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['929003047501'],
         model: '929003047501',
         vendor: 'Philips',
@@ -102,7 +109,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['915005996801', '915005996901'],
+        zigbeeModel: ['915005996801', '915005996901', '929003574401'],
         model: '915005996901',
         vendor: 'Philips',
         description: 'Hue white ambiance ceiling light Enrave L with Bluetooth',
@@ -139,6 +146,13 @@ module.exports = [
     {
         zigbeeModel: ['4076131P6'],
         model: '4076131P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance suspension Cher with bluetooth 3000lm',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['4076130P6'],
+        model: '4076130P6',
         vendor: 'Philips',
         description: 'Hue white ambiance suspension Cher with bluetooth 3000lm',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
@@ -1009,7 +1023,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
-        zigbeeModel: ['3418131P6', '929003056401'],
+        zigbeeModel: ['3418131P6', '929003056401', '929003056401_01', '929003056401_02', '929003056401_03'],
         model: '3418131P6',
         vendor: 'Philips',
         description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
@@ -1564,6 +1578,13 @@ module.exports = [
     {
         zigbeeModel: ['929003479701'],
         model: '915005987701',
+        vendor: 'Philips',
+        description: 'Hue Gradient Signe floor lamp (wood)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['929003516101'],
+        model: '929003516101',
         vendor: 'Philips',
         description: 'Hue Gradient Signe floor lamp (wood)',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
@@ -2218,6 +2239,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LTV005'],
+        model: '9290029808',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST23 E26 LED warm-to-cool',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTO004'],
         model: '9290024785',
         vendor: 'Philips',
@@ -2243,7 +2271,7 @@ module.exports = [
         model: '046677551780',
         vendor: 'Philips',
         description: 'Hue white filament Edison ST19 LED',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWV003'],
@@ -2537,6 +2565,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LWV005'],
+        model: '9290030517',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance E27 ST64 filament bulb',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTO001'],
         model: '8719514301481',
         vendor: 'Philips',
@@ -2803,10 +2838,24 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003054501'],
+        model: '929003054501',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth (white)',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003054601'],
         model: '929003054601',
         vendor: 'Philips',
         description: 'Hue white ambiance Fair ceiling with Bluetooth white',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003054701'],
+        model: '929003054701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Fair ceiling with Bluetooth (black)',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
@@ -2977,5 +3026,19 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue Perifo Wall Light, 3 spotlights (white)',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['915005988101'],
+        model: '915005988101',
+        vendor: 'Philips',
+        description: 'Hue Gradient light tube large',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
+    },
+    {
+        zigbeeModel: ['915005987901'],
+        model: '915005987901',
+        vendor: 'Philips',
+        description: 'Hue Gradient light tube compact',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
 ];
