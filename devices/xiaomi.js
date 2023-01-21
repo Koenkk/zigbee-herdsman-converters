@@ -11,7 +11,7 @@ const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const {printNumberAsHex, printNumbersAsHexSequence} = utils;
-const {fp1, manufacturerCode} = xiaomi;
+const {fp1, manufacturerCode, trv} = xiaomi;
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -87,7 +87,7 @@ const fzLocal = {
                     result['system_mode'] = {1: 'heat', 0: 'off'}[value];
                     break;
                 case 0x0272:
-                    result['preset'] = {2: 'away', 1: 'auto', 0: 'manual'}[value];
+                    Object.assign(result, trv.decodePreset(value));
                     break;
                 case 0x0273:
                     result['window_detection'] = {1: 'ON', 0: 'OFF'}[value];
@@ -116,9 +116,26 @@ const fzLocal = {
                 case 0x0275:
                     result['valve_alarm'] = {1: true, 0: false}[value];
                     break;
+                case 247: {
+                    const heartbeat = trv.decodeHeartbeat(meta, model, value);
+
+                    meta.logger.debug(`${model.zigbeeModel}: Processed heartbeat message into payload ${JSON.stringify(heartbeat)}`);
+
+                    if (heartbeat.firmware_version) {
+                        // Overwrite the "placeholder" version `0.0.0_0025` advertised by `genBasic`
+                        // with the correct version from the heartbeat.
+                        // This is not reflected in the frontend unless the device is reconfigured
+                        // or the whole service restarted.
+                        // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
+                        meta.device.softwareBuildID = heartbeat.firmware_version;
+                        delete heartbeat.firmware_version;
+                    }
+
+                    Object.assign(result, heartbeat);
+                    break;
+                }
                 case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
-                case 0x00f7: // 03:28:1f:05:21:01:00:0a:21:00:00:0d:23:19:08:00:00:11:23...
                 case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
                 case 0x027c: // 0x00
                 case 0x027d: // 0x00
@@ -2889,9 +2906,11 @@ module.exports = [
         fromZigbee: [fzLocal.aqara_trv, fz.thermostat, fz.battery],
         toZigbee: [tzLocal.aqara_trv, tz.thermostat_occupied_heating_setpoint],
         exposes: [
+            exposes.binary('setup', ea.STATE, true, false)
+                .withDescription('Indicates if the device is in setup mode (E11)'),
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperature(ea.STATE)
+                .withLocalTemperature(ea.STATE, 'Current temperature measured by the internal or external sensor')
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withPreset(['manual', 'away', 'auto']).setAccess('preset', ea.ALL),
             e.temperature_sensor_select(['internal', 'external']).withAccess(ea.ALL),
@@ -2900,15 +2919,24 @@ module.exports = [
             e.child_lock().setAccess('state', ea.ALL),
             e.window_detection().setAccess('state', ea.ALL),
             exposes.binary('window_open', ea.STATE, true, false),
-            e.valve_detection().setAccess('state', ea.ALL),
+            e.valve_detection().setAccess('state', ea.ALL)
+                .withDescription('Determines if temperature control abnormalities should be detected'),
+            exposes.binary('valve_alarm', ea.STATE, true, false)
+                .withDescription('Notifies of a temperature control abnormality if valve detection is enabled ' +
+                    '(e.g., thermostat not installed correctly, valve failure or incorrect calibration, ' +
+                    'incorrect link to external temperature sensor)'),
             e.away_preset_temperature().withAccess(ea.ALL),
             e.battery_voltage(),
             e.battery(),
+            e.power_outage_count(),
+            e.device_temperature(),
         ],
-        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+
+            // Initialize battery percentage and voltage
             await endpoint.read('aqaraOpple', [0x040a], {manufacturerCode: 0x115f});
+            await endpoint.read('genPowerCfg', ['batteryVoltage']);
 
             // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
             utils.attachOutputCluster(device, 'genOta');
