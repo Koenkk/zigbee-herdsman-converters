@@ -42,6 +42,9 @@ module.exports = [
             //  2. The top rocker will not be usable (not emit any events) as it's hardwired to the relay/dimmer
             if (!device || device.getEndpoint(0x12) != null) {
                 expose.push(e.light_brightness().withEndpoint('relay'));
+                // Exposing the device as a switch without endpoint is actually wrong, but this is the historic
+                // definition and we are keeping it for compatibility reasons.
+                expose.push(e.switch());
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
             // but defining all possible actions here won't do any harm.
