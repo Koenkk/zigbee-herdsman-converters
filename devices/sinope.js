@@ -1023,7 +1023,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy().withUnit('Wh')],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
@@ -1033,7 +1033,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
         },
     },
@@ -1044,7 +1044,7 @@ module.exports = [
         description: 'Zigbee smart plug',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off, tz.frequency],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy().withUnit('Wh')],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genOnOff', 'haElectricalMeasurement', 'seMetering'];
@@ -1054,7 +1054,7 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 10 : 0.1W
             await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 100: 0.1Arms
             await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 10}); // divider 100: 0.1Vrms
-            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1000, multiplier: 1});
             await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [0, 1]}); // divider 1
         },
     },
