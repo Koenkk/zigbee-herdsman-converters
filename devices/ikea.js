@@ -561,6 +561,13 @@ module.exports = [
         meta: {turnsOffAtBrightness1: true},
     },
     {
+        zigbeeModel: ['Pendant lamp WW'],
+        model: 'Pendant lamp WW',
+        vendor: 'IKEA',
+        description: 'SILVERGLANS IP44 LED driver for wireless control (30 watt)-Pendant lamp WW',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['FLOALT panel WS 30x30'],
         model: 'L1527',
         vendor: 'IKEA',
