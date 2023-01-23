@@ -1006,4 +1006,13 @@ module.exports = [
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
         },
     },
+    {
+        zigbeeModel: ['CCT591011_AS'],
+        model: 'CCT591011_AS',
+        vendor: 'Schneider Electric',
+        description: 'Wiser window/door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.tamper()],
+    },
 ];
