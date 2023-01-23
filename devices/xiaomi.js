@@ -235,7 +235,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             /**
-             * @type {{ region_event?: string; }}
+             * @type {{ action?: string; }}
              */
             const payload = {};
             const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
@@ -251,7 +251,7 @@ const fzLocal = {
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
                         !(typeof value[1] === 'string' || typeof value[1] === 'number')
                     ) {
-                        log('warn', `region_event: Unrecognized payload structure '${JSON.stringify(value)}'`);
+                        log('warn', `action: Unrecognized payload structure '${JSON.stringify(value)}'`);
                         break;
                     }
 
@@ -263,17 +263,17 @@ const fzLocal = {
                     const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                     if (Number.isNaN(regionId)) {
-                        log('warn', `region_event: Invalid regionId "${regionIdRaw}"`);
+                        log('warn', `action: Invalid regionId "${regionIdRaw}"`);
                         break;
                     }
                     if (!Object.values(fp1.constants.region_event_types).includes(eventTypeCode)) {
-                        log('warn', `region_event: Unknown region event type "${eventTypeCode}"`);
+                        log('warn', `action: Unknown region event type "${eventTypeCode}"`);
                         break;
                     }
 
                     const eventTypeName = fp1.mappers.aqara_fp1.region_event_type_names[eventTypeCode];
-                    log('debug', `region_event: Triggered event (region "${regionId}", type "${eventTypeName}")`);
-                    payload.region_event = `region_${regionId}_${eventTypeName}`;
+                    log('debug', `action: Triggered event (region "${regionId}", type "${eventTypeName}")`);
+                    payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
                 }
                 case 0xf7: {
