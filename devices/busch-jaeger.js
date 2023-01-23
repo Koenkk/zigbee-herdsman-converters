@@ -44,6 +44,7 @@ module.exports = [
                 expose.push(e.light_brightness().withEndpoint('relay'));
                 // Exposing the device as a switch without endpoint is actually wrong, but this is the historic
                 // definition and we are keeping it for compatibility reasons.
+                // DEPRECATED and should be removed in the future
                 expose.push(e.switch());
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
