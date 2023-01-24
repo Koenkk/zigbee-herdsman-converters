@@ -195,8 +195,7 @@ module.exports = [
             .withDescription('Shows the zigbee2mqtt group bound to the active data point EP(1-4).'),
         exposes.numeric('action_transition_time', ea.STATE),
         exposes.numeric('action_step_size', ea.STATE),
-        exposes.numeric('action_rate', ea.STATE)
-        ],
+        exposes.numeric('action_rate', ea.STATE)],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
