@@ -42,7 +42,7 @@ module.exports = [
                 .withPreset(['hold', 'program'])
                 .withFanMode(['off', 'low', 'medium', 'high', 'auto'], ea.STATE_SET),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
-            exposes.composite('programming_mode')
+            exposes.composite('programming_mode', 'programming_mode', ea.STATE)
                 .withDescription(
                     'Schedule MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature.',
                 )

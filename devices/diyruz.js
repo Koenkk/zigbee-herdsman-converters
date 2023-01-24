@@ -63,7 +63,8 @@ module.exports = [
         vendor: 'DIYRuZ',
         description: '[DiY 8/12/20 button keypad](http://modkam.ru/?p=1114)',
         fromZigbee: [fz.diyruz_freepad_clicks, fz.diyruz_freepad_config, fz.battery],
-        exposes: [e.battery(), e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release'])].concat(((enpoinsCount) => {
+        exposes: [e.battery(),
+            e.action(['*_single', '*_double', '*_triple', '*_quadruple', '*_release', '*_hold'])].concat(((enpoinsCount) => {
             const features = [];
             for (let i = 1; i <= enpoinsCount; i++) {
                 const epName = `button_${i}`;
@@ -73,7 +74,7 @@ module.exports = [
             }
             return features;
         })(20)),
-        toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
+        toZigbee: [tz.diyruz_freepad_on_off_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -116,7 +117,7 @@ module.exports = [
             }
             return features;
         })(8)),
-        toZigbee: [tz.diyruz_freepad_on_off_config, tz.factory_reset],
+        toZigbee: [tz.diyruz_freepad_on_off_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -157,7 +158,7 @@ module.exports = [
             exposes.numeric('sensors_count', ea.ALL).withDescription('Count of installed tubes').withValueMin(0).withValueMax(50),
             exposes.numeric('sensitivity', ea.ALL).withDescription('This is applicable if tubes type is set to other')
                 .withValueMin(0).withValueMax(100)],
-        toZigbee: [tz.diyruz_geiger_config, tz.factory_reset],
+        toZigbee: [tz.diyruz_geiger_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['msIlluminanceMeasurement', 'genOnOff']);
@@ -202,7 +203,7 @@ module.exports = [
         vendor: 'DIYRuZ',
         description: '[Flower sensor](http://modkam.ru/?p=1700)',
         fromZigbee: [fz.temperature, fz.humidity, fz.illuminance, fz.soil_moisture, fz.pressure, fz.battery],
-        toZigbee: [tz.factory_reset],
+        toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'bme': 1, 'ds': 2};
@@ -237,7 +238,7 @@ module.exports = [
         description: '[Air quality sensor](https://modkam.ru/?p=1715)',
         fromZigbee: [fz.temperature, fz.humidity, fz.co2, fz.pressure, fz.diyruz_airsense_config_co2,
             fz.diyruz_airsense_config_temp, fz.diyruz_airsense_config_pres, fz.diyruz_airsense_config_hum],
-        toZigbee: [tz.factory_reset, tz.diyruz_airsense_config],
+        toZigbee: [tz.diyruz_airsense_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement', 'msCO2'];
@@ -269,7 +270,7 @@ module.exports = [
         vendor: 'DIYRuZ',
         description: '[Matrix intercom auto opener](https://diyruz.github.io/posts/zintercom/)',
         fromZigbee: [fz.battery, fz.diyruz_zintercom_config],
-        toZigbee: [tz.factory_reset, tz.diyruz_zintercom_config],
+        toZigbee: [tz.diyruz_zintercom_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);

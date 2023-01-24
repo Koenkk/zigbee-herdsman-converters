@@ -36,9 +36,14 @@ module.exports = [
         model: 'MCT-350 SMA',
         vendor: 'Visonic',
         description: 'Magnetic door & window contact sensor',
-        fromZigbee: [fz.ias_contact_alarm_1],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.tamper()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
     {
         zigbeeModel: ['MCT-340 E'],

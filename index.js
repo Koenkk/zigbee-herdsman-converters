@@ -76,7 +76,7 @@ function addDefinition(definition) {
     }
 
     definition.toZigbee.push(tz.scene_store, tz.scene_recall, tz.scene_add, tz.scene_remove, tz.scene_remove_all, tz.read, tz.write,
-        tz.command);
+        tz.command, tz.factory_reset);
 
     if (definition.exposes && Array.isArray(definition.exposes) && !definition.exposes.find((e) => e.name === 'linkquality')) {
         definition.exposes = definition.exposes.concat([exposes.presets.linkquality()]);
@@ -227,6 +227,16 @@ module.exports = {
             const options = {manufacturerCode: 0x1021, disableDefaultResponse: true};
             const payload = {0xf00: {value: 23, type: 35}};
             await endpoint.readResponse('genBasic', data.meta.zclTransactionSequenceNumber, payload, options);
+        }
+        // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
+        // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
+        if (type === 'message' && data.type === 'read' && data.cluster === 'genTime' &&
+            device.modelID === 'aqara.feeder.acn001') {
+            device.skipTimeResponse = true;
+            const oneJanuary2000 = new Date('January 01, 2000 00:00:00 UTC+00:00').getTime();
+            const secondsUTC = Math.round(((new Date()).getTime() - oneJanuary2000) / 1000);
+            const secondsLocal = secondsUTC - (new Date()).getTimezoneOffset() * 60;
+            await device.getEndpoint(1).readResponse('genTime', data.meta.zclTransactionSequenceNumber, {time: secondsLocal});
         }
     },
 };

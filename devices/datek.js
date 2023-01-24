@@ -10,12 +10,12 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['PoP'],
+        fingerprint: [{modelID: 'PoP', manufacturerName: 'Eva'}],
         model: 'HLU2909K',
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -28,24 +28,27 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
+        ota: ota.zigbeeOTA,
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
-        zigbeeModel: ['Meter Reader'],
+        fingerprint: [{modelID: 'Meter Reader', manufacturerName: 'Eva'}],
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature],
+        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fz.hw_version],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             try {
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {
-                /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/11867 */
+                // hwVersion < 2 do not support hwVersion attribute, so we are testing if this is hwVersion 1 or 2
+                await endpoint.read('genBasic', ['hwVersion']);
+            } catch (e) {
+                e;
             }
             const payload = [{
                 attribute: 'rmsVoltagePhB',
@@ -78,8 +81,6 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: [1, 1]});
             await reporting.currentSummReceived(endpoint);
             await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
-            device.powerSource = 'DC source';
-            device.save();
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
@@ -88,13 +89,32 @@ module.exports = [
         fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
         model: 'HSE2927E',
         vendor: 'Datek',
-        description: 'Eva Zigbee motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_with_timeout, fz.illuminance, fz.temperature],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.illuminance(), e.illuminance_lux(), e.temperature()],
+        description: 'Eva motion sensor',
+        fromZigbee: [fz.battery, fz.occupancy, fz.occupancy_timeout, fz.illuminance, fz.temperature,
+            fz.ias_enroll, fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.led_on_motion],
+        toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const options = {manufacturerCode: 4919};
+            const endpoint = device.getEndpoint(1);
+            const binds = ['msIlluminanceMeasurement', 'msTemperatureMeasurement', 'msOccupancySensing', 'ssIasZone'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.occupancy(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.illuminance(endpoint);
+            const payload = [{
+                attribute: {ID: 0x4000, type: 0x10},
+            }];
+            await endpoint.configureReporting('ssIasZone', payload, options);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+            await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
+            await endpoint.read('ssIasZone', [0x4000], options);
+        },
+        exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.illuminance_lux(), e.illuminance(),
+            exposes.binary('led_on_motion', ea.ALL, true, false).withDescription('Enable/disable LED on motion'),
+            exposes.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
     },
     {
-        zigbeeModel: ['ID Lock 150'],
+        fingerprint: [{modelID: 'ID Lock 150', manufacturerName: 'Eva'}],
         model: '0402946',
         vendor: 'Datek',
         description: 'Zigbee module for ID lock 150',
@@ -168,7 +188,7 @@ module.exports = [
                 'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
     },
     {
-        zigbeeModel: ['Water Sensor'],
+        fingerprint: [{modelID: 'Water Sensor', manufacturerName: 'Eva'}],
         model: 'HSE2919E',
         vendor: 'Datek',
         description: 'Eva water leak sensor',
@@ -207,5 +227,21 @@ module.exports = [
         exposes: [e.battery(), e.temperature(),
             e.action(['recall_1', 'recall_2', 'recall_3', 'recall_4', 'on', 'off',
                 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
+    },
+    {
+        fingerprint: [{modelID: 'Door/Window Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: ['Door/Window Sensor'],
+        model: 'HSE2920E',
+        vendor: 'Datek',
+        description: 'Door/window sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
 ];

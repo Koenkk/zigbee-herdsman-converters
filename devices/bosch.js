@@ -5,11 +5,27 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
 const constants = require('../lib/constants');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
 // Radiator Thermostat II
 const boschManufacturer = {manufacturerCode: 0x1209};
+
+// Twinguard
+const smokeSensitivity = {
+    'low': 3,
+    'medium': 2,
+    'high': 1,
+};
+
+// Twinguard
+const sirenState = {
+    'stop': 0,
+    'pre_alarm': 1,
+    'fire': 2,
+    'burglar': 3,
+};
 
 // Radiator Thermostat II
 const operatingModes = {
@@ -122,6 +138,67 @@ const tzLocal = {
             }
         },
     },
+    bosch_twinguard: {
+        key: ['sensitivity', 'pre_alarm', 'self_test', 'alarm', 'heartbeat'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'sensitivity') {
+                value = value.toUpperCase();
+                const index = smokeSensitivity[value];
+                await entity.write('manuSpecificBosch', {0x4003: {value: index, type: 0x21}}, boschManufacturer);
+                return {state: {sensitivity: value}};
+            }
+            if (key === 'pre_alarm') {
+                value = value.toUpperCase();
+                const index = stateOffOn[value];
+                await entity.write('manuSpecificBosch5', {0x4001: {value: index, type: 0x18}}, boschManufacturer);
+                return {state: {pre_alarm: value}};
+            }
+            if (key === 'heartbeat') {
+                const endpoint = meta.device.getEndpoint(12);
+                value = value.toUpperCase();
+                const index = stateOffOn[value];
+                await endpoint.write('manuSpecificBosch7', {0x5005: {value: index, type: 0x18}}, boschManufacturer);
+                return {state: {heartbeat: value}};
+            }
+            if (key === 'self_test') {
+                if (value) {
+                    await entity.command('manuSpecificBosch', 'initiateTestMode', boschManufacturer);
+                }
+            }
+            if (key === 'alarm') {
+                const endpoint = meta.device.getEndpoint(12);
+                const index = sirenState[value];
+                if (index == 0) {
+                    await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
+                    await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
+                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 0}, boschManufacturer);
+                } else if (index == 1) {
+                    await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x11, clusterid: 0xe000}, {direction: 1});
+                    return {state: {siren_state: 'pre-alarm'}};
+                } else if (index == 2) {
+                    await entity.commandResponse('genAlarms', 'alarm', {alarmcode: 0x10, clusterid: 0xe000}, {direction: 1});
+                    return {state: {siren_state: 'fire'}};
+                } else if (index == 3) {
+                    await endpoint.command('manuSpecificBosch8', 'burglarAlarm', {data: 1}, boschManufacturer);
+                }
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'sensitivity':
+                await entity.read('manuSpecificBosch', [0x4003], boschManufacturer);
+                break;
+            case 'pre_alarm':
+                await entity.read('manuSpecificBosch5', [0x4001], boschManufacturer);
+                break;
+            case 'heartbeat':
+                await meta.device.getEndpoint(12).read('manuSpecificBosch7', [0x5005], boschManufacturer);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
+            }
+        },
+    },
 };
 
 
@@ -172,6 +249,112 @@ const fzLocal = {
             return result;
         },
     },
+    bosch_twinguard_sensitivity: {
+        cluster: 'manuSpecificBosch',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty(0x4003)) {
+                result.sensitivity = (Object.keys(smokeSensitivity)[msg.data[0x4003]]);
+            }
+            return result;
+        },
+    },
+    bosch_twinguard_measurements: {
+        cluster: 'manuSpecificBosch3',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature'),
+            exposes.options.precision('humidity'), exposes.options.calibration('humidity'),
+            exposes.options.calibration('illuminance_lux', 'percentual')],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('humidity')) {
+                result.humidity = utils.calibrateAndPrecisionRoundOptions(msg.data['humidity'] / 100.0, options, 'humidity');
+            }
+            if (msg.data.hasOwnProperty('airpurity')) {
+                result.co2 = msg.data['airpurity'] * 10.0 + 500.0;
+            }
+            if (msg.data.hasOwnProperty('temperature')) {
+                result.temperature = utils.calibrateAndPrecisionRoundOptions(msg.data['temperature'] / 100.0, options, 'temperature');
+            }
+            if (msg.data.hasOwnProperty('illuminance_lux')) {
+                result.illuminance_lux = utils.calibrateAndPrecisionRoundOptions(
+                    msg.data['illuminance_lux'] / 2.0, options, 'illuminance_lux');
+            }
+            if (msg.data.hasOwnProperty('battery')) {
+                result.battery = msg.data['battery'] / 2.0;
+            }
+            return result;
+        },
+    },
+    bosch_twinguard_pre_alarm: {
+        cluster: 'manuSpecificBosch5',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('pre_alarm')) {
+                result.pre_alarm = (Object.keys(stateOffOn)[msg.data['pre_alarm']]);
+            }
+            return result;
+        },
+    },
+    bosch_twinguard_heartbeat: {
+        cluster: 'manuSpecificBosch7',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('heartbeat')) {
+                result.heartbeat = (Object.keys(stateOffOn)[msg.data['heartbeat']]);
+            }
+            return result;
+        },
+    },
+    bosch_twinguard_alarm_state: {
+        cluster: 'manuSpecificBosch8',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {
+                0x00200020: 'clear',
+                0x01200020: 'self_test',
+                0x02200020: 'burglar',
+                0x00200082: 'pre-alarm',
+                0x00200081: 'fire',
+                0x00200040: 'silenced',
+            };
+
+            if (msg.data.hasOwnProperty('alarm_status')) {
+                result.self_test = (msg.data['alarm_status'] & 1<<24) > 0;
+                result.smoke = (msg.data['alarm_status'] & 1<<7) > 0;
+                result.siren_state = lookup[msg.data['alarm_status']];
+            }
+            return result;
+        },
+    },
+    bosch_twinguard_smoke_alarm_state: {
+        cluster: 'genAlarms',
+        type: ['commandAlarm', 'readResponse'],
+        options: [],
+        convert: async (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {
+                0x10: 'fire',
+                0x11: 'pre-alarm',
+                0x14: 'clear',
+                0x16: 'silenced',
+            };
+            result.siren_state = lookup[msg.data.alarmcode];
+            if (msg.data.alarmcode == 0x10 || msg.data.alarmcode == 0x11) {
+                await msg.endpoint.commandResponse('genAlarms', 'alarm',
+                    {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
+            }
+            return result;
+        },
+    },
 };
 
 const definition = [
@@ -214,6 +397,7 @@ const definition = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -226,7 +410,7 @@ const definition = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
@@ -282,6 +466,87 @@ const definition = [
             await endpoint.read('hvacUserInterfaceCfg', ['keypadLockout']);
             await endpoint.read('hvacUserInterfaceCfg', [0x400b, 0x403a, 0x403b], boschManufacturer);
         },
+    },
+    {
+        zigbeeModel: ['Champion'],
+        model: '8750001213',
+        vendor: 'Bosch',
+        description: 'Twinguard',
+        fromZigbee: [fzLocal.bosch_twinguard_measurements, fzLocal.bosch_twinguard_sensitivity,
+            fzLocal.bosch_twinguard_pre_alarm, fzLocal.bosch_twinguard_alarm_state, fzLocal.bosch_twinguard_smoke_alarm_state,
+            fzLocal.bosch_twinguard_heartbeat],
+        toZigbee: [tzLocal.bosch_twinguard],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const coordinatorEndpointB = coordinatorEndpoint.getDevice().getEndpoint(1);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0x0009]);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, [0x0019]);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpointB, [0x0020]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe000]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpointB, [0xe002]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpointB, [0xe004]);
+            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe006]);
+            await reporting.bind(device.getEndpoint(12), coordinatorEndpointB, [0xe007]);
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['unknown_attribute'], boschManufacturer); // Needed for pairing
+            await device.getEndpoint(12).command('manuSpecificBosch7', 'pairingCompleted', boschManufacturer); // Needed for pairing
+            await device.getEndpoint(1).write('manuSpecificBosch',
+                {0x4003: {value: 0x0002, type: 0x21}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(1).write('manuSpecificBosch5',
+                {0x4001: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(12).write('manuSpecificBosch7',
+                {0x5005: {value: 0x01, type: 0x18}}, boschManufacturer); // Setting defaults
+            await device.getEndpoint(1).read('manuSpecificBosch', ['sensitivity'], boschManufacturer);
+            await device.getEndpoint(1).read('manuSpecificBosch5', ['pre_alarm'], boschManufacturer);
+            await device.getEndpoint(12).read('manuSpecificBosch7', ['heartbeat'], boschManufacturer);
+        },
+        exposes: [
+            e.smoke(), e.temperature(), e.humidity(), e.co2(), e.illuminance_lux(), e.battery(),
+            exposes.enum('alarm', ea.ALL, Object.keys(sirenState)).withDescription('Mode of the alarm (sound effect)'),
+            exposes.text('siren_state', ea.STATE).withDescription('Siren state'),
+            exposes.binary('self_test', ea.ALL, true, false).withDescription('Initiate self-test'),
+            exposes.enum('sensitivity', ea.ALL, Object.keys(smokeSensitivity)).withDescription('Sensitivity of the smoke alarm'),
+            exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
+            exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
+        ],
+    },
+    {
+        zigbeeModel: ['RBSH-SP-ZB-EU'],
+        model: 'BSP-FZ2',
+        vendor: 'Bosch',
+        description: 'Plug compact EU',
+        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+    },
+    {
+        zigbeeModel: ['RBSH-SP-ZB-FR'],
+        model: 'BSP-EZ2',
+        vendor: 'Bosch',
+        description: 'Plug compact FR',
+        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
     },
 ];
 

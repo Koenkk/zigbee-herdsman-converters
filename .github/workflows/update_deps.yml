@@ -18,7 +18,7 @@ jobs:
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - run: npm install
     - run: npm ls --depth 0 --prod --parseable | tail -n +2 | xargs -I '{}' basename "{}" | xargs -I '{}' npm install '{}'@latest
     - run: rm -rf node_modules package-lock.json && npm install

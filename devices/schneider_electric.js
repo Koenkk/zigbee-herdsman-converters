@@ -5,6 +5,7 @@ const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const utils = require('../lib/utils');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -734,7 +735,7 @@ module.exports = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.battery, fz.hvac_user_interface,
             fz.wiser_smart_thermostat_client, fz.wiser_smart_setpoint_command_client, fz.schneider_temperature],
         toZigbee: [tz.wiser_sed_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
-        exposes: [e.battery(), e.temperature(),
+        exposes: [e.battery(),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE),
             exposes.enum('zone_mode',
@@ -766,14 +767,28 @@ module.exports = [
         model: 'EER50000',
         vendor: 'Schneider Electric',
         description: 'Wiser H-Relay (HACT)',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat],
-        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint],
-        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat, fz.metering,
+            fz.identify],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.wiser_fip_setting,
+            tz.wiser_hact_config, tz.wiser_zone_mode, tz.identify],
+        exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature(),
+            e.power(), e.energy(),
+            exposes.enum('identify', ea.SET, ['0', '30', '60', '600', '900']).withDescription('Flash green tag for x seconds'),
+            exposes.enum('zone_mode',
+                ea.ALL, ['manual', 'schedule', 'energy_saver', 'holiday']),
+            exposes.enum('hact_config',
+                ea.ALL, ['unconfigured', 'setpoint_switch', 'setpoint_fip', 'fip_fip'])
+                .withDescription('Input (command) and output (control) behavior of actuator'),
+            exposes.enum('fip_setting',
+                ea.ALL, ['comfort', 'comfort_-1', 'comfort_-2', 'energy_saving', 'frost_protection', 'off'])
+                .withDescription('Output signal when operating in fil pilote mode (fip_fip)')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
-            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement'];
+            const binds = ['genBasic', 'genPowerCfg', 'hvacThermostat', 'msTemperatureMeasurement', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint);
         },
     },
     {
@@ -966,5 +981,38 @@ module.exports = [
             exposes.numeric('current_phase_c', ea.STATE)
                 .withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
         ],
+    },
+    {
+        zigbeeModel: ['W599001'],
+        model: 'W599001',
+        vendor: 'Schneider Electric',
+        description: 'Wiser smoke alarm',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_enroll, fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        ota: ota.zigbeeOTA, // local OTA updates are untested
+        exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(),
+            // the temperature readings are unreliable and may need more investigation.
+            e.temperature(),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(20);
+            const binds = ['msTemperatureMeasurement', 'ssIasZone', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint);
+            await endpoint.read('msTemperatureMeasurement', ['measuredValue']);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
+            await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
+        },
+    },
+    {
+        zigbeeModel: ['CCT591011_AS'],
+        model: 'CCT591011_AS',
+        vendor: 'Schneider Electric',
+        description: 'Wiser window/door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.tamper()],
     },
 ];

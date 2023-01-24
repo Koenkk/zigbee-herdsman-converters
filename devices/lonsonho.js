@@ -25,7 +25,7 @@ module.exports = [
         model: '11830304',
         vendor: 'Lonsonho',
         description: 'Curtain switch',
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode, fz.tuya_cover_options],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode],
         meta: {coverInverted: true},
@@ -205,7 +205,7 @@ module.exports = [
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
         extend: extend.switch(),
-        toZigbee: [tz.TYZB01_on_off],
+        toZigbee: [tz.power_on_behavior, tz.TYZB01_on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },

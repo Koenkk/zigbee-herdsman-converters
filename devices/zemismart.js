@@ -124,7 +124,7 @@ module.exports = [
             'button_6_hold', 'button_6_single', 'button_6_double'])],
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_zigisuyh'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_v4mevirn'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_zigisuyh', '_TZ3000_v4mevirn', '_TZ3000_mlswgkc3']),
         model: 'ZIGBEE-B09-UK',
         vendor: 'Zemismart',
         description: 'Zigbee smart outlet universal socket with USB port',
@@ -149,8 +149,8 @@ module.exports = [
         fromZigbee: [fz.ZMAM02_cover],
         toZigbee: [tz.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options')
-                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+            exposes.composite('options', 'options', ea.STATE)
+                .withFeature(exposes.numeric('motor_speed', ea.STATE)
                     .withValueMin(0)
                     .withValueMax(255)
                     .withDescription('Motor speed')),

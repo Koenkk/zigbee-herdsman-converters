@@ -63,12 +63,12 @@ module.exports = [
                     'from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external ' +
                     'room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property.' +
                     'The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` ' +
-                    'property: If `Radiator_covered` is `true` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
+                    'property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` ' +
                     'property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the ' +
                     '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
                     'property *at most* every 30 minutes or every 0.1K change in measured room temperature.' +
-                    'If `Radiator_covered` is `false` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property at ' +
-                    'least every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
+                    'If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at ' +
+                    'least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the ' +
                     '`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` ' +
                     'property *at most* every 5 minutes or every 0.1K change in measured room temperature.')
                 .withValueMin(-8000).withValueMax(3500),
@@ -80,7 +80,8 @@ module.exports = [
                 'has no (noticable?) effect.'),
             exposes.binary('window_open_feature', ea.ALL, true, false)
                 .withDescription('Whether or not the window open feature is enabled'),
-            exposes.numeric('window_open_internal', ea.STATE_GET).withValueMin(0).withValueMax(4)
+            exposes.enum('window_open_internal', ea.STATE_GET,
+                ['quarantine', 'closed', 'hold', 'open', 'external_open'])
                 .withDescription('0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, ' +
                     '3=Open window detected, 4=In window open state from external but detected closed locally'),
             exposes.binary('window_open_external', ea.ALL, true, false)

@@ -58,7 +58,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['3320-L'],
@@ -74,7 +74,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
+        exposes: [e.contact(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         zigbeeModel: ['3450-L', '3450-L2'],
@@ -111,7 +111,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
@@ -164,22 +164,6 @@ module.exports = [
     {
         zigbeeModel: ['3315-L'],
         model: '3315-L',
-        vendor: 'Iris',
-        description: 'Water sensor',
-        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
-        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-        toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-            await reporting.temperature(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ['3315-Geu'],
-        model: '3315-Geu',
         vendor: 'Iris',
         description: 'Water sensor',
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],

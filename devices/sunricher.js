@@ -272,6 +272,14 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['HK-DIM'],
+        model: '50208702',
+        vendor: 'Sunricher',
+        description: 'LED dimmable driver',
+        extend: extend.light_onoff_brightness(),
+        whiteLabel: [{vendor: 'Yphix', model: '50208702'}],
+    },
+    {
         zigbeeModel: ['SR-ZG9040A-S'],
         model: 'SR-ZG9040A-S',
         vendor: 'Sunricher',
@@ -359,6 +367,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x000000005d5.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000057e.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x000000001fa.....$/},
+            {modelID: 'GreenPower_2', ieeeAddr: /^0x0000000034b.....$/},
             {modelID: 'GreenPower_2', ieeeAddr: /^0x00000000f12.....$/}],
         model: 'SR-ZGP2801K4-DIM',
         vendor: 'Sunricher',
@@ -602,5 +612,14 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x1008, 0x1009, 0x100A, 0x100B], options);
             await endpoint.read('hvacThermostat', [0x2001, 0x2002], options);
         },
+    },
+    {
+        fingerprint: [{modelID: 'TERNCY-DC01', manufacturerName: 'Sunricher'}],
+        model: 'SR-ZG9010A',
+        vendor: 'Sunricher',
+        description: 'Door windows sensor',
+        fromZigbee: [fz.U02I007C01_contact, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery()],
     },
 ];

@@ -305,6 +305,7 @@ module.exports = [
         description: 'Zigbee 4 channel remote control',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.action([
             'on_l1', 'off_l1', 'brightness_move_up_l1', 'brightness_move_down_l1', 'brightness_stop_l1',
             'on_l2', 'off_l2', 'brightness_move_up_l2', 'brightness_move_down_l2', 'brightness_stop_l2',
@@ -723,6 +724,35 @@ module.exports = [
             await endpoint.read('hvacThermostat', [0x1000, 0x1001, 0x1004, 0x1009, 0x100A], options);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
+    },
+    {
+        zigbeeModel: ['3802968'],
+        model: '3802968',
+        vendor: 'Namron',
+        description: 'LED Filament Flex 5W CCT E27 Clear',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['4512749'],
+        model: '4512749',
+        vendor: 'Namron',
+        description: 'Thermostat outlet socket',
+        fromZigbee: [fz.metering, fz.electrical_measurement, fz.on_off, fz.temperature],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.temperature(), e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await reporting.onOff(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.activePower(endpoint);
         },
     },
 ];

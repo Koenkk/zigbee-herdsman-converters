@@ -212,7 +212,7 @@ module.exports = [
         vendor: 'Centralite',
         description: '3-Series pearl touch thermostat',
         fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
@@ -242,7 +242,7 @@ module.exports = [
         vendor: 'Centralite',
         description: 'HA thermostat',
         fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan, fz.ignore_time_read],
-        toZigbee: [tz.factory_reset, tz.thermostat_local_temperature,
+        toZigbee: [tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_setpoint_raise_lower, tz.thermostat_remote_sensing,
             tz.thermostat_control_sequence_of_operation, tz.thermostat_system_mode,
@@ -338,6 +338,22 @@ module.exports = [
             await reporting.rmsVoltage(endpoint, {change: 2});
             await reporting.rmsCurrent(endpoint, {change: 10});
             await reporting.activePower(endpoint, {change: 2});
+        },
+    },
+    {
+        zigbeeModel: ['3315-Geu'],
+        model: '3315-Geu',
+        vendor: 'Centralite',
+        description: 'Water sensor',
+        fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
+        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
     },
 ];
