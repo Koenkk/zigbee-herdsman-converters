@@ -18,7 +18,7 @@ module.exports = [
         exposes: [exposes.climate().withSetpoint('occupied_heating_setpoint', 10, 30, 0.5)
             .withSetpoint('occupied_cooling_setpoint', 10, 31, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat', 'cool']).withRunningState(['idle', 'heat', 'cool'])
-            .withLocalTemperatureCalibration(-30, 30, 0.1).withPiHeatingDemand()],
+            .withLocalTemperatureCalibration().withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg'];

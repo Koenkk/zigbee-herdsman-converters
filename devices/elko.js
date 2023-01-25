@@ -60,7 +60,7 @@ module.exports = [
                 '(quick) wooden floors.'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 50, 1)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-30, 30, 0.1)
+                .withLocalTemperatureCalibration()
                 .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']),
             e.temperature_sensor_select(['air', 'floor', 'supervisor_floor']),
             exposes.numeric('floor_temp', ea.STATE_GET).withUnit('°C')
