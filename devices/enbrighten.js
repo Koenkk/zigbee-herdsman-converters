@@ -147,7 +147,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);
         },
-    },    
+    },
     {
         zigbeeModel: ['43109'],
         model: '43109',
