@@ -704,7 +704,7 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {

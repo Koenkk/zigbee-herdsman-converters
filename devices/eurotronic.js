@@ -20,7 +20,7 @@ module.exports = [
             tz.eurotronic_current_heating_setpoint, tz.eurotronic_trv_mode, tz.eurotronic_valve_position],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'auto', 'heat']).withRunningState(['idle', 'heat'])
-            .withLocalTemperatureCalibration(-30, 30, 0.1)
+            .withLocalTemperatureCalibration()
             .withPiHeatingDemand(),
         exposes.enum('trv_mode', exposes.access.ALL, [1, 2])
             .withDescription('Select between direct control of the valve via the `valve_position` or automatic control of the '+

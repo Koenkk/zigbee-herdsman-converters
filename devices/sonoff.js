@@ -1,5 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
@@ -245,5 +246,14 @@ module.exports = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+    },
+    {
+        zigbeeModel: ['ZBCurtain'],
+        model: 'ZBCurtain',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart curtain motor',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position(), e.battery()],
     },
 ];

@@ -195,7 +195,7 @@ module.exports = [
             tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-            .withLocalTemperatureCalibration(-30, 30, 0.1), e.keypad_lockout()],
+            .withLocalTemperatureCalibration(), e.keypad_lockout()],
         meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
