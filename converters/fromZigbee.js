@@ -6111,6 +6111,7 @@ const converters = {
             let result = null;
 
             if (value === 0) result = {action: 'shake'};
+            else if (value === 1) result = {action: 'throw'};
             else if (value === 2) result = {action: 'wakeup'};
             else if (value === 3) result = {action: 'fall'};
             else if (value >= 512) result = {action: 'tap', side: value-512};
