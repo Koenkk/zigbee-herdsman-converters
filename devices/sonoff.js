@@ -250,8 +250,8 @@ module.exports = [
     {
         zigbeeModel: ['ZBCurtain'],
         model: 'ZBCurtain',
-        vendor: 'Sonoff',
-        description: 'SONOFF Zigbee Smart Curtain Motor',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart curtain motor',
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position(), e.battery()],
