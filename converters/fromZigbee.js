@@ -6132,37 +6132,6 @@ const converters = {
             return result ? result : null;
         },
     },
-    CTPR01_action_multistate: {
-        cluster: 'genMultistateInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            let payload;
-
-            if (value === 0) payload = {action: 'shake'};
-            else if (value === 1) payload = {action: 'throw'};
-            else if (value === 2) payload = {action: '1_min_inactivity'};
-            else if (value === 4) payload = {action: 'hold'};
-            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
-            else if (value >= 512) payload = {action: 'tap', side: value - 511};
-            else if (value >= 256) payload = {action: 'slide', side: value - 255};
-            else if (value >= 128) {
-                payload = {
-                    action: 'flip180', side: value - 127,
-                    action_from_side: 7 - value + 127,
-                };
-            } else if (value >= 64) {
-                payload = {
-                    action: 'flip90', side: value % 8 + 1,
-                    action_from_side: Math.floor((value - 64) / 8) + 1,
-                };
-            } else {
-                meta.logger.debug(`${model.zigbeeModel}: unknown action with value ${value}`);
-            }
-            return payload;
-        },
-    },
     MFKZQ01LM_action_analog: {
         cluster: 'genAnalogInput',
         type: ['attributeReport', 'readResponse'],
@@ -6181,18 +6150,6 @@ const converters = {
 
             if (!isLegacyEnabled(options)) delete result.angle;
             return result;
-        },
-    },
-    CTPR01_action_analog: {
-        cluster: 'genAnalogInput',
-        type: ['attributeReport', 'readResponse'],
-        options: [],
-        convert: (model, msg, publish, options, meta) => {
-            const value = msg.data['presentValue'];
-            return {
-                action: value < 0 ? 'rotate_left' : 'rotate_right',
-                action_angle: Math.floor(value * 100) / 100,
-            };
         },
     },
     tradfri_occupancy: {
