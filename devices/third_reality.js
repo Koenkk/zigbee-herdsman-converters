@@ -15,7 +15,12 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch(), e.battery_voltage()],
+        meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.switch(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.powerSource = 'Battery';
+            device.save();
+        },
     },
     {
         zigbeeModel: ['3RSS008Z'],
