@@ -6862,7 +6862,9 @@ const converters = {
         cluster: 'msOccupancySensing',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            return {occupancy: msg.data[7] === 0};
+            if (msg.data[7] === 1) {
+                return {action: 'motion'};
+            }
         },
     },
     DNCKAT_S00X_buttons: {
