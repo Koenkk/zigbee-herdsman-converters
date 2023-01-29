@@ -476,6 +476,25 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['HS3HT-EFA-3.0'],
+        model: 'HS3HT',
+        vendor: 'HEIMAN',
+        description: 'Temperature & humidity sensor with display',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.humidity(endpoint2);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
         zigbeeModel: ['GASSensor-EM', '358e4e3e03c644709905034dae81433e'],
         model: 'HS1CG-E',
         vendor: 'HEIMAN',
