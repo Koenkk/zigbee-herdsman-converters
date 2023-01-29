@@ -401,7 +401,7 @@ module.exports = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({backlightModeOffNormalInverted: true, switchType: true}),
+        extend: tuya.extend.switch({backlightModeOffNormalInverted: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';
