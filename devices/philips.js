@@ -442,7 +442,7 @@ module.exports = [
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: true}),
     },
     {
         zigbeeModel: ['LCF002', 'LCF001'],
