@@ -85,7 +85,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
-        model: 'YMF40/YDM4109+',
+        model: 'YMF40/YDM4109+/YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
