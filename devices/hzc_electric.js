@@ -12,7 +12,7 @@ module.exports = [
         description: 'Zigbee dual dimmer',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         exposes: [e.light_brightness().withEndpoint('l1'), e.light_brightness().withEndpoint('l2')],
-        meta: { multiEndpoint: true },
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint1 = device.getEndpoint(1);
