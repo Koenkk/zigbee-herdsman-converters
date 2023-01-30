@@ -466,7 +466,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // standard ZCL attributes
-            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
@@ -478,14 +478,14 @@ module.exports = [
                 reportableChange: null,
             }]);
 
+            // Metering
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);
-
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
+            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
 
             // Custom attributes
             const options = {manufacturerCode: 0x1224};
