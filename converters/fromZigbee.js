@@ -5387,19 +5387,19 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
-            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
+        convert: async (model, msg, publish, options, meta) => {
+            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
                 const dataObject = xiaomi.buffer2DataObject(meta, model, msg.data);
-                payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
+                payload = await xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
             }
             return payload;
         },
@@ -5408,8 +5408,8 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
-            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
+        convert: async (model, msg, publish, options, meta) => {
+            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_on_off_action: {

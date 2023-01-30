@@ -3058,10 +3058,7 @@ module.exports = [
         model: 'CTP-R01',
         vendor: 'Xiaomi',
         description: 'Aqara magic cube T1 Pro',
-        meta: {
-            battery: {voltageToPercentage: '3V_2850_3000'},
-            disableDefaultResponse: true,
-        },
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.aqara_opple, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
         toZigbee: [tzLocal.CTPR01_operation_mode],
