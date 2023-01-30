@@ -27,4 +27,11 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['42-032'],
+        model: '42-032',
+        vendor: 'LightSolutions',
+        description: 'LED driver CCT 12V - 30W - CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
 ];
