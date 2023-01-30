@@ -8,6 +8,13 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-061-0'],
+        model: 'ROB_200-061-0',
+        vendor: 'ROBB',
+        description: '50W Zigbee CCT LED driver (constant current)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
         zigbeeModel: ['ROB_200-029-0'],
         model: 'ROB_200-029-0',
         vendor: 'ROBB',
