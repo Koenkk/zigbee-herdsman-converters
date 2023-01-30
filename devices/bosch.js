@@ -202,8 +202,22 @@ const tzLocal = {
 };
 
 
-// Radiator Thermostat II
 const fzLocal = {
+    bosch_contact: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            const lookup = {0: 'none', 1: 'single', 2: 'long'};
+            const result = {
+                contact: !((zoneStatus & 1) > 0),
+                battery_low: (zoneStatus & 1<<3) > 0,
+                action: lookup[(zoneStatus >> 11) & 3],
+            };
+            if (result.action === 'none') delete result.action;
+            return result;
+        },
+    },
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -527,6 +541,15 @@ const definition = [
             await reporting.activePower(endpoint);
         },
         exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+    },
+    {
+        zigbeeModel: ['RBSH-SWD-ZB'],
+        model: 'BSEN-C2',
+        vendor: 'Bosch',
+        description: 'Door/window contact II',
+        fromZigbee: [fzLocal.bosch_contact],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
     },
     {
         zigbeeModel: ['RBSH-SP-ZB-FR'],

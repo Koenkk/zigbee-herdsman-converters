@@ -630,7 +630,8 @@ module.exports = [
             'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
+        // dontDividePercentage: true not needed with latest firmware
+        // https://github.com/Koenkk/zigbee2mqtt/issues/16412
         configure: configureRemote,
     },
     {
