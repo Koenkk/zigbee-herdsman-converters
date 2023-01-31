@@ -2383,7 +2383,7 @@ module.exports = [
         model: '929002422702',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 55',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCX002'],
