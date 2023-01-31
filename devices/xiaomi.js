@@ -297,6 +297,49 @@ const fzLocal = {
             return payload;
         },
     },
+    CTPR01_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            let payload;
+
+            if (value === 0) payload = {action: 'shake'};
+            else if (value === 1) payload = {action: 'throw'};
+            else if (value === 2) payload = {action: '1_min_inactivity'};
+            else if (value === 4) payload = {action: 'hold'};
+            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
+            else if (value >= 512) payload = {action: 'tap', side: value - 511};
+            else if (value >= 256) payload = {action: 'slide', side: value - 255};
+            else if (value >= 128) {
+                payload = {
+                    action: 'flip180', side: value - 127,
+                    action_from_side: 7 - value + 127,
+                };
+            } else if (value >= 64) {
+                payload = {
+                    action: 'flip90', side: value % 8 + 1,
+                    action_from_side: Math.floor((value - 64) / 8) + 1,
+                };
+            } else {
+                meta.logger.debug(`${model.zigbeeModel}: unknown action with value ${value}`);
+            }
+            return payload;
+        },
+    },
+    CTPR01_action_analog: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            return {
+                action: value < 0 ? 'rotate_left' : 'rotate_right',
+                action_angle: Math.floor(value * 100) / 100,
+            };
+        },
+    },
 };
 
 const tzLocal = {
@@ -606,6 +649,25 @@ const tzLocal = {
             };
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
+        },
+    },
+    CTPR01_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {action_mode: 0, scene_mode: 1};
+            /**
+             * schedule the callback to run when the configuration window comes
+             */
+            const callback = async () => {
+                await entity.write(
+                    'aqaraOpple',
+                    {0x0148: {value: lookup[value], type: 0x20}},
+                    {manufacturerCode: 0x115f, disableDefaultResponse: true},
+                );
+                meta.logger.info('operation_mode switch success!');
+            };
+            globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
+            meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
         },
     },
 };
@@ -2990,5 +3052,44 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
+    },
+    {
+        zigbeeModel: ['lumi.remote.cagl02'],
+        model: 'CTP-R01',
+        vendor: 'Xiaomi',
+        description: 'Aqara magic cube T1 Pro',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.aqara_opple, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
+        toZigbee: [tzLocal.CTPR01_operation_mode],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.device_temperature(),
+            e.power_outage_count(false),
+            exposes
+                .enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
+                .withDescription('[Soft Switch]: There is a configuration window, opens once an hour on itself, ' +
+                    'only during which the cube will respond to mode switch. ' +
+                    'Mode switch will be scheduled to take effect when the window becomes available. ' +
+                    'You can also give it a throw action (no backward motion) to force a respond! ' +
+                    'Otherwise, you may open lid and click LINK once to make the cube respond immediately. ' +
+                    '[Hard Switch]: Open lid and click LINK button 5 times.'),
+            e.cube_side('side'),
+            e.action([
+                'shake', 'throw', 'tap', 'slide', 'flip180', 'flip90', 'hold', 'side_up',
+                'rotate_left', 'rotate_right', '1_min_inactivity', 'flip_to_side',
+            ]).withDescription('Triggered action'),
+            e.cube_side('action_from_side'),
+            e.angle('action_angle'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.softwareBuildID = `0.0.0_00${device.applicationVersion}`;
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+            await endpoint.read('aqaraOpple', [0x148], {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+        },
     },
 ];
