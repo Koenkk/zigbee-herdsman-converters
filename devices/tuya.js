@@ -2118,7 +2118,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_3ylew7b4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
         ],
-        model: 'TS0601_cover',
+        model: 'TS0601_cover_1',
         vendor: 'TuYa',
         description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
         whiteLabel: [
@@ -2155,17 +2155,15 @@ module.exports = [
             // Curtain motors:
             {modelID: 'TS0601', manufacturerName: '_TZE200_eegnwoyw'},
         ],
-        model: 'TS0601_cover_1',
+        model: 'TS0601_cover_2',
         vendor: 'TuYa',
         description: 'Curtain motor fixed speed',
         whiteLabel: [
             {vendor: 'Zemismart', model: 'BCM100DB'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
-        exposes: [
-            e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options', ea.STATE_SET)],
+        toZigbee: [tz.tuya_cover_control],
+        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
         zigbeeModel: ['kud7u2l'],
