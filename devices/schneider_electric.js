@@ -683,6 +683,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['2GANG/SWITCH/2'],
+        model: 'MEG5126-0300',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5165 PlusLink shutter insert with Merten Wiser System M push button (2fold)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
+    {
         zigbeeModel: ['EH-ZB-VACT'],
         model: 'EER53000',
         vendor: 'Schneider Electric',
