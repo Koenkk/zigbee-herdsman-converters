@@ -16,7 +16,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495], disableEffect: true}),
     },
     {
-        zigbeeModel: ['AJ_ZBPROA60'],
+        zigbeeModel: ['AJ_ZBPROA60', 'AJ_ZBPROA6'],
         model: 'AJ_ZIGPROA60',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee pro 12W A60 bulb',
