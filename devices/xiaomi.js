@@ -3058,6 +3058,7 @@ module.exports = [
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
         vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'MFCZQ12LM'}],
         description: 'Aqara magic cube T1 Pro',
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         ota: ota.zigbeeOTA,
