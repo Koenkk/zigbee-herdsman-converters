@@ -398,7 +398,7 @@ const tzLocal = {
         },
     },
     led_intensity_on: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_intensity_on'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 100) {
@@ -424,7 +424,7 @@ const tzLocal = {
         },
     },
     led_color_on: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_color_on'],
         convertSet: async (entity, key, value, meta) => {
             const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
@@ -436,7 +436,7 @@ const tzLocal = {
         },
     },
     led_color_off: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_color_off'],
         convertSet: async (entity, key, value, meta) => {
             const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
@@ -448,7 +448,7 @@ const tzLocal = {
         },
     },
     minimum_brightness: {
-        // DM2500ZB
+        // DM2x0ZB
         key: ['minimum_brightness'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 3000) {
@@ -461,7 +461,7 @@ const tzLocal = {
         },
     },
     timer_seconds: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['timer_seconds'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 10800) {
@@ -997,6 +997,42 @@ module.exports = [
         model: 'DM2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fzLocal.sinope],
+        toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
+            tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
+        exposes: [e.light_brightness(),
+            exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
+                .withDescription('Automatically turn off load after x seconds'),
+            exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
+                .withDescription('Control status LED when load ON'),
+            exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
+                .withDescription('Control status LED when load OFF'),
+            exposes.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
+                .withDescription('Control minimum dimmer brightness'),
+            exposes.composite('led_color_on', 'led_color_on', ea.SET)
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
+                .withDescription('Control status LED color when load ON'),
+            exposes.composite('led_color_off', 'led_color_off', ea.SET)
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
+                .withDescription('Control status LED color when load OFF')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genBasic', 'genLevelCtrl'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['DM2550ZB'],
+        model: 'DM2550ZB',
+        vendor: 'Sinopé',
+        description: 'Zigbee Adaptive phase smart dimmer',
         fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fzLocal.sinope],
         toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
