@@ -442,7 +442,7 @@ module.exports = [
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: true}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LCF002', 'LCF001'],
@@ -1496,7 +1496,7 @@ module.exports = [
         model: '1742930P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
-        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['1743030P7'],
@@ -1524,7 +1524,7 @@ module.exports = [
         model: '1746430P7',
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (black)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['1746447P7'],
