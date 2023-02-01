@@ -2832,6 +2832,7 @@ module.exports = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
