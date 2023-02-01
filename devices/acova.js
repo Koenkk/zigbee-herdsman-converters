@@ -36,7 +36,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ALCANTARA2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000'],
+        zigbeeModel: ['ALCANTARA2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000','ALCANTARA2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: 'ALCANTARA2',
         vendor: 'Acova',
         description: 'Alcantara 2 heater',
