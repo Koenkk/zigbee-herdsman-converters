@@ -2232,6 +2232,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LTV003'],
+        model: '8719514301528',
+        vendor: 'Philips',
+        description: 'Hue Filament White Ambiance ST72 B22 LED warm-to-cool',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTV004'],
         model: '929002478401',
         vendor: 'Philips',
