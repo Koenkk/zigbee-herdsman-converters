@@ -11,6 +11,7 @@ const ea = exposes.access;
 module.exports = [
     {
         fingerprint: [{modelID: 'PoP', manufacturerName: 'Eva'}],
+        zigbeeModel: 'PoP',
         model: 'HLU2909K',
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
@@ -33,6 +34,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'Meter Reader', manufacturerName: 'Eva'}],
+        zigbeeModel: 'Meter Reader',
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
@@ -87,6 +89,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: 'Motion Sensor',
         model: 'HSE2927E',
         vendor: 'Datek',
         description: 'Eva motion sensor',
@@ -115,6 +118,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'ID Lock 150', manufacturerName: 'Eva'}],
+        zigbeeModel: 'ID Lock 150',
         model: '0402946',
         vendor: 'Datek',
         description: 'Zigbee module for ID lock 150',
@@ -189,6 +193,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'Water Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: 'Water Sensor',
         model: 'HSE2919E',
         vendor: 'Datek',
         description: 'Eva water leak sensor',
