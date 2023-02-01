@@ -686,7 +686,7 @@ module.exports = [
         zigbeeModel: ['2GANG/SWITCH/2'],
         model: 'MEG5126-0300',
         vendor: 'Schneider Electric',
-        description: 'Merten MEG5165 PlusLink shutter insert with Merten Wiser System M push button (2fold)',
+        description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         meta: {multiEndpoint: true},
