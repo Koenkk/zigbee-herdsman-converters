@@ -183,7 +183,7 @@ module.exports = [
             {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang switch module with neutral wire',
