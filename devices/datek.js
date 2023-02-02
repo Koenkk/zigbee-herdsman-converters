@@ -16,6 +16,7 @@ module.exports = [
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
