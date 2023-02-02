@@ -39,7 +39,7 @@ module.exports = [
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
-        zigbeeModel: ['ZB-CCT_Filament'],
+        zigbeeModel: ['CCT Light'],
         model: 'ZB-CCT_Filament',
         vendor: 'Ajax Online',
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
