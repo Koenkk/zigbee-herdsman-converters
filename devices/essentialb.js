@@ -12,7 +12,7 @@ module.exports = [
         zigbeeModel: ['EB-E27-ST64-CCT-FV'],
         model: 'EB-E27-ST64-CCT-FV',
         vendor: 'EssentielB',
-        description: 'Filament Vintage light bulb',
+        description: 'Filament vintage light bulb',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 454]}),
     },
 ];
