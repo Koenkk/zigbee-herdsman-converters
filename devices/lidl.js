@@ -435,7 +435,22 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
-        model: 'HG06335/HG07310',
+        model: 'HG06335',
+        vendor: 'Lidl',
+        description: 'Silvercrest smart motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TY0202', manufacturerName: '_TZ1800_fcdjzz3s'}],
+        model: 'HG07310',
         vendor: 'Lidl',
         description: 'Silvercrest smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
