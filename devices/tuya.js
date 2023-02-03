@@ -2477,41 +2477,71 @@ module.exports = [
             {vendor: 'Unknown/id3.pl', model: 'GTZ06'},
         ],
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.haozee_thermostat],
-        toZigbee: [
-            tz.haozee_thermostat_system_mode, tz.haozee_thermostat_current_heating_setpoint, tz.haozee_thermostat_boost_heating,
-            tz.haozee_thermostat_boost_heating_countdown, tz.haozee_thermostat_window_detection,
-            tz.haozee_thermostat_child_lock, tz.haozee_thermostat_temperature_calibration, tz.haozee_thermostat_max_temperature,
-            tz.haozee_thermostat_min_temperature, tz.haozee_thermostat_preset,
-        ],
+        fromZigbee: [tuya.fzDataPoints],
+        toZigbee: [tuya.tzDataPoints],
+        configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
             e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'CLOSED', 'OPEN').withDescription('Window status closed or open '),
-            exposes.binary('heating', ea.STATE, 'ON', 'OFF').withDescription('Device valve is open or closed (heating or not)'),
+            exposes.binary('alarm_switch', ea.STATE, 'ON', 'OFF').withDescription('Thermostat in error state'),
             exposes.climate()
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET).withPreset(['auto', 'manual', 'off', 'on'],
+                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withPreset(['auto', 'manual', 'off', 'on'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
-                    'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                    'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
-                    'ON - In this mode, the thermostat stays open ' +
-                    'OFF - In this mode, the thermostat stays closed')
-                .withSystemMode(['auto', 'heat', 'off'], ea.STATE_SET),
-            exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Auto MODE ⏱ - In this mode, ' +
-                    'the device executes a preset week programming temperature time and temperature. ')
-                .withFeature(exposes.text('monday_schedule', ea.STATE))
-                .withFeature(exposes.text('tuesday_schedule', ea.STATE))
-                .withFeature(exposes.text('wednesday_schedule', ea.STATE))
-                .withFeature(exposes.text('thursday_schedule', ea.STATE))
-                .withFeature(exposes.text('friday_schedule', ea.STATE))
-                .withFeature(exposes.text('saturday_schedule', ea.STATE))
-                .withFeature(exposes.text('sunday_schedule', ea.STATE)),
-            exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
+                'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
+                'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                'ON - In this mode, the thermostat stays open ' +
+                'OFF - In this mode, the thermostat stays closed')
+                .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
+                .withRunningState(['idle', 'heat'], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+            exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
+            exposes.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(1000),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'system_mode',
+                    {
+                        from: (v) => {
+                            const lookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'on'};
+                            return lookup[v];
+                        },
+                        to: (v) => {
+                            const lookup = {'auto': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)};
+                            return lookup[v];
+                        },
+                    },
+                ],
+                [1, 'preset', tuya.valueConverterBasic.lookup(
+                    {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                [3, 'local_temperature', tuya.valueConverter.divideBy10],
+                [4, 'boost_heating', tuya.valueConverter.onOff],
+                [5, 'boost_time', tuya.valueConverter.countdown],
+                [6, 'running_state', tuya.valueConverterBasic.lookup({'heat': 1, 'idle': 0})],
+                [7, 'window', tuya.valueConverterBasic.lookup({'OPEN': 1, 'CLOSE': 0})],
+                [8, 'window_detection', tuya.valueConverter.onOff],
+                [12, 'child_lock', tuya.valueConverter.lockUnlock],
+                [13, 'battery', tuya.valueConverter.raw],
+                [14, 'alarm_switch', tuya.valueConverter.onOff],
+                [15, 'min_temperature', tuya.valueConverter.divideBy10],
+                [16, 'max_temperature', tuya.valueConverter.divideBy10],
+                [17, 'schedule_monday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [102, 'position', tuya.valueConverter.divideBy10],
+            ],
+        },
     },
     {
         zigbeeModel: ['TS0121'],
