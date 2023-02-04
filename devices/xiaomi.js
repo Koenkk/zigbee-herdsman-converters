@@ -3100,7 +3100,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara E1 3 gang switch (with neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch, 
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch,
             tz.xiaomi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
