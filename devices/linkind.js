@@ -110,6 +110,13 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['ZBT-CCTLight-D115'],
+        model: 'ZL13100314',
+        vendor: 'Linkind',
+        description: 'Zigbee Ceiling Light 28W, 3000 lm, Ø40CM CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },    
+    {
         zigbeeModel: ['ZB-MotionSensor-D0003'],
         model: 'ZS1100400-IN-V1A02',
         vendor: 'Linkind',
