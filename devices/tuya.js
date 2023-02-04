@@ -3876,7 +3876,7 @@ module.exports = [
             [tz.light_onoff_brightness],
             [tzLocal.TS110E_light_onoff_brightness],
         ),
-        exposes: [e.light_brightness(), e.power_on_behavior(), tuya.exposes.switchType()],
+        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior(), tuya.exposes.switchType()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
