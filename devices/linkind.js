@@ -194,5 +194,19 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    {
+        zigbeeModel: ['ZBT-CCTLight-M3500107'],
+        model: 'ZL00030014',
+        vendor: 'Linkind',
+        description: 'Zigbee LED 4.8W GU10 bulb, dimmable & tunable',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        }, 
+    {
+        zigbeeModel: ['ZBT-CCTLight-D115'],
+        model: 'ZL13100314',
+        vendor: 'Linkind',
+        description: 'Ceiling Light 28W, 3000 lm, Ø40CM CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        },            
     },
 ];
