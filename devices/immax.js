@@ -192,7 +192,7 @@ module.exports = [
         exposes: [e.action(['disarm', 'arm_home', 'arm_away', 'sos']), e.tamper()],
         meta: {
             tuyaDatapoints: [
-                [24, 'tamper', tuya.valueConverter.trueFalse],
+                [24, 'tamper', tuya.valueConverter.trueFalse1],
                 [26, 'action', tuya.valueConverter.static('disarm')],
                 [27, 'action', tuya.valueConverter.static('arm_away')],
                 [28, 'action', tuya.valueConverter.static('arm_home')],

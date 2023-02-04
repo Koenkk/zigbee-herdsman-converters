@@ -873,10 +873,10 @@ module.exports = [
         exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.true0ElseFalse],
+                [1, 'gas', tuya.valueConverter.trueFalse0],
                 [8, 'self_test', tuya.valueConverter.raw],
                 [9, 'self_test_result', tuya.valueConverter.selfTestResult],
-                [11, 'fault_alarm', tuya.valueConverter.trueFalse],
+                [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
                 [16, 'silence', tuya.valueConverter.raw],
             ],
         },
@@ -2303,7 +2303,7 @@ module.exports = [
                 [31, 'working_day', tuya.valueConverterBasic.lookup({'mon_sun': tuya.enum(0), 'mon_fri+sat+sun': tuya.enum(1),
                     'separate': tuya.enum(2)})],
                 [32, 'holiday_temperature', tuya.valueConverter.divideBy10],
-                [35, 'battery_low', tuya.valueConverter.true0ElseFalse],
+                [35, 'battery_low', tuya.valueConverter.trueFalse0],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
                 [45, 'error_status', tuya.valueConverter.raw],
                 [46, 'holiday_start_stop', tuya.valueConverter.thermostatHolidayStartStop],
@@ -2350,7 +2350,7 @@ module.exports = [
                 [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
                 [24, 'local_temperature', tuya.valueConverter.divideBy10],
                 [27, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
-                [35, 'battery_low', tuya.valueConverter.true0ElseFalse],
+                [35, 'battery_low', tuya.valueConverter.trueFalse0],
                 [40, 'child_lock', tuya.valueConverter.lockUnlock],
                 [45, 'error_status', tuya.valueConverter.raw],
                 [101, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP],
@@ -2627,9 +2627,9 @@ module.exports = [
         exposes: [e.smoke(), e.tamper(), e.battery_low()],
         meta: {
             tuyaDatapoints: [
-                [1, 'smoke', tuya.valueConverter.true0ElseFalse],
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [4, 'tamper', tuya.valueConverter.raw],
-                [14, 'battery_low', tuya.valueConverter.true0ElseFalse],
+                [14, 'battery_low', tuya.valueConverter.trueFalse0],
             ],
         },
     },
@@ -2649,7 +2649,7 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'smoke', tuya.valueConverter.true0ElseFalse],
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [2, 'smoke_concentration', tuya.valueConverter.divideBy10],
                 [11, 'device_fault', tuya.valueConverter.raw],
                 [15, 'battery', tuya.valueConverter.raw],
@@ -2669,7 +2669,7 @@ module.exports = [
         exposes: [e.smoke(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
-                [1, 'smoke', tuya.valueConverter.true0ElseFalse],
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [14, 'battery_state', tuya.valueConverter.batteryState],
                 [15, 'battery', tuya.valueConverter.raw],
             ],
@@ -3450,9 +3450,9 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence', tuya.valueConverter.trueFalse],
+                [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'radar_sensitivity', tuya.valueConverter.raw],
-                [102, 'occupancy', tuya.valueConverterBasic.lookup({false: 1, true: 2})],
+                [102, 'occupancy', tuya.valueConverterBasic.trueFalse2],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
                 [105, 'tumble_switch', tuya.valueConverter.plus1],
                 [106, 'tumble_alarm_time', tuya.valueConverter.raw],
@@ -3858,7 +3858,7 @@ module.exports = [
         exposes: [e.gas(), tuya.exposes.gasValue().withUnit('ppm')],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.true0ElseFalse],
+                [1, 'gas', tuya.valueConverter.trueFalse0],
                 [2, 'gas_value', tuya.valueConverter.raw],
             ],
         },
