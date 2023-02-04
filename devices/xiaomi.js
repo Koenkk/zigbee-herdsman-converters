@@ -3100,7 +3100,8 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara E1 3 gang switch (with neutral)',
         fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch, tz.xiaomi_flip_indicator_light],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch, 
+            tz.xiaomi_flip_indicator_light],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
         },
@@ -3110,7 +3111,7 @@ module.exports = [
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for left button')
                 .withEndpoint('left'),
-	    exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode for center button')
                 .withEndpoint('center'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
@@ -3119,7 +3120,7 @@ module.exports = [
             e.action(['single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
                 'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
                 'single_center_right', 'double_center_right', 'single_all', 'double_all']),
-            e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light()
+            e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
