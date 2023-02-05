@@ -3828,20 +3828,6 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
-    tuya_min_brightness: {
-        key: ['min_brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            const minValueHex = value.toString(16);
-            const maxValueHex = 'ff';
-            const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
-            const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
-            await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
-            return {state: {min_brightness: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', [0xfc00]);
-        },
-    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {
@@ -6620,23 +6606,6 @@ const converters = {
             default:
                 throw new Error(`Unsupported Key=[${key}]`);
             }
-        },
-    },
-    tuya_do_not_disturb: {
-        key: ['do_not_disturb'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
-            return {state: {do_not_disturb: value}};
-        },
-    },
-    tuya_color_power_on_behavior: {
-        key: ['color_power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
-                mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
-            return {state: {color_power_on_behavior: value}};
         },
     },
     tuya_motion_sensor: {
