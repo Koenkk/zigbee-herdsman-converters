@@ -4773,17 +4773,6 @@ const converters = {
             });
         },
     },
-    tuya_min_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0xfc00)) {
-                const property = postfixWithEndpointName('min_brightness', msg, model, meta);
-                const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
-                return {[property]: value};
-            }
-        },
-    },
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],

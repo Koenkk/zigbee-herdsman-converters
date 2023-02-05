@@ -3,6 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 const e = exposes.presets;
 
 module.exports = [
@@ -113,8 +114,8 @@ module.exports = [
         model: '404062',
         vendor: 'Müller Licht',
         description: 'Kea RGB+CCT',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([tz.tint_scene]),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color(
+            {colorTempRange: [153, 500], toZigbee: [tz.tint_scene, tuya.tz.do_not_disturb, tuya.tz.color_power_on_behavior]}),
     },
     {
         fingerprint: [{manufacturerName: '_TZ3000_bdbb0fon'}],

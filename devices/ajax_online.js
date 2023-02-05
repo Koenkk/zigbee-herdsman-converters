@@ -1,4 +1,5 @@
 const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -35,7 +36,7 @@ module.exports = [
         model: 'AJ_RGBCCT_CTRL',
         vendor: 'Ajax Online',
         description: 'Smart Zigbee LED strip RGB+CCT',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         meta: {applyRedFix: true, enhancedHue: false},
     },
     {
