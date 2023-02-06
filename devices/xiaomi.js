@@ -3067,7 +3067,6 @@ module.exports = [
         exposes: [
             e.battery(),
             e.battery_voltage(),
-            e.device_temperature(),
             e.power_outage_count(false),
             exposes
                 .enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
