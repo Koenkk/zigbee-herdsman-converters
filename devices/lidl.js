@@ -2,7 +2,6 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('../lib/tuya');
@@ -372,7 +371,7 @@ module.exports = [
         model: 'HG06337',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
-        extend: extend.switch(),
+        extend: tuya.extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -493,8 +492,7 @@ module.exports = [
         model: 'HG06338',
         vendor: 'Lidl',
         description: 'Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)',
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3')],
-        extend: extend.switch(),
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -778,7 +776,7 @@ module.exports = [
         model: 'HG06620',
         vendor: 'Lidl',
         description: 'Silvercrest garden spike with 2 sockets',
-        extend: extend.switch(),
+        extend: tuya.extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -801,7 +799,7 @@ module.exports = [
         model: 'HG06619',
         vendor: 'Lidl',
         description: 'Silvercrest outdoor plug',
-        extend: extend.switch(),
+        extend: tuya.extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
