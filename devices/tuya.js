@@ -2505,18 +2505,16 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode',
+                [1, null,
                     {
                         from: (v) => {
-                            const lookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'on'};
-                            return lookup[v];
-                        },
-                        to: (v) => {
-                            const lookup = {'auto': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)};
-                            return lookup[v];
+                            const presetLookup = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
+                            const systemModeLookup = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                            return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
                         },
                     },
                 ],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
                 [1, 'preset', tuya.valueConverterBasic.lookup(
                     {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
@@ -2531,13 +2529,13 @@ module.exports = [
                 [14, 'alarm_switch', tuya.valueConverter.onOff],
                 [15, 'min_temperature', tuya.valueConverter.divideBy10],
                 [16, 'max_temperature', tuya.valueConverter.divideBy10],
-                [17, 'schedule_monday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(1)],
-                [18, 'schedule_tuesday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(2)],
-                [19, 'schedule_wednesday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(3)],
-                [20, 'schedule_thursday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [21, 'schedule_friday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(5)],
-                [22, 'schedule_saturday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(6)],
-                [23, 'schedule_sunday', tuya.valueConverterAdvance.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [17, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
                 [102, 'position', tuya.valueConverter.divideBy10],
             ],
