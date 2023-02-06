@@ -683,6 +683,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['2GANG/SWITCH/2'],
+        model: 'MEG5126-0300',
+        vendor: 'Schneider Electric',
+        description: 'Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint2);
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+    },
+    {
         zigbeeModel: ['EH-ZB-VACT'],
         model: 'EER53000',
         vendor: 'Schneider Electric',
@@ -704,7 +724,7 @@ module.exports = [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1005,5 +1025,14 @@ module.exports = [
             await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneStatus', 'zoneId']);
             await endpoint.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
         },
+    },
+    {
+        zigbeeModel: ['CCT591011_AS'],
+        model: 'CCT591011_AS',
+        vendor: 'Schneider Electric',
+        description: 'Wiser window/door sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.tamper()],
     },
 ];

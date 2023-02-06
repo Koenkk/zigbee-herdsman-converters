@@ -4773,17 +4773,6 @@ const converters = {
             });
         },
     },
-    tuya_min_brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty(0xfc00)) {
-                const property = postfixWithEndpointName('min_brightness', msg, model, meta);
-                const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
-                return {[property]: value};
-            }
-        },
-    },
     restorable_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -5387,19 +5376,19 @@ const converters = {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
-            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
+        convert: async (model, msg, publish, options, meta) => {
+            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_basic_raw: {
         cluster: 'genBasic',
         type: ['raw'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             let payload = {};
             if (Buffer.isBuffer(msg.data)) {
                 const dataObject = xiaomi.buffer2DataObject(meta, model, msg.data);
-                payload = xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
+                payload = await xiaomi.numericAttributes2Payload(msg, meta, model, options, dataObject);
             }
             return payload;
         },
@@ -5408,8 +5397,8 @@ const converters = {
         cluster: 'aqaraOpple',
         type: ['attributeReport', 'readResponse'],
         options: xiaomi.numericAttributes2Options,
-        convert: (model, msg, publish, options, meta) => {
-            return xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
+        convert: async (model, msg, publish, options, meta) => {
+            return await xiaomi.numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
     },
     xiaomi_on_off_action: {
@@ -5461,7 +5450,7 @@ const converters = {
             if (['QBKG39LM', 'QBKG41LM', 'WS-EUK02', 'WS-EUK04', 'QBKG20LM', 'QBKG31LM'].includes(model.model)) {
                 buttonLookup = {41: 'left', 42: 'right', 51: 'both'};
             }
-            if (['QBKG25LM', 'QBKG26LM', 'QBKG34LM'].includes(model.model)) {
+            if (['QBKG25LM', 'QBKG26LM', 'QBKG34LM', 'ZNQBKG31LM'].includes(model.model)) {
                 buttonLookup = {
                     41: 'left', 42: 'center', 43: 'right',
                     51: 'left_center', 52: 'left_right', 53: 'center_right',
@@ -6111,6 +6100,7 @@ const converters = {
             let result = null;
 
             if (value === 0) result = {action: 'shake'};
+            else if (value === 1) result = {action: 'throw'};
             else if (value === 2) result = {action: 'wakeup'};
             else if (value === 3) result = {action: 'fall'};
             else if (value >= 512) result = {action: 'tap', side: value-512};
@@ -6861,7 +6851,9 @@ const converters = {
         cluster: 'msOccupancySensing',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
-            return {occupancy: msg.data[7] === 0};
+            if (msg.data[7] === 1) {
+                return {action: 'motion'};
+            }
         },
     },
     DNCKAT_S00X_buttons: {

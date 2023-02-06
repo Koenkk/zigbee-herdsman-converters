@@ -429,13 +429,14 @@ module.exports = [
                 .withDescription('The threshold to detect window open, between 1.5 and 4 in 0.5 °C.  Default: 0 (disabled).'),
             exposes.numeric('hysterersis', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(0.5).withValueMax(2).withValueStep(0.1)
-                .withDescription('Hysteresis setting, between 0.5 and 2 in 0.1 °C.  Default: 0.5.'),
+                .withValueMin(0.5).withValueMax(5).withValueStep(0.1)
+                .withDescription('Hysteresis setting, between 0.5 and 5 in 0.1 °C.  Default: 0.5.'),
             exposes.enum('display_auto_off_enabled', ea.ALL, ['enabled', 'disabled']),
             exposes.numeric('alarm_airtemp_overvalue', ea.ALL)
                 .withUnit('°C')
-                .withValueMin(20).withValueMax(60)
-                .withDescription('Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.'),
+                .withValueMin(0).withValueMax(35)
+                .withDescription('Floor temperature over heating threshold, range is 0-35, unit is 1ºC, ' +
+                '0 means this function is disabled, default value is 27.'),
         ],
         onEvent: async (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
@@ -465,7 +466,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             // standard ZCL attributes
-            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
@@ -477,14 +478,14 @@ module.exports = [
                 reportableChange: null,
             }]);
 
+            // Metering
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);
-
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint, {min: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10, change: 20}); // Voltage - Min change of 2v
+            await reporting.rmsCurrent(endpoint, {min: 10, change: 10}); // A - z2m displays only the first decimals, so change of 10 (0,01)
+            await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
+            await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
 
             // Custom attributes
             const options = {manufacturerCode: 0x1224};

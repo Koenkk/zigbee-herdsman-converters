@@ -112,34 +112,27 @@ module.exports = [
         model: 'QS-Zigbee-D02-TRIAC-LN',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module with neutral',
-        fromZigbee: extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([fz.tuya_min_brightness]),
-        toZigbee: extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true})
-            .toZigbee.concat([tz.tuya_min_brightness]),
-        exposes: [e.light_brightness().withMinBrightness()],
+        extend: tuya.extend.light_onoff_brightness({disableMoveStep: true, disableTransition: true, minBrightness: true}),
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_pagajpog'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TYZB01_v8gtiaed'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module with neutral',
-        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.tuya_min_brightness]),
-        toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.tuya_min_brightness]),
-        exposes: [e.light_brightness().withMinBrightness().withEndpoint('l1'),
-            e.light_brightness().withMinBrightness().withEndpoint('l2')],
+        extend: tuya.extend.light_onoff_brightness({minBrightness: true, endpoints: ['l1', 'l2'], noConfigure: true}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             // Don't do: await reporting.onOff(endpoint); https://github.com/Koenkk/zigbee2mqtt/issues/6041
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_4ubylghk'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_92chsky7'}],
         model: 'QS-Zigbee-D02-TRIAC-2C-L',
         vendor: 'Lonsonho',
         description: '2 gang smart dimmer switch module without neutral',
@@ -183,7 +176,7 @@ module.exports = [
             {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],
         model: 'QS-Zigbee-S04-2C-LN',
         vendor: 'Lonsonho',
         description: '2 gang switch module with neutral wire',

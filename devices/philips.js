@@ -442,7 +442,7 @@ module.exports = [
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LCF002', 'LCF001'],
@@ -815,7 +815,7 @@ module.exports = [
         model: '8718699688882',
         vendor: 'Philips',
         description: 'Hue white Filament bulb G93 E27 bluetooth',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LST001'],
@@ -1496,7 +1496,7 @@ module.exports = [
         model: '1742930P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
-        extend: philips.extend.light_onoff_brightness_colortemp_color(),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['1743030P7'],
@@ -1524,7 +1524,7 @@ module.exports = [
         model: '1746430P7',
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (black)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
     },
     {
         zigbeeModel: ['1746447P7'],
@@ -2232,6 +2232,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
     },
     {
+        zigbeeModel: ['LTV003'],
+        model: '8719514301528',
+        vendor: 'Philips',
+        description: 'Hue Filament White Ambiance ST72 B22 LED warm-to-cool',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [222, 454]}),
+    },
+    {
         zigbeeModel: ['LTV004'],
         model: '929002478401',
         vendor: 'Philips',
@@ -2383,7 +2390,7 @@ module.exports = [
         model: '929002422702',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 55',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCX002'],

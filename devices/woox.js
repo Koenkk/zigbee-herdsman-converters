@@ -3,7 +3,6 @@ const reporting = require('../lib/reporting');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
-const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -114,7 +113,7 @@ module.exports = [
         model: 'R9077',
         vendor: 'Woox',
         description: 'RGB+CCT LED',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
         meta: {applyRedFix: true},
     },
     {

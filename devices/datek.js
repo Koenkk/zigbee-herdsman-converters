@@ -10,12 +10,13 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'PoP', manufacturerName: 'Eva'}],
+        zigbeeModel: ['PoP'],
         model: 'HLU2909K',
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -28,11 +29,10 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
         },
-        ota: ota.zigbeeOTA,
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
-        fingerprint: [{modelID: 'Meter Reader', manufacturerName: 'Eva'}],
+        zigbeeModel: ['Meter Reader'],
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
@@ -86,7 +86,7 @@ module.exports = [
             e.voltage_phase_c(), e.temperature()],
     },
     {
-        fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: ['Motion Sensor'],
         model: 'HSE2927E',
         vendor: 'Datek',
         description: 'Eva motion sensor',
@@ -114,7 +114,7 @@ module.exports = [
             exposes.numeric('occupancy_timeout', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)],
     },
     {
-        fingerprint: [{modelID: 'ID Lock 150', manufacturerName: 'Eva'}],
+        zigbeeModel: ['ID Lock 150'],
         model: '0402946',
         vendor: 'Datek',
         description: 'Zigbee module for ID lock 150',
@@ -188,7 +188,7 @@ module.exports = [
                 'random_pin_24_hours']).withDescription('Service Mode of the Lock')],
     },
     {
-        fingerprint: [{modelID: 'Water Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: ['Water Sensor'],
         model: 'HSE2919E',
         vendor: 'Datek',
         description: 'Eva water leak sensor',
@@ -229,7 +229,6 @@ module.exports = [
                 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
     },
     {
-        fingerprint: [{modelID: 'Door/Window Sensor', manufacturerName: 'Eva'}],
         zigbeeModel: ['Door/Window Sensor'],
         model: 'HSE2920E',
         vendor: 'Datek',

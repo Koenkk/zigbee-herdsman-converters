@@ -244,7 +244,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             /**
-             * @type {{ region_event?: string; }}
+             * @type {{ action?: string; }}
              */
             const payload = {};
             const log = utils.createLogger(meta.logger, 'xiaomi', 'aqara_fp1');
@@ -260,7 +260,7 @@ const fzLocal = {
                         !(typeof value[0] === 'string' || typeof value[0] === 'number') ||
                         !(typeof value[1] === 'string' || typeof value[1] === 'number')
                     ) {
-                        log('warn', `region_event: Unrecognized payload structure '${JSON.stringify(value)}'`);
+                        log('warn', `action: Unrecognized payload structure '${JSON.stringify(value)}'`);
                         break;
                     }
 
@@ -272,17 +272,17 @@ const fzLocal = {
                     const eventTypeCode = parseInt(eventTypeCodeRaw, 10);
 
                     if (Number.isNaN(regionId)) {
-                        log('warn', `region_event: Invalid regionId "${regionIdRaw}"`);
+                        log('warn', `action: Invalid regionId "${regionIdRaw}"`);
                         break;
                     }
                     if (!Object.values(fp1.constants.region_event_types).includes(eventTypeCode)) {
-                        log('warn', `region_event: Unknown region event type "${eventTypeCode}"`);
+                        log('warn', `action: Unknown region event type "${eventTypeCode}"`);
                         break;
                     }
 
                     const eventTypeName = fp1.mappers.aqara_fp1.region_event_type_names[eventTypeCode];
-                    log('debug', `region_event: Triggered event (region "${regionId}", type "${eventTypeName}")`);
-                    payload.region_event = `region_${regionId}_${eventTypeName}`;
+                    log('debug', `action: Triggered event (region "${regionId}", type "${eventTypeName}")`);
+                    payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
                 }
                 case 0xf7: {
@@ -304,6 +304,49 @@ const fzLocal = {
             });
 
             return payload;
+        },
+    },
+    CTPR01_action_multistate: {
+        cluster: 'genMultistateInput',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            let payload;
+
+            if (value === 0) payload = {action: 'shake'};
+            else if (value === 1) payload = {action: 'throw'};
+            else if (value === 2) payload = {action: '1_min_inactivity'};
+            else if (value === 4) payload = {action: 'hold'};
+            else if (value >= 1024) payload = {action: 'flip_to_side', side: value - 1023};
+            else if (value >= 512) payload = {action: 'tap', side: value - 511};
+            else if (value >= 256) payload = {action: 'slide', side: value - 255};
+            else if (value >= 128) {
+                payload = {
+                    action: 'flip180', side: value - 127,
+                    action_from_side: 7 - value + 127,
+                };
+            } else if (value >= 64) {
+                payload = {
+                    action: 'flip90', side: value % 8 + 1,
+                    action_from_side: Math.floor((value - 64) / 8) + 1,
+                };
+            } else {
+                meta.logger.debug(`${model.zigbeeModel}: unknown action with value ${value}`);
+            }
+            return payload;
+        },
+    },
+    CTPR01_action_analog: {
+        cluster: 'genAnalogInput',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data['presentValue'];
+            return {
+                action: value < 0 ? 'rotate_left' : 'rotate_right',
+                action_angle: Math.floor(value * 100) / 100,
+            };
         },
     },
 };
@@ -633,6 +676,25 @@ const tzLocal = {
             };
 
             await entity.write('aqaraOpple', payload, {manufacturerCode});
+        },
+    },
+    CTPR01_operation_mode: {
+        key: ['operation_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {action_mode: 0, scene_mode: 1};
+            /**
+             * schedule the callback to run when the configuration window comes
+             */
+            const callback = async () => {
+                await entity.write(
+                    'aqaraOpple',
+                    {0x0148: {value: lookup[value], type: 0x20}},
+                    {manufacturerCode: 0x115f, disableDefaultResponse: true},
+                );
+                meta.logger.info('operation_mode switch success!');
+            };
+            globalStore.putValue(meta.device, 'opModeSwitchTask', {callback, newMode: value});
+            meta.logger.info('Now give your cube a forceful throw motion (Careful not to drop it)!');
         },
     },
 };
@@ -1809,7 +1871,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_basic, fz.MFKZQ01LM_action_multistate, fz.MFKZQ01LM_action_analog],
         exposes: [e.battery(), e.battery_voltage(), e.angle('action_angle'), e.device_temperature(), e.power_outage_count(false),
             e.cube_side('action_from_side'), e.cube_side('action_side'), e.cube_side('action_to_side'), e.cube_side('side'),
-            e.action(['shake', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
+            e.action(['shake', 'throw', 'wakeup', 'fall', 'tap', 'slide', 'flip180', 'flip90', 'rotate_left', 'rotate_right'])],
         toZigbee: [],
     },
     {
@@ -2797,6 +2859,7 @@ module.exports = [
             await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
             await endpoint.read('aqaraOpple', [0x0000], {manufactureCode: 0x115f});
         },
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.sacn03'],
@@ -3047,5 +3110,79 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
+    },
+    {
+        zigbeeModel: ['lumi.remote.cagl02'],
+        model: 'CTP-R01',
+        vendor: 'Xiaomi',
+        whiteLabel: [{vendor: 'Xiaomi', model: 'MFCZQ12LM'}],
+        description: 'Aqara magic cube T1 Pro',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        ota: ota.zigbeeOTA,
+        fromZigbee: [fz.aqara_opple, fzLocal.CTPR01_action_multistate, fzLocal.CTPR01_action_analog, fz.ignore_onoff_report],
+        toZigbee: [tzLocal.CTPR01_operation_mode],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.device_temperature(),
+            e.power_outage_count(false),
+            exposes
+                .enum('operation_mode', ea.SET, ['action_mode', 'scene_mode'])
+                .withDescription('[Soft Switch]: There is a configuration window, opens once an hour on itself, ' +
+                    'only during which the cube will respond to mode switch. ' +
+                    'Mode switch will be scheduled to take effect when the window becomes available. ' +
+                    'You can also give it a throw action (no backward motion) to force a respond! ' +
+                    'Otherwise, you may open lid and click LINK once to make the cube respond immediately. ' +
+                    '[Hard Switch]: Open lid and click LINK button 5 times.'),
+            e.cube_side('side'),
+            e.action([
+                'shake', 'throw', 'tap', 'slide', 'flip180', 'flip90', 'hold', 'side_up',
+                'rotate_left', 'rotate_right', '1_min_inactivity', 'flip_to_side',
+            ]).withDescription('Triggered action'),
+            e.cube_side('action_from_side'),
+            e.angle('action_angle'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.softwareBuildID = `0.0.0_00${device.applicationVersion}`;
+            device.save();
+
+            const endpoint = device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {mode: 1}, {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+            await endpoint.read('aqaraOpple', [0x148], {manufacturerCode: 0x115f, disableDefaultResponse: true, disableResponse: true});
+        },
+    },
+    {
+        zigbeeModel: ['lumi.switch.acn040'],
+        model: 'ZNQBKG31LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara E1 3 gang switch (with neutral)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.aqara_switch_mode_switch,
+            tz.xiaomi_flip_indicator_light],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        exposes: [
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for center button')
+                .withEndpoint('center'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            e.action(['single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
+                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
+                'single_center_right', 'double_center_right', 'single_all', 'double_all']),
+            e.power_outage_memory(), e.device_temperature(), e.flip_indicator_light(),
+        ],
+        onEvent: preventReset,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await device.getEndpoint(1).write('aqaraOpple', {'mode': 1}, {manufacturerCode: 0x115f, disableResponse: true});
+        },
+        ota: ota.zigbeeOTA,
     },
 ];

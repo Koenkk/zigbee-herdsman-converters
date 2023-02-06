@@ -556,7 +556,14 @@ module.exports = [
         model: 'ICPSHC24-30-IL44-1',
         vendor: 'IKEA',
         description: 'SILVERGLANS IP44 LED driver for wireless control (30 watt)',
-        whiteLabel: [{vendor: 'IKEA', model: 'T2030', description: 'PILSKOTT LED pendant lamp'}],
+        extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['Pendant lamp WW'],
+        model: 'T2030',
+        vendor: 'IKEA',
+        description: 'PILSKOTT LED pendant lamp',
         extend: tradfriExtend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
     },
@@ -623,7 +630,8 @@ module.exports = [
             'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
+        // dontDividePercentage: true not needed with latest firmware
+        // https://github.com/Koenkk/zigbee2mqtt/issues/16412
         configure: configureRemote,
     },
     {
