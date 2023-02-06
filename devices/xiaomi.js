@@ -139,7 +139,7 @@ const fzLocal = {
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
                 case 0x0276: {
-                    const schedule = xiaomiTrvUtils.readSchedule(value);
+                    const schedule = xiaomiTrvUtils.decodeSchedule(value);
                     result['schedule_settings_json'] = schedule;
                     result['schedule_settings'] = xiaomiTrvUtils.stringifySchedule(schedule);
                     break;
@@ -468,14 +468,14 @@ const tzLocal = {
                 break;
             case 'schedule_settings_json': {
                 xiaomiTrvUtils.validateSchedule(value);
-                const buffer = xiaomiTrvUtils.writeSchedule(value);
+                const buffer = xiaomiTrvUtils.encodeSchedule(value);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
             case 'schedule_settings': {
                 const schedule = xiaomiTrvUtils.parseSchedule(value);
-                xiaomiTrvUtils.validateSchedule(value);
-                const buffer = xiaomiTrvUtils.writeSchedule(schedule);
+                xiaomiTrvUtils.validateSchedule(schedule);
+                const buffer = xiaomiTrvUtils.encodeSchedule(schedule);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
