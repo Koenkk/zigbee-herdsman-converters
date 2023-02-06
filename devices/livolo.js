@@ -252,7 +252,7 @@ module.exports = [
         description: 'Zigbee motion Sensor',
         vendor: 'Livolo',
         exposes: [
-            e.occupancy()
+            e.occupancy();
         ],
         fromZigbee: [fz.livolo_pir_state],
         toZigbee: [],
@@ -282,5 +282,5 @@ module.exports = [
                 }
             }
         },
-    }
+    },
 ];

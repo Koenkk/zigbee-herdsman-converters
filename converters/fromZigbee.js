@@ -3069,7 +3069,7 @@ const converters = {
         },
     },
     livolo_pir_state: {
-		cluster: 'genPowerCfg',
+        cluster: 'genPowerCfg',
         type: ['raw'],
         convert: (model, msg, publish, options, meta) => {
             const stateHeader = Buffer.from([122, 209]);
@@ -3077,12 +3077,12 @@ const converters = {
                 if (msg.data[10] === 7) {
                     const status = msg.data[14];
                     return {
-                        occupancy: status & 1 ? true : false
+                        occupancy: status & 1 ? true : false;
                     };
                 }
             }
-        }
-	},
+        },
+    },
     easycode_action: {
         cluster: 'closuresDoorLock',
         type: 'raw',
@@ -3142,8 +3142,8 @@ const converters = {
             [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,1,11]  left: 1, right: 0  (left on)
             [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,0,11]  left: 0, right: 1  (right on)
 
-			pir sensor
-			[124,210,21,216,128,  225,52,225,34,0,75,18,0,  19,13,0]       after interview
+            pir sensor
+            [124,210,21,216,128,  225,52,225,34,0,75,18,0,  19,13,0]       after interview
             [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,1,11]  occupancy: true
             [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,0,11]  occupancy: false
             */
