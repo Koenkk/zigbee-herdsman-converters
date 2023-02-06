@@ -140,7 +140,6 @@ const fzLocal = {
                     break;
                 case 0x0276: {
                     const schedule = xiaomiTrvUtils.decodeSchedule(value);
-                    result['schedule_settings_json'] = schedule;
                     result['schedule_settings'] = xiaomiTrvUtils.stringifySchedule(schedule);
                     break;
                 }
@@ -354,7 +353,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings_json', 'schedule_settings'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -466,12 +465,6 @@ const tzLocal = {
                 await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
                     {manufacturerCode: 0x115f});
                 break;
-            case 'schedule_settings_json': {
-                xiaomiTrvUtils.validateSchedule(value);
-                const buffer = xiaomiTrvUtils.encodeSchedule(value);
-                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
-                break;
-            }
             case 'schedule_settings': {
                 const schedule = xiaomiTrvUtils.parseSchedule(value);
                 xiaomiTrvUtils.validateSchedule(schedule);
@@ -486,7 +479,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
                 'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e,
-                'schedule': 0x027d, 'schedule_settings_json': 0x0276, 'schedule_settings': 0x0276};
+                'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
                 await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
@@ -3023,32 +3016,7 @@ module.exports = [
             exposes.switch().withState('schedule', true,
                 'When being ON, the thermostat will change its state based on your settings',
                 ea.ALL, 'ON', 'OFF'),
-            exposes.composite('Schedule', 'schedule_settings', ea.ALL)
-                .withFeature(exposes.composite('Days', 'days')
-                    .withFeature(exposes.switch().withState('mon', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('tue', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('wed', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('thu', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('fri', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('sat', true, undefined, ea.STATE_SET))
-                    .withFeature(exposes.switch().withState('sun', true, undefined, ea.STATE_SET)),
-                )
-                .withFeature(exposes.composite('Start', 'start')
-                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
-                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
-                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
-                .withFeature(exposes.composite('Intermediate 1', 'intermediate1')
-                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
-                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
-                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
-                .withFeature(exposes.composite('Intermediate 2', 'intermediate2')
-                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
-                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
-                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
-                .withFeature(exposes.composite('End', 'end')
-                    .withFeature(exposes.numeric('Hour', ea.STATE_SET).withProperty('hour'))
-                    .withFeature(exposes.numeric('Minute', ea.STATE_SET).withProperty('minute'))
-                    .withFeature(exposes.numeric('Temperature', ea.STATE_SET).withProperty('temperature')))
+            exposes.text('schedule_settings', ea.ALL)
                 .withDescription('Smart schedule configuration'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
