@@ -95,45 +95,45 @@ describe('lib/xiaomi', () => {
                 expect(() => trv.validateSchedule(123)).toThrowError(/value must be a schedule object/);
             });
 
-            it('fails on missing repeat days', () => {
+            it('fails on missing days', () => {
                 expect(() => trv.validateSchedule({})).toThrowError(/must contain an array of days/);
             });
 
-            it('fails on invalid repeat days type', () => {
+            it('fails on invalid days type', () => {
                 expect(() => trv.validateSchedule({days: 123})).toThrowError(/must contain an array of days/);
             });
 
-            it('fails on empty repeat days', () => {
+            it('fails on empty days', () => {
                 expect(() => trv.validateSchedule({days: []})).toThrowError(/at least one entry/);
             });
 
-            it('fails on invalid repeat day', () => {
-                expect(() => trv.validateSchedule({days: ['foo']})).toThrowError(/invalid value/);
+            it('fails on invalid day', () => {
+                expect(() => trv.validateSchedule({days: ['foo']})).toThrowError(/not a valid day/);
             });
 
             it('fails on missing events', () => {
-                expect(() => trv.validateSchedule({days: ['mon']})).toThrowError(/must contains an array of 4/);
+                expect(() => trv.validateSchedule({days: ['mon']})).toThrowError(/must contain an array of 4/);
             });
 
             it('fails on invalid events type', () => {
                 expect(() => trv.validateSchedule({
                     days: ['mon'],
                     events: 123,
-                })).toThrowError(/must contains an array of 4/);
+                })).toThrowError(/must contain an array of 4/);
             });
 
             it('fails on empty events', () => {
                 expect(() => trv.validateSchedule({
                     days: ['mon'],
                     events: [],
-                })).toThrowError(/must contains an array of 4/);
+                })).toThrowError(/must contain an array of 4/);
             });
 
             it('fails on insufficient number of events', () => {
                 expect(() => trv.validateSchedule({
                     days: ['mon'],
                     events: [{}],
-                })).toThrowError(/must contains an array of 4/);
+                })).toThrowError(/must contain an array of 4/);
             });
 
             it('fails on invalid event type', () => {
@@ -185,30 +185,6 @@ describe('lib/xiaomi', () => {
                 })).toThrowError(/temperature must be between/);
             });
 
-            it('fails if minimum total duration is less than 4 hours', () => {
-                expect(() => trv.validateSchedule({
-                    days: ['mon'],
-                    events: [
-                        {time: 0, temperature: 5},
-                        {time: 0, temperature: 5},
-                        {time: 0, temperature: 5},
-                        {time: 0, temperature: 5},
-                    ],
-                })).toThrowError(/at least 4 hours apart/);
-            });
-
-            it('fails if minimum total duration is more than 24 hours', () => {
-                expect(() => trv.validateSchedule({
-                    days: ['mon'],
-                    events: [
-                        {time: 0, temperature: 5},
-                        {time: 0, temperature: 5},
-                        {time: 0, temperature: 5},
-                        {time: 24 * 60 + 1, temperature: 5},
-                    ],
-                })).toThrowError(/at most 24 hours apart/);
-            });
-
             it('fails if any individual duration is less than 1 hour', () => {
                 expect(() => trv.validateSchedule({
                     days: ['mon'],
@@ -216,9 +192,21 @@ describe('lib/xiaomi', () => {
                         {time: 0, temperature: 5},
                         {time: 59, temperature: 5},
                         {time: 5 * 60, temperature: 5},
-                        {time: 24 * 60, temperature: 5},
+                        {time: 23 * 60, temperature: 5},
                     ],
                 })).toThrowError(/at least 1 hour apart/);
+            });
+
+            it('fails if minimum total duration is more than 24 hours', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [
+                        {time: 8, temperature: 5},
+                        {time: 10 * 60, temperature: 5},
+                        {time: 23 * 60, temperature: 5},
+                        {time: 9 * 60, temperature: 5},
+                    ],
+                })).toThrowError(/at most 24 hours apart/);
             });
         });
 
