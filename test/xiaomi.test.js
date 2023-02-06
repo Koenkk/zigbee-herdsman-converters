@@ -2,6 +2,17 @@ const {trv} = require('../lib/xiaomi');
 
 describe('lib/xiaomi', () => {
     describe('trv', () => {
+        const factoryDefaultScheduleData = '043e01e0000009600438000006a405640000089881e000000898';
+        const factoryDefaultSchedule = {
+            days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+            events: [
+                {time: 480, temperature: 24},
+                {time: 1080, temperature: 17},
+                {time: 1380, temperature: 22},
+                {time: 480, temperature: 22},
+            ],
+        };
+
         describe(trv.decodePreset, () => {
             it('decodes setup mode', () => {
                 const preset = trv.decodePreset(3);
@@ -66,6 +77,172 @@ describe('lib/xiaomi', () => {
                 expect(heartbeat).toEqual(expect.objectContaining({
                     valve_alarm: true,
                 }));
+            });
+        });
+
+        describe(trv.decodeSchedule, () => {
+            it('reads schedule object from buffer', () => {
+                const data = Buffer.from(factoryDefaultScheduleData, 'hex');
+
+                const schedule = trv.decodeSchedule(data);
+
+                expect(schedule).toEqual(factoryDefaultSchedule);
+            });
+        });
+
+        describe(trv.validateSchedule, () => {
+            it('fails if schedule is not an object', () => {
+                expect(() => trv.validateSchedule(123)).toThrowError(/value must be a schedule object/);
+            });
+
+            it('fails on missing repeat days', () => {
+                expect(() => trv.validateSchedule({})).toThrowError(/must contain an array of days/);
+            });
+
+            it('fails on invalid repeat days type', () => {
+                expect(() => trv.validateSchedule({days: 123})).toThrowError(/must contain an array of days/);
+            });
+
+            it('fails on empty repeat days', () => {
+                expect(() => trv.validateSchedule({days: []})).toThrowError(/at least one entry/);
+            });
+
+            it('fails on invalid repeat day', () => {
+                expect(() => trv.validateSchedule({days: ['foo']})).toThrowError(/invalid value/);
+            });
+
+            it('fails on missing events', () => {
+                expect(() => trv.validateSchedule({days: ['mon']})).toThrowError(/must contains an array of 4/);
+            });
+
+            it('fails on invalid events type', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: 123,
+                })).toThrowError(/must contains an array of 4/);
+            });
+
+            it('fails on empty events', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [],
+                })).toThrowError(/must contains an array of 4/);
+            });
+
+            it('fails on insufficient number of events', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{}],
+                })).toThrowError(/must contains an array of 4/);
+            });
+
+            it('fails on invalid event type', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [123, {}, {}, {}],
+                })).toThrowError(/must be an object/);
+            });
+
+            it('fails on missing event time', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{}, {}, {}, {}],
+                })).toThrowError(/Time must be a positive integer number/);
+            });
+
+            it('fails on invalid event time type', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{time: 'foo'}, {}, {}, {}],
+                })).toThrowError(/Time must be a positive integer number/);
+            });
+
+            it('fails on missing event temperature', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{time: 0}, {}, {}, {}],
+                })).toThrowError(/must contain a numeric temperature/);
+            });
+
+            it('fails on invalid event temperature type', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{time: 0, temperature: 'foo'}, {}, {}, {}],
+                })).toThrowError(/must contain a numeric temperature/);
+            });
+
+            it('fails on invalid event temperature value', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{time: 0, temperature: 4}, {}, {}, {}],
+                })).toThrowError(/temperature must be between/);
+            });
+
+            it('fails on invalid event temperature value', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [{time: 0, temperature: 30.1}, {}, {}, {}],
+                })).toThrowError(/temperature must be between/);
+            });
+
+            it('fails if minimum total duration is less than 4 hours', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [
+                        {time: 0, temperature: 5},
+                        {time: 0, temperature: 5},
+                        {time: 0, temperature: 5},
+                        {time: 0, temperature: 5},
+                    ],
+                })).toThrowError(/at least 4 hours apart/);
+            });
+
+            it('fails if minimum total duration is more than 24 hours', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [
+                        {time: 0, temperature: 5},
+                        {time: 0, temperature: 5},
+                        {time: 0, temperature: 5},
+                        {time: 24 * 60 + 1, temperature: 5},
+                    ],
+                })).toThrowError(/at most 24 hours apart/);
+            });
+
+            it('fails if any individual duration is less than 1 hour', () => {
+                expect(() => trv.validateSchedule({
+                    days: ['mon'],
+                    events: [
+                        {time: 0, temperature: 5},
+                        {time: 59, temperature: 5},
+                        {time: 5 * 60, temperature: 5},
+                        {time: 24 * 60, temperature: 5},
+                    ],
+                })).toThrowError(/at least 1 hour apart/);
+            });
+        });
+
+        describe(trv.encodeSchedule, () => {
+            it('converts schedule object to buffer', () => {
+                const buffer = trv.encodeSchedule(factoryDefaultSchedule);
+
+                expect(buffer).toEqual(Buffer.from(factoryDefaultScheduleData, 'hex'));
+            });
+        });
+
+        describe(trv.stringifySchedule, () => {
+            it('converts schedule object to human-readable string pattern', () => {
+                const schedule = trv.stringifySchedule(factoryDefaultSchedule);
+
+                expect(schedule).toEqual('mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0');
+            });
+        });
+
+        describe(trv.parseSchedule, () => {
+            it('converts human-readable string pattern to schedule object', () => {
+                const schedule = trv.parseSchedule('mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0');
+
+                expect(schedule).toEqual(factoryDefaultSchedule);
             });
         });
     });

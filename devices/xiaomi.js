@@ -12,7 +12,6 @@ const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
 const {printNumberAsHex, printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
-const xiaomiTrvUtils = require('../lib/xiaomiTrvUtils');
 
 const xiaomiExtend = {
     light_onoff_brightness_colortemp: (options={disableColorTempStartup: true}) => ({
@@ -139,8 +138,8 @@ const fzLocal = {
                     result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
                     break;
                 case 0x0276: {
-                    const schedule = xiaomiTrvUtils.decodeSchedule(value);
-                    result['schedule_settings'] = xiaomiTrvUtils.stringifySchedule(schedule);
+                    const schedule = trv.decodeSchedule(value);
+                    result['schedule_settings'] = trv.stringifySchedule(schedule);
                     break;
                 }
                 case 0xfff2:
@@ -466,9 +465,9 @@ const tzLocal = {
                     {manufacturerCode: 0x115f});
                 break;
             case 'schedule_settings': {
-                const schedule = xiaomiTrvUtils.parseSchedule(value);
-                xiaomiTrvUtils.validateSchedule(schedule);
-                const buffer = xiaomiTrvUtils.encodeSchedule(schedule);
+                const schedule = trv.parseSchedule(value);
+                trv.validateSchedule(schedule);
+                const buffer = trv.encodeSchedule(schedule);
                 await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
                 break;
             }
