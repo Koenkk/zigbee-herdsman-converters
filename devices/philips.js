@@ -57,7 +57,7 @@ module.exports = [
         model: '929002994901',
         vendor: 'Philips',
         description: 'Hue gradient lightstrip',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003045401'],
@@ -351,14 +351,14 @@ module.exports = [
         model: '4090331P9',
         vendor: 'Philips',
         description: 'Hue Ensis (white)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['4090330P9_01', '4090330P9_02', '929003052501_01', '929003052501_02'],
         model: '4090330P9',
         vendor: 'Philips',
         description: 'Hue Ensis (black)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003055901', '929003055901_01', '929003055901_02', '929003055901_03'],
@@ -442,7 +442,7 @@ module.exports = [
         model: '7602031P7',
         vendor: 'Philips',
         description: 'Hue Go with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['LCF002', 'LCF001'],
@@ -597,7 +597,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
         extend: philips.extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500], disableHueEffects: false,
+            colorTempRange: [153, 500],
         }),
     },
     {
@@ -766,7 +766,7 @@ module.exports = [
         model: '9290022267A',
         vendor: 'Philips',
         description: 'Hue white ambiance E27 with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 434], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 434]}),
     },
     {
         zigbeeModel: ['LCP003'],
@@ -843,7 +843,7 @@ module.exports = [
         model: '8718699703424',
         vendor: 'Philips',
         description: 'Hue white and color ambiance LightStrip plus',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['LCL002'],
@@ -857,21 +857,21 @@ module.exports = [
         model: '9290022166',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA004'],
         model: '9290024896',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E27',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA006'],
         model: '9290024689',
         vendor: 'Philips',
         description: 'Hue white and color ambiance B22 1100lm',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA008'],
@@ -879,7 +879,7 @@ module.exports = [
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27 1600lm',
         extend: philips.extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500], disableHueEffects: false,
+            colorTempRange: [153, 500],
         }),
     },
     {
@@ -887,7 +887,7 @@ module.exports = [
         model: '9290024717',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/A19 1600lm',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCT001', 'LCT007', 'LCT010', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCT021'],
@@ -901,7 +901,7 @@ module.exports = [
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003053001'],
@@ -999,7 +999,7 @@ module.exports = [
         model: '929001953301',
         vendor: 'Philips',
         description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['LTD005'],
@@ -1181,7 +1181,7 @@ module.exports = [
         model: '4090230P9',
         vendor: 'Philips',
         description: 'Hue Liane (black)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['929003053201'],
@@ -1209,14 +1209,14 @@ module.exports = [
         model: '3261030P6',
         vendor: 'Philips',
         description: 'Hue Being black',
-        extend: philips.extend.light_onoff_brightness_colortemp({disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['3261031P6', '929003055001', '929003055101'],
         model: '3261031P6',
         vendor: 'Philips',
         description: 'Hue Being white',
-        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['3261048P6'],
@@ -1496,7 +1496,7 @@ module.exports = [
         model: '1742930P7',
         vendor: 'Philips',
         description: 'Hue outdoor Impress wall lamp',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['1743030P7'],
@@ -1524,7 +1524,7 @@ module.exports = [
         model: '1746430P7',
         vendor: 'Philips',
         description: 'Hue outdoor Resonate wall lamp (black)',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['1746447P7'],
@@ -2187,7 +2187,7 @@ module.exports = [
         model: '1741530P7',
         vendor: 'Philips',
         description: 'Hue Lily outdoor spot light',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableHueEffects: false}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['1741730V7'],
@@ -2390,7 +2390,7 @@ module.exports = [
         model: '929002422702',
         vendor: 'Philips',
         description: 'Hue Play gradient lightstrip 55',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCX002'],
@@ -2488,7 +2488,7 @@ module.exports = [
         model: '9290024687',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance A19 1100 lumen',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['RDM002'],
@@ -2527,7 +2527,7 @@ module.exports = [
         model: '9290022266A',
         vendor: 'Philips',
         description: 'Hue White and color ambiance A19 800 lumen',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LWE003'],
@@ -2611,7 +2611,7 @@ module.exports = [
         model: '929002966501',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance Surimu rectangle panel',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['5060930P7_01', '5060930P7_02', '5060930P7_03', '5060930P7_04'],
@@ -3039,13 +3039,13 @@ module.exports = [
         model: '915005988101',
         vendor: 'Philips',
         description: 'Hue Gradient light tube large',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['915005987901'],
         model: '915005987901',
         vendor: 'Philips',
         description: 'Hue Gradient light tube compact',
-        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({disableHueEffects: false, colorTempRange: [153, 500]}),
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
 ];
