@@ -109,7 +109,7 @@ module.exports = [
         model: 'PM-S140-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang without neutral wire',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -159,7 +159,7 @@ module.exports = [
         model: 'PM-S140R-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -209,7 +209,7 @@ module.exports = [
         model: 'PM-S150-ZB',
         vendor: 'Dawon DNS',
         description: 'IOT smart switch 1 gang router without neutral wire',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -97,6 +97,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aoclfnxz'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ztvwu4nk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5toc8efa'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ye5jkfsb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_u9bfwha0'}],
         model: 'BHT-002-GCLZB',
@@ -113,7 +114,7 @@ module.exports = [
                 .withSystemMode(['off', 'heat'], ea.STATE_SET).withRunningState(['idle', 'heat', 'cool'], ea.STATE)
                 .withPreset(['hold', 'program']),
             e.temperature_sensor_select(['IN', 'AL', 'OU']),
-            exposes.composite('program', 'program').withDescription('Time of day and setpoint to use when in program mode')
+            exposes.composite('program', 'program', ea.STATE_SET).withDescription('Time of day and setpoint to use when in program mode')
                 .withFeature(exposesLocal.hour('weekdays_p1_hour'))
                 .withFeature(exposesLocal.minute('weekdays_p1_minute'))
                 .withFeature(exposesLocal.program_temperature('weekdays_p1_temperature'))
@@ -290,9 +291,9 @@ module.exports = [
             e.valve_state(), e.position(), e.window_detection(),
             exposes.binary('window', ea.STATE, 'OPEN', 'CLOSED').withDescription('Window status closed or open '),
             exposes.climate()
-                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withSystemMode(['heat'], ea.STATE_SET)
                 .withRunningState(['idle', 'heat'], ea.STATE)
                 .withPreset(['programming', 'manual', 'temporary_manual', 'holiday'],
                     'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. '+
@@ -307,9 +308,9 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('Min').withDescription('Countdown in minutes')
+            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('minutes').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
-            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('second')
+            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('seconds')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
                 .withValueMax(900).withValueStep(100)],
     },
@@ -337,18 +338,7 @@ module.exports = [
         model: 'ZLD-RCW',
         vendor: 'Moes',
         description: 'RGB+CCT Zigbee LED Controller',
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
-        ]),
-        meta: {applyRedFix: true, enhancedHue: false},
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true,
-            disablePowerOnBehavior: true}).exposes.concat([
-            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
-                .withDescription('Do not disturb mode'),
-            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
-                .withDescription('Power on behavior state'),
-        ]),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],
@@ -400,7 +390,7 @@ module.exports = [
         model: 'ZS-EUB_1gang',
         vendor: 'Moes',
         description: 'Wall light switch (1 gang)',
-        extend: tuya.extend.switch({backlightModeLowMediumHigh: true, switchType: true}),
+        extend: tuya.extend.switch({backlightModeOffNormalInverted: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             device.powerSource = 'Mains (single phase)';

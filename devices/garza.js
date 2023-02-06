@@ -1,4 +1,4 @@
-const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -6,6 +6,6 @@ module.exports = [
         model: 'Garza-Standard-A60',
         vendor: 'Garza Smart',
         description: 'Standard A60 bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];

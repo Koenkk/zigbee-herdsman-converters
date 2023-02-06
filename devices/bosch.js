@@ -5,6 +5,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
 const constants = require('../lib/constants');
+const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -201,8 +202,22 @@ const tzLocal = {
 };
 
 
-// Radiator Thermostat II
 const fzLocal = {
+    bosch_contact: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            const lookup = {0: 'none', 1: 'single', 2: 'long'};
+            const result = {
+                contact: !((zoneStatus & 1) > 0),
+                battery_low: (zoneStatus & 1<<3) > 0,
+                action: lookup[(zoneStatus >> 11) & 3],
+            };
+            if (result.action === 'none') delete result.action;
+            return result;
+        },
+    },
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -396,6 +411,7 @@ const definition = [
         model: 'BTH-RA',
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
+        ota: ota.zigbeeOTA,
         fromZigbee: [fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -408,7 +424,7 @@ const definition = [
             exposes.climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                .withLocalTemperatureCalibration(-12, 12, 0.5)
+                .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
                 .withPiHeatingDemand(ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
@@ -505,6 +521,55 @@ const definition = [
             exposes.enum('pre_alarm', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable pre-alarm'),
             exposes.enum('heartbeat', ea.ALL, Object.keys(stateOffOn)).withDescription('Enable/disable heartbeat'),
         ],
+    },
+    {
+        zigbeeModel: ['RBSH-SP-ZB-EU'],
+        model: 'BSP-FZ2',
+        vendor: 'Bosch',
+        description: 'Plug compact EU',
+        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
+    },
+    {
+        zigbeeModel: ['RBSH-SWD-ZB'],
+        model: 'BSEN-C2',
+        vendor: 'Bosch',
+        description: 'Door/window contact II',
+        fromZigbee: [fzLocal.bosch_contact],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.contact(), e.action(['single', 'long'])],
+    },
+    {
+        zigbeeModel: ['RBSH-SP-ZB-FR'],
+        model: 'BSP-EZ2',
+        vendor: 'Bosch',
+        description: 'Plug compact FR',
+        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genOnOff', ['onOff', 'startUpOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {change: [0, 1]});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await reporting.activePower(endpoint);
+        },
+        exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
     },
 ];
 

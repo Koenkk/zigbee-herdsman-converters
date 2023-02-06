@@ -148,7 +148,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {linkquality: msg.linkquality};
-            if (msg.data['4919']) result['transmit_power'] = msg.data['4919'] + 1;
+            if (msg.data['4919']) result['transmit_power'] = msg.data['4919'];
             return result;
         },
     },

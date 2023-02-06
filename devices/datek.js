@@ -15,7 +15,8 @@ module.exports = [
         vendor: 'Datek',
         description: 'APEX smart plug 16A',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
-        toZigbee: [tz.on_off],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'msTemperatureMeasurement']);
@@ -28,24 +29,26 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.temperature(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
         zigbeeModel: ['Meter Reader'],
         model: 'HSE2905E',
         vendor: 'Datek',
         description: 'Datek Eva AMS HAN power-meter sensor',
-        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature],
+        fromZigbee: [fz.metering_datek, fz.electrical_measurement, fz.temperature, fz.hw_version],
         toZigbee: [],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement']);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             try {
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {
-                /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/11867 */
+                // hwVersion < 2 do not support hwVersion attribute, so we are testing if this is hwVersion 1 or 2
+                await endpoint.read('genBasic', ['hwVersion']);
+            } catch (e) {
+                e;
             }
             const payload = [{
                 attribute: 'rmsVoltagePhB',
@@ -78,14 +81,12 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: [1, 1]});
             await reporting.currentSummReceived(endpoint);
             await reporting.temperature(endpoint, {min: 60, max: 3600, change: 0});
-            device.powerSource = 'DC source';
-            device.save();
         },
         exposes: [e.power(), e.energy(), e.current(), e.voltage(), e.current_phase_b(), e.voltage_phase_b(), e.current_phase_c(),
             e.voltage_phase_c(), e.temperature()],
     },
     {
-        fingerprint: [{modelID: 'Motion Sensor', manufacturerName: 'Eva'}],
+        zigbeeModel: ['Motion Sensor'],
         model: 'HSE2927E',
         vendor: 'Datek',
         description: 'Eva motion sensor',

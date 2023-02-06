@@ -8,6 +8,13 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-061-0'],
+        model: 'ROB_200-061-0',
+        vendor: 'ROBB',
+        description: '50W Zigbee CCT LED driver (constant current)',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [160, 450]}),
+    },
+    {
         zigbeeModel: ['ROB_200-029-0'],
         model: 'ROB_200-029-0',
         vendor: 'ROBB',
@@ -135,7 +142,7 @@ module.exports = [
             'on_3', 'off_3', 'brightness_move_up_3', 'brightness_move_down_3', 'brightness_stop_3',
             'on_4', 'off_4', 'brightness_move_up_4', 'brightness_move_down_4', 'brightness_stop_4'])],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9001K8-DIM'}],
     },
     {

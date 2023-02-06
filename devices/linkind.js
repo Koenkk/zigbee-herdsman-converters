@@ -82,6 +82,13 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
     },
     {
+        zigbeeModel: ['ZBT-CCTLight-D115'],
+        model: 'ZL13100314',
+        vendor: 'Linkind',
+        description: 'Ceiling light 28W, 3000 lm, Ø40CM CCT',
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+    },
+    {
         zigbeeModel: ['ZBT-CCTLight-BR300107'],
         model: 'ZL100050004',
         vendor: 'Linkind',
@@ -157,10 +164,6 @@ module.exports = [
         vendor: 'Linkind',
         description: 'Control outlet',
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on', 'toggle'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const constants = require('../lib/constants');
 const reporting = require('../lib/reporting');
@@ -47,9 +47,6 @@ module.exports = [
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -67,9 +64,6 @@ module.exports = [
         description: 'Zigbee smart switch (no neutral)',
         ota: ota.zigbeeOTA,
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        exposes: extend.switch().exposes.concat([e.power_on_behavior()]),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
             // Zigbee-herdsmans responds to the checkin message which causes the device
@@ -85,7 +79,7 @@ module.exports = [
         model: 'ZBMINI',
         vendor: 'SONOFF',
         description: 'Zigbee two way smart switch',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             // Has Unknown power source: https://github.com/Koenkk/zigbee2mqtt/issues/5362, force it here.
             device.powerSource = 'Mains (single phase)';
@@ -97,7 +91,7 @@ module.exports = [
         model: 'S31ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug (US version)',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -123,8 +117,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -139,8 +133,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -172,8 +166,8 @@ module.exports = [
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
                 await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
                 await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint);
-                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
             } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`);
             }
@@ -184,21 +178,16 @@ module.exports = [
         model: 'SNZB-02D',
         vendor: 'SONOFF',
         description: 'Temperature and humidity sensor with screen',
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
-            try {
-                const endpoint = device.getEndpoint(1);
-                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
-                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
-                await reporting.humidity(endpoint);
-                await reporting.batteryVoltage(endpoint);
-                await reporting.batteryPercentageRemaining(endpoint);
-            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
-                logger.error(`Configure failed: ${e}`);
-            }
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
+            await reporting.humidity(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
     },
     {
@@ -218,8 +207,10 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             const bindClusters = ['genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
+            // 3600/7200 prevents disconnect
+            // https://github.com/Koenkk/zigbee2mqtt/issues/13600#issuecomment-1283827935
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
     },
@@ -255,5 +246,14 @@ module.exports = [
             device.powerSource = 'Mains (single phase)';
             device.save();
         },
+    },
+    {
+        zigbeeModel: ['ZBCurtain'],
+        model: 'ZBCurtain',
+        vendor: 'SONOFF',
+        description: 'Zigbee smart curtain motor',
+        fromZigbee: [fz.cover_position_tilt, fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position(), e.battery()],
     },
 ];

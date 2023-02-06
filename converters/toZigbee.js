@@ -61,6 +61,12 @@ const converters = {
             await entity.command('genBasic', 'resetFactDefault', {}, utils.getOptions(meta.mapped, entity));
         },
     },
+    identify: {
+        key: ['identify'],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command('genIdentify', 'identify', {identifytime: value}, utils.getOptions(meta.mapped, entity));
+        },
+    },
     arm_mode: {
         key: ['arm_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -2139,7 +2145,7 @@ const converters = {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'WS-USC02', 'WS-USC04',
+                'WS-USC02', 'WS-USC04', 'ZNQBKG31LM',
             ].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0201: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'LLKZMK11LM'].includes(meta.mapped.model)) {
@@ -2164,7 +2170,7 @@ const converters = {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
                 'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
-                'WS-USC02', 'WS-USC04',
+                'WS-USC02', 'WS-USC04', 'ZNQBKG31LM',
             ].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0201]);
             } else if (['ZNCZ02LM', 'QBCZ11LM', 'ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -3265,7 +3271,12 @@ const converters = {
     moes_thermostat_current_heating_setpoint: {
         key: ['current_heating_setpoint'],
         convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+            if (meta.device.manufacturerName === '_TZE200_5toc8efa') {
+                const temp = Math.round(value*10);
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, temp);
+            } else {
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.moesHeatingSetpoint, value);
+            }
         },
     },
     moes_thermostat_deadzone_temperature: {
@@ -3846,20 +3857,6 @@ const converters = {
             return {state: {state: value.toUpperCase()}};
         },
     },
-    tuya_min_brightness: {
-        key: ['min_brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            const minValueHex = value.toString(16);
-            const maxValueHex = 'ff';
-            const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
-            const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
-            await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
-            return {state: {min_brightness: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', [0xfc00]);
-        },
-    },
     frankever_threshold: {
         key: ['threshold'],
         convertSet: async (entity, key, value, meta) => {
@@ -4195,6 +4192,7 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {0x4001: {value, type: 0x20}};
             await entity.write('hvacThermostat', payload, manufacturerOptions.eurotronic);
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', [0x4001], manufacturerOptions.eurotronic);
@@ -6513,6 +6511,58 @@ const converters = {
             }
         },
     },
+    wiser_fip_setting: {
+        key: ['fip_setting'],
+        convertSet: async (entity, key, value, meta) => {
+            const zoneLookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
+            const zonemodeNum = zoneLookup[meta.state.zone_mode];
+
+            const fipLookup = {'comfort': 0, 'comfort_-1': 1, 'comfort_-2': 2, 'energy_saving': 3,
+                'frost_protection': 4, 'off': 5};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(fipLookup));
+            const fipmodeNum = fipLookup[value];
+
+            const payload = {
+                zonemode: zonemodeNum,
+                fipmode: fipmodeNum,
+                reserved: 0xff,
+            };
+            await entity.command('hvacThermostat', 'wiserSmartSetFipMode', payload,
+                {srcEndpoint: 11, disableDefaultResponse: true});
+
+            return {state: {'fip_setting': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe020]);
+        },
+    },
+    wiser_hact_config: {
+        key: ['hact_config'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'unconfigured': 0x00, 'setpoint_switch': 0x80, 'setpoint_fip': 0x82, 'fip_fip': 0x83};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            const mode = lookup[value];
+            await entity.write('hvacThermostat', {0xe011: {value: mode, type: 0x18}});
+            return {state: {'hact_config': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe011]);
+        },
+    },
+    wiser_zone_mode: {
+        key: ['zone_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'manual': 1, 'schedule': 2, 'energy_saver': 3, 'holiday': 6};
+            const zonemodeNum = lookup[value];
+            await entity.write('hvacThermostat', {0xe010: {value: zonemodeNum, type: 0x30}});
+            return {state: {'zone_mode': value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('hvacThermostat', [0xe010]);
+        },
+    },
     wiser_vact_calibrate_valve: {
         key: ['calibrate_valve'],
         convertSet: async (entity, key, value, meta) => {
@@ -6587,23 +6637,6 @@ const converters = {
             }
         },
     },
-    tuya_do_not_disturb: {
-        key: ['do_not_disturb'],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
-            return {state: {do_not_disturb: value}};
-        },
-    },
-    tuya_color_power_on_behavior: {
-        key: ['color_power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'initial': 0, 'previous': 1, 'cutomized': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {
-                mode: lookup[value]*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
-            return {state: {color_power_on_behavior: value}};
-        },
-    },
     tuya_motion_sensor: {
         key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay',
             'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
@@ -6632,30 +6665,6 @@ const converters = {
                 break;
             default: // Unknown key
                 meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
-            }
-        },
-    },
-    tuya_radar_sensor_fall: {
-        key: ['radar_scene', 'radar_sensitivity', 'tumble_alarm_time', 'tumble_switch', 'fall_sensitivity'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'radar_scene':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfScene, utils.getKey(tuya.tuyaRadar.radarScene, value));
-                break;
-            case 'radar_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsfSensitivity, value);
-                break;
-            case 'tumble_switch':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfTumbleSwitch, {'on': true, 'off': false}[value.toLowerCase()]);
-                break;
-            case 'tumble_alarm_time':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.trsfTumbleAlarmTime, value-1);
-                break;
-            case 'fall_sensitivity':
-                await tuya.sendDataPointValue(entity, tuya.dataPoints.trsfFallSensitivity, value);
-                break;
-            default: // Unknown Key
-                meta.logger.warn(`toZigbee.tuya_radar_sensor_fall: Unhandled Key ${key}`);
             }
         },
     },

@@ -234,8 +234,7 @@ module.exports = [
         model: 'LDSENK02F',
         description: '10A/16A EU smart plug',
         vendor: 'ADEO',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_genLevelCtrl_report],
-        toZigbee: [tz.on_off],
+        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -244,7 +243,6 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
         },
-        exposes: [e.power(), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['LDSENK10'],

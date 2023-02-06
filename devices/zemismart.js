@@ -149,8 +149,8 @@ module.exports = [
         fromZigbee: [fz.ZMAM02_cover],
         toZigbee: [tz.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options')
-                .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
+            exposes.composite('options', 'options', ea.STATE)
+                .withFeature(exposes.numeric('motor_speed', ea.STATE)
                     .withValueMin(0)
                     .withValueMax(255)
                     .withDescription('Motor speed')),

@@ -373,6 +373,7 @@ describe('index.js', () => {
                 "property":"color_rgb",
                 "name":"color_xy",
                 "description": "Color of this light in the CIE 1931 color space (x/y)",
+                "access":7,
                 "features":[
                   {
                     "type":"numeric",
@@ -407,7 +408,7 @@ describe('index.js', () => {
                 for (const expose of expss) {
                     if (expose.hasOwnProperty('access')) {
                         toCheck.push(expose)
-                    } else if (expose.features && expose.type !== 'composite') {
+                    } else if (expose.features) {
                         toCheck.push(...expose.features.filter(e => e.hasOwnProperty('access')));
                     }
                 }
@@ -425,7 +426,7 @@ describe('index.js', () => {
                     }
 
                     if ((expose.access & exposes.access.GET) != (toZigbee && toZigbee.convertGet ? exposes.access.GET : 0)) {
-                        throw new Error(`${device.model} - ${property}, supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                        throw new Error(`${device.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
                     }
                 }
             }
@@ -510,7 +511,7 @@ describe('index.js', () => {
         const ZNCLDJ12LM = index.definitions.find((d) => d.model == 'ZNCLDJ12LM');
         expect(ZNCLDJ12LM.options.length).toBe(1);
         const ZNCZ04LM = index.definitions.find((d) => d.model == 'ZNCZ04LM');
-        expect(ZNCZ04LM.options.length).toBe(9);
+        expect(ZNCZ04LM.options.length).toBe(10);
     });
 
     it('Verify imports', () => {
@@ -524,7 +525,7 @@ describe('index.js', () => {
     it('Check TuYa tuya.fz.datapoints calibration/presicion options', () => {
         const TS0601_soil = index.definitions.find((d) => d.model == 'TS0601_soil');
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual(
-            ['humidity_precision', 'humidity_calibration', 'temperature_precision', 'temperature_calibration']);
+            ['temperature_precision', 'temperature_calibration']);
     });
 
     it('List expose number', () => {

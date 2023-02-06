@@ -22,7 +22,7 @@ module.exports = [
         vendor: 'BlitzWolf',
         description: 'Zigbee 3.0 smart light switch module 1 gang',
         extend: extend.switch(),
-        toZigbee: [tz.TYZB01_on_off],
+        toZigbee: [tz.TYZB01_on_off, tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },

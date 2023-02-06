@@ -65,8 +65,8 @@ module.exports = [
         model: 'TI0001-switch',
         description: 'Zigbee switch 1 gang',
         vendor: 'Livolo',
-        fromZigbee: [fz.livolo_new_switch_state],
-        toZigbee: [tz.livolo_socket_switch_on_off],
+        fromZigbee: [fz.livolo_new_switch_state, fz.power_on_behavior],
+        toZigbee: [tz.livolo_socket_switch_on_off, tz.power_on_behavior],
         extend: extend.switch(),
         configure: poll,
         endpoint: (device) => {
@@ -151,8 +151,8 @@ module.exports = [
         description: 'Zigbee socket',
         vendor: 'Livolo',
         extend: extend.switch(),
-        fromZigbee: [fz.livolo_socket_state],
-        toZigbee: [tz.livolo_socket_switch_on_off],
+        fromZigbee: [fz.livolo_socket_state, fz.power_on_behavior],
+        toZigbee: [tz.livolo_socket_switch_on_off, tz.power_on_behavior],
         configure: poll,
         onEvent: async (type, data, device) => {
             if (type === 'stop') {
@@ -205,7 +205,7 @@ module.exports = [
         toZigbee: [tz.livolo_cover_state, tz.livolo_cover_position, tz.livolo_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.composite('options', 'options')
+            exposes.composite('options', 'options', ea.STATE_SET)
                 .withDescription('Motor options')
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
                     .withValueMin(20)

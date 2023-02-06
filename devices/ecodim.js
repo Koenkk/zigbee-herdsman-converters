@@ -4,6 +4,7 @@ const e = exposes.presets;
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ota = require('../lib/ota');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -131,7 +132,7 @@ module.exports = [
         model: 'ED-10042',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, globe G125, flame 2200K',
-        extend: extend.light_onoff_brightness(),
+        extend: tuya.extend.light_onoff_brightness(),
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'ZigBee/CCT', manufacturerID: 4137},
@@ -139,6 +140,6 @@ module.exports = [
         model: 'ED-10041',
         vendor: 'EcoDim',
         description: 'Zigbee LED filament light dimmable E27, edison ST64, flame 2200K',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
 ];

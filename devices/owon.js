@@ -149,8 +149,13 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            if (device.modelID == 'PIR313') {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            } else {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            }
             device.powerSource = 'Battery';
             device.save();
         },

@@ -122,7 +122,7 @@ module.exports = [
     {
         zigbeeModel: ['RH3070'],
         model: 'HS1CG',
-        vendor: 'Heiman',
+        vendor: 'HEIMAN',
         description: 'Smart combustible gas sensor',
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
@@ -403,7 +403,7 @@ module.exports = [
         zigbeeModel: ['STHM-I1H'],
         model: 'STHM-I1H',
         vendor: 'HEIMAN',
-        description: 'Heiman temperature & humidity sensor',
+        description: 'Temperature & humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -474,6 +474,25 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'lightingColorCtrl']);
             await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
         },
+    },
+    {
+        zigbeeModel: ['HS3HT-EFA-3.0'],
+        model: 'HS3HT',
+        vendor: 'HEIMAN',
+        description: 'Temperature & humidity sensor with display',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.humidity(endpoint2);
+        },
+        exposes: [e.battery(), e.temperature(), e.humidity()],
     },
     {
         zigbeeModel: ['GASSensor-EM', '358e4e3e03c644709905034dae81433e'],
@@ -726,6 +745,20 @@ module.exports = [
     {
         fingerprint: [{modelID: 'DoorBell-EM', manufacturerName: 'HEIMAN'}],
         model: 'HS2DB',
+        vendor: 'HEIMAN',
+        description: 'Smart doorbell button',
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.battery(), e.action(['pressed']), e.battery_low(), e.tamper()],
+    },
+    {
+        fingerprint: [{modelID: 'DoorBell-EF-3.0', manufacturerName: 'HEIMAN'}],
+        model: 'HS2SS-E_V03',
         vendor: 'HEIMAN',
         description: 'Smart doorbell button',
         fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],

@@ -1,4 +1,4 @@
-const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -7,6 +7,6 @@ module.exports = [
         vendor: 'UR Lighting',
         description: '10W RGB+CCT downlight',
         meta: {applyRedFix: true, enhancedHue: false},
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];

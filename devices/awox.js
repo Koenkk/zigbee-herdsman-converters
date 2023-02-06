@@ -151,6 +151,13 @@ module.exports = [
                     {ID: 3, profileID: 4751, deviceID: 268, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
                 ],
             },
+            {
+                type: 'Router', manufacturerName: 'AwoX', modelID: 'TLSR82xx', endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                    {ID: 3, profileID: 4751, deviceID: 268, inputClusters: [65360, 65361, 4], outputClusters: [65360, 65361]},
+                ],
+            },
         ],
         model: '33957',
         vendor: 'AwoX',

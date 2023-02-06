@@ -1,4 +1,4 @@
-const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -6,6 +6,6 @@ module.exports = [
         model: 'MS-SP-LE27WRGB',
         description: 'E27 RGBW bulb',
         vendor: 'Mycket',
-        extend: extend.light_onoff_brightness_colortemp_color(),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
     },
 ];

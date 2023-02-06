@@ -111,7 +111,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2100'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
             await reporting.onOff(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);

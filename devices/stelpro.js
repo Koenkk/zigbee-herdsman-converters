@@ -48,6 +48,9 @@ module.exports = [
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {

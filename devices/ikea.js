@@ -557,6 +557,15 @@ module.exports = [
         vendor: 'IKEA',
         description: 'SILVERGLANS IP44 LED driver for wireless control (30 watt)',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
+    },
+    {
+        zigbeeModel: ['Pendant lamp WW'],
+        model: 'T2030',
+        vendor: 'IKEA',
+        description: 'PILSKOTT LED pendant lamp',
+        extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['FLOALT panel WS 30x30'],
@@ -602,11 +611,6 @@ module.exports = [
         description: 'TRADFRI control outlet',
         vendor: 'IKEA',
         extend: extend.switch(),
-        toZigbee: extend.switch().toZigbee.concat([tz.power_on_behavior]),
-        fromZigbee: extend.switch().fromZigbee.concat([fz.power_on_behavior]),
-        // power_on_behavior 'toggle' does not seem to be supported
-        exposes: extend.switch().exposes.concat([exposes.enum('power_on_behavior', ea.ALL, ['off', 'previous', 'on'])
-            .withDescription('Controls the behaviour when the device is powered on')]),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -626,7 +630,8 @@ module.exports = [
             'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
         toZigbee: [],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
+        // dontDividePercentage: true not needed with latest firmware
+        // https://github.com/Koenkk/zigbee2mqtt/issues/16412
         configure: configureRemote,
     },
     {
@@ -981,5 +986,12 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI E26 PAR38 LED bulb 900 lumen, dimmable, white spectrum, downlight',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
+    },
+    {
+        zigbeeModel: ['Floor lamp WW'],
+        model: 'G2015',
+        vendor: 'IKEA',
+        description: 'PILSKOTT LED floor lamp',
+        extend: tradfriExtend.light_onoff_brightness(),
     },
 ];
