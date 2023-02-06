@@ -3077,7 +3077,7 @@ const converters = {
                 if (msg.data[10] === 7) {
                     const status = msg.data[14];
                     return {
-                        occupancy: status & 1 ? true : false;
+                        occupancy: status & 1 ? true : false,
                     };
                 }
             }
