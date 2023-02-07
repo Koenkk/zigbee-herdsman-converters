@@ -12,14 +12,14 @@ module.exports = [
         zigbeeModel: ['EB-E14-FLA-CCT'],
         model: 'EB-E14-FLA-CCT',
         vendor: 'EssentielB',
-        description: 'E14 Flame CCT light bulb',
+        description: 'E14 flame CCT light bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['EB-E27-A60-CCT-FC'],
         model: 'EB-E27-A60-CCT-FC',
         vendor: 'EssentielB',
-        description: 'E27 A60 CCT Filament Clear light bulb',
+        description: 'E27 A60 CCT filament clear light bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
@@ -40,14 +40,14 @@ module.exports = [
         zigbeeModel: ['EB-E27-G95-CCT-FV'],
         model: 'EB-E27-G95-CCT-FV',
         vendor: 'EssentielB',
-        description: 'Filament Vintage Globe light bulb',
+        description: 'Filament vintage globe light bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['EB-E27-ST64-CCT-FV'],
         model: 'EB-E27-ST64-CCT-FV',
         vendor: 'EssentielB',
-        description: 'Filament vintage Edison light bulb',
+        description: 'Filament vintage edison light bulb',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
