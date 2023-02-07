@@ -1267,6 +1267,7 @@ const converters = {
                 val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             }
             await entity.write('hvacThermostat', {ctrlSeqeOfOper: val});
+            return {state: {control_sequence_of_operation: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
