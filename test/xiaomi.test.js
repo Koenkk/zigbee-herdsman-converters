@@ -232,6 +232,18 @@ describe('lib/xiaomi', () => {
 
                 expect(schedule).toEqual(factoryDefaultSchedule);
             });
+
+            it('converts undefined value to empty schedule object', () => {
+                const schedule = trv.parseSchedule(undefined);
+
+                expect(schedule).toEqual({days: [], events: []});
+            });
+
+            it('converts empty string to empty schedule object', () => {
+                const schedule = trv.parseSchedule('');
+
+                expect(schedule).toEqual({days: [], events: []});
+            });
         });
     });
 });
