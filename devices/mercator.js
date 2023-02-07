@@ -183,6 +183,10 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genIdentify', 'manuSpecificTuya', 'hvacFanCtrl']);
             await reporting.onOff(endpoint);
             await reporting.fanMode(endpoint);
+
+            // Device ships with {fanModeSequence: 1} which restricts physical speed
+            // button to low/high. Set to 0 to allow low/med/high from physical press.
+            await endpoint.write('hvacFanCtrl', {fanModeSequence: 0});
         },
     },
     {
