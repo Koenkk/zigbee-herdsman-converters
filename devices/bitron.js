@@ -204,12 +204,12 @@ module.exports = [
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await endpoint.read('hvacThermostat', ['ctrlSeqeOfOper', 'localTemperatureCalibration']);
         },
     },
     {
