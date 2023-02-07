@@ -199,7 +199,7 @@ module.exports = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = device.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper');
+            let ctrlSeqeOfOper = device ? device.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') : null;
             const modes = [];
 
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
