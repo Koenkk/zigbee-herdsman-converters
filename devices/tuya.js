@@ -1447,7 +1447,7 @@ module.exports = [
         description: 'Curtain/blind switch',
         fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
-            tuya.tz.backlight_indicator_mode],
+            tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
         whiteLabel: [{vendor: 'LoraTap', model: 'SC400'}],
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
@@ -2041,7 +2041,7 @@ module.exports = [
         vendor: 'TuYa',
         description: '3 gang switch module',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ23'}],
-        extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2', 'l3']}),
+        extend: tuya.extend.switch({switchType: true, backlightModeOffOn: true, endpoints: ['l1', 'l2', 'l3']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
@@ -2517,7 +2517,7 @@ module.exports = [
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             tuya.fz.indicator_mode],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.backlight_indicator_mode],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.backlight_indicator_mode_1],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
