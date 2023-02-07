@@ -134,11 +134,17 @@ const fzLocal = {
                     Object.assign(result, heartbeat);
                     break;
                 }
+                case 0x027d:
+                    result['schedule'] = {1: 'ON', 0: 'OFF'}[value];
+                    break;
+                case 0x0276: {
+                    const schedule = trv.decodeSchedule(value);
+                    result['schedule_settings'] = trv.stringifySchedule(schedule);
+                    break;
+                }
                 case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
-                case 0x0276: // 04:3e:01:e0:00:00:09:60:04:38:00:00:06:a4:05:64:00:00:08:98:81:e0:00:00:08:98
                 case 0x027c: // 0x00
-                case 0x027d: // 0x00
                 case 0x0280: // 0x00/0x01
                     meta.logger.debug(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key} = ${value}`);
                     break;
@@ -345,7 +351,7 @@ const fzLocal = {
 const tzLocal = {
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
-            'calibrate', 'sensor', 'sensor_temp', 'identify'],
+            'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
         convertSet: async (entity, key, value, meta) => {
             const aqaraHeader = (counter, params, action) => {
                 const header = [0xaa, 0x71, params.length + 3, 0x44, counter];
@@ -453,13 +459,25 @@ const tzLocal = {
             case 'identify':
                 await entity.command('genIdentify', 'identify', {identifytime: 5}, {});
                 break;
+            case 'schedule':
+                await entity.write('aqaraOpple', {0x027d: {value: {'OFF': 0, 'ON': 1}[value], type: 0x20}},
+                    {manufacturerCode: 0x115f});
+                break;
+            case 'schedule_settings': {
+                const schedule = trv.parseSchedule(value);
+                trv.validateSchedule(schedule);
+                const buffer = trv.encodeSchedule(schedule);
+                await entity.write('aqaraOpple', {0x0276: {value: buffer, type: 0x41}}, {manufacturerCode: 0x115f});
+                break;
+            }
             default: // Unknown key
                 meta.logger.warn(`zigbee-herdsman-converters:aqara_trv: Unhandled key ${key}`);
             }
         },
         convertGet: async (entity, key, meta) => {
             const dict = {'system_mode': 0x0271, 'preset': 0x0272, 'window_detection': 0x0273, 'valve_detection': 0x0274,
-                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e};
+                'child_lock': 0x0277, 'away_preset_temperature': 0x0279, 'calibrated': 0x027b, 'sensor': 0x027e,
+                'schedule': 0x027d, 'schedule_settings': 0x0276};
 
             if (dict.hasOwnProperty(key)) {
                 await entity.read('aqaraOpple', [dict[key]], {manufacturerCode: 0x115F});
@@ -2993,6 +3011,11 @@ module.exports = [
             e.battery(),
             e.power_outage_count(),
             e.device_temperature(),
+            exposes.switch().withState('schedule', true,
+                'When being ON, the thermostat will change its state based on your settings',
+                ea.ALL, 'ON', 'OFF'),
+            exposes.text('schedule_settings', ea.ALL)
+                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
