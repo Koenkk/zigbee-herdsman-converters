@@ -196,7 +196,7 @@ module.exports = [
         exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
             .withLocalTemperatureCalibration(), e.keypad_lockout()],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
