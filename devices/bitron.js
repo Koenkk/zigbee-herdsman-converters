@@ -199,11 +199,26 @@ module.exports = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
+            let ctrlSeqeOfOper = device.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper');
+            const modes = [];
+
+            // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
+            if (ctrlSeqeOfOper == null) ctrlSeqeOfOper = 2;
+
+            // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
+            // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated
+            if (ctrlSeqeOfOper >= 2) {
+                modes.push('heat');
+            }
+            if (ctrlSeqeOfOper < 2 || ctrlSeqeOfOper > 3) {
+                modes.push('cool');
+            }
+
             dynExposes.push(exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool'])
+                .withSystemMode(['off'].concat(modes))
+                .withRunningState(['idle'].concat(modes))
                 .withLocalTemperatureCalibration()
                 .withCtrlSeqeOfOper(['heating_only', 'cooling_only'], ea.ALL));
             dynExposes.push(e.keypad_lockout());
