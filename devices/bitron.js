@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -190,12 +191,21 @@ module.exports = [
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
-            tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
-        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-            .withLocalTemperatureCalibration(), e.keypad_lockout()],
+        toZigbee: [
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage,
+        ],
+        exposes: [
+            exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off', 'heat', 'cool'])
+                .withRunningState(['idle', 'heat', 'cool'])
+                .withLocalTemperatureCalibration(),
+            e.battery().withAccess(ea.STATE_GET), e.keypad_lockout(),
+        ],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
