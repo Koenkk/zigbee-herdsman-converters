@@ -3016,7 +3016,7 @@ module.exports = [
                 'When being ON, the thermostat will change its state based on your settings',
                 ea.ALL, 'ON', 'OFF'),
             exposes.text('schedule_settings', ea.ALL)
-                .withDescription('Smart schedule configuration'),
+                .withDescription('Smart schedule configuration (default: mon,tue,wed,thu,fri|8:00,24.0|18:00,17.0|23:00,22.0|8:00,22.0)'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
