@@ -197,15 +197,21 @@ module.exports = [
             tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage,
         ],
-        exposes: [
-            exposes.climate()
+        exposes: (device, options) => {
+            const dynExposes = [];
+            dynExposes.push(exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(['off', 'heat', 'cool'])
                 .withRunningState(['idle', 'heat', 'cool'])
-                .withLocalTemperatureCalibration(),
-            e.battery().withAccess(ea.STATE_GET), e.keypad_lockout(),
-        ],
+                .withLocalTemperatureCalibration()
+                .withCtrlSeqeOfOper(['heating_only', 'cooling_only'], ea.ALL));
+            dynExposes.push(e.keypad_lockout());
+            dynExposes.push(e.battery().withAccess(ea.STATE_GET));
+            dynExposes.push(e.battery_low());
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
