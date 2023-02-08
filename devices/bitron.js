@@ -220,7 +220,7 @@ module.exports = [
                 .withSystemMode(['off'].concat(modes))
                 .withRunningState(['idle'].concat(modes))
                 .withLocalTemperatureCalibration()
-                .withCtrlSeqeOfOper(['heating_only', 'cooling_only'], ea.ALL));
+                .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL));
             dynExposes.push(e.keypad_lockout());
             dynExposes.push(e.battery().withAccess(ea.STATE_GET));
             dynExposes.push(e.battery_low());
