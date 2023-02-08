@@ -102,6 +102,12 @@ const converters = {
             await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
+    battery_voltage: {
+        key: ['battery', 'voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryVoltage']);
+        },
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -1260,7 +1266,12 @@ const converters = {
             if (val === undefined) {
                 val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             }
-            await entity.write('hvacThermostat', {ctrlSeqeOfOper: val});
+            const attributes = {ctrlSeqeOfOper: val};
+            await entity.write('hvacThermostat', attributes);
+            // NOTE: update the cluster attribute we store as this is used by
+            //       SMaBiT AV2010/32's dynamic expose function.
+            entity.saveClusterAttributeKeyValue('hvacThermostat', attributes);
+            return {readAfterWriteTime: 250, state: {control_sequence_of_operation: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
