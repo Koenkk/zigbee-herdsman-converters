@@ -596,9 +596,7 @@ module.exports = [
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500],
-        }),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LWA003', 'LWW002'],
@@ -878,9 +876,7 @@ module.exports = [
         model: '929002471601',
         vendor: 'Philips',
         description: 'Hue white and color ambiance E26/E27 1600lm',
-        extend: philips.extend.light_onoff_brightness_colortemp_color({
-            colorTempRange: [153, 500],
-        }),
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LCA009'],
