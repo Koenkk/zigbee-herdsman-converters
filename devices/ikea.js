@@ -741,7 +741,6 @@ module.exports = [
             exposes.binary('illuminance_above_threshold', ea.STATE, true, false)
                 .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
