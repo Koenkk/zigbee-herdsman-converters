@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
+const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -42,5 +43,33 @@ module.exports = [
                 .withValueMin(20)
                 .withValueMax(95),
         ],
+    },
+    {
+        fingerprint: [{modelID: 'TS0121', manufacturerName: '_TZ3000_fqoynhku'}],
+        model: '4500990',
+        vendor: 'Connecte',
+        description: '16A Smart Wall Socket',
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
+            tuya.fz.power_outage_memory, tuya.fz.indicator_mode],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.backlight_indicator_mode_1],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 1, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+            });
+            await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff', 'tuyaBacklightMode']);
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 3600, change: 2});
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.activePower(endpoint, {min: 10, max: 3600, change: 0});
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 3600, change: 0});
+        },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+                .withDescription('Recover state after power outage'),
+            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off']).withDescription('LED indicator mode')],
+        onEvent: tuya.onEventSetTime,
     },
 ];
