@@ -473,7 +473,7 @@ module.exports = [
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withValueMin(1).withValueMax(240)
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240)
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')],
     },
     {
@@ -823,7 +823,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint, overides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes')
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min')
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
                 .withValueMin(1).withValueMax(60),
             exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),

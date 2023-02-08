@@ -3819,9 +3819,9 @@ module.exports = [
         toZigbee: [tzLocal.hpsz],
         onEvent: tuya.onEventSetLocalTime,
         exposes: [e.presence(),
-            exposes.numeric('duration_of_attendance', ea.STATE).withUnit('minutes')
+            exposes.numeric('duration_of_attendance', ea.STATE).withUnit('min')
                 .withDescription('Shows the presence duration in minutes'),
-            exposes.numeric('duration_of_absence', ea.STATE).withUnit('minutes')
+            exposes.numeric('duration_of_absence', ea.STATE).withUnit('min')
                 .withDescription('Shows the duration of the absence in minutes'),
             exposes.binary('led_state', ea.STATE_SET, true, false)
                 .withDescription('Turns the onboard LED on or off'),
