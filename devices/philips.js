@@ -893,7 +893,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['1743930P7', '1744030P7', '1744030V7'],
+        zigbeeModel: ['1743930P7', '1744030P7', '1744030V7', '1743930V7'],
         model: '1743930P7',
         vendor: 'Philips',
         description: 'Hue Outdoor Econic wall lantern',
