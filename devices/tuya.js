@@ -2541,7 +2541,13 @@ module.exports = [
         zigbeeModel: ['TS0121'],
         model: 'TS0121_plug',
         description: '10A UK or 16A EU smart plug',
-        whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-SHP13'}],
+        whiteLabel: [
+            {vendor: 'BlitzWolf', model: 'BW-SHP13'},
+            {vendor: 'Connecte', model: '4500990'},
+            {vendor: 'Connecte', model: '4500991'},
+            {vendor: 'Connecte', model: '4500992'},
+            {vendor: 'Connecte', model: '4500993'},
+        ],
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             tuya.fz.indicator_mode],
@@ -2558,6 +2564,9 @@ module.exports = [
                 await reporting.currentSummDelivered(endpoint);
             } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff', 'tuyaBacklightMode']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
         },
         options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
