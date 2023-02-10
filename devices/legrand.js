@@ -31,7 +31,6 @@ module.exports = [
     {
         zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
-        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000005.....$/}],
         model: '067755',
         vendor: 'Legrand',
         description: 'Wireless and batteryless 4 scenes control',
@@ -49,7 +48,6 @@ module.exports = [
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
-
     },
     {
         zigbeeModel: [' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
@@ -384,6 +382,15 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genPowerCfg']);
         },
+    },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000005.....$/}],
+        model: 'ZLGP15',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless 4 scenes control',
+        fromZigbee: [fz.legrand_zlgp15],
+        toZigbee: [],
+        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000005.....$/}],
