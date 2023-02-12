@@ -985,7 +985,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'STOFTMOLN ceiling/wall lamp 10 warm light dimmable',
         extend: tradfriExtend.light_onoff_brightness(),
-    },    
+    },
     {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
