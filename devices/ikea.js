@@ -72,39 +72,6 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
     await reporting.batteryPercentageRemaining(endpoint);
 };
 
-const fzLocal = {
-    // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13335
-    STYRBAR_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
-            if (arrowReleaseAgo > 700) {
-                return {action: 'on'};
-            }
-        },
-    },
-    STYRBAR_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!utils.isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
-        },
-    },
-};
-
 const tradfriExtend = {
     light_onoff_brightness: (options = {}) => ({
         ...extend.light_onoff_brightness(options),
@@ -212,6 +179,36 @@ const ikea = {
                 }
 
                 return state;
+            },
+        },
+        // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/13335
+        styrbar_on: {
+            cluster: 'genOnOff',
+            type: 'commandOn',
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
+                if (arrowReleaseAgo > 700) {
+                    return {action: 'on'};
+                }
+            },
+        },
+        styrbar_arrow_release: {
+            cluster: 'genScenes',
+            type: 'commandTradfriArrowRelease',
+            options: [exposes.options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
+                const direction = globalStore.getValue(msg.endpoint, 'direction');
+                if (direction) {
+                    globalStore.clearValue(msg.endpoint, 'direction');
+                    const duration = msg.data.value / 1000;
+                    const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                    if (!utils.isLegacyEnabled(options)) delete result.duration;
+                    return result;
+                }
             },
         },
     },
@@ -639,8 +636,8 @@ module.exports = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fz.battery, fzLocal.STYRBAR_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
-            fz.ikea_arrow_hold, fzLocal.STYRBAR_arrow_release],
+        fromZigbee: [fz.battery, ikea.fz.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+            fz.ikea_arrow_hold, ikea.fz.styrbar_arrow_release],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
