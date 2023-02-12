@@ -34,7 +34,7 @@ module.exports = [
         model: '067755',
         vendor: 'Legrand',
         description: 'Wireless and batteryless 4 scenes control',
-        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.battery, fz.command_recall],
+        fromZigbee: [fz.identify, fz.battery, fz.command_recall],
         exposes: [e.battery(), e.action(['identify', 'recall_1_1'])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
