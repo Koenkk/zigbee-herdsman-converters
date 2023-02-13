@@ -899,7 +899,7 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverterBasic.lookup({true: tuya.enum(0), false: tuya.enum(1)})],
+                [1, 'gas', tuya.valueConverter.trueFalseEnum0],
                 [2, 'gas_value', tuya.valueConverter.divideBy10],
                 [6, 'alarm_ringtone', tuya.valueConverterBasic.lookup({'1': 0, '2': 1, '3': 2, '4': 3, '5': 4})],
                 [7, 'alarm_time', tuya.valueConverter.raw],
