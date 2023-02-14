@@ -668,7 +668,6 @@ module.exports = [
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
@@ -690,7 +689,7 @@ module.exports = [
         ],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: configureRemote,
     },
     {
@@ -702,7 +701,7 @@ module.exports = [
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: configureRemote,
     },
     {
@@ -729,7 +728,7 @@ module.exports = [
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
@@ -868,7 +867,6 @@ module.exports = [
             fz.command_cover_stop, fz.legacy.cover_stop],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['close', 'open', 'stop'])],
         toZigbee: [tz.battery_percentage_remaining],
-        meta: {battery: {dontDividePercentage: true}},
         ota: ota.tradfri,
         configure: configureRemote,
     },
