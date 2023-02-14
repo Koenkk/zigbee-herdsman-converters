@@ -3044,4 +3044,11 @@ module.exports = [
         description: 'Hue Gradient light tube compact',
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['929003055701'],
+        model: '929003055701',
+        vendor: 'Philips',
+        description: 'Hue White Ambiance Devote',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
 ];
