@@ -1285,7 +1285,7 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ip2akl4w', '_TZE200_1agwnems', '_TZE200_la2c2uo9', '_TZE200_579lguh2',
-            '_TZE200_vucankjx']),
+            '_TZE200_vucankjx', '_TZE200_4mh6tyyo']),
         model: 'TS0601_dimmer_1',
         vendor: 'TuYa',
         description: '1 gang smart dimmer',
