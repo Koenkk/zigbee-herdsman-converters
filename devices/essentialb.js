@@ -71,8 +71,8 @@ module.exports = [
     {
         zigbeeModel: ['EB-SB-1B'],
         model: 'EB-SB-1B',
-        vendor: 'Sourcing & Creation',
-        description: 'Essentielb Smart Button',
+        vendor: 'EssentielB',
+        description: 'Smart button',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_step_color_temperature],
         toZigbee: [],
         exposes: [e.battery(), e.action(['on', 'off', 'color_temperature_step_up', 'color_temperature_step_down',
