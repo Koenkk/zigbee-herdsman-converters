@@ -798,7 +798,9 @@ module.exports = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
-            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            } catch (error) {/* Do nothing*/}
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
