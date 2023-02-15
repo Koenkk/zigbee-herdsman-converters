@@ -75,7 +75,8 @@ module.exports = [
         description: 'Essentielb Smart Button',
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_step_color_temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.action(['on', 'off', 'color_temperature_step_up', 'color_temperature_step_down', 'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
+        exposes: [e.battery(), e.action(['on', 'off', 'color_temperature_step_up', 'color_temperature_step_down',
+            'brightness_step_up', 'brightness_step_down', 'brightness_stop'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genOnOff', 'genPowerCfg', 'lightingColorCtrl', 'genLevelCtrl'];
