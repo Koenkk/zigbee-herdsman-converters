@@ -181,7 +181,7 @@ const ikea = {
                 return state;
             },
         },
-        remote_battery: {
+        battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
@@ -645,7 +645,7 @@ module.exports = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [ikea.fz.remote_battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
+        fromZigbee: [ikea.fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
             fz.ikea_arrow_release],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
             'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
@@ -661,7 +661,7 @@ module.exports = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [ikea.fz.remote_battery, ikea.fz.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+        fromZigbee: [ikea.fz.battery, ikea.fz.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
             fz.ikea_arrow_hold, ikea.fz.styrbar_arrow_release],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
@@ -681,7 +681,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
         fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.command_move,
-            ikea.fz.remote_battery, fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop,
+            ikea.fz.battery, fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop,
             fz.legacy.E1743_brightness_stop],
         exposes: [
             e.battery().withAccess(ea.STATE_GET),
@@ -697,7 +697,7 @@ module.exports = [
         model: 'E1841',
         vendor: 'IKEA',
         description: 'KNYCKLAN open/close remote water valve',
-        fromZigbee: [fz.command_on, fz.command_off, ikea.fz.remote_battery],
+        fromZigbee: [fz.command_on, fz.command_off, ikea.fz.battery],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
@@ -724,7 +724,7 @@ module.exports = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, ikea.fz.remote_battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, ikea.fz.battery],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
         toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
@@ -795,9 +795,8 @@ module.exports = [
         model: 'E1757',
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -805,16 +804,15 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['KADRILJ roller blind'],
         model: 'E1926',
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -822,16 +820,15 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['PRAKTLYSING cellular blind'],
         model: 'E2102',
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -839,7 +836,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['TREDANSEN block-out cellul blind'],
@@ -863,7 +860,7 @@ module.exports = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [ikea.fz.remote_battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
+        fromZigbee: [ikea.fz.battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
             fz.command_cover_stop, fz.legacy.cover_stop],
         exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['close', 'open', 'stop'])],
         toZigbee: [tz.battery_percentage_remaining],
