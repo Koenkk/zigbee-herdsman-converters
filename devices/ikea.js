@@ -758,7 +758,7 @@ module.exports = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [ikea.fz.remote_battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        fromZigbee: [ikea.fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(),
             exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
