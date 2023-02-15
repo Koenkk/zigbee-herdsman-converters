@@ -335,7 +335,7 @@ module.exports = [
         model: 'AC03648',
         vendor: 'OSRAM',
         description: 'SMART+ spot GU5.3 tunable white',
-        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}),
         ota: ota.ledvance,
     },
     {
