@@ -787,7 +787,7 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power(), e.current(), e.voltage(), e.energy()],
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
