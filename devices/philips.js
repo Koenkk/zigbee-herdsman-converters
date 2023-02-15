@@ -592,7 +592,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['LCG002', '929003047701', '929003047701'],
+        zigbeeModel: ['LCG002', '929003047701', '929003047701', '929003526202_01', ' 929003526202_02', '929003526202_03'],
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
