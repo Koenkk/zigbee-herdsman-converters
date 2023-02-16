@@ -75,8 +75,8 @@ module.exports = [
         model: 'ROB_200-011-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_basic_report],
-        toZigbee: [tz.light_onoff_brightness, tz.ignore_rate, tz.level_config, tz.power_on_behavior, tz.electrical_measurement_power],
+        fromZigbee: extend.light_onoff_brightness().fromZigbee.concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
+        toZigbee: extend.light_onoff_brightness().toZigbee,
         exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes, e.power(), e.voltage(), e.energy(), e.current()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
