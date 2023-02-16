@@ -831,7 +831,7 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
         fromZigbee: [fzLocal.SNZB02_temperature, fzLocal.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
-                     fzLocal.hydrostat_config, fzLocal.node_config],
+            fzLocal.hydrostat_config, fzLocal.node_config],
         toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
