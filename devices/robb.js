@@ -75,12 +75,23 @@ module.exports = [
         model: 'ROB_200-011-0',
         vendor: 'ROBB',
         description: 'ZigBee AC phase-cut dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_basic_report],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_rate, tz.level_config, tz.power_on_behavior, tz.electrical_measurement_power],
+        exposes: [...extend.light_onoff_brightness({noConfigure: true}).exposes, e.power(), e.voltage(), e.energy(), e.current()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
             await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 10,
+                acCurrentMultiplier: 1, acCurrentDivisor: 1000,
+                acPowerMultiplier: 1, acPowerDivisor: 10,
+            });
         },
     },
     {
