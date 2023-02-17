@@ -103,7 +103,7 @@ module.exports = [
         model: 'LXZB-02A',
         vendor: 'Nue / 3A',
         description: 'Smart light controller',
-        extend: extend.light_onoff_brightness(),
+        extend: extend.light_onoff_brightness({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['FNB56-ZSW03LX2.0', 'LXN-3S27LX1.0'],
