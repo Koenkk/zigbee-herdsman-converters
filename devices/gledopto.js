@@ -247,7 +247,7 @@ module.exports = [
         model: 'GL-C-008-1ID', // 1 ID controls color temperature and color separate
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGB+CCT (1 ID)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -295,7 +295,7 @@ module.exports = [
         model: 'GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller W',
-        extend: gledoptoExtend.light_onoff_brightness(),
+        extend: gledoptoExtend.light_onoff_brightness({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['GL-C-009P'],
@@ -394,7 +394,7 @@ module.exports = [
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W GU10 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['GL-S-007ZS'],
@@ -430,7 +430,7 @@ module.exports = [
         model: 'GL-B-001ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 4W E12/E14 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['GL-B-001P'],
@@ -445,7 +445,7 @@ module.exports = [
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['GL-B-007ZS'],
@@ -467,7 +467,7 @@ module.exports = [
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Zigbee 12W E26/E27 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['GL-B-008ZS'],
