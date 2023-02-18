@@ -36,7 +36,7 @@ function getFromLookup(zigbeeModel) {
         return lookup.get(zigbeeModel);
     }
 
-    zigbeeModel = zigbeeModel ? zigbeeModel.replace(/\0.*$/g, '').trim() : null;
+    zigbeeModel = zigbeeModel ? zigbeeModel.replace(/\0(.|\n)*$/g, '').trim() : null;
     return lookup.get(zigbeeModel);
 }
 
