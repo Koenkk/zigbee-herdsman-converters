@@ -366,7 +366,7 @@ module.exports = [
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb 30deg RGB+CCT',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({
-            disableColorTempStartup: false, colorTempRange: [155, 495], disablePowerOnBehavior: true
+            disableColorTempStartup: false, colorTempRange: [155, 495], disablePowerOnBehavior: true,
         }),
     },
     {
