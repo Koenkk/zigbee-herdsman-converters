@@ -17,12 +17,11 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
-    
-{
+    {
         zigbeeModel: ['12502'],
         model: '12502',
         vendor: 'Scan Products',
-        description: 'Zigbee 3.0 Switch',
+        description: 'Zigbee 3.0 switch',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1) || device.getEndpoint(3);
