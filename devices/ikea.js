@@ -671,7 +671,11 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            const version = device.softwareBuildID.split('.').map((n) => Number(n));
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15725
+            const v245OrLater = version[0] > 2 || (version[0] == 2 && version[1] >= 4);
+            const binds = v245OrLater ? ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'genScenes'] : ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
