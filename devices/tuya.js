@@ -3985,8 +3985,12 @@ module.exports = [
         description: '2 channel dimmer',
         fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
             .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
-        toZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+        toZigbee: utils.replaceInArray(
+            extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
+                .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+            [tz.light_onoff_brightness],
+            [tzLocal.TS110E_light_onoff_brightness],
+        ),
         meta: {multiEndpoint: true},
         exposes: [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l1'),
