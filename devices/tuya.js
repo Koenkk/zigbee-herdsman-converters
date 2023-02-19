@@ -4068,4 +4068,27 @@ module.exports = [
             ],
         },
     },
+    {
+        zigbeeModel: ['TS0049'],
+        model: 'TS0049',
+        vendor: 'TuYa',
+        description: 'Water valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.errorStatus(), tuya.exposes.switch(), tuya.exposes.batteryState(),
+            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit('minutes')
+                .withDescription('Max on time in minutes'),
+        ],
+        meta: {
+            tuyaSendCommand: 'sendData',
+            tuyaDatapoints: [
+                [26, 'error_status', tuya.valueConverter.raw],
+                [101, 'state', tuya.valueConverter.onOff],
+                [111, 'countdown', tuya.valueConverter.raw],
+                [115, 'battery_state', tuya.valueConverter.batteryState],
+            ],
+        },
+    },
 ];
