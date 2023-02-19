@@ -1977,7 +1977,8 @@ module.exports = [
         model: 'TS0002',
         vendor: 'TuYa',
         description: '2 gang switch',
-        whiteLabel: [{vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'}, {vendor: 'Lonsonho', model: 'X702'}],
+        whiteLabel: [{vendor: 'Zemismart', model: 'ZM-CSW002-D_switch'}, {vendor: 'Lonsonho', model: 'X702'},
+            {vendor: 'Avatto', model: 'ZTS02'}],
         extend: tuya.extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
