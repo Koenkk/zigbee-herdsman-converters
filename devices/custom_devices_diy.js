@@ -143,24 +143,6 @@ const tzLocal = {
 };
 
 const fzLocal = {
-    // SNZB-02 reports stranges values sometimes
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-    SNZB02_temperature: {
-        ...fz.temperature,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue > -3300 && msg.data.measuredValue < 10000) {
-                return fz.temperature.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
-    SNZB02_humidity: {
-        ...fz.humidity,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue < 9975) {
-                return fz.humidity.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
     tirouter: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -830,7 +812,7 @@ module.exports = [
         model: 'SNZB-02_EFEKTA',
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
-        fromZigbee: [fzLocal.SNZB02_temperature, fzLocal.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
+        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
             fzLocal.hydrostat_config, fzLocal.node_config],
         toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
