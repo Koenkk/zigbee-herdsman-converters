@@ -10,13 +10,16 @@ module.exports = [
         vendor: 'Konke',
         description: 'Multi-function button',
         fromZigbee: [fz.konke_action, fz.battery, fz.legacy.konke_click],
-        exposes: [e.battery(), e.action(['single', 'double', 'hold'])],
         toZigbee: [],
+        exposes: [e.battery_low(), e.battery(), e.action(['single', 'double', 'hold'])],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryVoltage(endpoint);
+            // Has Unknown power source, force it.
+            device.powerSource = 'Battery';
+            device.save();
         },
     },
     {
