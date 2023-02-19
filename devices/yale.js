@@ -151,6 +151,34 @@ module.exports = [
         extend: lockExtend(),
     },
     {
+        zigbeeModel: ['YRD410 TS'],
+        model: 'YRD410-BLE',
+        vendor: 'Yale',
+        description: 'Assure Lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD420 TS'],
+        model: 'YRD420-BLE',
+        vendor: 'Yale',
+        description: 'Assure Lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD430 TS'],
+        model: 'YRD430-BLE',
+        vendor: 'Yale',
+        description: 'Assure Lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD450 TS'],
+        model: 'YRD450-BLE',
+        vendor: 'Yale',
+        description: 'Assure Lock 2',
+        extend: lockExtend(),
+    },
+    {
         // Appears to be a slightly rebranded Assure lock SL
         // Just with Lockwood | Assa Abloy branding instead of Yale
         // Appears to have been part of a deal with Telstra, hence the T-Lock name
