@@ -8223,7 +8223,25 @@ const converters = {
             if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
             return result;
         },
+    },	
+    // SNZB-02 reports stranges values sometimes
+    // https://github.com/Koenkk/zigbee2mqtt/issues/13640
+    SNZB02_temperature: {
+        ...fz.temperature,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue > -3300 && msg.data.measuredValue < 10000) {
+                return fz.temperature.convert(model, msg, publish, options, meta);
+            }
+        },
     },
+    SNZB02_humidity: {
+        ...fz.humidity,
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue < 9975) {
+                return fz.humidity.convert(model, msg, publish, options, meta);
+            }
+        },
+    },	
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
