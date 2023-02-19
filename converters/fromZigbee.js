@@ -8223,19 +8223,19 @@ const converters = {
             if (msg.data.hasOwnProperty('hwVersion')) result['hw_version'] = msg.data.hwVersion;
             return result;
         },
-    },	
+    },
     SNZB02_temperature: {
-        cluster: 'msTemperatureMeasurement',        
+        cluster: 'msTemperatureMeasurement',
         type: ['attributeReport', 'readResponse'],
-        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],			
-            convert: (model, msg, publish, options, meta) => {
-                const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
-		    
-                // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-                // SNZB-02 reports stranges values sometimes
-                if (temperature > -33 && temperature < 100) {
-                    const property = postfixWithEndpointName('temperature', msg, model, meta);
-                    return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/13640
+            // SNZB-02 reports stranges values sometimes
+            if (temperature > -33 && temperature < 100) {
+                const property = postfixWithEndpointName('temperature', msg, model, meta);
+                return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
     },
@@ -8245,7 +8245,7 @@ const converters = {
         options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
             const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-            
+
             // https://github.com/Koenkk/zigbee2mqtt/issues/13640
             // SNZB-02 reports stranges values sometimes
             if (humidity >= 0 && humidity <= 99.75) {
