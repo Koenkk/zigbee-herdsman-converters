@@ -277,7 +277,12 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
-            await reporting.apparentPower(endpoint);
+            try {
+                await reporting.apparentPower(endpoint);
+            } catch (e) {
+                // Some version/firmware don't seem to support this.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/16732
+            }
         },
     },
     {
