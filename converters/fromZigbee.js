@@ -8224,24 +8224,35 @@ const converters = {
             return result;
         },
     },	
-    // SNZB-02 reports stranges values sometimes
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13640
     SNZB02_temperature: {
-        ...fz.temperature,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue > -3300 && msg.data.measuredValue < 10000) {
-                return fz.temperature.convert(model, msg, publish, options, meta);
+        cluster: 'msTemperatureMeasurement',        
+		type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('temperature'), exposes.options.calibration('temperature')],			
+		convert: (model, msg, publish, options, meta) => {
+			const temperature = parseFloat(msg.data['measuredValue']) / 100.0;
+            
+			// https://github.com/Koenkk/zigbee2mqtt/issues/13640
+			// SNZB-02 reports stranges values sometimes
+            if (temperature > -33 && temperature < 100) {
+				const property = postfixWithEndpointName('temperature', msg, model, meta);
+                return {[property]: calibrateAndPrecisionRoundOptions(temperature, options, 'temperature')};
             }
         },
     },
     SNZB02_humidity: {
-        ...fz.humidity,
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue < 9975) {
-                return fz.humidity.convert(model, msg, publish, options, meta);
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+            
+			// https://github.com/Koenkk/zigbee2mqtt/issues/13640
+			// SNZB-02 reports stranges values sometimes
+			if (humidity >= 0 && humidity <= 99.75) {
+                return {humidity: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    },	
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
