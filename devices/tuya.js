@@ -1112,7 +1112,9 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_kmh5qpmb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_hgu1dlak'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
-            {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_sr0vaafi'},
+            {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
+        ],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1127,6 +1129,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
             } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/}
         },
     },
