@@ -12,7 +12,7 @@ module.exports = [
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
         fromZigbee: extend.light_onoff_brightness().fromZigbee
-            .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta, fz.power_on_behavior]),
+            .concat([fz.electrical_measurement, fz.metering, fz.ignore_genOta]),
         toZigbee: extend.light_onoff_brightness().toZigbee.concat([tz.power_on_behavior]),
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current(), e.energy(), e.power_on_behavior(['off', 'on', 'previous'])],
         whiteLabel: [{vendor: 'Sunricher', model: 'SR-ZG9040A'}],
