@@ -99,7 +99,7 @@ module.exports = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint); // divider 1000
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
             await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: [10, 10]}); // divider 1000: 0,01kWh
         },
