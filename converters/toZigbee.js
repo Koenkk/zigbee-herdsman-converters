@@ -6894,7 +6894,7 @@ const converters = {
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
                     tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, whiteData),
                     tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, brightnessData),
-                ]
+                ];
                 await tuya.sendDataPoints(entity, commands, 'dataRequest');
                 const newState = {
                     color_temp: value,
@@ -6919,7 +6919,7 @@ const converters = {
                     brightness: value,
                 };
                 return {state: newState};
-            }
+            };
             const setBrightness = async () => {
                 if (meta.state.color_mode == colorModeRGB) {
                     return await setColor();
