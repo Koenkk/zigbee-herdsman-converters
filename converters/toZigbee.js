@@ -6798,24 +6798,76 @@ const converters = {
         },
     },
     tuya_light_wz5: {
-        key: ['color', 'color_temp', 'brightness', 'white_brightness'],
+        key: ['color', 'color_temp', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
-            const separateWhite = (meta.mapped.meta && meta.mapped.meta.separateWhite);
-            if (key == 'white_brightness' || (!separateWhite && (key == 'brightness'))) {
-                // upscale to 1000
-                let newValue;
-                if (value >= 0 && value <= 255) {
-                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
+            const make4sizedString = (v) => {
+                if (v.length >= 4) {
+                    return v;
+                } else if (v.length === 3) {
+                    return '0' + v;
+                } else if (v.length === 2) {
+                    return '00' + v;
+                } else if (v.length === 1) {
+                    return '000' + v;
                 } else {
-                    throw new Error('Dimmer brightness is out of range 0..255');
+                    return '0000';
                 }
-                await tuya.sendDataPoints(entity, [
-                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
-                    tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
-                ], 'dataRequest');
-
-                return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
-            } else if (key == 'color_temp') {
+            };
+            const fillInHSB = (h, s, b, state) => {
+                // Define default values. Device expects leading zero in string.
+                const hsb = {
+                    h: '0168', // 360
+                    s: '03e8', // 1000
+                    b: '03e8', // 1000
+                };
+                if (h) {
+                    // The device expects 0-359
+                    if (h >= 360) {
+                        h = 359;
+                    }
+                    hsb.h = make4sizedString(h.toString(16));
+                } else if (state.color && state.color.hue) {
+                    hsb.h = make4sizedString(state.color.hue.toString(16));
+                }
+                // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                // The device expects a round number, otherwise everything breaks
+                if (s) {
+                    hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+                } else if (state.color && state.color.saturation) {
+                    hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
+                }
+                // Scale 0-255 to 0-1000 what the device expects.
+                if (b != null) {
+                    hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+                } else if (state.brightness != null) {
+                    hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+                }
+                return hsb;
+            };
+            const setColor = async () => {
+                const hsb = fillInHSB(
+                    value.h || value.hue || null,
+                    value.s || value.saturation || null,
+                    value.b || value.brightness || (key == 'brightness') ? value : null,
+                    meta.state,
+                );
+                let data = [];
+                data = data.concat(tuya.convertStringToHexArray(hsb.h));
+                data = data.concat(tuya.convertStringToHexArray(hsb.s));
+                data = data.concat(tuya.convertStringToHexArray(hsb.b));
+                const commands = [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color),
+                    tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
+                ];
+                await tuya.sendDataPoints(entity, commands, 'dataRequest');
+                const newState = {
+                    color: value,
+                    color_mode: constants.colorMode[0],
+                    brightness: hsb.b,
+                };
+                return {state: newState};
+            };
+            const setTemp = async () => {
                 const [colorTempMin, colorTempMax] = [250, 454];
                 const preset = {
                     'warmest': colorTempMax,
@@ -6835,92 +6887,51 @@ const converters = {
                     value = light.clampColorTemp(Number(value), colorTempMin, colorTempMax, meta.logger);
                 }
                 const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
-
-                await tuya.sendDataPoints(entity, [
+                const commands = [
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
                     tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, data),
-                ], 'dataRequest');
-
-                return {state: {color_temp: value}};
-            } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
-                const newState = {};
-                if (key == 'brightness') {
-                    newState.brightness = value;
-                } else if (key == 'color') {
-                    newState.color = value;
-                    newState.color_mode = 'hs';
-                }
-
-                const make4sizedString = (v) => {
-                    if (v.length >= 4) {
-                        return v;
-                    } else if (v.length === 3) {
-                        return '0' + v;
-                    } else if (v.length === 2) {
-                        return '00' + v;
-                    } else if (v.length === 1) {
-                        return '000' + v;
-                    } else {
-                        return '0000';
-                    }
-                };
-
-                const fillInHSB = (h, s, b, state) => {
-                    // Define default values. Device expects leading zero in string.
-                    const hsb = {
-                        h: '0168', // 360
-                        s: '03e8', // 1000
-                        b: '03e8', // 1000
-                    };
-
-                    if (h) {
-                        // The device expects 0-359
-                        if (h >= 360) {
-                            h = 359;
-                        }
-                        hsb.h = make4sizedString(h.toString(16));
-                    } else if (state.color && state.color.hue) {
-                        hsb.h = make4sizedString(state.color.hue.toString(16));
-                    }
-
-                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
-                    // The device expects a round number, otherwise everything breaks
-                    if (s) {
-                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
-                    } else if (state.color && state.color.saturation) {
-                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
-                    }
-
-                    // Scale 0-255 to 0-1000 what the device expects.
-                    if (b != null) {
-                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
-                    } else if (state.brightness != null) {
-                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
-                    }
-                    return hsb;
-                };
-
-                const hsb = fillInHSB(
-                    value.h || value.hue || null,
-                    value.s || value.saturation || null,
-                    value.b || value.brightness || (key == 'brightness') ? value : null,
-                    meta.state,
-                );
-
-
-                let data = [];
-                data = data.concat(tuya.convertStringToHexArray(hsb.h));
-                data = data.concat(tuya.convertStringToHexArray(hsb.s));
-                data = data.concat(tuya.convertStringToHexArray(hsb.b));
-
-                const commands = [
-                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.color),
-                    tuya.dpValueFromStringBuffer(tuya.dataPoints.silvercrestSetColor, data),
-                ];
-
+                ]
                 await tuya.sendDataPoints(entity, commands, 'dataRequest');
-
+                const newState = {
+                    color_temp: value,
+                    color_mode: constants.colorMode[2],
+                }
                 return {state: newState};
+            };
+            const setWhiteBrightness = async () => {
+                // upscale to 1000
+                let newValue;
+                if (value >= 0 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+                await tuya.sendDataPoints(entity, [
+                    tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
+                ], 'dataRequest');
+                const newState = {
+                    color_mode: constants.colorMode[2],
+                    brightness: value,
+                }
+                return {state: newState};
+            }
+            const setBrightness = async () => {
+                if (meta.state.color_mode == constants.colorMode[0]) {
+                    return await setColor();
+                }
+                if (meta.state.color_mode == constants.colorMode[2]) {
+                    return await setWhiteBrightness();
+                }
+            };
+            if (key == 'brightness') {
+                return await setBrightness();
+            }
+            if (key == 'color_temp') {
+                return await setTemp();
+            }
+            if (key == 'color') {
+                return await setColor();
             }
         },
     },

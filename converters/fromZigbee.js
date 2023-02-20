@@ -7924,7 +7924,6 @@ const converters = {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const separateWhite = (model.meta && model.meta.separateWhite);
             const result = {};
             // eslint-disable-next-line no-unused-vars
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
@@ -7933,21 +7932,17 @@ const converters = {
                 if (dp === tuya.dataPoints.state) {
                     result.state = value ? 'ON': 'OFF';
                 } else if (dp === tuya.dataPoints.silvercrestSetBrightness) {
-                    const brightness = mapNumberRange(value, 0, 1000, 0, 255);
-                    if (separateWhite) {
-                        result.white_brightness = brightness;
-                    } else {
-                        result.brightness = brightness;
-                    }
+                    result.brightness = mapNumberRange(value, 0, 1000, 0, 255);
                 } else if (dp === tuya.dataPoints.silvercrestSetColor) {
                     const h = parseInt(value.substring(0, 4), 16);
                     const s = parseInt(value.substring(4, 8), 16);
                     const b = parseInt(value.substring(8, 12), 16);
-                    result.color_mode = 'hs';
+                    result.color_mode = constants.colorMode[0];
                     result.color = {hue: h, saturation: mapNumberRange(s, 0, 1000, 0, 100)};
                     result.brightness = mapNumberRange(b, 0, 1000, 0, 255);
                 } else if (dp === tuya.dataPoints.silvercrestSetColorTemp) {
                     const [colorTempMin, colorTempMax] = [250, 454];
+                    result.color_mode = constants.colorMode[2];
                     result.color_temp = mapNumberRange(value, 0, 1000, colorTempMax, colorTempMin);
                 }
             }
