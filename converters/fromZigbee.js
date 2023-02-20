@@ -7946,6 +7946,13 @@ const converters = {
                     const [colorTempMin, colorTempMax] = [250, 454];
                     result.color_mode = colorModeCCT;
                     result.color_temp = mapNumberRange(value, 0, 1000, colorTempMax, colorTempMin);
+                } else if (dp === tuya.dataPoints.silvercrestChangeMode) {
+                    if (value === tuya.silvercrestModes.white) {
+                        result.color_mode = colorModeCCT;
+                    }
+                    if (value === tuya.silvercrestModes.color) {
+                        result.color_mode = colorModeRGB;
+                    }
                 }
             }
             return result;
