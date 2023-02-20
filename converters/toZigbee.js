@@ -6937,6 +6937,7 @@ const converters = {
             if (key == 'color') {
                 return await setColor();
             }
+            meta.logger.warn(`WZ5 unknown key: ${key}`);
         },
     },
     ZMAM02_cover: {
