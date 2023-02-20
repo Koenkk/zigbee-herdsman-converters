@@ -15,11 +15,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {battery: {dontDividePercentage: true}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -66,11 +68,14 @@ module.exports = [
         description: 'Water sensor',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         ota: ota.zigbeeOTA,
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -80,11 +85,14 @@ module.exports = [
         description: 'Wireless motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -95,11 +103,13 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        meta: {battery: {dontDividePercentage: true}},
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -108,11 +118,13 @@ module.exports = [
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug',
         extend: extend.switch(),
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -141,11 +153,14 @@ module.exports = [
         description: 'Smart button',
         fromZigbee: [fz.battery, fz.itcmdr_clicks],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.powerSource = 'Battery';
             device.save();
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
     {
@@ -155,6 +170,7 @@ module.exports = [
         description: 'Temperature and humidity sensor',
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         ota: ota.zigbeeOTA,
     },
