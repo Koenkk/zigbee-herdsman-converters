@@ -6863,7 +6863,7 @@ const converters = {
                 const newState = {
                     color: value,
                     color_mode: constants.colorMode[0],
-                    brightness: hsb.b,
+                    brightness: parseInt(hsb.b, 16),
                 };
                 return {state: newState};
             };
