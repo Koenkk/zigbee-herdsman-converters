@@ -6800,6 +6800,8 @@ const converters = {
     tuya_light_wz5: {
         key: ['color', 'color_temp', 'brightness'],
         convertSet: async (entity, key, value, meta) => {
+            const colorModeRGB = constants.colorMode[0];
+            const colorModeCCT = constants.colorMode[2];
             const make4sizedString = (v) => {
                 if (v.length >= 4) {
                     return v;
@@ -6862,7 +6864,7 @@ const converters = {
                 await tuya.sendDataPoints(entity, commands, 'dataRequest');
                 const newState = {
                     color: value,
-                    color_mode: constants.colorMode[0],
+                    color_mode: colorModeRGB,
                     brightness: parseInt(hsb.b, 16),
                 };
                 return {state: newState};
@@ -6894,8 +6896,8 @@ const converters = {
                 await tuya.sendDataPoints(entity, commands, 'dataRequest');
                 const newState = {
                     color_temp: value,
-                    color_mode: constants.colorMode[2],
-                }
+                    color_mode: colorModeCCT,
+                };
                 return {state: newState};
             };
             const setWhiteBrightness = async () => {
