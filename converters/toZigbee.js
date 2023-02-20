@@ -6888,10 +6888,12 @@ const converters = {
                 } else {
                     value = light.clampColorTemp(Number(value), colorTempMin, colorTempMax, meta.logger);
                 }
-                const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
+                const whiteData = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
+                const brightnessData = utils.mapNumberRange(meta.state.brightness, 0, 255, 0, 1000);
                 const commands = [
                     tuya.dpValueFromEnum(tuya.dataPoints.silvercrestChangeMode, tuya.silvercrestModes.white),
-                    tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, data),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.silvercrestSetColorTemp, whiteData),
+                    tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, brightnessData),
                 ]
                 await tuya.sendDataPoints(entity, commands, 'dataRequest');
                 const newState = {
