@@ -797,7 +797,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',

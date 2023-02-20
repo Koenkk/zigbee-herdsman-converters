@@ -1980,7 +1980,7 @@ const converters = {
                 return {temperature: calibrateAndPrecisionRoundOptions(value / 10, options, 'temperature')};
             case tuya.dataPoints.tthHumidity:
                 return {humidity: calibrateAndPrecisionRoundOptions(
-                    (value / (meta.device.manufacturerName === '_TZE200_bjawzodf' ? 10 : 1)),
+                    (value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)),
                     options, 'humidity')};
             case tuya.dataPoints.tthBatteryLevel:
                 return {
