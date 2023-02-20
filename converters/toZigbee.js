@@ -6915,16 +6915,16 @@ const converters = {
                     tuya.dpValueFromIntValue(tuya.dataPoints.dimmerLevel, newValue),
                 ], 'dataRequest');
                 const newState = {
-                    color_mode: constants.colorMode[2],
+                    color_mode: colorModeCCT,
                     brightness: value,
-                }
+                };
                 return {state: newState};
             }
             const setBrightness = async () => {
-                if (meta.state.color_mode == constants.colorMode[0]) {
+                if (meta.state.color_mode == colorModeRGB) {
                     return await setColor();
                 }
-                if (meta.state.color_mode == constants.colorMode[2]) {
+                if (meta.state.color_mode == colorModeCCT) {
                     return await setWhiteBrightness();
                 }
             };
