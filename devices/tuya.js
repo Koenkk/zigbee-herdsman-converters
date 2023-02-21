@@ -2998,7 +2998,8 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
         extend: tuya.extend.switch({switchType: true}),
-        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'}],
+        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'},
+            {vendor: 'Aubess', model: 'TMZ02L-16A-B'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
