@@ -617,7 +617,7 @@ module.exports = [
         model: '8718699688820',
         vendor: 'Philips',
         description: 'Hue Filament Standard A60/E27 bluetooth',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWA021'],
