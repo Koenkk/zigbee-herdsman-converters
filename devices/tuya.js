@@ -2043,7 +2043,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca'}],
-        model: 'TS0003_switch_module_3',
+        model: 'TS0003_switch_module_2',
         vendor: 'TuYa',
         description: '3 gang switch module',
         extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
@@ -2060,7 +2060,7 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu']),
-        model: 'TS0003_switch_module',
+        model: 'TS0003_switch_module_1',
         vendor: 'TuYa',
         description: '3 gang switch module',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ23'}],
