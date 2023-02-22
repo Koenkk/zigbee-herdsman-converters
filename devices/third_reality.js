@@ -15,9 +15,10 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off, tz.ignore_transition],
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.switch(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
         },
@@ -69,6 +70,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
         },
@@ -83,6 +86,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
         },
@@ -95,9 +100,10 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        meta: {battery: {dontDividePercentage: true}},
         exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
         },
@@ -144,6 +150,8 @@ module.exports = [
         ota: ota.zigbeeOTA,
         exposes: [e.battery(), e.battery_low(), e.battery_voltage(), e.action(['single', 'double', 'long'])],
         configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
         },
