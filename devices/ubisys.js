@@ -874,10 +874,10 @@ module.exports = [
             tz.thermostat_local_temperature, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
             tz.thermostat_running_mode, ubisys.tz.thermostat_vacation_mode,
-            tz.thermostat_pi_heating_demand,
+            tz.thermostat_pi_heating_demand, tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.battery(),
+            e.battery().withAccess(ea.STATE_GET),
             exposes.climate()
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withRunningMode(['off', 'heat'])
