@@ -2042,7 +2042,24 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu', '_TZ3000_4o16jdca']),
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca'}],
+        model: 'TS0003_switch_module_3',
+        vendor: 'TuYa',
+        description: '3 gang switch module',
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu']),
         model: 'TS0003_switch_module',
         vendor: 'TuYa',
         description: '3 gang switch module',
