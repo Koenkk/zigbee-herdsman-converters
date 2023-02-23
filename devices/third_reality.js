@@ -171,17 +171,25 @@ module.exports = [
         model: '3RSP02028BZ',
         vendor: 'Third Reality',
         description: 'Zigbee / BLE smart plug with power',
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        exposes: [e.switch(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
             await reporting.onOff(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+                acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
+                acPowerDivisor: 10,
+            });
+            device.save();
         },
     },
 ];
