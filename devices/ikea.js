@@ -186,7 +186,7 @@ const ikea = {
             type: ['attributeReport', 'readResponse'],
             convert: (model, msg, publish, options, meta) => {
                 const payload = {};
-                if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     //
