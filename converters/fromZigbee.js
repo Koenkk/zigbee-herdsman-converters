@@ -601,8 +601,8 @@ const converters = {
             }
 
             if (msg.data.hasOwnProperty('colorMode')) {
-                result.color_mode = constants.colorMode.hasOwnProperty(msg.data['colorMode']) ?
-                    constants.colorMode[msg.data['colorMode']] : msg.data['colorMode'];
+                result.color_mode = constants.colorModeLookup.hasOwnProperty(msg.data['colorMode']) ?
+                    constants.colorModeLookup[msg.data['colorMode']] : msg.data['colorMode'];
             }
 
             if (
@@ -2299,9 +2299,9 @@ const converters = {
 
             if (msg.data.hasOwnProperty('tuyaRgbMode')) {
                 if (msg.data['tuyaRgbMode'] === 1) {
-                    result.color_mode = constants.colorMode[0];
+                    result.color_mode = constants.colorModeLookup[0];
                 } else {
-                    result.color_mode = constants.colorMode[2];
+                    result.color_mode = constants.colorModeLookup[2];
                 }
             }
 

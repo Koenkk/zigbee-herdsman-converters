@@ -796,7 +796,7 @@ const converters = {
                 };
                 await entity.command('lightingColorCtrl', 'moveToColor', payload, utils.getOptions(meta.mapped, entity));
                 return {
-                    state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
+                    state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
                         entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
                 };
             }
@@ -1031,7 +1031,7 @@ const converters = {
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {
-                state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
+                state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
                     entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
             };
         },
@@ -1091,7 +1091,7 @@ const converters = {
                     xy.y = 0.2993;
                 }
 
-                newState.color_mode = constants.colorMode[1];
+                newState.color_mode = constants.colorModeLookup[1];
                 newState.color = xy.toObject();
                 zclData.colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                 zclData.colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
@@ -1100,7 +1100,7 @@ const converters = {
                 const enhancedHue = utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true);
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
-                newState.color_mode = constants.colorMode[0];
+                newState.color_mode = constants.colorModeLookup[0];
                 newState.color = hsv.toObject(false);
 
                 if (hsv.hue !== null) {
@@ -3542,7 +3542,7 @@ const converters = {
         key: ['brightness', 'color', 'color_temp'],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
+            if (key === 'brightness' && meta.state.color_mode == constants.colorModeLookup[2] &&
                 !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
                 const zclData = {level: Number(value), transtime: 0};
 
@@ -3565,7 +3565,7 @@ const converters = {
 
                 const newState = {
                     brightness: zclDataBrightness.level,
-                    color_mode: constants.colorMode[2],
+                    color_mode: constants.colorModeLookup[2],
                     color_temp: meta.message.color_temp,
                 };
 
@@ -3583,7 +3583,7 @@ const converters = {
 
                 const newState = {
                     brightness: zclDataBrightness.level,
-                    color_mode: constants.colorMode[2],
+                    color_mode: constants.colorModeLookup[2],
                     color_temp: value,
                 };
 
@@ -3649,7 +3649,7 @@ const converters = {
                     s: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
                     saturation: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
                 },
-                color_mode: constants.colorMode[0],
+                color_mode: constants.colorModeLookup[0],
             };
 
             return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
@@ -5285,12 +5285,12 @@ const converters = {
 
             const addColorMode = (newState) => {
                 if (newState.hasOwnProperty('color_temp')) {
-                    newState.color_mode = constants.colorMode[2];
+                    newState.color_mode = constants.colorModeLookup[2];
                 } else if (newState.hasOwnProperty('color')) {
                     if (newState.color.hasOwnProperty('x')) {
-                        newState.color_mode = constants.colorMode[1];
+                        newState.color_mode = constants.colorModeLookup[1];
                     } else {
-                        newState.color_mode = constants.colorMode[0];
+                        newState.color_mode = constants.colorModeLookup[0];
                     }
                 }
 
@@ -5391,7 +5391,7 @@ const converters = {
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
-                    state['color_mode'] = constants.colorMode[2];
+                    state['color_mode'] = constants.colorModeLookup[2];
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -5411,7 +5411,7 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
-                        state['color_mode'] = constants.colorMode[1];
+                        state['color_mode'] = constants.colorModeLookup[1];
                         state['color'] = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
@@ -5439,7 +5439,7 @@ const converters = {
                                 },
                             );
                         }
-                        state['color_mode'] = constants.colorMode[0];
+                        state['color_mode'] = constants.colorModeLookup[0];
                         state['color'] = newColor.hsv.toObject(false, false);
                     }
                 }
