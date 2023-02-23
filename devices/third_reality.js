@@ -173,7 +173,8 @@ module.exports = [
         description: 'Zigbee / BLE smart plug with power',
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        ota: ota.zigbeeOTA,
+        ota: ota.zigbeeOTA,        
+        extend: extend.switch(),        
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -182,6 +183,8 @@ module.exports = [
             await reporting.activePower(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acVoltageMultiplier: 0.1, acCurrentMultiplier: 0.000947, acPowerMultiplier:0.0947}); 
+            device.save();         
         },
     },
 ];
