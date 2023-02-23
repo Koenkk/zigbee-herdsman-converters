@@ -4,7 +4,6 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
@@ -242,7 +241,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy(), e.temperature()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy(), e.temperature()],
     },
     {
         zigbeeModel: ['ROB_200-017-1'],
@@ -264,7 +263,7 @@ module.exports = [
             await reporting.temperature(endpoint);
             await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy(), e.temperature()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy(), e.temperature()],
     },
     {
         zigbeeModel: ['ROB_200-016-0'],

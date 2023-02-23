@@ -3,8 +3,6 @@ const exposes = require('../lib/exposes');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
-const ea = exposes.access;
-
 
 module.exports = [
     {
@@ -26,6 +24,6 @@ module.exports = [
             await reporting.activePower(endpoint, {min: 10, change: 15}); // W - Min change of 1,5W
             await reporting.currentSummDelivered(endpoint, {min: 300}); // Report KWH every 5min
         },
-        exposes: [e.light_brightness(), e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.energy()],
+        exposes: [e.light_brightness(), e.power(), e.current(), e.voltage(), e.energy()],
     },
 ];
