@@ -5,7 +5,6 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const ota = require('../lib/ota');
 const e = exposes.presets;
-const ea = exposes.access;
 
 module.exports = [
     {
