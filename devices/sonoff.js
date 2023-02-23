@@ -209,7 +209,7 @@ module.exports = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['S40LITE'],
