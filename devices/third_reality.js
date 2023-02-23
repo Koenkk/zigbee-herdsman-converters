@@ -175,7 +175,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         ota: ota.zigbeeOTA,
-        exposes: [e.switch(), e.ac_frequency(), e.power(),e.power_factor(), e.energy(), e.current(), e.voltage().withAccess(ea.STATE)],
+        exposes: [e.switch(), e.ac_frequency(), e.power(), e.power_factor(), e.energy(), e.current(), e.voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
