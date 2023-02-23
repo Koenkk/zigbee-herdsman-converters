@@ -797,7 +797,8 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bq5c8xfe'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bjawzodf'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'}],
+            {modelID: 'TS0601', manufacturerName: '_TZE200_qyflbnbj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'}],
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
@@ -1111,7 +1112,9 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_kmh5qpmb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_hgu1dlak'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
-            {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_sr0vaafi'},
+            {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
+        ],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1126,6 +1129,7 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             try {
                 await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
             } catch (error) {/* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708*/}
         },
     },
@@ -2038,8 +2042,25 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu', '_TZ3000_4o16jdca']),
-        model: 'TS0003_switch_module',
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca'}],
+        model: 'TS0003_switch_module_2',
+        vendor: 'TuYa',
+        description: '3 gang switch module',
+        extend: tuya.extend.switch({endpoints: ['l1', 'l2', 'l3']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_vsasbzkf', '_TZ3000_odzoiovu']),
+        model: 'TS0003_switch_module_1',
         vendor: 'TuYa',
         description: '3 gang switch module',
         whiteLabel: [{vendor: 'OXT', model: 'SWTZ23'}],
@@ -2994,7 +3015,8 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 gang switch module - (without neutral)',
         extend: tuya.extend.switch({switchType: true}),
-        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'}],
+        whiteLabel: [{vendor: 'AVATTO', model: '1gang N-ZLWSM01'}, {vendor: 'SMATRUL', model: 'TMZ02L-16A-W'},
+            {vendor: 'Aubess', model: 'TMZ02L-16A-B'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);

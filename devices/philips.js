@@ -592,6 +592,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005988401'],
+        model: '915005988401',
+        vendor: 'Philips',
+        description: 'Hue Gradient light tube compact black',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LCG002', '929003047701', '929003047701', '929003526202_01', ' 929003526202_02', '929003526202_03'],
         model: '929001953101',
         vendor: 'Philips',
@@ -617,7 +624,7 @@ module.exports = [
         model: '8718699688820',
         vendor: 'Philips',
         description: 'Hue Filament Standard A60/E27 bluetooth',
-        extend: philips.extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness({disableHueEffects: false}),
     },
     {
         zigbeeModel: ['LWA021'],
