@@ -327,7 +327,7 @@ const converters = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const payload = {};
-            if (msg.data.hasOwnProperty('batteryPercentageRemaining')) {
+            if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
                 // Some devices do not comply to the ZCL and report a
                 // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                 const dontDividePercentage = model.meta && model.meta.battery && model.meta.battery.dontDividePercentage;
@@ -336,7 +336,7 @@ const converters = {
                 payload.battery = precisionRound(percentage, 2);
             }
 
-            if (msg.data.hasOwnProperty('batteryVoltage')) {
+            if (msg.data.hasOwnProperty('batteryVoltage') && (msg.data['batteryVoltage'] < 255)) {
                 // Deprecated: voltage is = mV now but should be V
                 payload.voltage = msg.data['batteryVoltage'] * 100;
 
