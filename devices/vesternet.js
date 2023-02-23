@@ -7,7 +7,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['HK-SL-DIM-A'],
+        fingerprint: [{modelID: 'HK-SL-DIM-A', softwareBuildID: '2.5.3_r52'}],
         model: 'VES-ZB-DIM-004',
         vendor: 'Vesternet',
         description: 'Zigbee dimmer',
@@ -30,7 +30,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ON/OFF -M'],
+        fingerprint: [{modelID: 'ON/OFF -M', softwareBuildID: '2.9.2_r54'}],
         model: 'VES-ZB-HLD-017',
         vendor: 'Vesternet',
         description: 'Zigbee high load switch',
@@ -51,7 +51,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['HK-ZCC-A'],
+        fingerprint: [{modelID: 'HK-ZCC-A', softwareBuildID: '2.5.3_r48'}],
         model: 'VES-ZB-MOT-019',
         vendor: 'Vesternet',
         description: 'Zigbee motor controller',
@@ -67,7 +67,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ZGRC-KEY-013'],
+        fingerprint: [{modelID: 'ZGRC-KEY-013', softwareBuildID: '2.5.3_r20'}],
         model: 'VES-ZB-REM-013',
         vendor: 'Vesternet',
         description: 'Zigbee remote control - 12 button',
@@ -86,7 +86,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['HK-SL-RELAY-A'],
+        fingerprint: [{modelID: 'HK-SL-RELAY-A', softwareBuildID: '2.5.3_r47'}],
         model: 'VES-ZB-SWI-005',
         vendor: 'Vesternet',
         description: 'Zigbee switch',
@@ -101,7 +101,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ON/OFF(2CH)'],
+        fingerprint: [{modelID: 'ON/OFF(2CH)', softwareBuildID: '2.5.3_r2'}],
         model: 'VES-ZB-SWI-015',
         vendor: 'Vesternet',
         description: 'Zigbee 2 channel switch',
@@ -130,7 +130,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K2_EU07'],
+        fingerprint: [{modelID: 'ZG2833K2_EU07', softwareBuildID: '2.5.3_r20'}],
         model: 'VES-ZB-WAL-006',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 2 button',
@@ -146,7 +146,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K4_EU06'],
+        fingerprint: [{modelID: 'ZG2833K4_EU06', softwareBuildID: '2.5.3_r20'}],
         model: 'VES-ZB-WAL-011',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 4 button',
@@ -164,7 +164,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['ZG2833K8_EU05'],
+        fingerprint: [{modelID: 'ZG2833K8_EU05', softwareBuildID: '2.5.3_r20'}],
         model: 'VES-ZB-WAL-012',
         vendor: 'Vesternet',
         description: 'Zigbee wall controller - 8 button',
