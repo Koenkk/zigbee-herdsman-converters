@@ -1027,7 +1027,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['VINDSTYRKA'],
-        model: 'VINDSTYRKA',
+        model: 'E2112',
         vendor: 'IKEA',
         description: 'Vindstyrka Air Quality and Humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.heiman_pm25],
