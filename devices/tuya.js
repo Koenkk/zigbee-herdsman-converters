@@ -4114,7 +4114,7 @@ module.exports = [
             ],
         },
     },
-	{
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx']),
         zigbeeModel: ['TS0601'],
         model: 'TS0601_fan_switch_1',
@@ -4124,17 +4124,19 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-		    tuya.exposes.switch(), 
+            tuya.exposes.switch(), 
             tuya.exposes.countdown().withValueMin(0).withValueMax(43200).withUnit('seconds').withDescription('Max on time in seconds'),
             exposes.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription('Fan speed'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on']).withDescription('Relay state'),
         ],
         meta: {
             tuyaDatapoints: [                
-                [1, 'state', tuya.valueConverter.onOff], //Boolean
-                [2, 'countdown', tuya.valueConverter.countdown], //Integer
-                [3, 'fan_speed', tuya.valueConverterBasic.lookup({'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)})], //enum				
-                [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1)})], //enum
+                [1, 'state', tuya.valueConverter.onOff],
+                [2, 'countdown', tuya.valueConverter.countdown],
+                [3, 'fan_speed', tuya.valueConverterBasic.lookup(
+				    {'1': tuya.enum(0), '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)}
+				)],			
+                [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1)})],
             ],
         },
         whiteLabel: [
