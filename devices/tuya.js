@@ -4133,8 +4133,8 @@ module.exports = [
             tuyaDatapoints: [
                 [1, 'state', tuya.valueConverter.onOff],
                 [2, 'countdown', tuya.valueConverter.countdown],
-                [3, 'fan_speed', tuya.valueConverterBasic.lookup({'1': tuya.enum(0),
-                    '2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)}
+                [3, 'fan_speed', tuya.valueConverterBasic
+                    .lookup({'1': tuya.enum(0),'2': tuya.enum(1), '3': tuya.enum(2), '4': tuya.enum(3), '5': tuya.enum(4)}
                 )],
                 [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1)})],
             ],
