@@ -1025,4 +1025,30 @@ module.exports = [
         description: 'PILSKOTT LED floor lamp',
         extend: tradfriExtend.light_onoff_brightness(),
     },
+    {
+        zigbeeModel: ['VINDSTYRKA'],
+        model: 'VINDSTYRKA',
+        vendor: 'IKEA',
+        description: 'Vindstyrka Air Quality and Humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.heiman_pm25],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.pm25()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement']);
+            await ep.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
+            }]);
+            await ep.configureReporting('msRelativeHumidity', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
+            }]);
+            await ep.configureReporting('pm25Measurement', [{
+                attribute: 'measuredValueIkea',
+                minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
+            }]);
+        },
+    },
 ];
