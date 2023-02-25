@@ -4116,17 +4116,17 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_r32ctezx']),
-        zigbeeModel: ['TS0601'],
-        model: 'TS0601_fan_switch_1',
+        model: 'TS0601_fan_switch',
         vendor: 'TuYa',
-        description: 'Lerlink Fan Switch',
+        description: 'Fan switch',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
             tuya.exposes.switch(),
-            tuya.exposes.countdown().withValueMin(0).withValueMax(43200).withUnit('seconds').withDescription('Max on time in seconds'),
-            exposes.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription('Fan speed'),
+            tuya.exposes.countdown().withValueMin(0).withValueMax(43200).withUnit('s').withDescription('Max ON time in seconds'),
+            exposes.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
+                .withDescription('Speed off the fan'),
             exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on']).withDescription('Relay state'),
         ],
         meta: {
