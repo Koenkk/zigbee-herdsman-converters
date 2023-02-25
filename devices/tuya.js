@@ -2133,6 +2133,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_5sbebbzs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_nv6nxo0c'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3ylew7b4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
