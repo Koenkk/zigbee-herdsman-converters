@@ -408,6 +408,15 @@ const converters = {
             }
         },
     },
+    pm25: {
+        cluster: 'pm25Measurement',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data['measuredValue']) {
+                return {pm25: msg.data['measuredValue']};
+            }
+        },
+    },
     soil_moisture: {
         cluster: 'msSoilMoisture',
         type: ['attributeReport', 'readResponse'],
@@ -5924,15 +5933,6 @@ const converters = {
             return {
                 water_leak: (zoneStatus & 1) > 0,
             };
-        },
-    },
-    heiman_pm25: {
-        cluster: 'heimanSpecificPM25Measurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data['measuredValue']) {
-                return {pm25: msg.data['measuredValue']};
-            }
         },
     },
     heiman_hcho: {
