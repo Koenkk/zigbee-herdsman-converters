@@ -557,7 +557,7 @@ module.exports = [
         model: 'HS2AQ-EM',
         vendor: 'HEIMAN',
         description: 'Air quality monitor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const heiman = {
