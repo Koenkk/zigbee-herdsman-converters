@@ -163,7 +163,7 @@ const tzLocal = {
                 newState.color_mode = colorMode;
 
                 // To switch between white mode and color mode, we have to send a special command:
-                let rgbMode = (colorMode == ColorMode.HS);
+                const rgbMode = (colorMode == ColorMode.HS);
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
             }
 
