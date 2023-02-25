@@ -152,7 +152,7 @@ const tzLocal = {
             const newState = {};
 
             // The color mode encodes whether the light is using its white LEDs or its color LEDs
-            let colorMode = meta.state.color_mode || ColorMode.ColorTemp;
+            let colorMode = meta.state.color_mode ?? ColorMode.ColorTemp;
 
             // Color mode switching is done by setting color temperature (switch to white LEDs) or setting color (switch
             // to color LEDs)
@@ -195,9 +195,9 @@ const tzLocal = {
 
                     // Load current state or defaults
                     const newSettings = {
-                        brightness: meta.state.brightness || 254, //      full brightness
-                        hue: (meta.state.color || {}).h || 0, //          red
-                        saturation: (meta.state.color || {}).s || 100, // full saturation
+                        brightness: meta.state.brightness ?? 254, //      full brightness
+                        hue: (meta.state.color ?? {}).h ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).s ?? 100, // full saturation
                     };
 
                     // Apply changes
