@@ -68,7 +68,7 @@ const fzLocal = {
         },
     },
     aqara_s1_pm25: {
-        cluster: 'heimanSpecificPM25Measurement',
+        cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data['measuredValue']) {
