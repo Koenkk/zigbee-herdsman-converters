@@ -162,12 +162,9 @@ const tzLocal = {
             if (colorMode != meta.state.color_mode) {
                 newState.color_mode = colorMode;
 
-                // We need to send a command to switch from white LEDs to color LEDs. We don't need to send one to
-                // switch back because the color LEDs are automatically turned off by the moveToColorTemp and
-                // moveToLevel commands.
-                if (colorMode == ColorMode.HS) {
-                    await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: 1}, {}, {disableDefaultResponse: true});
-                }
+                // To switch between white mode and color mode, we have to send a special command:
+                let rgbMode = (colorMode == ColorMode.HS);
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
             }
 
             // A transition time of 0 would be treated as about 1 second, probably some kind of fallback/default
