@@ -4123,11 +4123,10 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            tuya.exposes.switch(),
+            tuya.exposes.switch(), e.power_on_behavior(['off', 'on']).withAccess(ea.STATE_SET),
             tuya.exposes.countdown().withValueMin(0).withValueMax(43200).withUnit('s').withDescription('Max ON time in seconds'),
             exposes.numeric('fan_speed', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
                 .withDescription('Speed off the fan'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on']).withDescription('Relay state'),
         ],
         meta: {
             tuyaDatapoints: [
