@@ -36,6 +36,13 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Panel Light 2x2 TW'],
+        model: '74746',
+        vendor: 'LEDVANCE',
+        description: 'LEDVANCE 74746 Sylvania smart+ Zigbee dimmable edge-lit panel',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [200, 370]}),
+    },
+    {
         zigbeeModel: ['Panel TW 620 UGR19'],
         model: 'GPDRPLOP401100CE',
         vendor: 'LEDVANCE',
