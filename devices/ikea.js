@@ -1029,8 +1029,8 @@ module.exports = [
         zigbeeModel: ['VINDSTYRKA'],
         model: 'E2112',
         vendor: 'IKEA',
-        description: 'Vindstyrka Air Quality and Humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.heiman_pm25],
+        description: 'Vindstyrka air quality and humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25()],
         configure: async (device, coordinatorEndpoint, logger) => {
