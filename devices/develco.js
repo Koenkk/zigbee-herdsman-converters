@@ -552,7 +552,7 @@ module.exports = [
             await reporting.temperature(endpoint38);
 
             await develco.configure.read_sw_hw_version(device, logger);
-        }
+        },
     },
     {
         zigbeeModel: ['MOSZB-130'],
