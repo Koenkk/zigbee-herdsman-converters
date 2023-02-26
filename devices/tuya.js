@@ -118,7 +118,7 @@ const tzLocal = {
         },
     },
     TS0224: {
-        key: ['light', 'alarm_duration'],
+        key: ['light', 'duration', 'volume'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'light') {
                 await entity.command('genOnOff', value.toLowerCase() === 'on' ? 'on' : 'off', {}, utils.getOptions(meta.mapped, entity));
@@ -4159,14 +4159,14 @@ module.exports = [
         ],
     },
     {
-        zigbeeModel: 'TS0224',
+        zigbeeModel: ['TS0224'],
         model: 'TS0224',
         vendor: 'TuYa',
         description: 'Smart light & sound siren',
         fromZigbee: [],
         toZigbee: [tz.warning, tzLocal.TS0224],
         exposes: [e.warning(),
-            exposes.binary('light', ea.ALL, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
+            exposes.binary('light', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
             exposes.numeric('duration', ea.STATE_SET).withValueMin(60).withValueMax(3600).withValueStep(1).withUnit('s')
                 .withDescription('Duration of the alarm'),
             exposes.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high'])
