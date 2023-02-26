@@ -535,6 +535,26 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['WISZB-138'],
+        model: 'WISZB-138',
+        vendor: 'Develco',
+        description: 'Window sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, develco.fz.temperature],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint35 = device.getEndpoint(35);
+            const endpoint38 = device.getEndpoint(38);
+            await reporting.bind(endpoint35, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint38, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.batteryVoltage(endpoint35);
+            await reporting.temperature(endpoint38);
+
+            await develco.configure.read_sw_hw_version(device, logger);
+        }
+    },
+    {
         zigbeeModel: ['MOSZB-130'],
         model: 'MOSZB-130',
         vendor: 'Develco',
