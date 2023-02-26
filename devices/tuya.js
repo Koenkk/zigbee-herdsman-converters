@@ -117,6 +117,22 @@ const tzLocal = {
             }
         },
     },
+    TS0224: {
+        key: ['light', 'duration', 'volume'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'light') {
+                await entity.command('genOnOff', value.toLowerCase() === 'on' ? 'on' : 'off', {}, utils.getOptions(meta.mapped, entity));
+            } else if (key === 'duration') {
+                await entity.write('ssIasWd', {'maxDuration': value}, utils.getOptions(meta.mapped, entity));
+            } else if (key === 'volume') {
+                const lookup = {'mute': 0, 'low': 10, 'medium': 30, 'high': 50};
+                value = value.toLowerCase();
+                utils.validateValue(value, Object.keys(lookup));
+                await entity.write('ssIasWd', {0x0002: {value: lookup[value], type: 0x0a}}, utils.getOptions(meta.mapped, entity));
+            }
+            return {state: {[key]: value}};
+        },
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -4140,6 +4156,21 @@ module.exports = [
         },
         whiteLabel: [
             {vendor: 'Lerlink', model: 'T2-Z67/T2-W67'},
+        ],
+    },
+    {
+        zigbeeModel: ['TS0224'],
+        model: 'TS0224',
+        vendor: 'TuYa',
+        description: 'Smart light & sound siren',
+        fromZigbee: [],
+        toZigbee: [tz.warning, tzLocal.TS0224],
+        exposes: [e.warning(),
+            exposes.binary('light', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
+            exposes.numeric('duration', ea.STATE_SET).withValueMin(60).withValueMax(3600).withValueStep(1).withUnit('s')
+                .withDescription('Duration of the alarm'),
+            exposes.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high'])
+                .withDescription('Volume of the alarm'),
         ],
     },
 ];
