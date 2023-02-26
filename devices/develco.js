@@ -541,7 +541,7 @@ module.exports = [
         description: 'Window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, develco.fz.temperature],
         toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
+        exposes: [e.contact(), e.battery(), e.battery_low(), e.temperature()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint35 = device.getEndpoint(35);
