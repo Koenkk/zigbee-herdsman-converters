@@ -184,7 +184,7 @@ module.exports = [
             await reporting.rmsCurrent(endpoint, {change: 50});
             await reporting.rmsVoltage(endpoint, {change: 5});
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 3600000, multiplier: 1});
             endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
                 acVoltageMultiplier: 1, acVoltageDivisor: 10, acCurrentMultiplier: 1, acCurrentDivisor: 1000, acPowerMultiplier: 1,
                 acPowerDivisor: 10,
