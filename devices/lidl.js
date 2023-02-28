@@ -8,7 +8,7 @@ const tuya = require('../lib/tuya');
 const globalStore = require('../lib/store');
 const ota = require('../lib/ota');
 const utils = require('../lib/utils');
-const {ColorMode} = require('../lib/constants');
+const {ColorMode, colorModeLookup} = require('../lib/constants');
 const libColor = require('../lib/color');
 
 const tuyaLocal = {
@@ -152,18 +152,18 @@ const tzLocal = {
             const newState = {};
 
             // The color mode encodes whether the light is using its white LEDs or its color LEDs
-            let colorMode = meta.state.color_mode ?? ColorMode.ColorTemp;
+            let colorMode = meta.state.color_mode ?? colorModeLookup[ColorMode.ColorTemp];
 
             // Color mode switching is done by setting color temperature (switch to white LEDs) or setting color (switch
             // to color LEDs)
-            if ('color_temp' in meta.message) colorMode = ColorMode.ColorTemp;
-            if ('color' in meta.message) colorMode = ColorMode.HS;
+            if ('color_temp' in meta.message) colorMode = colorModeLookup[ColorMode.ColorTemp];
+            if ('color' in meta.message) colorMode = colorModeLookup[ColorMode.HS];
 
             if (colorMode != meta.state.color_mode) {
                 newState.color_mode = colorMode;
 
                 // To switch between white mode and color mode, we have to send a special command:
-                const rgbMode = (colorMode == ColorMode.HS);
+                const rgbMode = (colorMode == colorModeLookup[ColorMode.HS]);
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
             }
 
@@ -171,7 +171,7 @@ const tzLocal = {
             // transition time, so for "no transition" we use 1 (tenth of a second).
             const transtime = 'transition' in meta.message ? meta.message.transition * 10 : 1;
 
-            if (colorMode == ColorMode.ColorTemp) {
+            if (colorMode == colorModeLookup[ColorMode.ColorTemp]) {
                 if ('brightness' in meta.message) {
                     const zclData = {level: Number(meta.message.brightness), transtime};
                     await entity.command('genLevelCtrl', 'moveToLevel', zclData, utils.getOptions(meta.mapped, entity));
@@ -183,7 +183,7 @@ const tzLocal = {
                     await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
                     newState.color_temp = meta.message.color_temp;
                 }
-            } else if (colorMode == ColorMode.HS) {
+            } else if (colorMode == colorModeLookup[ColorMode.HS]) {
                 if ('brightness' in meta.message || 'color' in meta.message) {
                     // We ignore the brightness of the color and instead use the overall brightness setting of the lamp
                     // for the brightness because I think that's the expected behavior and also because the color
