@@ -17,7 +17,11 @@ const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'gen
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.lockState(endpoint, lockStateOptions);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryAlarmState(endpoint);
+            try {
+                await reporting.batteryAlarmState(endpoint);
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
+            }
         },
     };
 };
