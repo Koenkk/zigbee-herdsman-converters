@@ -1223,8 +1223,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 numoftrans: value.numoftrans,
-                dayofweek: value.dayofweek,
-                mode: value.mode,
+                dayofweek: utils.getKey(constants.dayOfWeek, value.dayofweek, value.dayofweek, Number),
+                mode: utils.getKey(constants.thermostatWeeklyScheduleMode, value.mode, value.mode, Number),
                 transitions: value.transitions,
             };
             for (const elem of payload['transitions']) {
@@ -1235,6 +1235,7 @@ const converters = {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
                 }
             }
+            meta.logger.warn(`schedule data: ${JSON.stringify(payload)}`);
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
