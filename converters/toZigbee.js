@@ -1228,14 +1228,22 @@ const converters = {
                 transitions: value.transitions,
             };
             for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] == 'number') {
+                if (typeof elem['heatSetpoint'] === 'number') {
                     elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
                 }
-                if (typeof elem['coolSetpoint'] == 'number') {
+                if (typeof elem['coolSetpoint'] === 'number') {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
                 }
+                // accept 24h time notation (e.g. 19:30)
+                if (typeof elem['transitionTime'] === 'string') {
+                    const time = elem['transitionTime'].split(':');
+                    if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                        meta.logger.warn(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`);
+                    } else {
+                        elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                    }
+                }
             }
-            meta.logger.warn(`schedule data: ${JSON.stringify(payload)}`);
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
