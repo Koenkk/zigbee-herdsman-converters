@@ -565,6 +565,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (10 watt)',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true}
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
@@ -572,6 +573,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (30 watt)',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true}
     },
     {
         zigbeeModel: ['SILVERGLANS IP44 LED driver'],
