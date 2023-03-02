@@ -15,8 +15,8 @@ const fzLocalKonke = {
                 244: 'circle',
             };
             return {action: payload[msg.data.sceneid]};
-        }
-    }
+        },
+    },
 };
 
 module.exports = [
