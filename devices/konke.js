@@ -3,7 +3,7 @@ const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/lega
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 
-const fzLocalKonke = {
+const fzLocal = {
     command_recall_konke: {
         cluster: 'genScenes',
         type: 'commandRecall',
@@ -93,26 +93,23 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_fi5yftwv'},
-            {modelID: '3AFE090103021000'}],
+        fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_fi5yftwv'}, {modelID: '3AFE090103021000'}],
         model: 'KK-ES-J01W',
         vendor: 'Konke',
         description: 'Temperature, relative humidity and illuminance sensor',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(),
-            e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
     },
     {
         zigbeeModel: ['3AFE241000040002'],
         model: 'KK-TQ-J01W',
         vendor: 'Konke',
         description: 'Smart 4 key scene switch',
-        fromZigbee: [fzLocalKonke.command_recall_konke, fz.battery],
+        fromZigbee: [fzLocal.command_recall_konke, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.action([
-            'hexagon', 'square', 'triangle', 'circle'])],
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.action(['hexagon', 'square', 'triangle', 'circle'])],
     },
     {
         zigbeeModel: ['3AFE07010402100D', '3AFE08010402100D'],
