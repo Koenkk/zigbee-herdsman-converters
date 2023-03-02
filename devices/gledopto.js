@@ -9,7 +9,7 @@ const e = exposes.presets;
 
 const gledoptoExtend = {
     light_onoff_brightness: (options={}) => ({
-        ...extend.light_onoff_brightness(options),
+        ...extend.light_onoff_brightness({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness(options).toZigbee,
             [tz.light_onoff_brightness],
@@ -17,7 +17,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp(options),
+        ...extend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_colortemp],
@@ -25,7 +25,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_color: (options={}) => ({
-        ...extend.light_onoff_brightness_color({...options, supportsHS: true}),
+        ...extend.light_onoff_brightness_color({disablePowerOnBehavior: true, supportsHS: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color],
@@ -33,7 +33,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp_color: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp_color({...options, supportsHS: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true, supportsHS: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color_colortemp],
@@ -41,7 +41,7 @@ const gledoptoExtend = {
         ),
     }),
     switch: (options={}) => ({
-        ...extend.switch(options),
+        ...extend.switch({disablePowerOnBehavior: true, ...options}),
         onEvent: async (type, data, device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
@@ -84,21 +84,21 @@ module.exports = [
         model: 'GL-H-001',
         vendor: 'Gledopto',
         description: 'Zigbee RF Hub',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['HOMA2023'],
         model: 'GD-CZ-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller WW/CW',
-        extend: gledoptoExtend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['GL-SD-001'],
         model: 'GL-SD-001',
         vendor: 'Gledopto',
         description: 'Zigbee triac AC dimmer',
-        extend: gledoptoExtend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness(),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -112,14 +112,14 @@ module.exports = [
         model: 'GL-C-006',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller WW/CW',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['GL-C-006S'],
         model: 'GL-C-006S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller WW/CW (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp(),
     },
     {
         zigbeeModel: ['GL-C-006P'],
@@ -159,7 +159,7 @@ module.exports = [
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (1 ID)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         fingerprint: [
@@ -177,7 +177,7 @@ module.exports = [
         model: 'GL-C-007-2ID', // 2 ID controls white and color separate
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (2 ID)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
         exposes: [e.light_brightness_colortemp_colorxy().withEndpoint('rgb'), e.light_brightness().withEndpoint('white')],
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
@@ -194,7 +194,7 @@ module.exports = [
         model: 'GL-C-007S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGBW (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-C-007P'],
@@ -227,7 +227,7 @@ module.exports = [
         model: 'GL-C-008-2ID', // 2 ID controls color temperature and color separate
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGB+CCT (2 ID)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
         exposes: [e.light_brightness_colorxy().withEndpoint('rgb'), e.light_brightness_colortemp().withEndpoint('cct')],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
@@ -247,7 +247,7 @@ module.exports = [
         model: 'GL-C-008-1ID', // 1 ID controls color temperature and color separate
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGB+CCT (1 ID)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -255,7 +255,7 @@ module.exports = [
         model: 'GL-C-008S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -295,7 +295,7 @@ module.exports = [
         model: 'GL-C-009',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller W',
-        extend: gledoptoExtend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['GL-C-009P'],
@@ -314,14 +314,14 @@ module.exports = [
         model: 'GL-C-009S',
         vendor: 'Gledopto',
         description: 'Zigbee LED Controller W (plus)',
-        extend: gledoptoExtend.light_onoff_brightness({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['GL-MC-001'],
         model: 'GL-MC-001',
         vendor: 'Gledopto',
         description: 'Zigbee USB Mini LED Controller RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
         meta: {disableDefaultResponse: true},
     },
     {
@@ -329,7 +329,7 @@ module.exports = [
         model: 'GL-B-002P',
         vendor: 'Gledopto',
         description: 'Zigbee smart filament LED bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-S-006P'],
@@ -337,7 +337,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee GU10 LED lamp',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-MC-001P'],
@@ -352,7 +352,7 @@ module.exports = [
         model: 'GL-S-003Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W GU10 Bulb RGBW',
-        extend: gledoptoExtend.light_onoff_brightness_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_color(),
         endpoint: (device) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/5169
             if (device.getEndpoint(12)) return {default: 12};
@@ -365,23 +365,21 @@ module.exports = [
         model: 'GL-S-004Z',
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb 30deg RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({
-            disableColorTempStartup: false, colorTempRange: [155, 495], disablePowerOnBehavior: true,
-        }),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disableColorTempStartup: false, colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-S-005Z'],
         model: 'GL-S-005Z',
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb 120deg RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-S-004ZS'],
         model: 'GL-S-004ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 4W MR16 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-S-004P', 'GL-S-005P'],
@@ -396,14 +394,14 @@ module.exports = [
         model: 'GL-S-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W GU10 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-S-007ZS'],
         model: 'GL-S-007ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 4W GU10 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-S-007P'],
@@ -418,21 +416,21 @@ module.exports = [
         model: 'GL-S-008Z',
         vendor: 'Gledopto',
         description: 'Zigbee 5W PAR16 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-001Z'],
         model: 'GL-B-001Z',
         vendor: 'Gledopto',
         description: 'Zigbee 4W E12/E14 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-001ZS'],
         model: 'GL-B-001ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 4W E12/E14 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-001P'],
@@ -447,14 +445,14 @@ module.exports = [
         model: 'GL-B-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-007ZS'],
         model: 'GL-B-007ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 6W E26/E27 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-007P'],
@@ -469,14 +467,14 @@ module.exports = [
         model: 'GL-B-008Z',
         vendor: 'Gledopto',
         description: 'Zigbee 12W E26/E27 Bulb RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-008ZS'],
         model: 'GL-B-008ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 12W E26/E27 Bulb RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-008P'],
@@ -499,14 +497,14 @@ module.exports = [
         model: 'GL-D-003Z',
         vendor: 'Gledopto',
         description: 'Zigbee 6W Downlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-003ZS'],
         model: 'GL-D-003ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 6W Downlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-003P'],
@@ -521,14 +519,14 @@ module.exports = [
         model: 'GL-D-004Z',
         vendor: 'Gledopto',
         description: 'Zigbee 9W Downlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-004ZS'],
         model: 'GL-D-004ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 9W Downlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-004P'],
@@ -543,14 +541,14 @@ module.exports = [
         model: 'GL-D-005Z',
         vendor: 'Gledopto',
         description: 'Zigbee 12W Downlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-005ZS'],
         model: 'GL-D-005ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 12W Downlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-D-005P'],
@@ -580,21 +578,21 @@ module.exports = [
         model: 'GL-FL-004TZ',
         vendor: 'Gledopto',
         description: 'Zigbee 10W Floodlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-B-003P'],
         model: 'GL-B-003P',
         vendor: 'Gledopto',
         description: 'Zigbee 7W E26/E27 Bulb RGB+CCT (pro)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004TZS'],
         model: 'GL-FL-004TZS',
         vendor: 'Gledopto',
         description: 'Zigbee 10W Floodlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [155, 495], disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004P', 'GL-FL-004TZP'],
@@ -632,14 +630,14 @@ module.exports = [
         model: 'GL-FL-005TZ',
         vendor: 'Gledopto',
         description: 'Zigbee 30W Floodlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-FL-005TZS'],
         model: 'GL-FL-005TZS',
         vendor: 'Gledopto',
         description: 'Zigbee 30W Floodlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-FL-005P', 'GL-FL-005TZP'],
@@ -654,14 +652,14 @@ module.exports = [
         model: 'GL-FL-006TZ',
         vendor: 'Gledopto',
         description: 'Zigbee 60W Floodlight RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-FL-006TZS'],
         model: 'GL-FL-006TZS',
         vendor: 'Gledopto',
         description: 'Zigbee 60W Floodlight RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-FL-006P', 'GL-FL-006TZP'],
@@ -676,14 +674,14 @@ module.exports = [
         model: 'GL-G-001Z',
         vendor: 'Gledopto',
         description: 'Zigbee 12W Garden Lamp RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-G-001ZS'],
         model: 'GL-G-001ZS',
         vendor: 'Gledopto',
         description: 'Zigbee 12W Garden Lamp RGB+CCT (plus)',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-G-001P'],
@@ -714,27 +712,27 @@ module.exports = [
         model: 'GL-G-007Z',
         vendor: 'Gledopto',
         description: 'Zigbee 9W garden lamp RGB+CCT',
-        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['GL-W-001Z'],
         model: 'GL-W-001Z',
         vendor: 'Gledopto',
         description: 'Zigbee on/off wall switch',
-        extend: gledoptoExtend.switch({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.switch(),
     },
     {
         zigbeeModel: ['GL-SD-002'],
         model: 'GL-SD-002',
         vendor: 'Gledopto',
         description: 'Zigbee 3.0 smart home switch',
-        extend: gledoptoExtend.switch({disablePowerOnBehavior: true}),
+        extend: gledoptoExtend.switch(),
     },
     {
         zigbeeModel: ['GL-B-004P'],
         model: 'GL-B-004P',
         vendor: 'Gledopto',
         description: 'Filament LED light bulb E27 G95 7W pro',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
 ];
