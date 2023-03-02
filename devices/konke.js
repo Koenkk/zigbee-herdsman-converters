@@ -100,7 +100,8 @@ module.exports = [
         description: 'Temperature, relative humidity and illuminance sensor',
         fromZigbee: [fz.battery, fz.illuminance, fz.humidity, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.humidity(),
+            e.temperature()],
     },
     {
         zigbeeModel: ['3AFE241000040002'],
@@ -110,7 +111,8 @@ module.exports = [
         fromZigbee: [fzLocalKonke.command_recall_konke, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        exposes: [e.battery(), e.battery_voltage(), e.battery_low(),  e.action(['hexa-symbol', 'square-symbol', 'triangle-symbol', 'circle-symbol'])],
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(),  e.action([
+            'hexa-symbol', 'square-symbol', 'triangle-symbol', 'circle-symbol'])],
     },
     {
         zigbeeModel: ['3AFE07010402100D', '3AFE08010402100D'],
