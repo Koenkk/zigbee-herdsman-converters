@@ -15,9 +15,9 @@ const fzLocalKonke = {
                 244: 'circle',
             };
             return {action: payload[msg.data.sceneid]};
-       },
+        }
     }
-}
+};
 
 module.exports = [
     {
@@ -111,7 +111,7 @@ module.exports = [
         fromZigbee: [fzLocalKonke.command_recall_konke, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
-        exposes: [e.battery(), e.battery_voltage(), e.battery_low(),  e.action([
+        exposes: [e.battery(), e.battery_voltage(), e.battery_low(), e.action([
             'hexagon', 'square', 'triangle', 'circle'])],
     },
     {
@@ -121,7 +121,7 @@ module.exports = [
         description: 'Occupancy sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(),e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.occupancy(), e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
         zigbeeModel: ['3AFE21100402102A'],
@@ -140,5 +140,5 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
-    }
+    },
 ];
