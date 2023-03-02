@@ -9,10 +9,10 @@ const fzLocalKonke = {
         type: 'commandRecall',
         convert: (model, msg, publish, options, meta) => {
             const payload = {
-                241: 'hexa-symbol',
-                242: 'square-symbol',
-                243: 'triangle-symbol',
-                244: 'circle-symbol',
+                241: 'hexagon',
+                242: 'square',
+                243: 'triangle',
+                244: 'circle',
             };
             return {action: payload[msg.data.sceneid]};
        },
@@ -112,7 +112,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         exposes: [e.battery(), e.battery_voltage(), e.battery_low(),  e.action([
-            'hexa-symbol', 'square-symbol', 'triangle-symbol', 'circle-symbol'])],
+            'hexagon', 'square', 'triangle', 'circle'])],
     },
     {
         zigbeeModel: ['3AFE07010402100D', '3AFE08010402100D'],
