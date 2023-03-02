@@ -2184,9 +2184,9 @@ module.exports = [
             e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.composite('options', 'options', ea.STATE_SET)
                 .withFeature(exposes.numeric('motor_speed', ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(255)
-                    .withDescription('Motor speed'))],
+                    .withValueMin(0).withValueMax(255).withDescription('Motor speed'))
+                .withFeature(exposes.binary('reverse_direction', ea.STATE_SET, true, false)
+                    .withDescription('Reverse the motor direction'))],
     },
     {
         fingerprint: [
