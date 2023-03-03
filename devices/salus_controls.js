@@ -108,19 +108,19 @@ module.exports = [
         zigbeeModel: [
             'SS909ZB',
             'PS600',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018&\n\u0005\u0000B',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018\u0006\n\u0005\u0000',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018\u0006\n\u0005\u0000B',
         ],
         model: 'PS600',
         vendor: 'Salus Controls',
         description: 'Pipe temperature sensor',
-        fromZigbee: [fz.temperature],
+        fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
         ota: ota.salus,
     },
