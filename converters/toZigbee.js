@@ -1223,10 +1223,36 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 numoftrans: value.numoftrans,
-                dayofweek: utils.getKey(constants.thermostatDayOfWeek, value.dayofweek, value.dayofweek, Number),
-                mode: utils.getKey(constants.thermostatScheduleMode, value.mode, value.mode, Number),
+                dayofweek: value.dayofweek,
+                mode: value.mode,
                 transitions: value.transitions,
             };
+
+
+            // map array of desired modes to bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let mode = 0;
+                for (let m of payload.mode) {
+                    // lookup mode bit
+                    m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
+                    mode |= (1 << m);
+                }
+                payload.mode = mode;
+            }
+
+            // map array of days to desired dayofweek bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let dayofweek = 0;
+                for (let d of payload.dayofweek) {
+                    // lookup dayofweek bit
+                    d = utils.getKey(constants.thermostatDayOfWeek, d.toLowerCase(), d, Number);
+                    dayofweek |= (1 << d);
+                }
+                payload.dayofweek = dayofweek;
+            }
+
             for (const elem of payload['transitions']) {
                 if (typeof elem['heatSetpoint'] === 'number') {
                     elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
@@ -1234,6 +1260,7 @@ const converters = {
                 if (typeof elem['coolSetpoint'] === 'number') {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
                 }
+
                 // accept 24h time notation (e.g. 19:30)
                 if (typeof elem['transitionTime'] === 'string') {
                     const time = elem['transitionTime'].split(':');
