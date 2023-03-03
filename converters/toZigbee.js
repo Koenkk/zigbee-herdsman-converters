@@ -1223,8 +1223,8 @@ const converters = {
         convertSet: async (entity, key, value, meta) => {
             const payload = {
                 numoftrans: value.numoftrans,
-                dayofweek: utils.getKey(constants.dayOfWeek, value.dayofweek, value.dayofweek, Number),
-                mode: utils.getKey(constants.thermostatWeeklyScheduleMode, value.mode, value.mode, Number),
+                dayofweek: utils.getKey(constants.thermostatDayOfWeek, value.dayofweek, value.dayofweek, Number),
+                mode: utils.getKey(constants.thermostatScheduleMode, value.mode, value.mode, Number),
                 transitions: value.transitions,
             };
             for (const elem of payload['transitions']) {
@@ -2913,7 +2913,7 @@ const converters = {
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossDayOfWeek': utils.getKey(constants.dayOfWeek, value, undefined, Number)};
+            const payload = {'danfossDayOfWeek': utils.getKey(constants.thermostatDayOfWeek, value, undefined, Number)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'day_of_week': value}};
         },

@@ -158,7 +158,7 @@ const converters = {
             const days = [];
             for (let i = 0; i < 8; i++) {
                 if ((msg.data['dayofweek'] & 1<<i) > 0) {
-                    days.push(constants.dayOfWeek[i]);
+                    days.push(constants.thermostatDayOfWeek[i]);
                 }
             }
 
@@ -2191,7 +2191,7 @@ const converters = {
                 return {
                     // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
                     weekly_schedule: {
-                        days: [constants.dayOfWeek[dayOfWeek]],
+                        days: [constants.thermostatDayOfWeek[dayOfWeek]],
                         transitions: dataToTransitions(value, maxTransitions, dataOffset),
                     },
                 };
@@ -3533,8 +3533,8 @@ const converters = {
             }
             if (msg.data.hasOwnProperty('danfossDayOfWeek')) {
                 result[postfixWithEndpointName('day_of_week', msg, model, meta)] =
-                    constants.dayOfWeek.hasOwnProperty(msg.data['danfossDayOfWeek']) ?
-                        constants.dayOfWeek[msg.data['danfossDayOfWeek']] :
+                    constants.thermostatDayOfWeek.hasOwnProperty(msg.data['danfossDayOfWeek']) ?
+                        constants.thermostatDayOfWeek[msg.data['danfossDayOfWeek']] :
                         msg.data['danfossDayOfWeek'];
             }
             if (msg.data.hasOwnProperty('danfossTriggerTime')) {
