@@ -412,7 +412,7 @@ module.exports = [
         model: '4062172044776_1',
         vendor: 'OSRAM',
         description: 'Zigbee 3.0 DALI CONV LI dimmer for DALI-based luminaires (only one device)',
-        extend: extend.ledvance.light_onoff_brightness(),
+        extend: extend.ledvance.light_onoff_brightness({disablePowerOnBehavior: true}),
         ota: ota.zigbeeOTA,
     },
     {
@@ -425,7 +425,7 @@ module.exports = [
             fz.command_toggle, fz.command_move, fz.command_stop],
         extend: extend.ledvance.light_onoff_brightness({noConfigure: true}),
         exposes: [e.action(['toggle', 'brightness_move_up', 'brightness_move_down', 'brightness_stop']),
-            ...extend.ledvance.light_onoff_brightness({noConfigure: true}).exposes],
+            ...extend.ledvance.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: true}).exposes],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(10), coordinatorEndpoint, ['genLevelCtrl', 'genOnOff']);
