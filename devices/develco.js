@@ -135,22 +135,28 @@ const develco = {
             type: ['attributeReport', 'readResponse'],
             options: [exposes.options.precision('voc'), exposes.options.calibration('voc')],
             convert: (model, msg, publish, options, meta) => {
-                const voc = parseFloat(msg.data['measuredValue']);
+                // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
+                // "The mean molar mass of this mixture is 110 g/mol and hence,
+                // 1 ppb TVOC corresponds to 4.5 μg/m3."
+                const vocPpb = parseFloat(msg.data['measuredValue']);
+                const voc = vocPpb * 4.5;
                 const vocProperty = utils.postfixWithEndpointName('voc', msg, model, meta);
 
+                // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
+                // this contains a ppb to level mapping table.
                 let airQuality;
                 const airQualityProperty = utils.postfixWithEndpointName('air_quality', msg, model, meta);
-                if (voc <= 65) {
+                if (vocPpb <= 65) {
                     airQuality = 'excellent';
-                } else if (voc <= 220) {
+                } else if (vocPpb <= 220) {
                     airQuality = 'good';
-                } else if (voc <= 660) {
+                } else if (vocPpb <= 660) {
                     airQuality = 'moderate';
-                } else if (voc <= 2200) {
+                } else if (vocPpb <= 2200) {
                     airQuality = 'poor';
-                } else if (voc <= 5500) {
+                } else if (vocPpb <= 5500) {
                     airQuality = 'unhealthy';
-                } else if (voc > 5500) {
+                } else if (vocPpb > 5500) {
                     airQuality = 'out_of_range';
                 } else {
                     airQuality = 'unknown';

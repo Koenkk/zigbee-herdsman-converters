@@ -2769,7 +2769,7 @@ module.exports = [
         fromZigbee: [fz.xiaomi_tvoc, fz.battery, fz.temperature, fz.humidity, fz.aqara_opple],
         toZigbee: [tzLocal.VOCKQJK11LM_display_unit],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.device_temperature(), e.battery(), e.battery_voltage(),
+        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.device_temperature(), e.battery(), e.battery_voltage(),
             exposes.enum('display_unit', ea.ALL, ['mgm3_celsius', 'ppb_celsius', 'mgm3_fahrenheit', 'ppb_fahrenheit'])
                 .withDescription('Units to show on the display')],
         configure: async (device, coordinatorEndpoint, logger) => {

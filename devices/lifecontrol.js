@@ -87,6 +87,6 @@ module.exports = [
         fromZigbee: [fz.lifecontrolVoc, fz.battery],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.temperature(), e.humidity(), e.voc(), e.eco2(), e.battery()],
+        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2(), e.battery()],
     },
 ];
