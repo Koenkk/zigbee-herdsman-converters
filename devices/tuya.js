@@ -2552,7 +2552,7 @@ module.exports = [
                         },
                     },
                 ],
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'heat': tuya.enum(3)})],
                 [1, 'preset', tuya.valueConverterBasic.lookup(
                     {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
