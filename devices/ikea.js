@@ -1032,13 +1032,13 @@ module.exports = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'Vindstyrka air quality and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pm25],
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, fz.ikea_voc_index],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pm25()],
+        exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement']);
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement', 'msIkeaVocIndexMeasurement']);
             await ep.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'measuredValue',
                 minimumReportInterval: 60, maximumReportInterval: 120,
@@ -1050,6 +1050,10 @@ module.exports = [
             await ep.configureReporting('pm25Measurement', [{
                 attribute: 'measuredValueIkea',
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
+            }]);
+            await ep.configureReporting('msIkeaVocIndexMeasurement', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
             }]);
         },
     },
