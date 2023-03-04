@@ -1230,8 +1230,8 @@ const converters = {
 
 
             // map array of desired modes to bitmask
-            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
-            if (Array.isArray(payload.dayofweek)) {
+            if (typeof payload.mode === 'string') payload.mode = [payload.mode];
+            if (Array.isArray(payload.mode)) {
                 let mode = 0;
                 for (let m of payload.mode) {
                     // lookup mode bit
