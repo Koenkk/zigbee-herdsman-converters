@@ -181,6 +181,15 @@ const ikea = {
                 return state;
             },
         },
+        ikea_voc_index: {
+            cluster: 'msIkeaVocIndexMeasurement',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('measuredValue')) {
+                    return {voc_index: msg.data['measuredValue']};
+                }
+            },
+        },
         battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
@@ -1032,7 +1041,7 @@ module.exports = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'Vindstyrka air quality and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, fz.ikea_voc_index],
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, ikea.fz.ikea_voc_index],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index()],
         configure: async (device, coordinatorEndpoint, logger) => {

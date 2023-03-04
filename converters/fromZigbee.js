@@ -4759,15 +4759,6 @@ const converters = {
             }
         },
     },
-    ikea_voc_index: {
-        cluster: 'msIkeaVocIndexMeasurement',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('measuredValue')) {
-                return {voc_index: msg.data['measuredValue']};
-            }
-        },
-    },
     E1524_E1810_levelctrl: {
         cluster: 'genLevelCtrl',
         type: [
