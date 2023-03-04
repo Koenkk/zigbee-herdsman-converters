@@ -3571,7 +3571,7 @@ module.exports = [
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'radar_sensitivity', tuya.valueConverter.raw],
-                [102, 'occupancy', tuya.valueConverter.trueFalse2],
+                [102, 'occupancy', tuya.valueConverter.trueFalse1],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
                 [105, 'tumble_switch', tuya.valueConverter.plus1],
                 [106, 'tumble_alarm_time', tuya.valueConverter.raw],
