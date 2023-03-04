@@ -412,7 +412,7 @@ const converters = {
         cluster: 'pm25Measurement',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['measuredValue']) {
+            if (msg.data.hasOwnProperty('measuredValue')) {
                 return {pm25: msg.data['measuredValue']};
             }
         },
