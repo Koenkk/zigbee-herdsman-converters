@@ -2604,11 +2604,12 @@ module.exports = [
             });
             try {
                 await reporting.currentSummDelivered(endpoint);
-            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
+                await reporting.rmsVoltage(endpoint, {change: 5});
+                await reporting.rmsCurrent(endpoint, {change: 50});
+                await reporting.activePower(endpoint, {change: 10});
+            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179
+                                and https://github.com/Koenkk/zigbee2mqtt/issues/16864 */}
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff', 'tuyaBacklightMode']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
         },
         options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
