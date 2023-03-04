@@ -1222,24 +1222,69 @@ const converters = {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
             const payload = {
-                numoftrans: value.numoftrans,
                 dayofweek: value.dayofweek,
-                mode: value.mode,
                 transitions: value.transitions,
             };
 
+            if (Array.isArray(payload.transitions)) {
+                // calculate numoftrans
+                if (typeof value.numoftrans !== 'undefined') {
+                    meta.logger.warn(`weekly_schedule: igonoring provided numoftrans value (${JSON.stringify(value.numoftrans)}),\
+                         this is now calculated automatically`);
+                }
+                payload.numoftrans = payload.transitions.length;
+
+                // mode is calculated below
+                if (typeof value.mode !== 'undefined') {
+                    meta.logger.warn(
+                        `weekly_schedule: igonoring provided mode value (${JSON.stringify(value.mode)}),\
+                         this is now calculated automatically`);
+                }
+                payload.mode = [];
+
+                // transform transition payload values if needed
+                for (const elem of payload.transitions) {
+                    // update payload.mode if needed
+                    if (elem.hasOwnProperty('heatSetpoint') && !payload.mode.includes('heat')) {
+                        payload.mode.push('heat');
+                    }
+                    if (elem.hasOwnProperty('coolSetpoint') && !payload.mode.includes('cool')) {
+                        payload.mode.push('cool');
+                    }
+
+                    // transform setpoint values if numeric
+                    if (typeof elem['heatSetpoint'] === 'number') {
+                        elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
+                    }
+                    if (typeof elem['coolSetpoint'] === 'number') {
+                        elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                    }
+
+                    // accept 24h time notation (e.g. 19:30)
+                    if (typeof elem['transitionTime'] === 'string') {
+                        const time = elem['transitionTime'].split(':');
+                        if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                            meta.logger.warn(
+                                `weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`,
+                            );
+                        } else {
+                            elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                        }
+                    }
+                }
+            } else {
+                meta.logger.error('weekly_schedule: transitions is not an array!');
+                return;
+            }
 
             // map array of desired modes to bitmask
-            if (typeof payload.mode === 'string') payload.mode = [payload.mode];
-            if (Array.isArray(payload.mode)) {
-                let mode = 0;
-                for (let m of payload.mode) {
-                    // lookup mode bit
-                    m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
-                    mode |= (1 << m);
-                }
-                payload.mode = mode;
+            let mode = 0;
+            for (let m of payload.mode) {
+                // lookup mode bit
+                m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
+                mode |= (1 << m);
             }
+            payload.mode = mode;
 
             // map array of days to desired dayofweek bitmask
             if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
@@ -1253,24 +1298,6 @@ const converters = {
                 payload.dayofweek = dayofweek;
             }
 
-            for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] === 'number') {
-                    elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
-                }
-                if (typeof elem['coolSetpoint'] === 'number') {
-                    elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
-                }
-
-                // accept 24h time notation (e.g. 19:30)
-                if (typeof elem['transitionTime'] === 'string') {
-                    const time = elem['transitionTime'].split(':');
-                    if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
-                        meta.logger.warn(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`);
-                    } else {
-                        elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
-                    }
-                }
-            }
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
