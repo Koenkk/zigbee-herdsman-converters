@@ -1227,12 +1227,48 @@ const converters = {
                 mode: value.mode,
                 transitions: value.transitions,
             };
+
+
+            // map array of desired modes to bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let mode = 0;
+                for (let m of payload.mode) {
+                    // lookup mode bit
+                    m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
+                    mode |= (1 << m);
+                }
+                payload.mode = mode;
+            }
+
+            // map array of days to desired dayofweek bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let dayofweek = 0;
+                for (let d of payload.dayofweek) {
+                    // lookup dayofweek bit
+                    d = utils.getKey(constants.thermostatDayOfWeek, d.toLowerCase(), d, Number);
+                    dayofweek |= (1 << d);
+                }
+                payload.dayofweek = dayofweek;
+            }
+
             for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] == 'number') {
+                if (typeof elem['heatSetpoint'] === 'number') {
                     elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
                 }
-                if (typeof elem['coolSetpoint'] == 'number') {
+                if (typeof elem['coolSetpoint'] === 'number') {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                }
+
+                // accept 24h time notation (e.g. 19:30)
+                if (typeof elem['transitionTime'] === 'string') {
+                    const time = elem['transitionTime'].split(':');
+                    if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                        meta.logger.warn(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`);
+                    } else {
+                        elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                    }
                 }
             }
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
@@ -2904,7 +2940,7 @@ const converters = {
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossDayOfWeek': utils.getKey(constants.dayOfWeek, value, undefined, Number)};
+            const payload = {'danfossDayOfWeek': utils.getKey(constants.thermostatDayOfWeek, value, undefined, Number)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'day_of_week': value}};
         },
