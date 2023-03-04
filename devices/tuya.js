@@ -2552,7 +2552,7 @@ module.exports = [
                         },
                     },
                 ],
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
+                [1, 'system_mode', tuya.valueConverterBasic.lookup({'auto': tuya.enum(1), 'off': tuya.enum(2), 'heat': tuya.enum(3)})],
                 [1, 'preset', tuya.valueConverterBasic.lookup(
                     {'auto': tuya.enum(0), 'manual': tuya.enum(1), 'off': tuya.enum(2), 'on': tuya.enum(3)})],
                 [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
@@ -2604,11 +2604,12 @@ module.exports = [
             });
             try {
                 await reporting.currentSummDelivered(endpoint);
-            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179 */}
+                await reporting.rmsVoltage(endpoint, {change: 5});
+                await reporting.rmsCurrent(endpoint, {change: 50});
+                await reporting.activePower(endpoint, {change: 10});
+            } catch (error) {/* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179
+                                and https://github.com/Koenkk/zigbee2mqtt/issues/16864 */}
             await endpoint.read('genOnOff', ['onOff', 'moesStartUpOnOff', 'tuyaBacklightMode']);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
         },
         options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
@@ -3571,7 +3572,7 @@ module.exports = [
             tuyaDatapoints: [
                 [1, 'presence', tuya.valueConverter.trueFalse1],
                 [2, 'radar_sensitivity', tuya.valueConverter.raw],
-                [102, 'occupancy', tuya.valueConverter.trueFalse2],
+                [102, 'occupancy', tuya.valueConverter.trueFalse1],
                 [103, 'illuminance_lux', tuya.valueConverter.raw],
                 [105, 'tumble_switch', tuya.valueConverter.plus1],
                 [106, 'tumble_alarm_time', tuya.valueConverter.raw],

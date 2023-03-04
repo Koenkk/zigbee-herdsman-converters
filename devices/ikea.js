@@ -181,6 +181,15 @@ const ikea = {
                 return state;
             },
         },
+        ikea_voc_index: {
+            cluster: 'msIkeaVocIndexMeasurement',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('measuredValue')) {
+                    return {voc_index: msg.data['measuredValue']};
+                }
+            },
+        },
         battery: {
             cluster: 'genPowerCfg',
             type: ['attributeReport', 'readResponse'],
@@ -428,10 +437,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm', 'TRADFRI bulb E12 WS globe 450lm'],
         model: 'LED2101G4',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14 WS globe 470lm, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14 WS globe 450/470 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -1032,13 +1041,13 @@ module.exports = [
         model: 'E2112',
         vendor: 'IKEA',
         description: 'Vindstyrka air quality and humidity sensor',
-        fromZigbee: [fz.temperature, fz.humidity, fz.pm25],
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, ikea.fz.ikea_voc_index],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pm25()],
+        exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index().withDescription('Sensirion VOC index')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement']);
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement', 'msIkeaVocIndexMeasurement']);
             await ep.configureReporting('msTemperatureMeasurement', [{
                 attribute: 'measuredValue',
                 minimumReportInterval: 60, maximumReportInterval: 120,
@@ -1050,6 +1059,10 @@ module.exports = [
             await ep.configureReporting('pm25Measurement', [{
                 attribute: 'measuredValueIkea',
                 minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
+            }]);
+            await ep.configureReporting('msIkeaVocIndexMeasurement', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
             }]);
         },
     },

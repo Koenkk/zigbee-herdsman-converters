@@ -2908,6 +2908,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.plug.sacn02'],
