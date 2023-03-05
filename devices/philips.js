@@ -963,6 +963,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['915005988501'],
+        model: '915005988501',
+        vendor: 'Philips',
+        description: 'Play gradient light tube large',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LTW011', 'LTB002'],
         model: '464800',
         vendor: 'Philips',
