@@ -1740,7 +1740,7 @@ module.exports = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: [{modelID: 'SM0201', manufacturerName: '_TYZB01_cbiezpds'}],
+        fingerprint: tuya.fingerprint('SM0201', ['_TYZB01_cbiezpds', '_TYZB01_zqvwka4k']),
         model: 'SM0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with LED screen',
