@@ -3415,7 +3415,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tz.tuya_relay_din_led_indicator],
-        whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}],
+        whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}, {vendor: 'Tongou', model: 'TO-Q-SY1-JZT'}],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
