@@ -142,6 +142,11 @@ const fzLocal = {
                     result['schedule_settings'] = trv.stringifySchedule(schedule);
                     break;
                 }
+                case 0x00EE: {
+                    meta.device.meta.aqaraFileVersion = value;
+                    meta.device.save();
+                    break;
+                }
                 case 0xfff2:
                 case 0x00ff: // 4e:27:49:bb:24:b6:30:dd:74:de:53:76:89:44:c4:81
                 case 0x027c: // 0x00
