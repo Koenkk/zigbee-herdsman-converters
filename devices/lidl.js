@@ -575,8 +575,8 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno Lux switch and dimming light remote control',
         exposes: [e.action(['on', 'off', 'brightness_stop', 'brightness_step_up', 'brightness_step_down', 'brightness_move_up',
-            'brightness_move_down'])],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop],
+            'brightness_move_down', 'switch_scene'])],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.tuya_switch_scene],
         toZigbee: [],
     },
     {
