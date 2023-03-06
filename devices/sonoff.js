@@ -216,7 +216,7 @@ module.exports = [
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
