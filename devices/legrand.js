@@ -29,6 +29,22 @@ const tzLocal = {
 
 module.exports = [
     {
+        zigbeeModel: [' Pocket remote\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
+            '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        model: '067755',
+        vendor: 'Legrand',
+        description: 'Wireless and batteryless 4 scenes control',
+        fromZigbee: [fz.identify, fz.battery, fz.command_recall],
+        exposes: [e.battery(), e.action(['identify', 'recall_1_1'])],
+        toZigbee: [],
+        meta: {multiEndpoint: true, battery: {voltageToPercentage: '3V_2500'}, publishDuplicateTransaction: true},
+        onEvent: readInitialBatteryState,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+        },
+    },
+    {
         zigbeeModel: [' Dry contact\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'+
             '\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '412173',
@@ -261,7 +277,12 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
-            await reporting.apparentPower(endpoint);
+            try {
+                await reporting.apparentPower(endpoint);
+            } catch (e) {
+                // Some version/firmware don't seem to support this.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/16732
+            }
         },
     },
     {

@@ -25,7 +25,7 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['ZBT-RGBWLight-GLS0844'],
+        zigbeeModel: ['ZBT-RGBWLight-GLS0844', 'HAL300'],
         model: 'HAL300',
         vendor: 'Schwaiger',
         description: 'Tint LED bulb E27 806 lumen, dimmable, color, white 1800-6500K',

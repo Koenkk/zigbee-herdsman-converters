@@ -388,7 +388,7 @@ module.exports = [
             'cw_ww_release', 'cw_dec_ww_inc', 'ww_inc_cw_dec', 'r_g_b', 'b_g_r', 'rgb_release'])],
     },
     {
-        zigbeeModel: ['ZG9092'],
+        zigbeeModel: ['ZG9092', 'HK-LN-HEATER-A'],
         model: 'SR-ZG9092A',
         vendor: 'Sunricher',
         description: 'Touch thermostat',

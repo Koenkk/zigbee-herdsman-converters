@@ -26,6 +26,10 @@ https://files.inovelli.com/firmware/firmware.json
 
 https://files.inovelli.com/firmware
 
+Experimental Inovelli OTA URL for zigpy:
+
+https://files.inovelli.com/firmware/firmware-zha.json
+
 ### Sonoff OTA Firmware provider
 
 Sonoff Zigbee OTA firmware images are made publicly available by Sonoff (first-party) at the following URLs:
@@ -45,10 +49,6 @@ IKEA Tradfi Zigbee OTA firmware images are made publicly available by IKEA (firs
 Download-URL: 
 
 http://fw.ota.homesmart.ikea.net/feed/version_info.json
-
-Download-URL (Test/Beta-Version): 
-
-http://fw.test.ota.homesmart.ikea.net/feed/version_info.json
 
 Release changelogs
 

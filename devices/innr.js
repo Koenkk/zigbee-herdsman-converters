@@ -4,7 +4,6 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
-const ea = exposes.access;
 const ota = require('../lib/ota');
 
 module.exports = [
@@ -543,7 +542,7 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 1, divisor: 100});
             await reporting.currentSummDelivered(endpoint);
         },
-        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['SP 110'],
@@ -618,7 +617,7 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint);
         },
         ota: ota.zigbeeOTA,
-        exposes: [e.power(), e.current(), e.voltage().withAccess(ea.STATE), e.switch(), e.energy()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
         zigbeeModel: ['OFL 120 C'],

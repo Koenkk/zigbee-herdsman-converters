@@ -523,6 +523,22 @@ const definition = [
         ],
     },
     {
+        zigbeeModel: ['RFPR-ZB-SH-EU'],
+        model: 'RFPR-ZB-SH-EU',
+        vendor: 'Bosch',
+        description: 'Wireless motion detector',
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ['RBSH-SP-ZB-EU'],
         model: 'BSP-FZ2',
         vendor: 'Bosch',

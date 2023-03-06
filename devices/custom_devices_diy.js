@@ -473,7 +473,7 @@ module.exports = [
             await firstEndpoint.configureReporting('genPowerCfg', payload1);
         },
         exposes: [e.soil_moisture(), e.battery(), e.temperature(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes').withValueMin(1).withValueMax(240)
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(240)
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 15 minutes')],
     },
     {
@@ -812,7 +812,8 @@ module.exports = [
         model: 'SNZB-02_EFEKTA',
         vendor: 'Custom devices (DiY)',
         description: 'Alternative firmware for the SONOFF SNZB-02 sensor from EfektaLab, DIY',
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fzLocal.termostat_config, fzLocal.hydrostat_config, fzLocal.node_config],
+        fromZigbee: [fz.SNZB02_temperature, fz.SNZB02_humidity, fz.battery, fzLocal.termostat_config,
+            fzLocal.hydrostat_config, fzLocal.node_config],
         toZigbee: [tzLocal.termostat_config, tzLocal.hydrostat_config, tzLocal.node_config],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -823,7 +824,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint, overides);
         },
         exposes: [e.battery(), e.temperature(), e.humidity(),
-            exposes.numeric('report_delay', ea.STATE_SET).withUnit('Minutes')
+            exposes.numeric('report_delay', ea.STATE_SET).withUnit('min')
                 .withDescription('Adjust Report Delay. Setting the time in minutes, by default 5 minutes')
                 .withValueMin(1).withValueMax(60),
             exposes.binary('enable_temperature', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable Temperature Control'),

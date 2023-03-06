@@ -44,6 +44,24 @@ module.exports = [
         ota: ota.salus,
     },
     {
+        zigbeeModel: ['SX885ZB'],
+        model: 'SX885ZB',
+        vendor: 'Salus Controls',
+        description: 'miniSmartPlug',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(9);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, change: 10});
+            await reporting.currentSummDelivered(endpoint, {min: 5, change: [0, 10]});
+            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+        },
+        ota: ota.salus,
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
+    {
         zigbeeModel: ['SR600'],
         model: 'SR600',
         vendor: 'Salus Controls',
@@ -89,19 +107,20 @@ module.exports = [
     {
         zigbeeModel: [
             'SS909ZB',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018&\n\u0005\u0000B',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018\u0006\n\u0005\u0000',
-            'PS600\u0000\u0000 �\u0001 ��\u0000\u0000\t\u0001@\u0011�u\u0000\u0000\u0018\u0006\n\u0005\u0000B',
+            'PS600',
         ],
         model: 'PS600',
         vendor: 'Salus Controls',
         description: 'Pipe temperature sensor',
-        fromZigbee: [fz.temperature],
+        fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.temperature()],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.temperature(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
         ota: ota.salus,
     },

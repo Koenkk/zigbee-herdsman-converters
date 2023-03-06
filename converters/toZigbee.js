@@ -102,6 +102,12 @@ const converters = {
             await entity.read('genPowerCfg', ['batteryPercentageRemaining']);
         },
     },
+    battery_voltage: {
+        key: ['battery', 'voltage'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('genPowerCfg', ['batteryVoltage']);
+        },
+    },
     power_on_behavior: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -790,7 +796,7 @@ const converters = {
                 };
                 await entity.command('lightingColorCtrl', 'moveToColor', payload, utils.getOptions(meta.mapped, entity));
                 return {
-                    state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
+                    state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
                         entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
                 };
             }
@@ -1025,7 +1031,7 @@ const converters = {
             const payload = {colortemp: value, transtime: utils.getTransition(entity, key, meta).time};
             await entity.command('lightingColorCtrl', 'moveToColorTemp', payload, utils.getOptions(meta.mapped, entity));
             return {
-                state: libColor.syncColorState({'color_mode': constants.colorMode[2], 'color_temp': value}, meta.state,
+                state: libColor.syncColorState({'color_mode': constants.colorModeLookup[2], 'color_temp': value}, meta.state,
                     entity, meta.options, meta.logger), readAfterWriteTime: payload.transtime * 100,
             };
         },
@@ -1085,7 +1091,7 @@ const converters = {
                     xy.y = 0.2993;
                 }
 
-                newState.color_mode = constants.colorMode[1];
+                newState.color_mode = constants.colorModeLookup[1];
                 newState.color = xy.toObject();
                 zclData.colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                 zclData.colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
@@ -1094,7 +1100,7 @@ const converters = {
                 const enhancedHue = utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true);
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
-                newState.color_mode = constants.colorMode[0];
+                newState.color_mode = constants.colorModeLookup[0];
                 newState.color = hsv.toObject(false);
 
                 if (hsv.hue !== null) {
@@ -1221,12 +1227,48 @@ const converters = {
                 mode: value.mode,
                 transitions: value.transitions,
             };
+
+
+            // map array of desired modes to bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let mode = 0;
+                for (let m of payload.mode) {
+                    // lookup mode bit
+                    m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
+                    mode |= (1 << m);
+                }
+                payload.mode = mode;
+            }
+
+            // map array of days to desired dayofweek bitmask
+            if (typeof payload.dayofweek === 'string') payload.dayofweek = [payload.dayofweek];
+            if (Array.isArray(payload.dayofweek)) {
+                let dayofweek = 0;
+                for (let d of payload.dayofweek) {
+                    // lookup dayofweek bit
+                    d = utils.getKey(constants.thermostatDayOfWeek, d.toLowerCase(), d, Number);
+                    dayofweek |= (1 << d);
+                }
+                payload.dayofweek = dayofweek;
+            }
+
             for (const elem of payload['transitions']) {
-                if (typeof elem['heatSetpoint'] == 'number') {
+                if (typeof elem['heatSetpoint'] === 'number') {
                     elem['heatSetpoint'] = Math.round(elem['heatSetpoint'] * 100);
                 }
-                if (typeof elem['coolSetpoint'] == 'number') {
+                if (typeof elem['coolSetpoint'] === 'number') {
                     elem['coolSetpoint'] = Math.round(elem['coolSetpoint'] * 100);
+                }
+
+                // accept 24h time notation (e.g. 19:30)
+                if (typeof elem['transitionTime'] === 'string') {
+                    const time = elem['transitionTime'].split(':');
+                    if ((time.length != 2) || isNaN(time[0]) || isNaN(time[1])) {
+                        meta.logger.warn(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem['transitionTime']}'!`);
+                    } else {
+                        elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
+                    }
                 }
             }
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
@@ -1260,7 +1302,12 @@ const converters = {
             if (val === undefined) {
                 val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             }
-            await entity.write('hvacThermostat', {ctrlSeqeOfOper: val});
+            const attributes = {ctrlSeqeOfOper: val};
+            await entity.write('hvacThermostat', attributes);
+            // NOTE: update the cluster attribute we store as this is used by
+            //       SMaBiT AV2010/32's dynamic expose function.
+            entity.saveClusterAttributeKeyValue('hvacThermostat', attributes);
+            return {readAfterWriteTime: 250, state: {control_sequence_of_operation: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('hvacThermostat', ['ctrlSeqeOfOper']);
@@ -2143,7 +2190,7 @@ const converters = {
         key: ['power_outage_memory'],
         convertSet: async (entity, key, value, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'WS-USC02', 'WS-USC04', 'ZNQBKG31LM',
             ].includes(meta.mapped.model)) {
@@ -2168,7 +2215,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['SP-EUC01', 'ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'SSM-U01', 'SSM-U02', 'DLKZMK11LM', 'DLKZMK12LM',
-                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
+                'WS-EUK01', 'WS-EUK02', 'WS-EUK03', 'WS-EUK04', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM', 'QBKG28LM',
                 'QBKG31LM', 'QBKG34LM', 'QBKG38LM', 'QBKG39LM', 'QBKG40LM', 'QBKG41LM', 'ZNDDMK11LM', 'ZNLDP13LM',
                 'WS-USC02', 'WS-USC04', 'ZNQBKG31LM',
             ].includes(meta.mapped.model)) {
@@ -2281,7 +2328,7 @@ const converters = {
         key: ['led_disabled_night'],
         convertSet: async (entity, key, value, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ14LM', 'QBCZ15LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04'].includes(meta.mapped.model)) {
                 await entity.write('aqaraOpple', {0x0203: {value: value ? 1 : 0, type: 0x10}}, manufacturerOptions.xiaomi);
             } else if (['ZNCZ11LM'].includes(meta.mapped.model)) {
@@ -2297,7 +2344,7 @@ const converters = {
         },
         convertGet: async (entity, key, meta) => {
             if (['ZNCZ04LM', 'ZNCZ12LM', 'ZNCZ15LM', 'QBCZ15LM', 'QBCZ14LM', 'QBKG19LM', 'QBKG20LM', 'QBKG25LM', 'QBKG26LM',
-                'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
+                'QBKG28LM', 'QBKG31LM', 'QBKG34LM', 'DLKZMK11LM', 'SSM-U01', 'WS-EUK01', 'WS-EUK02',
                 'WS-EUK03', 'WS-EUK04'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0203], manufacturerOptions.xiaomi);
             } else {
@@ -2893,7 +2940,7 @@ const converters = {
     danfoss_day_of_week: {
         key: ['day_of_week'],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {'danfossDayOfWeek': utils.getKey(constants.dayOfWeek, value, undefined, Number)};
+            const payload = {'danfossDayOfWeek': utils.getKey(constants.thermostatDayOfWeek, value, undefined, Number)};
             await entity.write('hvacThermostat', payload, manufacturerOptions.danfoss);
             return {readAfterWriteTime: 200, state: {'day_of_week': value}};
         },
@@ -3503,79 +3550,6 @@ const converters = {
             return tuya.sendDataPointRaw(entity, tuya.dataPoints.moesSschedule, payload);
         },
     },
-    haozee_thermostat_preset: {
-        key: ['preset'],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = {'auto': 0, 'manual': 1, 'off': 2, 'on': 3};
-            await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
-        },
-    },
-    haozee_thermostat_system_mode: {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => {
-            // mapping 'heat' system mode to 100% heating (same as preset 'ON'),
-            // mapping 'auto' system mode to heating up to the set point temperature (same as preset 'MANUAL')
-            // mapping 'off' system mode to idle (same as preset 'OFF')
-            // programmed schedule can be enabled by using preset mode 'AUTO' instead of 'MANUAL'
-            const lookup = {'auto': 1, 'off': 2, 'heat': 3};
-            await tuya.sendDataPointEnum(entity, tuya.dataPoints.haozeeSystemMode, lookup[value]);
-        },
-    },
-    haozee_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value, meta) => {
-            const temp = Math.round(value*10);
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeHeatingSetpoint, temp);
-        },
-    },
-    haozee_thermostat_boost_heating: {
-        key: ['boost_heating'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.haozeeBoostHeating, value === 'ON');
-        },
-    },
-    haozee_thermostat_boost_heating_countdown: {
-        key: ['boost_heating_countdown'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeBoostHeatingCountdown, value);
-        },
-    },
-    haozee_thermostat_window_detection: {
-        key: ['window_detection'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.haozeeWindowDetection, value === 'ON');
-        },
-    },
-    haozee_thermostat_child_lock: {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.haozeeChildLock, value === 'LOCK');
-        },
-    },
-    haozee_thermostat_temperature_calibration: {
-        key: ['local_temperature_calibration'],
-        convertSet: async (entity, key, value, meta) => {
-            let temp = Math.round(value * 10);
-            if (temp < 0) {
-                temp = 0xFFFFFFFF + temp + 1;
-            }
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeTempCalibration, temp);
-        },
-    },
-    haozee_thermostat_max_temperature: {
-        key: ['max_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            const temp = Math.round(value*10);
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeMaxTemp, temp);
-        },
-    },
-    haozee_thermostat_min_temperature: {
-        key: ['min_temperature'],
-        convertSet: async (entity, key, value, meta) => {
-            const temp = Math.round(value*10);
-            await tuya.sendDataPointValue(entity, tuya.dataPoints.haozeeMinTemp, temp);
-        },
-    },
     hgkg_thermostat_standby: {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -3633,7 +3607,7 @@ const converters = {
         key: ['brightness', 'color', 'color_temp'],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
-            if (key === 'brightness' && meta.state.color_mode == constants.colorMode[2] &&
+            if (key === 'brightness' && meta.state.color_mode == constants.colorModeLookup[2] &&
                 !meta.message.hasOwnProperty('color') && !meta.message.hasOwnProperty('color_temp')) {
                 const zclData = {level: Number(value), transtime: 0};
 
@@ -3656,7 +3630,7 @@ const converters = {
 
                 const newState = {
                     brightness: zclDataBrightness.level,
-                    color_mode: constants.colorMode[2],
+                    color_mode: constants.colorModeLookup[2],
                     color_temp: meta.message.color_temp,
                 };
 
@@ -3674,7 +3648,7 @@ const converters = {
 
                 const newState = {
                     brightness: zclDataBrightness.level,
-                    color_mode: constants.colorMode[2],
+                    color_mode: constants.colorModeLookup[2],
                     color_temp: value,
                 };
 
@@ -3740,7 +3714,7 @@ const converters = {
                     s: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
                     saturation: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
                 },
-                color_mode: constants.colorMode[0],
+                color_mode: constants.colorModeLookup[0],
             };
 
             return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger),
@@ -5376,12 +5350,12 @@ const converters = {
 
             const addColorMode = (newState) => {
                 if (newState.hasOwnProperty('color_temp')) {
-                    newState.color_mode = constants.colorMode[2];
+                    newState.color_mode = constants.colorModeLookup[2];
                 } else if (newState.hasOwnProperty('color')) {
                     if (newState.color.hasOwnProperty('x')) {
-                        newState.color_mode = constants.colorMode[1];
+                        newState.color_mode = constants.colorModeLookup[1];
                     } else {
-                        newState.color_mode = constants.colorMode[0];
+                        newState.color_mode = constants.colorModeLookup[0];
                     }
                 }
 
@@ -5482,7 +5456,7 @@ const converters = {
                     const xScaled = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
                     const yScaled = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                     extensionfieldsets.push({'clstId': 768, 'len': 4, 'extField': [xScaled, yScaled]});
-                    state['color_mode'] = constants.colorMode[2];
+                    state['color_mode'] = constants.colorModeLookup[2];
                     state['color_temp'] = val;
                 } else if (attribute === 'color') {
                     try {
@@ -5502,7 +5476,7 @@ const converters = {
                                 'extField': [xScaled, yScaled],
                             },
                         );
-                        state['color_mode'] = constants.colorMode[1];
+                        state['color_mode'] = constants.colorModeLookup[1];
                         state['color'] = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
@@ -5530,7 +5504,7 @@ const converters = {
                                 },
                             );
                         }
-                        state['color_mode'] = constants.colorMode[0];
+                        state['color_mode'] = constants.colorModeLookup[0];
                         state['color'] = newColor.hsv.toObject(false, false);
                     }
                 }

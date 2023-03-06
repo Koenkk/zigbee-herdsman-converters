@@ -5,7 +5,6 @@ const reporting = require('../lib/reporting');
 const tuya = require('../lib/tuya');
 const utils = require('../lib/utils');
 const e = exposes.presets;
-const ea = exposes.access;
 
 const fzLocal = {
     // MG-AUZG01 requires multiEndpoint only for on_off
@@ -30,7 +29,7 @@ module.exports = [
         description: 'Double Zigbee power point',
         fromZigbee: [fzLocal.MGAUZG01_on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
         toZigbee: [tz.on_off],
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage().withAccess(ea.STATE),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.power(), e.current(), e.voltage(),
             e.energy()],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};

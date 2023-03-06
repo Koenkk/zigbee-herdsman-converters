@@ -116,6 +116,7 @@ module.exports = [
         vendor: 'Namron',
         description: 'ZigBee dimmer 400W',
         extend: extend.light_onoff_brightness({noConfigure: true}),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);

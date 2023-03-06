@@ -17,7 +17,11 @@ const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'gen
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.lockState(endpoint, lockStateOptions);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryAlarmState(endpoint);
+            try {
+                await reporting.batteryAlarmState(endpoint);
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
+            }
         },
     };
 };
@@ -148,6 +152,34 @@ module.exports = [
         model: 'YRL226 TS',
         vendor: 'Yale',
         description: 'Assure lock SL',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD410 TS'],
+        model: 'YRD410-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD420 TS'],
+        model: 'YRD420-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD430 TS'],
+        model: 'YRD430-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD450 TS'],
+        model: 'YRD450-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
         extend: lockExtend(),
     },
     {

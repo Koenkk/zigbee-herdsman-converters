@@ -246,4 +246,41 @@ module.exports = [
             }
         },
     },
+    {
+        zigbeeModel: ['TI0001-pir'],
+        model: 'TI0001-pir',
+        description: 'Zigbee motion Sensor',
+        vendor: 'Livolo',
+        exposes: [
+            e.occupancy(),
+        ],
+        fromZigbee: [fz.livolo_pir_state],
+        toZigbee: [],
+        configure: poll,
+        onEvent: async (type, data, device) => {
+            if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            }
+            if (['start', 'deviceAnnounce'].includes(type)) {
+                await poll(device);
+                if (!globalStore.hasValue(device, 'interval')) {
+                    const interval = setInterval(async () => await poll(device), 10*1000);
+                    globalStore.putValue(device, 'interval', interval);
+                }
+            }
+            if (data.cluster === 'genPowerCfg' && data.type === 'raw') {
+                const dp = data.data[10];
+                if (data.data[0] === 0x7a && data.data[1] === 0xd1) {
+                    const endpoint = device.getEndpoint(6);
+                    if (dp === 0x01) {
+                        const options = {manufacturerCode: 0x1ad2, disableDefaultResponse: true, disableResponse: true,
+                            reservedBits: 3, direction: 1, writeUndiv: true};
+                        const payload = {0x2002: {value: [0, 0, 0, 0, 0, 0, 0], type: 0x0e}};
+                        await endpoint.readResponse('genPowerCfg', 0xe9, payload, options);
+                    }
+                }
+            }
+        },
+    },
 ];

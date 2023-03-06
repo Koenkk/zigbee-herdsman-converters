@@ -12,7 +12,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 const herdsman = require('zigbee-herdsman');
 const {
-    calibrateAndPrecisionRoundOptions, postfixWithEndpointName, getMetaValue,
+    calibrateAndPrecisionRoundOptions, postfixWithEndpointName, getMetaValue, precisionRound,
 } = require('../lib/utils');
 
 const bulbOnEvent = async (type, data, device, options, state) => {
@@ -70,39 +70,6 @@ const configureRemote = async (device, coordinatorEndpoint, logger) => {
     await endpoint.bind('genOnOff', bindTarget);
     await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
     await reporting.batteryPercentageRemaining(endpoint);
-};
-
-const fzLocal = {
-    // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13335
-    STYRBAR_on: {
-        cluster: 'genOnOff',
-        type: 'commandOn',
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
-            if (arrowReleaseAgo > 700) {
-                return {action: 'on'};
-            }
-        },
-    },
-    STYRBAR_arrow_release: {
-        cluster: 'genScenes',
-        type: 'commandTradfriArrowRelease',
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
-            const direction = globalStore.getValue(msg.endpoint, 'direction');
-            if (direction) {
-                globalStore.clearValue(msg.endpoint, 'direction');
-                const duration = msg.data.value / 1000;
-                const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
-                if (!utils.isLegacyEnabled(options)) delete result.duration;
-                return result;
-            }
-        },
-    },
 };
 
 const tradfriExtend = {
@@ -212,6 +179,70 @@ const ikea = {
                 }
 
                 return state;
+            },
+        },
+        ikea_voc_index: {
+            cluster: 'msIkeaVocIndexMeasurement',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.hasOwnProperty('measuredValue')) {
+                    return {voc_index: msg.data['measuredValue']};
+                }
+            },
+        },
+        battery: {
+            cluster: 'genPowerCfg',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const payload = {};
+                if (msg.data.hasOwnProperty('batteryPercentageRemaining') && (msg.data['batteryPercentageRemaining'] < 255)) {
+                    // Some devices do not comply to the ZCL and report a
+                    // batteryPercentageRemaining of 100 when the battery is full (should be 200).
+                    //
+                    // IKEA corrected this on newer remote fw version, but many people are still
+                    // 2.2.010 which is the last version supporting group bindings. We try to be
+                    // smart and pick the correct one for IKEA remotes.
+                    let dontDividePercentage = false;
+                    let percentage = msg.data['batteryPercentageRemaining'];
+                    const fwVer = meta.device.softwareBuildID.split('.');
+                    if ((fwVer[0] < 2) || (fwVer[0] == 2 && fwVer[1] <= 3)) {
+                        dontDividePercentage = true;
+                    }
+                    percentage = dontDividePercentage ? percentage : percentage / 2;
+                    payload.battery = precisionRound(percentage, 2);
+                }
+
+                return payload;
+            },
+        },
+        // The STYRBAR sends an on +- 500ms after the arrow release. We don't want to send the ON action in this case.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/13335
+        styrbar_on: {
+            cluster: 'genOnOff',
+            type: 'commandOn',
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const arrowReleaseAgo = Date.now() - globalStore.getValue(msg.endpoint, 'arrow_release', 0);
+                if (arrowReleaseAgo > 700) {
+                    return {action: 'on'};
+                }
+            },
+        },
+        styrbar_arrow_release: {
+            cluster: 'genScenes',
+            type: 'commandTradfriArrowRelease',
+            options: [exposes.options.legacy()],
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                globalStore.putValue(msg.endpoint, 'arrow_release', Date.now());
+                const direction = globalStore.getValue(msg.endpoint, 'direction');
+                if (direction) {
+                    globalStore.clearValue(msg.endpoint, 'direction');
+                    const duration = msg.data.value / 1000;
+                    const result = {action: `arrow_${direction}_release`, duration, action_duration: duration};
+                    if (!utils.isLegacyEnabled(options)) delete result.duration;
+                    return result;
+                }
             },
         },
     },
@@ -406,10 +437,10 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm'],
+        zigbeeModel: ['TRADFRI bulb E14 WS globe 470lm', 'TRADFRI bulb E12 WS globe 450lm'],
         model: 'LED2101G4',
         vendor: 'IKEA',
-        description: 'TRADFRI bulb E14 WS globe 470lm, dimmable, white spectrum, opal white',
+        description: 'TRADFRI bulb E12/E14 WS globe 450/470 lumen, dimmable, white spectrum, opal white',
         extend: tradfriExtend.light_onoff_brightness_colortemp(),
     },
     {
@@ -543,6 +574,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (10 watt)',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['TRADFRI transformer 30W', 'TRADFRI Driver 30W'],
@@ -550,6 +582,7 @@ module.exports = [
         vendor: 'IKEA',
         description: 'TRADFRI driver for wireless control (30 watt)',
         extend: tradfriExtend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['SILVERGLANS IP44 LED driver'],
@@ -623,12 +656,12 @@ module.exports = [
         model: 'E1524/E1810',
         description: 'TRADFRI remote control',
         vendor: 'IKEA',
-        fromZigbee: [fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
+        fromZigbee: [ikea.fz.battery, fz.E1524_E1810_toggle, fz.E1524_E1810_levelctrl, fz.ikea_arrow_click, fz.ikea_arrow_hold,
             fz.ikea_arrow_release],
-        exposes: [e.battery(), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release', 'arrow_right_click',
-            'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold', 'brightness_down_release',
-            'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
-        toZigbee: [],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['arrow_left_click', 'arrow_left_hold', 'arrow_left_release',
+            'arrow_right_click', 'arrow_right_hold', 'arrow_right_release', 'brightness_down_click', 'brightness_down_hold',
+            'brightness_down_release', 'brightness_up_click', 'brightness_up_hold', 'brightness_up_release', 'toggle'])],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
         // dontDividePercentage: true not needed with latest firmware
         // https://github.com/Koenkk/zigbee2mqtt/issues/16412
@@ -639,18 +672,21 @@ module.exports = [
         model: 'E2001/E2002',
         vendor: 'IKEA',
         description: 'STYRBAR remote control',
-        fromZigbee: [fz.battery, fzLocal.STYRBAR_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
-            fz.ikea_arrow_hold, fzLocal.STYRBAR_arrow_release],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
+        fromZigbee: [ikea.fz.battery, ikea.fz.styrbar_on, fz.command_off, fz.command_move, fz.command_stop, fz.ikea_arrow_click,
+            fz.ikea_arrow_hold, ikea.fz.styrbar_arrow_release],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down',
             'brightness_stop', 'arrow_left_click', 'arrow_right_click', 'arrow_left_hold',
             'arrow_right_hold', 'arrow_left_release', 'arrow_right_release'])],
-        toZigbee: [],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            const version = device.softwareBuildID.split('.').map((n) => Number(n));
+            // https://github.com/Koenkk/zigbee2mqtt/issues/15725
+            const v245OrLater = version[0] > 2 || (version[0] == 2 && version[1] >= 4);
+            const binds = v245OrLater ? ['genPowerCfg', 'genOnOff', 'genLevelCtrl', 'genScenes'] : ['genPowerCfg'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
@@ -659,12 +695,16 @@ module.exports = [
         model: 'E1743',
         vendor: 'IKEA',
         description: 'TRADFRI ON/OFF switch',
-        fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.command_move, fz.battery,
-            fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop, fz.legacy.E1743_brightness_stop],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop'])],
-        toZigbee: [],
+        fromZigbee: [fz.command_on, fz.legacy.genOnOff_cmdOn, fz.command_off, fz.legacy.genOnOff_cmdOff, fz.command_move,
+            ikea.fz.battery, fz.legacy.E1743_brightness_up, fz.legacy.E1743_brightness_down, fz.command_stop,
+            fz.legacy.E1743_brightness_stop],
+        exposes: [
+            e.battery().withAccess(ea.STATE_GET),
+            e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
+        ],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: configureRemote,
     },
     {
@@ -672,11 +712,11 @@ module.exports = [
         model: 'E1841',
         vendor: 'IKEA',
         description: 'KNYCKLAN open/close remote water valve',
-        fromZigbee: [fz.command_on, fz.command_off, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'off'])],
-        toZigbee: [],
+        fromZigbee: [fz.command_on, fz.command_off, ikea.fz.battery],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off'])],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: configureRemote,
     },
     {
@@ -699,11 +739,11 @@ module.exports = [
         model: 'E1812',
         vendor: 'IKEA',
         description: 'TRADFRI shortcut button',
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
-        toZigbee: [],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, ikea.fz.battery],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['on', 'off', 'brightness_move_up', 'brightness_stop'])],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
-        meta: {disableActionGroup: true, battery: {dontDividePercentage: true}},
+        meta: {disableActionGroup: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             // Binding genOnOff is not required to make device send events.
             const endpoint = device.getEndpoint(1);
@@ -733,7 +773,7 @@ module.exports = [
         model: 'E1525/E1745',
         vendor: 'IKEA',
         description: 'TRADFRI motion sensor',
-        fromZigbee: [fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
+        fromZigbee: [ikea.fz.battery, fz.tradfri_occupancy, fz.E1745_requested_brightness],
         toZigbee: [],
         exposes: [e.battery(), e.occupancy(),
             exposes.numeric('requested_brightness_level', ea.STATE).withValueMin(76).withValueMax(254),
@@ -741,7 +781,6 @@ module.exports = [
             exposes.binary('illuminance_above_threshold', ea.STATE, true, false)
                 .withDescription('Indicates whether the device detected bright light (works only in night mode)')],
         ota: ota.tradfri,
-        meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
@@ -771,9 +810,8 @@ module.exports = [
         model: 'E1757',
         vendor: 'IKEA',
         description: 'FYRTUR roller blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -781,16 +819,15 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['KADRILJ roller blind'],
         model: 'E1926',
         vendor: 'IKEA',
         description: 'KADRILJ roller blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -798,16 +835,15 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['PRAKTLYSING cellular blind'],
         model: 'E2102',
         vendor: 'IKEA',
         description: 'PRAKTLYSING cellular blind',
-        fromZigbee: [fz.cover_position_tilt, fz.battery],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {battery: {dontDividePercentage: true}},
+        fromZigbee: [fz.cover_position_tilt, ikea.fz.battery],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -815,7 +851,7 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.currentPositionLiftPercentage(endpoint);
         },
-        exposes: [e.cover_position(), e.battery()],
+        exposes: [e.cover_position(), e.battery().withAccess(ea.STATE_GET)],
     },
     {
         zigbeeModel: ['TREDANSEN block-out cellul blind'],
@@ -839,11 +875,10 @@ module.exports = [
         model: 'E1766',
         vendor: 'IKEA',
         description: 'TRADFRI open/close remote',
-        fromZigbee: [fz.battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
+        fromZigbee: [ikea.fz.battery, fz.command_cover_close, fz.legacy.cover_close, fz.command_cover_open, fz.legacy.cover_open,
             fz.command_cover_stop, fz.legacy.cover_stop],
-        exposes: [e.battery(), e.action(['close', 'open', 'stop'])],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['close', 'open', 'stop'])],
+        toZigbee: [tz.battery_percentage_remaining],
         ota: ota.tradfri,
         configure: configureRemote,
     },
@@ -981,6 +1016,13 @@ module.exports = [
         extend: tradfriExtend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['STOFTMOLN ceiling/wall lamp WW10'],
+        model: 'T2105',
+        vendor: 'IKEA',
+        description: 'STOFTMOLN ceiling/wall lamp 10 warm light dimmable',
+        extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['TRADFRIbulbPAR38WS900lm'],
         model: 'LED2006R9',
         vendor: 'IKEA',
@@ -993,5 +1035,35 @@ module.exports = [
         vendor: 'IKEA',
         description: 'PILSKOTT LED floor lamp',
         extend: tradfriExtend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['VINDSTYRKA'],
+        model: 'E2112',
+        vendor: 'IKEA',
+        description: 'Vindstyrka air quality and humidity sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.pm25, ikea.fz.ikea_voc_index],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index().withDescription('Sensirion VOC index')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint,
+                ['msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement', 'msIkeaVocIndexMeasurement']);
+            await ep.configureReporting('msTemperatureMeasurement', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
+            }]);
+            await ep.configureReporting('msRelativeHumidity', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
+            }]);
+            await ep.configureReporting('pm25Measurement', [{
+                attribute: 'measuredValueIkea',
+                minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 2,
+            }]);
+            await ep.configureReporting('msIkeaVocIndexMeasurement', [{
+                attribute: 'measuredValue',
+                minimumReportInterval: 60, maximumReportInterval: 120,
+            }]);
+        },
     },
 ];

@@ -116,6 +116,13 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     {
+        zigbeeModel: ['FWBulb51AU'],
+        model: 'AU-A1GSZ9B/27',
+        vendor: 'Aurora Lighting',
+        description: 'AOne 9W smart GLS B22',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['FWGU10Bulb50AU', 'FWGU10Bulb01UK'],
         model: 'AU-A1GUZB5/30',
         vendor: 'Aurora Lighting',

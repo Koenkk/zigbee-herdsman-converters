@@ -6,7 +6,7 @@ const e = exposes.presets;
 
 module.exports = [
     {
-        zigbeeModel: ['HK-DIM-A'],
+        zigbeeModel: ['HK-DIM-A', 'Candeo Zigbee Dimmer'],
         model: 'HK-DIM-A',
         vendor: 'Candeo',
         description: 'Zigbee LED dimmer smart switch',
