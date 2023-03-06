@@ -452,7 +452,7 @@ module.exports = [
                         const time = Math.round(((new Date()).getTime() - constants.OneJanuary2000) / 1000 + ((new Date())
                             .getTimezoneOffset() * -1) * 60);
                         const values = {time: time};
-                        endpoint.write('genTime', values);
+                        await endpoint.write('genTime', values);
                     } catch (error) {/* Do nothing*/}
                 }, hours24);
                 globalStore.putValue(device, 'time', interval);
