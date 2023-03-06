@@ -1789,6 +1789,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['LWV007'],
+        model: '9290030523',
+        vendor: 'Philips',
+        description: 'Hue white filament Edison ST72 LED',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['5055148P7'],
         model: '5055148P7',
         vendor: 'Philips',
