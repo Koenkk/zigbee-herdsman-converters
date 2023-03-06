@@ -1793,7 +1793,7 @@ module.exports = [
         model: '9290030523',
         vendor: 'Philips',
         description: 'Hue white filament Edison ST72 LED',
-        extend: extend.light_onoff_brightness(),
+        extend: philips.extend.light_onoff_brightness(),
     },
     {
         zigbeeModel: ['5055148P7'],
