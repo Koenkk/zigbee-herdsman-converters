@@ -1057,14 +1057,14 @@ module.exports = [
         zigbeeModel: ['929003046801'],
         model: '33850000',
         vendor: 'Philips',
-        description: 'Philips Hue White Amb. Pillar Spot (1 Spot)',
+        description: 'Philips Hue white ambiance pillar spot (1 spot)',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
         zigbeeModel: ['5633231P6'],
         model: '915005916901',
         vendor: 'Philips',
-        description: 'Philips Hue White Amb. Pillar Double Spot (2 Spot) with BT',
+        description: 'Philips Hue white ambiance pillar double spot (2 spot) with Bluetooth',
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
