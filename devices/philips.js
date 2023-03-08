@@ -1047,6 +1047,27 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['3418031P6', '929003056301', '929003056301_01', '929003056301_02', '929003056301_03'],
+        model: '3418031P6',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore GU10 with Bluetooth (3 spots)',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['929003046801'],
+        model: '33850000',
+        vendor: 'Philips',
+        description: 'Philips Hue white ambiance pillar spot (1 spot)',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
+        zigbeeModel: ['5633231P6'],
+        model: '915005916901',
+        vendor: 'Philips',
+        description: 'Philips Hue white ambiance pillar double spot (2 spot) with Bluetooth',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['3417711P6'],
         model: '3417711P6',
         vendor: 'Philips',
