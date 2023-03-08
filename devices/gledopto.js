@@ -152,6 +152,10 @@ module.exports = [
                 {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
                 {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
             ]},
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
+                {ID: 11, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [25]},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+            ]},
         ],
         model: 'GL-C-007-1ID', // 1 ID controls white and color together
         // Only enable disableDefaultResponse for the second fingerprint:
