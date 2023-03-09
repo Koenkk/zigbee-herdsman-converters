@@ -210,7 +210,7 @@ module.exports = [
         zigbeeModel: ['929002376901'],
         model: '929002376901',
         vendor: 'Philips',
-        description: 'Hue Iris White',
+        description: 'Hue Iris white',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
