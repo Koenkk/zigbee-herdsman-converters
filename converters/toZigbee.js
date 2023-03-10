@@ -1229,16 +1229,19 @@ const converters = {
             if (Array.isArray(payload.transitions)) {
                 // calculate numoftrans
                 if (typeof value.numoftrans !== 'undefined') {
-                    meta.logger.warn(`weekly_schedule: igonoring provided numoftrans value (${JSON.stringify(value.numoftrans)}),\
-                         this is now calculated automatically`);
+                    meta.logger.warn(
+                        `weekly_schedule: ignoring provided numoftrans value (${JSON.stringify(value.numoftrans)}), ` +
+                        'this is now calculated automatically',
+                    );
                 }
                 payload.numoftrans = payload.transitions.length;
 
                 // mode is calculated below
                 if (typeof value.mode !== 'undefined') {
                     meta.logger.warn(
-                        `weekly_schedule: igonoring provided mode value (${JSON.stringify(value.mode)}),\
-                         this is now calculated automatically`);
+                        `weekly_schedule: ignoring provided mode value (${JSON.stringify(value.mode)}), ` +
+                        'this is now calculated automatically',
+                    );
                 }
                 payload.mode = [];
 
@@ -1270,6 +1273,27 @@ const converters = {
                         } else {
                             elem['transitionTime'] = ((parseInt(time[0]) * 60) + parseInt(time[1]));
                         }
+                    } else if (typeof elem['transitionTime'] === 'object') {
+                        if (!elem['transitionTime'].hasOwnProperty('hour') || !elem['transitionTime'].hasOwnProperty('minute')) {
+                            throw new Error(
+                                'weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), ' +
+                                `but got '${JSON.stringify(elem['transitionTime'])}'!`,
+                            );
+                        } else if (isNaN(elem['transitionTime']['hour'])) {
+                            throw new Error(
+                                'weekly_schedule: expected time.hour to be a number, ' +
+                                `but got '${elem['transitionTime']['hour']}'!`,
+                            );
+                        } else if (isNaN(elem['transitionTime']['minute'])) {
+                            throw new Error(
+                                'weekly_schedule: expected time.minute to be a number, ' +
+                                `but got '${elem['transitionTime']['minute']}'!`,
+                            );
+                        } else {
+                            elem['transitionTime'] = (
+                                (parseInt(elem['transitionTime']['hour']) * 60) + parseInt(elem['transitionTime']['minute'])
+                            );
+                        }
                     }
                 }
             } else {
@@ -1298,6 +1322,7 @@ const converters = {
                 payload.dayofweek = dayofweek;
             }
 
+            meta.logger.error(JSON.stringify(payload));
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
