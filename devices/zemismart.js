@@ -7,6 +7,12 @@ const e = exposes.presets;
 const tuya = require('../lib/tuya');
 const ea = exposes.access;
 
+const dataPointsLocal = {
+    battery: 13,
+    border: 16,
+    clickControl: 20,
+};
+
 const fzLocal = {
     ZMRM02: {
         cluster: 'manuSpecificTuya',
@@ -24,88 +30,86 @@ const fzLocal = {
             }
         },
     },
-		ZM16EL: {
-				cluster: 'manuSpecificTuya',
-				type: ['commandDataReport'],
-				options: [exposes.options.invert_cover()],
-				convert: (model, msg, publish, options, meta) => {
-						const dpValue = tuya.firstDpValue(msg, meta, 'ZM16EL');
-						const dp = dpValue.dp;
-						const value = tuya.getDataValue(dpValue);
-					
-						switch (dp) {
-								case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-								case tuya.dataPoints.coverArrived: { // Arrived at position
-										const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-										const position = invert ? 100 - (value & 0xff) : value & 0xff;
-									
-										if (position > 0 && position <= 100) {
-												return { 'position': position, 'state': 'OPEN' };
-										} else if (position == 0) {
-												return { 'position': position, 'state': 'CLOSE' };
-										} else {
-												// result.running = running; // Not calibrated yet, no position is available
-										}
-								}
-								break;
-							case tuya.dataPoints.state:
-									return { 'state': { 'open': 0, 'stop': 1, 'close': 2 }[value] };
-									break;
-							case tuya.dataPoints.motorDirection:
-									return { 'motorDirection': value };
-									break;
-							case dataPointsLocal.battery:
-									return { 'battery': value };
-									break;
-							case dataPointsLocal.clickControl:
-									return { 'clickControl': value };
-									break;
-							default:
-									meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) fz : Unhandled DP #${dp} for ${meta.device.manufacturerName}:
-													${JSON.stringify(value)}`);
-					}
-				}
-		},
+    ZM16EL: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = tuya.firstDpValue(msg, meta, 'ZM16EL');
+            const dp = dpValue.dp;
+            const value = tuya.getDataValue(dpValue);
+
+            switch (dp) {
+            case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
+            case tuya.dataPoints.coverArrived: { // Arrived at position
+                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
+                const position = invert ? 100 - (value & 0xff) : value & 0xff;
+
+                if (position > 0 && position <= 100) {
+                    return {'position': position, 'state': 'OPEN'};
+                } else if (position == 0) {
+                    return {'position': position, 'state': 'CLOSE'};
+                } else {
+                    // result.running = running; // Not calibrated yet, no position is available
+                }
+            }
+                break;
+            case tuya.dataPoints.state:
+                return {'state': {'open': 0, 'stop': 1, 'close': 2}[value]};
+            case tuya.dataPoints.motorDirection:
+                return {'motorDirection': value};
+            case dataPointsLocal.battery:
+                return {'battery': value};
+            case dataPointsLocal.clickControl:
+                return {'clickControl': value};
+            default:
+                meta.logger.warn(`Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                                 ${JSON.stringify(value)}`);
+            }
+        },
+    },
 };
 
 const tzLocal = {
-		ZM16EL: {
-				key: ['state', 'position', 'border', 'options', 'click_control'],
-				options: [exposes.options.invert_cover()],
-				convertSet: async (entity, key, value, meta) => {
-						switch (key) {
-								case 'state':
-										await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, { 'open': 0, 'stop': 1, 'close': 2 }[value.toLowerCase()]);
-										break;
-								case 'position':
-										const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
-										const position = invert ? 100 - (value & 0xff) : value & 0xff;
+    ZM16EL: {
+        key: ['state', 'position', 'border', 'options', 'click_control'],
+        options: [exposes.options.invert_cover()],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'state':
+                await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, {'open': 0, 'stop': 1, 'close': 2}[value.toLowerCase()]);
+                break;
+            case 'position': {
+                const invert = tuya.isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
+                const position = invert ? 100 - (value & 0xff) : value & 0xff;
 
-										await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, position);
-										break;
-								case 'border':
-										await tuya.sendDataPointEnum(entity, dataPointsLocal.border, { 'up': 0, 'down': 1, 'up_delete': 2, 'down_delete': 3, 'remove_top_bottom': 4 }[value]);
-										break;
-								case 'options':
-										if (value.reverse_direction != undefined) {
-												if (value.reverse_direction) {
-														meta.logger.info('Motor direction reverse');
-														await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 1);
-												} else {
-														meta.logger.info('Motor direction forward');
-														await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 0);
-												}
-										}
-										break;
-								case 'click_control':
-										await tuya.sendDataPointEnum(entity, dataPointsLocal.clickControl, { 'up': 0, 'down': 1 }[value]);
-										break;
-								default:
-										meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) tz: Unhandled key #${key} for ${meta.device.manufacturerName}:
-														${JSON.stringify(value)}`);
-						}
-				}
-		},
+                await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, position);
+                break;
+            }
+            case 'border':
+                await tuya.sendDataPointEnum(entity, dataPointsLocal.border,
+                    {'down': 1, 'up_delete': 2, 'down_delete': 3, 'remove_top_bottom': 4}[value]);
+                break;
+            case 'options':
+                if (value.reverse_direction != undefined) {
+                    if (value.reverse_direction) {
+                        meta.logger.info('Motor direction reverse');
+                        await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 1);
+                    } else {
+                        meta.logger.info('Motor direction forward');
+                        await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, 0);
+                    }
+                }
+                break;
+            case 'click_control':
+                await tuya.sendDataPointEnum(entity, dataPointsLocal.clickControl, {'up': 0, 'down': 1}[value]);
+                break;
+            default:
+                meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) tz: Unhandled key #${key} for ${meta.device.manufacturerName}:
+                                    ${JSON.stringify(value)}`);
+            }
+        },
+    },
 };
 
 module.exports = [
@@ -333,27 +337,22 @@ module.exports = [
             device.save();
         },
     },
-		{
-				fingerprint: [
-						{
-								modelID: 'TS0601',
-								manufacturerName: '_TZE200_68nvbio9',
-						},
-				],
-				model: 'ZM16EL-03/33',
-				vendor: 'Zemismart',
-				description: 'Smart tubular motor',
-				fromZigbee: [fzLocal.ZM16EL, fz.ignore_basic_report],
-				toZigbee: [tzLocal.ZM16EL],
-				exposes: [
-						e.battery(),
-						e.cover_position().setAccess('position', ea.STATE_SET),
-						exposes.composite('options', 'options', ea.STATE_SET)
-								.withFeature(exposes.binary('reverse_direction', ea.STATE_SET, true, false)
-										.withDescription('Reverse the motor direction')),
-						exposes.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
-						exposes.enum('click_control', ea.STATE_SET, ['up', 'down'])
-								.withDescription('Single motor steps'),
-				],
-		},
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'}],
+        model: 'ZM16EL-03/33',
+        vendor: 'Zemismart',
+        description: 'Smart tubular motor',
+        fromZigbee: [fzLocal.ZM16EL, fz.ignore_basic_report],
+        toZigbee: [tzLocal.ZM16EL],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.composite('options', 'options', ea.STATE_SET)
+                .withFeature(exposes.binary('reverse_direction', ea.STATE_SET, true, false)
+                    .withDescription('Reverse the motor direction')),
+            exposes.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
+            exposes.enum('click_control', ea.STATE_SET, ['up', 'down'])
+                .withDescription('Single motor steps'),
+        ],
+    },
 ];
