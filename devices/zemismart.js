@@ -7,6 +7,12 @@ const e = exposes.presets;
 const tuya = require('../lib/tuya');
 const ea = exposes.access;
 
+const dataPointsLocal = {
+	battery: 13,
+	border: 16,
+	clickControl: 20,
+};
+
 const fzLocal = {
     ZMRM02: {
         cluster: 'manuSpecificTuya',
