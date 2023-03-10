@@ -61,7 +61,7 @@ const fzLocal = {
 									return { 'clickControl': value };
 									break;
 							default:
-									meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) fz : Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+									meta.logger.warn(`ZM16EL-03/33 : Unhandled DP #${dp} for ${meta.device.manufacturerName}:
 													${JSON.stringify(value)}`);
 					}
 				}
@@ -101,7 +101,7 @@ const tzLocal = {
 										await tuya.sendDataPointEnum(entity, dataPointsLocal.clickControl, { 'up': 0, 'down': 1 }[value]);
 										break;
 								default:
-										meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) tz: Unhandled key #${key} for ${meta.device.manufacturerName}:
+										meta.logger.warn(`ZM16EL-03/33 : Unhandled key #${key} for ${meta.device.manufacturerName}:
 														${JSON.stringify(value)}`);
 						}
 				}
