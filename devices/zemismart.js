@@ -105,7 +105,7 @@ const tzLocal = {
                 await tuya.sendDataPointEnum(entity, dataPointsLocal.clickControl, {'up': 0, 'down': 1}[value]);
                 break;
             default:
-                meta.logger.warn(`ZM16EL03(0x540f57fffe7bdf79) tz: Unhandled key #${key} for ${meta.device.manufacturerName}:
+                meta.logger.warn(`Unhandled key #${key} for ${meta.device.manufacturerName}:
                                     ${JSON.stringify(value)}`);
             }
         },
