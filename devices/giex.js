@@ -1,8 +1,7 @@
 const exposes = require('../lib/exposes');
 const tuya = require('../lib/tuya');
 
-const ep = exposes.presets;
-const ea = exposes.access;
+const {presets: ep, access: ea} = exposes;
 
 const CAPACITY = 'capacity';
 const DURATION = 'duration';
@@ -53,43 +52,43 @@ const dataPoints = {
 };
 
 const fzLocal = {
-    giexWaterValve: (timezone) =>
-        ({
-            cluster: 'manuSpecificTuya',
-            type: ['commandDataResponse', 'commandDataReport'],
-            convert: (model, msg, publish, options, meta) => {
-                for (const dpValue of msg.data.dpValues) {
-                    const value = tuya.getDataValue(dpValue);
-                    const dp = dpValue.dp;
-                    switch (dp) {
-                    case dataPoints.giexWaterValve.state:
-                        return {[keys.giexWaterValve.state]: value ? ON: OFF};
-                    case dataPoints.giexWaterValve.mode:
-                        return {[keys.giexWaterValve.mode]: value ? CAPACITY: DURATION};
-                    case dataPoints.giexWaterValve.irrigationTarget:
-                        return {[keys.giexWaterValve.irrigationTarget]: value};
-                    case dataPoints.giexWaterValve.cycleIrrigationNumTimes:
-                        return {[keys.giexWaterValve.cycleIrrigationNumTimes]: value};
-                    case dataPoints.giexWaterValve.cycleIrrigationInterval:
-                        return {[keys.giexWaterValve.cycleIrrigationInterval]: value};
-                    case dataPoints.giexWaterValve.waterConsumed:
-                        return {[keys.giexWaterValve.waterConsumed]: value};
-                    case dataPoints.giexWaterValve.irrigationStartTime:
-                        return {[keys.giexWaterValve.irrigationStartTime]: timezone ? toLocalTime(value, timezone) : value};
-                    case dataPoints.giexWaterValve.irrigationEndTime:
-                        return {[keys.giexWaterValve.irrigationEndTime]: timezone ? toLocalTime(value, timezone) : value};
-                    case dataPoints.giexWaterValve.lastIrrigationDuration:
-                        return {[keys.giexWaterValve.lastIrrigationDuration]: value.split(',').shift()}; // Remove meaningless ,0 suffix
-                    case dataPoints.giexWaterValve.battery:
-                        return {[keys.giexWaterValve.battery]: value};
-                    case dataPoints.giexWaterValve.currentTemperature:
-                        return; // Do Nothing - value ignored because it isn't a valid temperature reading (misdocumented and usage unclear)
-                    default: // Unknown data point warning
-                        meta.logger.warn(`fzLocal.giexWaterValve: Unrecognized DP #${dp} with VALUE = ${value}`);
-                    }
+    giexWaterValve: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const {timezone} = model;
+            for (const dpValue of msg.data.dpValues) {
+                const value = tuya.getDataValue(dpValue);
+                const dp = dpValue.dp;
+                switch (dp) {
+                case dataPoints.giexWaterValve.state:
+                    return {[keys.giexWaterValve.state]: value ? ON: OFF};
+                case dataPoints.giexWaterValve.mode:
+                    return {[keys.giexWaterValve.mode]: value ? CAPACITY: DURATION};
+                case dataPoints.giexWaterValve.irrigationTarget:
+                    return {[keys.giexWaterValve.irrigationTarget]: value};
+                case dataPoints.giexWaterValve.cycleIrrigationNumTimes:
+                    return {[keys.giexWaterValve.cycleIrrigationNumTimes]: value};
+                case dataPoints.giexWaterValve.cycleIrrigationInterval:
+                    return {[keys.giexWaterValve.cycleIrrigationInterval]: value};
+                case dataPoints.giexWaterValve.waterConsumed:
+                    return {[keys.giexWaterValve.waterConsumed]: value};
+                case dataPoints.giexWaterValve.irrigationStartTime:
+                    return {[keys.giexWaterValve.irrigationStartTime]: timezone ? toLocalTime(value, timezone) : value};
+                case dataPoints.giexWaterValve.irrigationEndTime:
+                    return {[keys.giexWaterValve.irrigationEndTime]: timezone ? toLocalTime(value, timezone) : value};
+                case dataPoints.giexWaterValve.lastIrrigationDuration:
+                    return {[keys.giexWaterValve.lastIrrigationDuration]: value.split(',').shift()}; // Remove meaningless ,0 suffix
+                case dataPoints.giexWaterValve.battery:
+                    return {[keys.giexWaterValve.battery]: value};
+                case dataPoints.giexWaterValve.currentTemperature:
+                    return; // Do Nothing - value ignored because it isn't a valid temperature reading (misdocumented and usage unclear)
+                default: // Unknown data point warning
+                    meta.logger.warn(`fzLocal.giexWaterValve: Unrecognized DP #${dp} with VALUE = ${value}`);
                 }
-            },
-        }),
+            }
+        },
+    },
 };
 
 const tzLocal = {
@@ -131,6 +130,7 @@ const exportTemplates = {
         vendor: 'GiEX',
         description: 'Water irrigation valve',
         onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [fzLocal.giexWaterValve],
         toZigbee: [tzLocal.giexWaterValve],
         exposes: [
             ep.battery(),
@@ -163,7 +163,6 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
         ],
-        fromZigbee: [fzLocal.giexWaterValve()],
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
             exposes.numeric(keys.giexWaterValve.irrigationTarget, ea.STATE_SET)
@@ -185,7 +184,7 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
         ],
-        fromZigbee: [fzLocal.giexWaterValve('+08:00')],
+        timezone: '+08:00',
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
             exposes.numeric(keys.giexWaterValve.irrigationTarget, ea.STATE_SET)
