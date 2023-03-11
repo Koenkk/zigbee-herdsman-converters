@@ -742,7 +742,7 @@ module.exports = [
         model: 'MCCGQ13LM',
         vendor: 'Xiaomi',
         description: 'Aqara P1 door & window contact sensor',
-        fromZigbee: [fz. xiaomi_contact, fz.ias_contact_alarm_1, fz.aqara_opple],
+        fromZigbee: [fz.xiaomi_contact, fz.ias_contact_alarm_1, fz.aqara_opple],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
