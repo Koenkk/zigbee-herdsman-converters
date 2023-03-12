@@ -49,7 +49,7 @@ const displayOrientation = {
 // Radiator Thermostat II
 const tzLocal = {
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode'],
+        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 value = value.toUpperCase();
@@ -79,6 +79,11 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x4007: {value: opMode, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {system_mode: value}};
             }
+            if (key === 'pi_heating_demand') {
+                let heatingDemand = value;
+                await entity.write('hvacThermostat', {0x4020: {value: heatingDemand, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                return {state: {pi_heating_demand: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -90,6 +95,9 @@ const tzLocal = {
                 break;
             case 'system_mode':
                 await entity.read('hvacThermostat', [0x4007], boschManufacturer);
+                break;
+            case 'pi_heating_demand':
+                await entity.read('hvacThermostat', [0x4020], boschManufacturer);
                 break;
 
             default: // Unknown key
