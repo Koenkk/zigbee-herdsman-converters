@@ -159,7 +159,7 @@ module.exports = [
     // _TZE200_a7sghmms uses seconds, timezone is local
     {
         ...exportTemplates.giexWaterValve,
-        model: 'QT06 (a7sghmms)',
+        model: 'QT06_1',
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
         ],
@@ -180,7 +180,7 @@ module.exports = [
     // _TZE200_sh1btabb uses minutes, timezone is GMT+8
     {
         ...exportTemplates.giexWaterValve,
-        model: 'QT06 (sh1btabb)',
+        model: 'QT06_2',
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
         ],
