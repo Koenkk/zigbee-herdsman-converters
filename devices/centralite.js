@@ -270,7 +270,7 @@ module.exports = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
