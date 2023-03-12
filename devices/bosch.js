@@ -66,7 +66,7 @@ const tzLocal = {
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
-                // Map system_mode (Off/Auto/Heat) to Boschg operating mode
+                // Map system_mode (Off/Auto/Heat) to Bosch operating mode
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
