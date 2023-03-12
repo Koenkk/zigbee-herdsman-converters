@@ -11,6 +11,13 @@ const extend = {switch: require('../lib/extend').switch};
 
 module.exports = [
     {
+        zigbeeModel: ['LWO007'],
+        model: '9290030521',
+        vendor: 'Philips',
+        description: 'Hue white G125 B22 LED bulb filament giant globe',
+        extend: philips.extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['929003055801'],
         model: '929003055801',
         vendor: 'Philips',
