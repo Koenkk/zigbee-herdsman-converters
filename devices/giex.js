@@ -15,7 +15,7 @@ const toLocalTime = (time, timezone) => {
         return time;
     }
 
-    const local = new Date(`1970-01-01T${time}.000${timezone}`);
+    const local = new Date(`2000-01-01T${time}.000${timezone}`); // Using 1970 instead produces edge cases
     return local.toTimeString().split(' ').shift();
 };
 
@@ -59,7 +59,7 @@ const fzLocal = {
             const {timezone} = model;
             for (const dpValue of msg.data.dpValues) {
                 const value = tuya.getDataValue(dpValue);
-                const dp = dpValue.dp;
+                const {dp} = dpValue;
                 switch (dp) {
                 case dataPoints.giexWaterValve.state:
                     return {[keys.giexWaterValve.state]: value ? ON: OFF};
