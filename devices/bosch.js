@@ -80,8 +80,9 @@ const tzLocal = {
                 return {state: {system_mode: value}};
             }
             if (key === 'pi_heating_demand') {
-                let heatingDemand = value;
-                await entity.write('hvacThermostat', {0x4020: {value: heatingDemand, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
+                await entity.write('hvacThermostat',
+                    {0x4020: {value: value, type: herdsman.Zcl.DataType.enum8}},
+                    boschManufacturer);
                 return {state: {pi_heating_demand: value}};
             }
         },
@@ -434,7 +435,7 @@ const definition = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
-                .withPiHeatingDemand(ea.STATE),
+                .withPiHeatingDemand(ea.ALL),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
             exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
