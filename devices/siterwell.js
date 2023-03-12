@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
