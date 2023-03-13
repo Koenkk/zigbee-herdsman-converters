@@ -1954,7 +1954,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fz.xiaomi_basic, fz.electrical_measurement, fz.metering,
             fz.aqara_opple, fz.xiaomi_power, fz.device_temperature],
         toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
-            tz.xiaomi_overload_protection, tz.xiaomi_auto_off],
+            tz.xiaomi_overload_protection, tz.xiaomi_auto_off, tz.xiaomi_socket_button_lock],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2005,9 +2005,8 @@ module.exports = [
         },
         exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(), e.voltage(), e.current(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)'),
-            e.consumer_connected(), e.led_disabled_night(),
-            e.overload_protection(100, 2300),
-            e.auto_off(20)],
+            e.consumer_connected(), e.led_disabled_night(), e.overload_protection(100, 2300),
+            e.auto_off(20), e.button_lock()],
         ota: ota.zigbeeOTA,
     },
     {
