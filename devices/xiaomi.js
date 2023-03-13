@@ -1929,8 +1929,7 @@ module.exports = [
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')],
+            e.overload_protection().withValueMin(100).withValueMax(2300)],
         ota: ota.zigbeeOTA,
     },
     {
@@ -1946,8 +1945,7 @@ module.exports = [
             e.voltage(), e.current(), e.consumer_connected(), e.led_disabled_night(),
             e.power_outage_memory(), exposes.binary('auto_off', ea.STATE_SET, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes'),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')],
+            e.overload_protection().withValueMin(100).withValueMax(2300)],
         ota: ota.zigbeeOTA,
     },
     {
@@ -2010,8 +2008,7 @@ module.exports = [
         exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(), e.voltage(), e.current(),
             e.device_temperature().withDescription('Device temperature (polled every 30 min)'),
             e.consumer_connected(), e.led_disabled_night(),
-            exposes.numeric('overload_protection', ea.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded'),
+            e.overload_protection().withValueMin(100).withValueMax(2300),
             exposes.binary('auto_off', ea.ALL, true, false)
                 .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes')],
         ota: ota.zigbeeOTA,
@@ -2834,8 +2831,7 @@ module.exports = [
         exposes: [e.switch(), e.power().withAccess(ea.STATE), e.energy(), e.device_temperature().withAccess(ea.STATE),
             e.voltage(), e.current(), e.consumer_connected().withAccess(ea.STATE),
             e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')],
+            e.overload_protection().withValueMin(100).withValueMax(2500)],
         ota: ota.zigbeeOTA,
     },
     {
@@ -2905,8 +2901,7 @@ module.exports = [
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
             exposes.enum('button_switch_mode', exposes.access.ALL, ['relay', 'relay_and_usb'])
                 .withDescription('Control both relay and usb or only the relay with the physical switch button'),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')],
+            e.overload_protection().withValueMin(100).withValueMax(2500)],
         ota: ota.zigbeeOTA,
     },
     {
@@ -2932,8 +2927,7 @@ module.exports = [
             e.switch(), e.power().withAccess(ea.STATE), e.energy(),
             e.device_temperature().withAccess(ea.STATE), e.voltage(),
             e.current(), e.power_outage_memory(), e.led_disabled_night(), e.button_lock(),
-            exposes.numeric('overload_protection', exposes.access.ALL).withValueMin(100).withValueMax(2500).withUnit('W')
-                .withDescription('Maximum allowed load, turns off if exceeded')],
+            e.overload_protection().withValueMin(100).withValueMax(2500)],
         ota: ota.zigbeeOTA,
     },
     {
