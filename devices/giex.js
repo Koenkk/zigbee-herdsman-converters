@@ -101,7 +101,7 @@ const fzLocal = {
 
 const tzModelConverters = {
     QT06_2: {
-        // _TZE200_sh1btabb irrigation time should not be less than 10 secs as per GiEX advice
+        // _TZE200_a7sghmms irrigation time should not be less than 10 secs as per GiEX advice
         irrigationTarget: (value, mode) => value > 0 && value < SAFETY_MIN_SECS && mode === DURATION ? SAFETY_MIN_SECS : value,
     },
 };
