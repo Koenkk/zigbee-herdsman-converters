@@ -1957,7 +1957,8 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.on_off, fz.xiaomi_basic, fz.electrical_measurement, fz.metering,
             fz.aqara_opple, fz.xiaomi_power, fz.device_temperature],
-        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory],
+        toZigbee: [tz.on_off, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_led_disabled_night,
+            tz.xiaomi_overload_protection, tz.xiaomi_auto_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -2006,9 +2007,13 @@ module.exports = [
                 globalStore.putValue(device, 'interval', interval);
             }
         },
-        exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(),
-            e.voltage(), e.current(),
-            e.device_temperature().withDescription('Device temperature (polled every 30 min)')],
+        exposes: [e.switch(), e.power(), e.energy(), e.power_outage_memory(), e.voltage(), e.current(),
+            e.device_temperature().withDescription('Device temperature (polled every 30 min)'),
+            e.consumer_connected(), e.led_disabled_night(),
+            exposes.numeric('overload_protection', ea.ALL).withValueMin(100).withValueMax(2300).withUnit('W')
+                .withDescription('Maximum allowed load, turns off if exceeded'),
+            exposes.binary('auto_off', ea.ALL, true, false)
+                .withDescription('Turn the device automatically off when attached device consumes less than 2W for 20 minutes')],
         ota: ota.zigbeeOTA,
     },
     {
