@@ -254,8 +254,7 @@ const ikea = {
                     2: 'dot_double',
                     3: 'dot_long',
                 };
-        
-                return { action: `${msg.data[5]}${lookup[msg.data[6]]}` };
+                return {action: `${msg.data[5]}${lookup[msg.data[6]]}`};
             },
         },
     },
