@@ -8,6 +8,7 @@ const DURATION = 'duration';
 const MINUTES_IN_A_DAY = 1440;
 const OFF = 'OFF';
 const ON = 'ON';
+const SAFETY_MIN_SECS = 10;
 const SECONDS_IN_12_HOURS = 43200;
 
 const toLocalTime = (time, timezone) => {
@@ -53,7 +54,8 @@ const dataPoints = {
 
 const fzModelConverters = {
     QT06_1: {
-        time: (value) => toLocalTime(value, '+08:00'), // _TZE200_sh1btabb timezone is GMT+8
+        // _TZE200_sh1btabb timezone is GMT+8
+        time: (value) => toLocalTime(value, '+08:00'),
     },
 };
 
@@ -97,6 +99,13 @@ const fzLocal = {
     },
 };
 
+const tzModelConverters = {
+    QT06_2: {
+        // _TZE200_sh1btabb irrigation time should not be less than 10 secs as per GiEX advice
+        irrigationTarget: (value, mode) => value > 0 && value < SAFETY_MIN_SECS && mode === DURATION ? SAFETY_MIN_SECS : value,
+    },
+};
+
 const tzLocal = {
     giexWaterValve:
     {
@@ -108,6 +117,7 @@ const tzLocal = {
             keys.giexWaterValve.cycleIrrigationInterval,
         ],
         convertSet: async (entity, key, value, meta) => {
+            const modelConverters = tzModelConverters[meta.mapped?.model] || {};
             switch (key) {
             case keys.giexWaterValve.state:
                 await tuya.sendDataPointBool(entity, dataPoints.giexWaterValve.state, value === ON);
@@ -115,9 +125,12 @@ const tzLocal = {
             case keys.giexWaterValve.mode:
                 await tuya.sendDataPointBool(entity, dataPoints.giexWaterValve.mode, value === CAPACITY);
                 return {state: {[keys.giexWaterValve.mode]: value}};
-            case keys.giexWaterValve.irrigationTarget:
-                await tuya.sendDataPointValue(entity, dataPoints.giexWaterValve.irrigationTarget, value);
-                return {state: {[keys.giexWaterValve.irrigationTarget]: value}};
+            case keys.giexWaterValve.irrigationTarget: {
+                const mode = meta.state?.[keys.giexWaterValve.mode];
+                const sanitizedValue = modelConverters.irrigationTarget?.(value, mode) || value;
+                await tuya.sendDataPointValue(entity, dataPoints.giexWaterValve.irrigationTarget, sanitizedValue);
+                return {state: {[keys.giexWaterValve.irrigationTarget]: sanitizedValue}};
+            }
             case keys.giexWaterValve.cycleIrrigationNumTimes:
                 await tuya.sendDataPointValue(entity, dataPoints.giexWaterValve.cycleIrrigationNumTimes, value);
                 return {state: {[keys.giexWaterValve.cycleIrrigationNumTimes]: value}};
@@ -175,7 +188,8 @@ module.exports = [
                 .withValueMin(0)
                 .withValueMax(MINUTES_IN_A_DAY)
                 .withUnit('minutes or litres')
-                .withDescription('Irrigation target, duration in minutes or capacity in litres (depending on mode)'),
+                .withDescription('Irrigation target, duration in minutes or capacity in litres (depending on mode), ' +
+                    'set to 0 to leave the valve on indefinitely'),
             exposes.numeric(keys.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(MINUTES_IN_A_DAY)
@@ -196,7 +210,9 @@ module.exports = [
                 .withValueMin(0)
                 .withValueMax(SECONDS_IN_12_HOURS)
                 .withUnit('seconds or litres')
-                .withDescription('Irrigation target, duration in seconds or capacity in litres (depending on mode)'),
+                .withDescription('Irrigation target, duration in seconds or capacity in litres (depending on mode), ' +
+                    'set to 0 to leave the valve on indefinitely, ' +
+                    'for safety reasons the target will be forced to a minimum of 10 seconds in duration mode'),
             exposes.numeric(keys.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(SECONDS_IN_12_HOURS)
