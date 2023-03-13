@@ -156,31 +156,10 @@ const exportTemplates = {
 };
 
 module.exports = [
-    // _TZE200_a7sghmms uses seconds, timezone is local
-    {
-        ...exportTemplates.giexWaterValve,
-        model: 'QT06_1',
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
-        ],
-        exposes: [
-            ...exportTemplates.giexWaterValve.exposes,
-            exposes.numeric(keys.giexWaterValve.irrigationTarget, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(SECONDS_IN_12_HOURS)
-                .withUnit('seconds or litres')
-                .withDescription('Irrigation target, duration in seconds or capacity in litres (depending on mode)'),
-            exposes.numeric(keys.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(SECONDS_IN_12_HOURS)
-                .withUnit('sec')
-                .withDescription('Cycle irrigation interval'),
-        ],
-    },
     // _TZE200_sh1btabb uses minutes, timezone is GMT+8
     {
         ...exportTemplates.giexWaterValve,
-        model: 'QT06_2',
+        model: 'QT06_1',
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
         ],
@@ -196,6 +175,27 @@ module.exports = [
                 .withValueMin(0)
                 .withValueMax(MINUTES_IN_A_DAY)
                 .withUnit('min')
+                .withDescription('Cycle irrigation interval'),
+        ],
+    },
+    // _TZE200_a7sghmms uses seconds, timezone is local
+    {
+        ...exportTemplates.giexWaterValve,
+        model: 'QT06_2',
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_a7sghmms'},
+        ],
+        exposes: [
+            ...exportTemplates.giexWaterValve.exposes,
+            exposes.numeric(keys.giexWaterValve.irrigationTarget, ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(SECONDS_IN_12_HOURS)
+                .withUnit('seconds or litres')
+                .withDescription('Irrigation target, duration in seconds or capacity in litres (depending on mode)'),
+            exposes.numeric(keys.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(SECONDS_IN_12_HOURS)
+                .withUnit('sec')
                 .withDescription('Cycle irrigation interval'),
         ],
     },
