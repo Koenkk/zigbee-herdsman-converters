@@ -2285,7 +2285,7 @@ const converters = {
             return {state: {auto_off: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (['SP-EUC01'].includes(meta.mapped.model)) {
+            if (['ZNCZ04LM', 'ZNCZ12LM', 'SP-EUC01'].includes(meta.mapped.model)) {
                 await entity.read('aqaraOpple', [0x0202], manufacturerOptions.xiaomi);
             } else {
                 throw new Error('Not supported');
