@@ -482,6 +482,13 @@ const definition = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
+            // report boost as it's disabled by thermostat after some time
+            await endpoint.configureReporting('hvacThermostat', [{
+                attribute: {ID: 0x4043, type: herdsman.Zcl.DataType.enum8},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
 
             await endpoint.read('hvacThermostat', ['localTemperatureCalibration']);
             await endpoint.read('hvacThermostat', [0x4007, 0x4020, 0x4042, 0x4043], boschManufacturer);
