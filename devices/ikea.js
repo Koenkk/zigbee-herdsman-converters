@@ -245,6 +245,19 @@ const ikea = {
                 }
             },
         },
+        command_dots: {
+            cluster: 64639,
+            type: 'raw',
+            convert: (model, msg, publish, options, meta) => {
+                const lookup = {
+                    1: 'dot_single',
+                    2: 'dot_double',
+                    3: 'dot_long',
+                };
+        
+                return { action: `${msg.data[5]}${lookup[msg.data[6]]}` };
+            },
+        },
     },
     tz: {
         air_purifier_fan_mode: {
@@ -772,6 +785,23 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl', 'genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['SYMFONISK sound remote gen2'],
+        model: 'E2123',
+        vendor: 'IKEA',
+        description: 'SYMFONISK sound remote gen2',
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_move, fz.command_step, ikea.fz.command_dots],
+        toZigbee: [tz.battery_percentage_remaining],
+        exposes: [
+            e.battery().withAccess(ea.STATE_GET),
+        ],
+        ota: ota.tradfri,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
