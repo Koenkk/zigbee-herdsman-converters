@@ -51,12 +51,18 @@ const dataPoints = {
     },
 };
 
+const fzModelConverters = {
+    QT06_1: {
+        time: (value) => toLocalTime(value, '+08:00'), // _TZE200_sh1btabb timezone is GMT+8
+    },
+};
+
 const fzLocal = {
     giexWaterValve: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport'],
         convert: (model, msg, publish, options, meta) => {
-            const {timezone} = model;
+            const modelConverters = fzModelConverters[model.model] || {};
             for (const dpValue of msg.data.dpValues) {
                 const value = tuya.getDataValue(dpValue);
                 const {dp} = dpValue;
@@ -74,9 +80,9 @@ const fzLocal = {
                 case dataPoints.giexWaterValve.waterConsumed:
                     return {[keys.giexWaterValve.waterConsumed]: value};
                 case dataPoints.giexWaterValve.irrigationStartTime:
-                    return {[keys.giexWaterValve.irrigationStartTime]: timezone ? toLocalTime(value, timezone) : value};
+                    return {[keys.giexWaterValve.irrigationStartTime]: modelConverters.time?.(value) || value};
                 case dataPoints.giexWaterValve.irrigationEndTime:
-                    return {[keys.giexWaterValve.irrigationEndTime]: timezone ? toLocalTime(value, timezone) : value};
+                    return {[keys.giexWaterValve.irrigationEndTime]: modelConverters.time?.(value) || value};
                 case dataPoints.giexWaterValve.lastIrrigationDuration:
                     return {[keys.giexWaterValve.lastIrrigationDuration]: value.split(',').shift()}; // Remove meaningless ,0 suffix
                 case dataPoints.giexWaterValve.battery:
@@ -163,7 +169,6 @@ module.exports = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_sh1btabb'},
         ],
-        timezone: '+08:00',
         exposes: [
             ...exportTemplates.giexWaterValve.exposes,
             exposes.numeric(keys.giexWaterValve.irrigationTarget, ea.STATE_SET)
