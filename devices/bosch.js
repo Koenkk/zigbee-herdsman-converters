@@ -49,7 +49,7 @@ const displayOrientation = {
 // Radiator Thermostat II
 const tzLocal = {
     bosch_thermostat: {
-        key: ['window_open', 'boost', 'system_mode'],
+        key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'window_open') {
                 value = value.toUpperCase();
@@ -66,7 +66,7 @@ const tzLocal = {
                 return {state: {boost: value}};
             }
             if (key === 'system_mode') {
-                // Map system_mode (Off/Auto/Heat) to Boschg operating mode
+                // Map system_mode (Off/Auto/Heat) to Bosch operating mode
                 value = value.toLowerCase();
 
                 let opMode = operatingModes.manual; // OperatingMode 1 = Manual (Default)
@@ -79,6 +79,12 @@ const tzLocal = {
                 await entity.write('hvacThermostat', {0x4007: {value: opMode, type: herdsman.Zcl.DataType.enum8}}, boschManufacturer);
                 return {state: {system_mode: value}};
             }
+            if (key === 'pi_heating_demand') {
+                await entity.write('hvacThermostat',
+                    {0x4020: {value: value, type: herdsman.Zcl.DataType.enum8}},
+                    boschManufacturer);
+                return {state: {pi_heating_demand: value}};
+            }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
@@ -90,6 +96,9 @@ const tzLocal = {
                 break;
             case 'system_mode':
                 await entity.read('hvacThermostat', [0x4007], boschManufacturer);
+                break;
+            case 'pi_heating_demand':
+                await entity.read('hvacThermostat', [0x4020], boschManufacturer);
                 break;
 
             default: // Unknown key
@@ -426,7 +435,7 @@ const definition = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
-                .withPiHeatingDemand(ea.STATE),
+                .withPiHeatingDemand(ea.ALL),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
             exposes.binary('window_open', ea.ALL, 'ON', 'OFF')
