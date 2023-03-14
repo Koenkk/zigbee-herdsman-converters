@@ -71,4 +71,19 @@ module.exports = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        zigbeeModel: ['PCM_00.00.03.09TC'],
+        model: '12071',
+        vendor: 'Lupus',
+        description: 'LUPUSEC main power meter',
+        fromZigbee: [fz.ZNMS12LM_low_battery, fz.impulse_metering],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.energy(), e.power()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering', 'genPowerCfg']);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 10});
+        },
+    },
+
 ];

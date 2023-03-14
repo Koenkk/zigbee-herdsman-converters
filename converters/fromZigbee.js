@@ -738,6 +738,37 @@ const converters = {
             return payload;
         },
     },
+    impulse_metering: {
+        /**
+         * When using this converter also add the following to the configure method of the device:
+         * endpoint.saveClusterAttributeKeyValue('seMetering', {multiplier: 10});
+         */
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        options: [
+            exposes.numeric('impulses', exposes.access.SET)
+                .withValueMin(1)
+                .withValueStep(1)
+                .withUnit('Imp./kWh')
+                .withDescription('Configure the impulses per kWh of the power meter. '),
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {};
+            const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier');
+            const divisor = options.impulses * multiplier;
+            if (msg.data.hasOwnProperty('instantaneousDemand')) {
+                const power = msg.data['instantaneousDemand'];
+                payload.power = utils.precisionRound(power / divisor, 3) * 1000; // kWh to Watt
+            }
+            if (msg.data.hasOwnProperty('currentSummDelivered')) {
+                const data = msg.data['currentSummDelivered'];
+                const energy = (parseInt(data[0]) << 32) + parseInt(data[1]);
+                payload.energy = utils.precisionRound(energy / divisor, 3);
+            }
+            return payload;
+        },
+    },
     EKO09738_metering: {
         /**
          * Elko EKO09738 and EKO09716 reports power in mW, scale to W
