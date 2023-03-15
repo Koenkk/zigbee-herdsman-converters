@@ -81,10 +81,10 @@ module.exports = [
         model: 'UEHK2AZ0',
         vendor: 'Universal Electronics Inc',
         description: 'Xfinity security keypad',
-        meta: { battery: { voltageToPercentage: '3V_2100' } },
+        meta: {battery:{voltageToPercentage: '3V_2100'}},
         fromZigbee: [
             fz.command_arm_with_transaction, fz.temperature, fz.battery, fz.ias_occupancy_alarm_1,
-            fz.identify, fz.ias_contact_alarm_1, fz.ias_ace_occupancy_with_timeout
+            fz.identify, fz.ias_contact_alarm_1, fz.ias_ace_occupancy_with_timeout,
         ],
         toZigbee: [tz.arm_mode],
         exposes: [
@@ -115,5 +115,5 @@ module.exports = [
                 );
             }
         },
-    }
+    },
 ];
