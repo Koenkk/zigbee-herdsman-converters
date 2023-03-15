@@ -11,6 +11,73 @@ const e = exposes.presets;
 const utils = require('../lib/utils');
 const ota = require('../lib/ota');
 const {Buffer} = require('buffer');
+const herdsman = require('zigbee-herdsman');
+
+
+/* Start ZiPulses */
+
+const unitsZiPulses = [
+    'kWh',
+    'm3',
+    'ft3',
+    'ccf',
+    'US gl',
+    'IMP gl',
+    'BTUs',
+    'L (litre)',
+    'kPA (jauge)',
+    'kPA (absolu)',
+    'kPA (absolu)',
+    'sans unité',
+    'MJ',
+    'kVar',
+];
+
+const tzSeMetering = {
+    key: ['divisor', 'multiplier', 'unitOfMeasure'],
+    convertSet: async (entity, key, value, meta) => {
+        if (key === 'unitOfMeasure') {
+            const val = unitsZiPulses.indexOf(value);
+            const payload = {768: {value: val, type: herdsman.Zcl.DataType.enum8}};
+            await entity.write('seMetering', payload);
+            await entity.read('seMetering', [key]);
+            return {state: {'unitOfMeasure': value}};
+        } else {
+            await entity.write('seMetering', {
+                [key]: value,
+            });
+        }
+
+        await entity.read('seMetering', [key]);
+    },
+    // convertGet: async (entity, key, meta) => {
+    //     await entity.read('seMetering', [key]);
+    // },
+};
+
+
+const fzZiPulses = {
+    cluster: 'seMetering',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const payload = {};
+        if (msg.data.hasOwnProperty('multiplier')) {
+            payload['multiplier'] = msg.data['multiplier'];
+        }
+        if (msg.data.hasOwnProperty('divisor')) {
+            payload['divisor'] = msg.data['divisor'];
+        }
+        if (msg.data.hasOwnProperty('unitOfMeasure')) {
+            const val = msg.data['unitOfMeasure'];
+            payload['unitOfMeasure'] = unitsZiPulses[val];
+        }
+
+        return payload;
+    },
+};
+
+
+/* End ZiPulses */
 
 const fzLocal = {
     lixee_ha_electrical_measurement: {
@@ -555,7 +622,7 @@ function getCurrentConfig(device, options, logger=console) {
 
     return myExpose;
 }
-const definition = {
+const definitionZlinky = {
     zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
     model: 'ZLinky_TIC',
     vendor: 'LiXee',
@@ -688,4 +755,25 @@ const definition = {
     },
 };
 
-module.exports = [definition];
+const definitionZiPulses = {
+    zigbeeModel: ['ZiPulses'],
+    model: 'ZiPulses',
+    vendor: 'LiXee',
+    description: 'Lixee ZiPulses',
+    fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
+    toZigbee: [tzSeMetering],
+    exposes: [e.battery_voltage(), e.temperature(),
+        exposes.numeric('multiplier', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
+        exposes.numeric('divisor', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
+        exposes.enum('unitOfMeasure', ea.STATE_SET, unitsZiPulses).withDescription('It is necessary to press the link button to update'),
+        exposes.numeric('energy', ea.STATE),
+    ],
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        const binds = ['genPowerCfg', 'seMetering', 'msTemperatureMeasurement'];
+        await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        await endpoint.read('seMetering', ['divisor', 'unitOfMeasure', 'multiplier']);
+    },
+};
+
+module.exports = [definitionZlinky, definitionZiPulses];
