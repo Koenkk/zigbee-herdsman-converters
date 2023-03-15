@@ -188,8 +188,7 @@ module.exports = [
                 .withValueMin(0)
                 .withValueMax(MINUTES_IN_A_DAY)
                 .withUnit('minutes or litres')
-                .withDescription('Irrigation target, duration in minutes or capacity in litres (depending on mode), ' +
-                    'set to 0 to leave the valve on indefinitely'),
+                .withDescription('Irrigation target, duration in minutes or capacity in litres (depending on mode)'),
             exposes.numeric(keys.giexWaterValve.cycleIrrigationInterval, ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(MINUTES_IN_A_DAY)
