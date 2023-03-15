@@ -250,14 +250,19 @@ const ikea = {
             cluster: '64639',
             type: 'raw',
             convert: (model, msg, publish, options, meta) => {
-                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-                if (msg.data.value === 2) {
-                    // This is send on toggle hold, ignore it as a toggle_hold is already handled above.
-                    return;
+                let direction;
+                let action;
+                switch (msg.data[5]) {
+                case 1: direction = '1'; break; // 1 dot
+                case 2: direction = '2'; break; // 2 dot
+                }
+                switch (msg.data[6]) {
+                case 1: action = 'initial_press'; break;
+                case 2: action = 'double_press'; break;
+                case 3: action = 'long_press'; break;
                 }
 
-                const direction = msg.data.data === '[21,124,17,2,1,2,1]' ? '1' : '2';
-                return {action: `dots_${direction}_initial_press`};
+                return {action: `dots_${direction}_${action}`};
             },
         },
         ikea_dots_click_v2: {
