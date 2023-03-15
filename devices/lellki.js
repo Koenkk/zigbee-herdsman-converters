@@ -121,7 +121,7 @@ module.exports = [
         extend: extend.switch(),
         fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
             tuya.fz.power_outage_memory],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
