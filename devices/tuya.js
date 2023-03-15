@@ -133,20 +133,6 @@ const tzLocal = {
             return {state: {[key]: value}};
         },
     },
-    power_on_behavior: {
-        key: ['power_on_behavior'],
-        convertSet: async (entity, key, value, meta) => {
-            value = value.toLowerCase();
-            const lookup = {'off': 0, 'on': 1, 'previous': 2};
-            utils.validateValue(value, Object.keys(lookup));
-            const pState = lookup[value];
-            await entity.write('manuSpecificTuya_3', {'powerOnBehavior': pState}, {disableDefaultResponse: true});
-            return {state: {power_on_behavior: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
-        },
-    },
     zb_sm_cover: {
         key: ['state', 'position', 'reverse_direction', 'top_limit', 'bottom_limit', 'favorite_position', 'goto_positon', 'report'],
         convertSet: async (entity, key, value, meta) => {
@@ -537,19 +523,6 @@ const fzLocal = {
             if (dp === 4) return {battery: value};
             else {
                 meta.logger.warn(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-    power_on_behavior: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const attribute = 'powerOnBehavior';
-            const lookup = {0: 'off', 1: 'on', 2: 'previous'};
-
-            if (msg.data.hasOwnProperty(attribute)) {
-                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
-                return {[property]: lookup[msg.data[attribute]]};
             }
         },
     },
@@ -1918,7 +1891,7 @@ module.exports = [
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report,
             tuya.fz.power_outage_memory, tuya.fz.switch_type],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.switch_type],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.switch_type],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -1963,9 +1936,9 @@ module.exports = [
         model: 'TS000F_power',
         description: 'Switch with power monitoring',
         vendor: 'TuYa',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_on_behavior,
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_on_behavior_1,
             tuya.fz.switch_type],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.switch_type],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.switch_type],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -2593,7 +2566,7 @@ module.exports = [
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             tuya.fz.indicator_mode],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tuya.tz.backlight_indicator_mode_1],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
@@ -3208,8 +3181,8 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        fromZigbee: [fz.on_off, fzLocal.power_on_behavior, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tzLocal.power_on_behavior],
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2],
         exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
             e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
@@ -3414,7 +3387,7 @@ module.exports = [
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory,
             fz.tuya_relay_din_led_indicator],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tz.tuya_relay_din_led_indicator],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'ATMS1602Z'}, {vendor: 'Tongou', model: 'TO-Q-SY1-JZT'}],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3440,7 +3413,7 @@ module.exports = [
         description: 'Din smart relay (without power monitoring)',
         vendor: 'TuYa',
         fromZigbee: [fz.on_off, fz.ignore_basic_report, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior, tz.tuya_relay_din_led_indicator],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -3989,10 +3962,10 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
+            .fromZigbee.concat([tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-                .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+                .toZigbee.concat([tuya.tz.power_on_behavior_1, tzLocal.TS110E_options]),
             [tz.light_onoff_brightness],
             [tzLocal.TS110E_light_onoff_brightness],
         ),
@@ -4009,8 +3982,8 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 channel dimmer',
         whiteLabel: [{vendor: 'RTX', model: 'QS-Zigbee-D02-TRIAC-LN'}],
-        fromZigbee: [fzLocal.TS110E, fzLocal.TS110E_light_type, tuya.fz.power_on_behavior, fz.on_off],
-        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior, tz.light_brightness_move],
+        fromZigbee: [fzLocal.TS110E, fzLocal.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [
             e.light_brightness().withMinBrightness().withMaxBrightness(),
             tuya.exposes.lightType().withAccess(ea.ALL), e.power_on_behavior().withAccess(ea.ALL)],
@@ -4027,10 +4000,10 @@ module.exports = [
         vendor: 'TuYa',
         description: '2 channel dimmer',
         fromZigbee: extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-            .fromZigbee.concat([tuya.fz.power_on_behavior, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
+            .fromZigbee.concat([tuya.fz.power_on_behavior_1, fzLocal.TS110E_switch_type, fzLocal.TS110E]),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness({disablePowerOnBehavior: true, disableMoveStep: true, disableTransition: true})
-                .toZigbee.concat([tuya.tz.power_on_behavior, tzLocal.TS110E_options]),
+                .toZigbee.concat([tuya.tz.power_on_behavior_1, tzLocal.TS110E_options]),
             [tz.light_onoff_brightness],
             [tzLocal.TS110E_light_onoff_brightness],
         ),
@@ -4057,8 +4030,8 @@ module.exports = [
         model: 'TS110E_2gang_2',
         vendor: 'TuYa',
         description: '2 channel dimmer',
-        fromZigbee: [fzLocal.TS110E, fzLocal.TS110E_light_type, tuya.fz.power_on_behavior, fz.on_off],
-        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior, tz.light_brightness_move],
+        fromZigbee: [fzLocal.TS110E, fzLocal.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tzLocal.TS110E_onoff_brightness, tzLocal.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint('l1'),
