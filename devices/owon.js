@@ -241,6 +241,7 @@ module.exports = [
                 device.save();
             }
         },
+        meta: {publishDuplicateTransaction: true},
         exposes: [e.energy(),
             exposes.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
             exposes.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),

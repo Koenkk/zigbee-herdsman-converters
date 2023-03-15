@@ -39,6 +39,7 @@ module.exports = [
         fromZigbee: [fz.electrical_measurement, fz.metering, fz.on_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
+        meta: {publishDuplicateTransaction: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
