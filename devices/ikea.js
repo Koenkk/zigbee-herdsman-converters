@@ -247,22 +247,19 @@ const ikea = {
         },
         ikea_dots_click_v1: {
             // For remotes with firmware 1.0.012 (20211214)
-            cluster: '64639',
+            cluster: 64639,
             type: 'raw',
             convert: (model, msg, publish, options, meta) => {
-                let direction;
+                if (!Buffer.isBuffer(msg.data)) return;
                 let action;
-                switch (msg.data[5]) {
-                case 1: direction = '1'; break; // 1 dot
-                case 2: direction = '2'; break; // 2 dot
-                }
+                const button = msg.data[5];
                 switch (msg.data[6]) {
                 case 1: action = 'initial_press'; break;
                 case 2: action = 'double_press'; break;
                 case 3: action = 'long_press'; break;
                 }
 
-                return {action: `dots_${direction}_${action}`};
+                return {action: `dots_${button}_${action}`};
             },
         },
         ikea_dots_click_v2: {
@@ -270,11 +267,12 @@ const ikea = {
             cluster: 'heimanSpecificScenes',
             type: 'raw',
             convert: (model, msg, publish, options, meta) => {
-                let direction;
+                if (!Buffer.isBuffer(msg.data)) return;
+                let button;
                 let action;
                 switch (msg.endpoint.ID) {
-                case 2: direction = '1'; break; // 1 dot
-                case 3: direction = '2'; break; // 2 dot
+                case 2: button = '1'; break; // 1 dot
+                case 3: button = '2'; break; // 2 dot
                 }
                 switch (msg.data[4]) {
                 case 1: action = 'initial_press'; break;
@@ -284,7 +282,7 @@ const ikea = {
                 case 6: action = 'double_press'; break;
                 }
 
-                return {action: `dots_${direction}_${action}`};
+                return {action: `dots_${button}_${action}`};
             },
         },
         ikea_volume_click: {
@@ -1158,8 +1156,12 @@ module.exports = [
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['heimanSpecificScenes']);
+            if (endpoint2) {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+            }
+            if (endpoint3) {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['heimanSpecificScenes']);
+            }
             await reporting.batteryVoltage(endpoint1);
         },
     },
