@@ -193,8 +193,8 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
-                        hue: (meta.state.color ?? {}).h ?? 0, //          red
-                        saturation: (meta.state.color ?? {}).s ?? 100, // full saturation
+                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 
                     // Apply changes
@@ -217,8 +217,8 @@ const tzLocal = {
                         newSettings.saturation = color.saturation;
 
                         newState.color = {
-                            h: color.hue,
-                            s: color.saturation,
+                            hue: color.hue,
+                            saturation: color.saturation,
                         };
                     }
 
