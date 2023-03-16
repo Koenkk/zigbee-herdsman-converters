@@ -8,7 +8,7 @@ module.exports = [
         model: '4058075208384',
         vendor: 'LEDVANCE',
         description: 'SMART+ Classic A60 E27 Tunable white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}),
+        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
         ota: ota.ledvance,
     },
     {
@@ -36,6 +36,13 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['Panel Light 2x2 TW'],
+        model: '74746',
+        vendor: 'LEDVANCE',
+        description: 'LEDVANCE 74746 Sylvania smart+ Zigbee dimmable edge-lit panel',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [200, 370]}),
+    },
+    {
         zigbeeModel: ['Panel TW 620 UGR19'],
         model: 'GPDRPLOP401100CE',
         vendor: 'LEDVANCE',
@@ -48,7 +55,7 @@ module.exports = [
         model: 'AC25697',
         vendor: 'LEDVANCE',
         description: 'SMART+ CLASSIC MULTICOLOUR 60 10W E27',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
         ota: ota.ledvance,
     },
     {

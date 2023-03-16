@@ -9,7 +9,7 @@ const e = exposes.presets;
 
 const gledoptoExtend = {
     light_onoff_brightness: (options={}) => ({
-        ...extend.light_onoff_brightness(options),
+        ...extend.light_onoff_brightness({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness(options).toZigbee,
             [tz.light_onoff_brightness],
@@ -17,7 +17,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp(options),
+        ...extend.light_onoff_brightness_colortemp({disablePowerOnBehavior: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_colortemp],
@@ -25,7 +25,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_color: (options={}) => ({
-        ...extend.light_onoff_brightness_color({...options, supportsHS: true}),
+        ...extend.light_onoff_brightness_color({disablePowerOnBehavior: true, supportsHS: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color],
@@ -33,7 +33,7 @@ const gledoptoExtend = {
         ),
     }),
     light_onoff_brightness_colortemp_color: (options={}) => ({
-        ...extend.light_onoff_brightness_colortemp_color({...options, supportsHS: true}),
+        ...extend.light_onoff_brightness_colortemp_color({disablePowerOnBehavior: true, supportsHS: true, ...options}),
         toZigbee: utils.replaceInArray(
             extend.light_onoff_brightness_colortemp_color(options).toZigbee,
             [tz.light_onoff_brightness, tz.light_color_colortemp],
@@ -41,7 +41,7 @@ const gledoptoExtend = {
         ),
     }),
     switch: (options={}) => ({
-        ...extend.switch(options),
+        ...extend.switch({disablePowerOnBehavior: true, ...options}),
         onEvent: async (type, data, device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
@@ -151,6 +151,10 @@ module.exports = [
                 {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
                 {ID: 12, profileID: 260, deviceID: 258, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
                 {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+            {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-C-007', endpoints: [
+                {ID: 11, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: [25]},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
             ]},
         ],
         model: 'GL-C-007-1ID', // 1 ID controls white and color together
@@ -329,7 +333,7 @@ module.exports = [
         model: 'GL-B-002P',
         vendor: 'Gledopto',
         description: 'Zigbee smart filament LED bulb',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-S-006P'],
@@ -337,7 +341,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee GU10 LED lamp',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
     {
         zigbeeModel: ['GL-MC-001P'],
@@ -585,7 +589,7 @@ module.exports = [
         model: 'GL-B-003P',
         vendor: 'Gledopto',
         description: 'Zigbee 7W E26/E27 Bulb RGB+CCT (pro)',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
     },
     {
         zigbeeModel: ['GL-FL-004TZS'],
@@ -733,6 +737,6 @@ module.exports = [
         model: 'GL-B-004P',
         vendor: 'Gledopto',
         description: 'Filament LED light bulb E27 G95 7W pro',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
     },
 ];

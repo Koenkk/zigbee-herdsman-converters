@@ -557,14 +557,14 @@ module.exports = [
         model: 'HS2AQ-EM',
         vendor: 'HEIMAN',
         description: 'Air quality monitor',
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.heiman_pm25, fz.heiman_hcho, fz.heiman_air_quality],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint, overrides) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
-                        await endpoint.configureReporting('heimanSpecificPM25Measurement', payload);
+                        await endpoint.configureReporting('pm25Measurement', payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint, overrides) => {
                         const payload = reporting.payload('measuredValue', 0, constants.repInterval.HOUR, 1, overrides);
@@ -591,7 +591,7 @@ module.exports = [
 
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity', 'heimanSpecificPM25Measurement',
+                'genPowerCfg', 'genTime', 'msTemperatureMeasurement', 'msRelativeHumidity', 'pm25Measurement',
                 'heimanSpecificFormaldehydeMeasurement', 'heimanSpecificAirQuality']);
 
             await reporting.batteryPercentageRemaining(endpoint);

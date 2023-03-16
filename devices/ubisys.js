@@ -874,10 +874,10 @@ module.exports = [
             tz.thermostat_local_temperature, tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule, tz.thermostat_clear_weekly_schedule,
             tz.thermostat_running_mode, ubisys.tz.thermostat_vacation_mode,
-            tz.thermostat_pi_heating_demand,
+            tz.thermostat_pi_heating_demand, tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.battery(),
+            e.battery().withAccess(ea.STATE_GET),
             exposes.climate()
                 .withSystemMode(['off', 'heat'], ea.ALL)
                 .withRunningMode(['off', 'heat'])
@@ -903,7 +903,8 @@ module.exports = [
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint,
                 {min: 0, max: constants.repInterval.HOUR, change: 50});
-            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint,
+                {min: 15, max: constants.repInterval.HOUR, change: 1});
             await reporting.thermostatOccupancy(endpoint);
             await reporting.batteryPercentageRemaining(endpoint,
                 {min: constants.repInterval.HOUR, max: 43200, change: 1});

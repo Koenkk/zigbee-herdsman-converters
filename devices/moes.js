@@ -308,9 +308,9 @@ module.exports = [
                 'You can set up to 4 stages of temperature every for WEEKDAY ➀➁➂➃➄,  SATURDAY ➅ and SUNDAY ➆.'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF').withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
                 'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
-            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('minutes').withDescription('Countdown in minutes')
+            exposes.numeric('boost_heating_countdown', ea.STATE).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(15),
-            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('seconds')
+            exposes.numeric('boost_heating_countdown_time_set', ea.STATE_SET).withUnit('s')
                 .withDescription('Boost Time Setting 100 sec - 900 sec, (default = 300 sec)').withValueMin(100)
                 .withValueMax(900).withValueStep(100)],
     },
@@ -338,18 +338,7 @@ module.exports = [
         model: 'ZLD-RCW',
         vendor: 'Moes',
         description: 'RGB+CCT Zigbee LED Controller',
-        toZigbee: extend.light_onoff_brightness_colortemp_color().toZigbee.concat([
-            tz.tuya_do_not_disturb, tz.tuya_color_power_on_behavior,
-        ]),
-        meta: {applyRedFix: true, enhancedHue: false},
-        fromZigbee: extend.light_onoff_brightness_colortemp_color().fromZigbee,
-        exposes: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], disableColorTempStartup: true,
-            disablePowerOnBehavior: true}).exposes.concat([
-            exposes.binary('do_not_disturb', ea.STATE_SET, true, false)
-                .withDescription('Do not disturb mode'),
-            exposes.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
-                .withDescription('Power on behavior state'),
-        ]),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         fingerprint: [{modelID: 'TS130F', manufacturerName: '_TZ3000_1dd0d5yi'}],

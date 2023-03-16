@@ -5,7 +5,7 @@ module.exports = [
         zigbeeModel: ['Bankamp Dimm-Leuchte'],
         model: '2189/1-xx',
         vendor: 'Bankamp',
-        description: 'Grazia ceiling light',
+        description: 'Ceiling light (e.g. Grazia, Grand)',
         extend: extend.light_onoff_brightness(),
     },
 ];

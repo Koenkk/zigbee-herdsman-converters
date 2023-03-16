@@ -4,6 +4,7 @@ const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
+const ea = exposes.access;
 
 module.exports = [
     {
@@ -190,13 +191,43 @@ module.exports = [
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
         fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface],
-        toZigbee: [tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration, tz.thermostat_local_temperature,
-            tz.thermostat_running_state, tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode],
-        exposes: [e.battery(), exposes.climate().withSetpoint('occupied_heating_setpoint', 7, 30, 0.5).withLocalTemperature()
-            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat'])
-            .withLocalTemperatureCalibration(), e.keypad_lockout()],
-        meta: {battery: {voltageToPercentage: '3V_2500_3200'}},
+        toZigbee: [
+            tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage,
+        ],
+        exposes: (device, options) => {
+            const dynExposes = [];
+            let ctrlSeqeOfOper = device ? device.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') : null;
+            const modes = [];
+
+            // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
+            if (ctrlSeqeOfOper == null) ctrlSeqeOfOper = 2;
+
+            // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
+            // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated
+            if (ctrlSeqeOfOper >= 2) {
+                modes.push('heat');
+            }
+            if (ctrlSeqeOfOper < 2 || ctrlSeqeOfOper > 3) {
+                modes.push('cool');
+            }
+
+            dynExposes.push(exposes.climate()
+                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(['off'].concat(modes))
+                .withRunningState(['idle'].concat(modes))
+                .withLocalTemperatureCalibration()
+                .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL));
+            dynExposes.push(e.keypad_lockout());
+            dynExposes.push(e.battery().withAccess(ea.STATE_GET));
+            dynExposes.push(e.battery_low());
+            dynExposes.push(e.linkquality());
+            return dynExposes;
+        },
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -204,12 +235,12 @@ module.exports = [
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
+            await endpoint.read('hvacThermostat', ['ctrlSeqeOfOper', 'localTemperatureCalibration']);
         },
     },
     {

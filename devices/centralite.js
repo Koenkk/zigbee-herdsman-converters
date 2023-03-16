@@ -129,7 +129,7 @@ module.exports = [
                 // For some this fails so set manually
                 // https://github.com/Koenkk/zigbee2mqtt/issues/3575
                 endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
-                    acCurrentDivisor: 1000, acCurrentMultiplier: 1, powerMultiplier: 1, powerDivisor: 10});
+                    acCurrentDivisor: 1000, acCurrentMultiplier: 1, acPowerMultiplier: 1, acPowerDivisor: 10});
             }
             await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
@@ -270,7 +270,7 @@ module.exports = [
         model: '4200-C',
         vendor: 'Centralite',
         description: 'Smart outlet',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);

@@ -12,6 +12,18 @@ const {precisionRound} = require('../lib/utils');
 const manuSinope = {manufacturerCode: 0x119C};
 
 const fzLocal = {
+    ias_water_leak_alarm: {
+        // RM3500ZB specific
+        cluster: 'ssIasZone',
+        type: ['commandStatusChangeNotification', 'attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zoneStatus;
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & 1<<2) > 0,
+            };
+        },
+    },
     thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -386,7 +398,7 @@ const tzLocal = {
         },
     },
     led_intensity_on: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_intensity_on'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 100) {
@@ -412,7 +424,7 @@ const tzLocal = {
         },
     },
     led_color_on: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_color_on'],
         convertSet: async (entity, key, value, meta) => {
             const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
@@ -424,7 +436,7 @@ const tzLocal = {
         },
     },
     led_color_off: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['led_color_off'],
         convertSet: async (entity, key, value, meta) => {
             const r = (value.r >= 0 && value.r <= 255) ? value.r : 0;
@@ -436,7 +448,7 @@ const tzLocal = {
         },
     },
     minimum_brightness: {
-        // DM2500ZB
+        // DM2x0ZB
         key: ['minimum_brightness'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 3000) {
@@ -449,7 +461,7 @@ const tzLocal = {
         },
     },
     timer_seconds: {
-        // DM2500ZB and SW2500ZB
+        // DM25x0ZB and SW2500ZB
         key: ['timer_seconds'],
         convertSet: async (entity, key, value, meta) => {
             if (value >= 0 && value <= 10800) {
@@ -754,7 +766,7 @@ module.exports = [
             tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tzLocal.backlight_autodim,
             tzLocal.thermostat_time, tzLocal.time_format, tzLocal.enable_outdoor_temperature, tzLocal.outdoor_temperature,
             tzLocal.thermostat_occupancy, tzLocal.floor_control_mode, tzLocal.ambiant_max_heat_setpoint, tzLocal.floor_min_heat_setpoint,
-            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor],
+            tzLocal.floor_max_heat_setpoint, tzLocal.temperature_sensor, tz.electrical_measurement_power],
         exposes: [
             exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 5, 36, 0.5)
@@ -775,17 +787,22 @@ module.exports = [
                 .withDescription('Control backlight dimming behavior'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock1'])
                 .withDescription('Enables or disables the device’s buttons'),
-            e.power(), e.current(), e.voltage()],
+            e.power().withAccess(ea.STATE_GET), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
                 'genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg',
-                'haElectricalMeasurement', 'msTemperatureMeasurement', 'manuSpecificSinope'];
+                'haElectricalMeasurement', 'msTemperatureMeasurement', 'seMetering', 'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-
+            try {
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+            } catch (error) {/* Do nothing*/}
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [1, 1]});
+            } catch (error) {/* Do nothing*/}
             try {
                 await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
                 await reporting.activePower(endpoint, {min: 10, max: 305, change: 1}); // divider 1: 1W
@@ -1017,6 +1034,42 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['DM2550ZB'],
+        model: 'DM2550ZB',
+        vendor: 'Sinopé',
+        description: 'Zigbee Adaptive phase smart dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fzLocal.sinope],
+        toZigbee: [tz.light_onoff_brightness, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
+            tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
+        exposes: [e.light_brightness(),
+            exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
+                .withDescription('Automatically turn off load after x seconds'),
+            exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
+                .withDescription('Control status LED when load ON'),
+            exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
+                .withDescription('Control status LED when load OFF'),
+            exposes.numeric('minimum_brightness', ea.ALL).withValueMin(0).withValueMax(3000)
+                .withDescription('Control minimum dimmer brightness'),
+            exposes.composite('led_color_on', 'led_color_on', ea.SET)
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
+                .withDescription('Control status LED color when load ON'),
+            exposes.composite('led_color_off', 'led_color_off', ea.SET)
+                .withFeature(exposes.numeric('r', ea.SET))
+                .withFeature(exposes.numeric('g', ea.SET))
+                .withFeature(exposes.numeric('b', ea.SET))
+                .withDescription('Control status LED color when load OFF')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genBasic', 'genLevelCtrl'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['SP2600ZB'],
         model: 'SP2600ZB',
         vendor: 'Sinopé',
@@ -1179,21 +1232,26 @@ module.exports = [
         model: 'RM3500ZB',
         vendor: 'Sinopé',
         description: 'Calypso smart water heater controller',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ias_water_leak_alarm_1, fz.temperature],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fzLocal.ias_water_leak_alarm,
+            fzLocal.sinope, fz.temperature],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.water_leak(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'Temperature'];
+            const binds = ['genOnOff', 'haElectricalMeasurement', 'seMetering', 'msTemperatureMeasurement', 'ssIasZone',
+                'manuSpecificSinope'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
+            await reporting.temperature(endpoint, {min: 10, max: 301, change: 10}); // divider 100: 0.1C
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
+            await reporting.activePower(endpoint, {min: 10, max: 305, change: 2}); // divider 1 : 2W
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 306, change: 10}); // divider 1000: 0.01Arms
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 307, change: 1}); // divider 1: 1Vrms
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.temperature(endpoint, {min: 60, max: 3600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {min: 10, max: 303, change: [10, 10]}); // divider 1000: 0,01kWh
+
+            await endpoint.configureReporting('ssIasZone', [{attribute: 'zoneStatus', minimumReportInterval: 1,
+                maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1}]);
         },
     },
 ];

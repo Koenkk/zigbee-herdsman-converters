@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000'],
+        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
@@ -15,7 +15,8 @@ module.exports = [
             {modelId: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
             {modelId: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'},
-            {modelId: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'}],
+            {modelId: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'},
+            {modelId: 'TS0601', manufacturerName: '_TZE200_04yfvweb'}],
         model: 'GS361A-H04',
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
@@ -33,7 +34,8 @@ module.exports = [
             {vendor: 'Tesla Smart', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
             {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
             {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'},
-            {vendor: 'Brennenstuhl', description: 'Radiator Thermostat', model: 'HT CZ 01'}],
+            {vendor: 'Brennenstuhl', description: 'Radiator Thermostat', model: 'HT CZ 01'},
+            {vendor: 'Appartme', description: 'Głowica termostatyczna', model: 'APRM-04-001'}],
         exposes: [e.child_lock(), e.window_detection(), e.battery(), e.valve_detection(),
             e.position().withDescription('TRV valve position in %.'),
             exposes.climate()

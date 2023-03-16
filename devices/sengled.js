@@ -9,10 +9,12 @@ const e = exposes.presets;
 const extendDontUse = require('../lib/extend');
 const extend = {switch: extendDontUse.switch};
 const sengledExtend = {
-    light_onoff_brightness: (options={}) => extendDontUse.light_onoff_brightness({disableEffect: true, ...options}),
-    light_onoff_brightness_colortemp: (options={}) => extendDontUse.light_onoff_brightness_colortemp({disableEffect: true, ...options}),
+    light_onoff_brightness: (options={}) => extendDontUse.light_onoff_brightness(
+        {disableEffect: true, disablePowerOnBehavior: true, ...options}),
+    light_onoff_brightness_colortemp: (options={}) => extendDontUse.light_onoff_brightness_colortemp(
+        {disableEffect: true, disablePowerOnBehavior: true, ...options}),
     light_onoff_brightness_colortemp_color: (options={}) =>
-        extendDontUse.light_onoff_brightness_colortemp_color({disableEffect: true, ...options}),
+        extendDontUse.light_onoff_brightness_colortemp_color({disableEffect: true, disablePowerOnBehavior: true, ...options}),
 };
 
 module.exports = [

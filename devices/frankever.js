@@ -17,7 +17,7 @@ module.exports = [
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.numeric('threshold', exposes.access.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%')
                 .withDescription('Valve open percentage (multiple of 10)'),
-            exposes.numeric('timer', exposes.access.STATE_SET).withValueMin(0).withValueMax(600).withUnit('minutes')
+            exposes.numeric('timer', exposes.access.STATE_SET).withValueMin(0).withValueMax(600).withUnit('min')
                 .withDescription('Countdown timer in minutes')],
     },
 ];

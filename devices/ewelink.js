@@ -22,7 +22,7 @@ module.exports = [
         model: 'SA-003-Zigbee',
         vendor: 'eWeLink',
         description: 'Zigbee smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

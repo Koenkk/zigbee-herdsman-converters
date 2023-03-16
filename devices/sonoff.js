@@ -9,16 +9,6 @@ const ea = exposes.access;
 const ota = require('../lib/ota');
 
 const fzLocal = {
-    // SNZB-02 reports stranges values sometimes
-    // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-    SNZB02_temperature: {
-        ...fz.temperature,
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue > -10000 && msg.data.measuredValue < 10000) {
-                return fz.temperature.convert(model, msg, publish, options, meta);
-            }
-        },
-    },
     router_config: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -37,7 +27,7 @@ module.exports = [
         model: 'BASICZBR3',
         vendor: 'SONOFF',
         description: 'Zigbee smart switch',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
     },
     {
@@ -157,7 +147,7 @@ module.exports = [
         whiteLabel: [{vendor: 'eWeLink', model: 'RHK08'}],
         description: 'Temperature and humidity sensor',
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        fromZigbee: [fzLocal.SNZB02_temperature, fz.humidity, fz.battery],
+        fromZigbee: [fz.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             try {
@@ -219,14 +209,14 @@ module.exports = [
         model: 'S26R2ZB',
         vendor: 'SONOFF',
         description: 'Zigbee smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
     },
     {
         zigbeeModel: ['S40LITE'],
         model: 'S40ZBTPB',
         vendor: 'SONOFF',
         description: '15A Zigbee smart plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {

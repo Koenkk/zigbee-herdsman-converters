@@ -94,14 +94,16 @@ module.exports = [
         description: 'Smart plug',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2});
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
+                change: [10, 10]}); // divider 1000: 0,01kWh
         },
-        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['WSP404'],
@@ -110,14 +112,16 @@ module.exports = [
         description: 'Smart plug',
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2});
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
+                change: [10, 10]}); // divider 1000: 0,01kWh
         },
-        exposes: [e.switch(), e.power(), e.energy()],
     },
     {
         zigbeeModel: ['CB432'],
@@ -237,6 +241,7 @@ module.exports = [
                 device.save();
             }
         },
+        meta: {publishDuplicateTransaction: true},
         exposes: [e.energy(),
             exposes.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
             exposes.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),

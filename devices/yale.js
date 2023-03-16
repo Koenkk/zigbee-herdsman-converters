@@ -8,14 +8,20 @@ const lockExtend = (meta, lockStateOptions=null, binds=['closuresDoorLock', 'gen
     return {
         fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response,
             fz.lock_user_status_response],
-        toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus],
+        toZigbee: [tz.lock, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume],
         meta: {pinCodeCount: 250, ...meta},
-        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user()],
+        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(),
+            e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume(), e.battery_low()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.lockState(endpoint, lockStateOptions);
             await reporting.batteryPercentageRemaining(endpoint);
+            try {
+                await reporting.batteryAlarmState(endpoint);
+            } catch (e) {
+                // Fails for some: https://github.com/Koenkk/zigbee-herdsman-converters/pull/5414
+            }
         },
     };
 };
@@ -85,7 +91,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['iZBModule01', '0700000001'],
-        model: 'YMF40/YDM4109+',
+        model: 'YMF40/YDM4109+/YDF40',
         vendor: 'Yale',
         description: 'Real living lock / Intelligent biometric digital lock',
         // Increased timeout needed: https://github.com/Koenkk/zigbee2mqtt/issues/3290 for YDM4109+
@@ -146,6 +152,34 @@ module.exports = [
         model: 'YRL226 TS',
         vendor: 'Yale',
         description: 'Assure lock SL',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD410 TS'],
+        model: 'YRD410-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD420 TS'],
+        model: 'YRD420-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD430 TS'],
+        model: 'YRD430-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
+        extend: lockExtend(),
+    },
+    {
+        zigbeeModel: ['YRD450 TS'],
+        model: 'YRD450-BLE',
+        vendor: 'Yale',
+        description: 'Assure lock 2',
         extend: lockExtend(),
     },
     {

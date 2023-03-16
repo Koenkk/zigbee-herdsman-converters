@@ -1,4 +1,4 @@
-const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 
 module.exports = [
     {
@@ -7,20 +7,20 @@ module.exports = [
         model: 'YSR-MINI-01_rgbcct',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (RGB+CCT)',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true, colorTempRange: [160, 370]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 370]}),
     },
     {
         zigbeeModel: ['ZB-CT01'],
         model: 'YSR-MINI-01_wwcw',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (WW/CW)',
-        extend: extend.light_onoff_brightness_colortemp_color({disableColorTempStartup: true}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
     },
     {
         zigbeeModel: ['ZB-DL01'],
         model: 'YSR-MINI-01_dimmer',
         vendor: 'YSRSAI',
         description: 'Zigbee LED controller (Dimmer)',
-        extend: extend.light_onoff_brightness(),
+        extend: tuya.extend.light_onoff_brightness(),
     },
 ];

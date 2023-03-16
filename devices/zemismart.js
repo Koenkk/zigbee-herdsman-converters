@@ -77,7 +77,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'}],
+        fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_vjhcenzo'}, {modelID: 'TS0003', manufacturerName: '_TZ3000_f09j9qjb'}],
         model: 'TB25',
         vendor: 'Zemismart',
         description: 'Smart light switch and socket - 2 gang with neutral wire',

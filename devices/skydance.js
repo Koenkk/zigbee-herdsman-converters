@@ -1,7 +1,7 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
-const extend = require('../lib/extend');
+const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
 const ea = exposes.access;
 
@@ -56,8 +56,7 @@ module.exports = [
         model: 'WZ5_rgb_1',
         vendor: 'TuYa',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
-        extend: extend.light_onoff_brightness_color({supportsHS: true, preferHS: true, disableEffect: true}),
-        meta: {applyRedFix: true, enhancedHue: false},
+        extend: tuya.extend.light_onoff_brightness_color({supportsHS: true, preferHS: true, disableEffect: true}),
     },
     {
         fingerprint: [
@@ -101,9 +100,9 @@ module.exports = [
         model: 'WZ1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 2 channel LED controller',
-        extend: extend.light_onoff_brightness({noConfigure: true, disableEffect: true}),
+        extend: tuya.extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            await tuya.extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await reporting.onOff(endpoint);

@@ -16,8 +16,8 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
         exposes: [e.cover_position(), e.battery()],
     },
