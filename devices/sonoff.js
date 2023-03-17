@@ -128,6 +128,21 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['Z111PL0H-1JX'],
+        model: 'SA-028',
+        vendor: 'SONOFF',
+        whiteLabel: [{vendor: 'eWeLink', model: 'SA-028'}],
+        description: 'Switch plug',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         fingerprint: [
             // ModelID is from the button (SNZB-01) but this is SNZB-02, wrong modelID in firmware?
             // https://github.com/Koenkk/zigbee2mqtt/issues/4338
