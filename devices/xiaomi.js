@@ -746,8 +746,8 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
-                  exposes.enum('cover', ea.STATE, ['Close', 'Open']).withDescription('Battery cover position')
-                 ],
+            exposes.enum('cover', ea.STATE, ['Close', 'Open']).withDescription('Battery cover position'),
+        ],
     },
     {
         zigbeeModel: ['lumi.dimmer.rcbac1'],
