@@ -89,7 +89,7 @@ const tzLocal = {
 
 module.exports = [
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_arge1ptm'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_arge1ptm', '_TZE200_anv5ujhv']),
         model: 'QT-05M',
         vendor: 'QOTO',
         description: 'Solar powered garden watering timer',
