@@ -133,9 +133,7 @@ module.exports = [
         vendor: 'SONOFF',
         whiteLabel: [{vendor: 'eWeLink', model: 'SA-028'}],
         description: 'Switch plug',
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch()],
+        extend: extend.switch({disablePowerOnBehavior: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
