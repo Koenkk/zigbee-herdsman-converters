@@ -193,8 +193,8 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
-                        hue: (meta.state.color ?? {}).h ?? 0, //          red
-                        saturation: (meta.state.color ?? {}).s ?? 100, // full saturation
+                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 
                     // Apply changes
@@ -217,8 +217,8 @@ const tzLocal = {
                         newSettings.saturation = color.saturation;
 
                         newState.color = {
-                            h: color.hue,
-                            s: color.saturation,
+                            hue: color.hue,
+                            saturation: color.saturation,
                         };
                     }
 
@@ -233,6 +233,10 @@ const tzLocal = {
                         utils.getOptions(meta.mapped, entity));
                 }
             }
+
+            // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
+            // of works in the other direction.
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger));
 
             return {state: newState};
         },
