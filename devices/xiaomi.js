@@ -746,7 +746,7 @@ module.exports = [
         toZigbee: [],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
-            exposes.enum('battery_cover', ea.STATE, ['CLOSE', 'OPEN']).withDescription('Battery cover position'),
+            exposes.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
         ],
     },
     {
