@@ -24,6 +24,6 @@ module.exports = [
         model: 'BRHM8E27W70-I1',
         vendor: 'GS',
         description: 'Smart dimmable, RGB + white (E27 & B22)',
-        extend: extend.light_onoff_brightness_color(),
+        extend: extend.light_onoff_brightness_colortemp_color(),
     },
 ];
