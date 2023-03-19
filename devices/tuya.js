@@ -2224,11 +2224,11 @@ module.exports = [
                     'Mode of this device, in the `heat` mode the TS0601 will remain continuously heating, i.e. it does not regulate ' +
                     'to the desired temperature. If you want TRV to properly regulate the temperature you need to use mode `auto` ' +
                     'instead setting the desired temperature.')
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withPreset(['schedule', 'manual', 'boost', 'complex', 'comfort', 'eco', 'away'])
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
-            e.max_temperature(), e.min_temperature(), e.away_preset_temperature(),
+            e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
             exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature.')
                 .withFeature(e.week())
