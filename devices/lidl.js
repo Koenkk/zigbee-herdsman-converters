@@ -820,7 +820,7 @@ module.exports = [
         model: '14153905L',
         vendor: 'Lidl',
         description: 'Livarno Home LED floor lamp',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 333], noConfigure: true}),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
