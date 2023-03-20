@@ -394,7 +394,7 @@ module.exports = [
         zigbeeModel: ['SGMHM-I1'],
         model: 'SGMHM-I1',
         vendor: 'HEIMAN',
-        description: 'Combustible gas sensor',
+        description: 'Methane gas sensor',
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
         exposes: [e.gas()],
