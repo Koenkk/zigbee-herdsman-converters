@@ -44,6 +44,7 @@ module.exports = [
         description: 'Smart round ceiling lamp comfort',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['FL 140 C'],
@@ -76,6 +77,7 @@ module.exports = [
         description: 'B22 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['OGL 130 C'],
@@ -125,6 +127,7 @@ module.exports = [
         description: 'E14 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 265'],
@@ -141,6 +144,7 @@ module.exports = [
         description: 'B22 (Bayonet) bulb, dimmable',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 266'],
@@ -149,6 +153,7 @@ module.exports = [
         description: 'E27 bulb',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RF 265'],
@@ -157,6 +162,7 @@ module.exports = [
         description: 'E27 bulb filament clear',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['BF 265'],
@@ -165,6 +171,7 @@ module.exports = [
         description: 'B22 bulb filament clear',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 278 T'],
@@ -181,6 +188,7 @@ module.exports = [
         description: 'Smart bulb tunable white E27',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 285 C'],
@@ -197,6 +205,7 @@ module.exports = [
         description: 'E27 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['BY 285 C'],
@@ -213,6 +222,7 @@ module.exports = [
         description: 'B22 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 165'],
@@ -293,6 +303,7 @@ module.exports = [
         description: 'GU10 Spot',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RS 227 T'],
@@ -301,6 +312,7 @@ module.exports = [
         description: 'GU10 spot 420 lm, dimmable, white spectrum',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RS 128 T'],
@@ -325,6 +337,7 @@ module.exports = [
         description: 'GU10 spot 350 lm, dimmable, white spectrum',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RS 230 C'],
@@ -334,6 +347,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         exposes: [e.light_brightness_colortemp_color()],
         meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 145'],
@@ -350,6 +364,7 @@ module.exports = [
         description: 'E14 candle',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 248 T'],
@@ -358,6 +373,7 @@ module.exports = [
         description: 'E14 candle with white spectrum',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 555]}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 249 T'],
@@ -366,6 +382,7 @@ module.exports = [
         description: 'E14 candle, dimmable with, color temp',
         extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 454]}),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RB 148 T'],
@@ -382,6 +399,7 @@ module.exports = [
         description: 'E27 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RF 263'],
@@ -390,6 +408,7 @@ module.exports = [
         description: 'E27 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['RF 264'],
@@ -398,6 +417,7 @@ module.exports = [
         description: 'E27 filament bulb dimmable',
         extend: extend.light_onoff_brightness(),
         meta: {turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['BY 165', 'BY 265'],
@@ -518,6 +538,7 @@ module.exports = [
         description: 'E26 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['SP 120'],
@@ -574,6 +595,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'Smart plug',
         extend: extend.switch(),
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
