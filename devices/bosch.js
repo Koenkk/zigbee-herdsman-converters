@@ -235,7 +235,7 @@ const fzLocal = {
                 const response = {
                     'dstStart': {attribute: 0x0003, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
                     'dstEnd': {attribute: 0x0004, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
-                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.UNSUPPORTED_ATTRIBUTE, value: 0x00},
                 };
 
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
@@ -441,7 +441,7 @@ const definition = [
             fz.battery,
             fzLocal.bosch_ignore_dst,
             fzLocal.bosch_thermostat,
-            fzLocal.bosch_userInterface
+            fzLocal.bosch_userInterface,
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
