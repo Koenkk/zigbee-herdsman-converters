@@ -227,6 +227,21 @@ const fzLocal = {
             return result;
         },
     },
+    bosch_ignore_dst: {
+        cluster: 'genTime',
+        type: 'read',
+        convert: async (model, msg, publish, options, meta) => {
+            if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
+                const response = {
+                    'dstStart': {attribute: 0x0003, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstEnd': {attribute: 0x0004, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                };
+
+                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+            }
+        },
+    },
     bosch_thermostat: {
         cluster: 'hvacThermostat',
         type: ['attributeReport', 'readResponse'],
@@ -421,7 +436,13 @@ const definition = [
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
+        fromZigbee: [
+            fz.thermostat,
+            fz.battery,
+            fzLocal.bosch_ignore_dst,
+            fzLocal.bosch_thermostat,
+            fzLocal.bosch_userInterface
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -482,7 +503,7 @@ const definition = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
-            // report boost as it's disabled by thermostat after some time
+            // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4043, type: herdsman.Zcl.DataType.enum8},
                 minimumReportInterval: 0,
