@@ -235,7 +235,7 @@ const fzLocal = {
                 const response = {
                     'dstStart': {attribute: 0x0003, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
                     'dstEnd': {attribute: 0x0004, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
-                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.UNSUPPORTED_ATTRIBUTE, value: 0x00},
+                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
                 };
 
                 await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
