@@ -245,6 +245,71 @@ const ikea = {
                 }
             },
         },
+        ikea_dots_click_v1: {
+            // For remotes with firmware 1.0.012 (20211214)
+            cluster: 64639,
+            type: 'raw',
+            convert: (model, msg, publish, options, meta) => {
+                if (!Buffer.isBuffer(msg.data)) return;
+                let action;
+                const button = msg.data[5];
+                switch (msg.data[6]) {
+                case 1: action = 'initial_press'; break;
+                case 2: action = 'double_press'; break;
+                case 3: action = 'long_press'; break;
+                }
+
+                return {action: `dots_${button}_${action}`};
+            },
+        },
+        ikea_dots_click_v2: {
+            // For remotes with firmware 1.0.32 (20221219)
+            cluster: 'heimanSpecificScenes',
+            type: 'raw',
+            convert: (model, msg, publish, options, meta) => {
+                if (!Buffer.isBuffer(msg.data)) return;
+                let button;
+                let action;
+                switch (msg.endpoint.ID) {
+                case 2: button = '1'; break; // 1 dot
+                case 3: button = '2'; break; // 2 dot
+                }
+                switch (msg.data[4]) {
+                case 1: action = 'initial_press'; break;
+                case 2: action = 'long_press'; break;
+                case 3: action = 'short_release'; break;
+                case 4: action = 'long_release'; break;
+                case 6: action = 'double_press'; break;
+                }
+
+                return {action: `dots_${button}_${action}`};
+            },
+        },
+        ikea_volume_click: {
+            cluster: 'genLevelCtrl',
+            type: 'commandMoveWithOnOff',
+            convert: (model, msg, publish, options, meta) => {
+                const direction = msg.data.movemode === 1 ? 'down' : 'up';
+                return {action: `volume_${direction}`};
+            },
+        },
+        ikea_volume_hold: {
+            cluster: 'genLevelCtrl',
+            type: 'commandMove',
+            convert: (model, msg, publish, options, meta) => {
+                const direction = msg.data.movemode === 1 ? 'down_hold' : 'up_hold';
+                return {action: `volume_${direction}`};
+            },
+        },
+        ikea_track_click: {
+            cluster: 'genLevelCtrl',
+            type: 'commandStep',
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const direction = msg.data.stepmode === 1 ? 'previous' : 'next';
+                return {action: `track_${direction}`};
+            },
+        },
     },
     tz: {
         air_purifier_fan_mode: {
@@ -1071,6 +1136,33 @@ module.exports = [
                 attribute: 'measuredValue',
                 minimumReportInterval: 60, maximumReportInterval: 120,
             }]);
+        },
+    },
+    {
+        zigbeeModel: ['SYMFONISK sound remote gen2'],
+        model: 'E2123',
+        vendor: 'IKEA',
+        description: 'SYMFONISK sound remote gen2',
+        fromZigbee: [ikea.fz.battery, fz.legacy.E1744_play_pause, ikea.fz.ikea_track_click, ikea.fz.ikea_volume_click,
+            ikea.fz.ikea_volume_hold, ikea.fz.ikea_dots_click_v1, ikea.fz.ikea_dots_click_v2],
+        exposes: [e.battery().withAccess(ea.STATE_GET), e.action(['toggle', 'track_previous', 'track_next', 'volume_up',
+            'volume_down', 'volume_up_hold', 'volume_down_hold', 'dots_1_initial_press', 'dots_2_initial_press',
+            'dots_1_long_press', 'dots_2_long_press', 'dots_1_short_release', 'dots_2_short_release', 'dots_1_long_release',
+            'dots_2_long_release', 'dots_1_double_press', 'dots_2_double_press'])],
+        toZigbee: [tz.battery_percentage_remaining],
+        ota: ota.zigbeeOTA,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'genPollCtrl']);
+            if (endpoint2) {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ['heimanSpecificScenes']);
+            }
+            if (endpoint3) {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ['heimanSpecificScenes']);
+            }
+            await reporting.batteryVoltage(endpoint1);
         },
     },
 ];
