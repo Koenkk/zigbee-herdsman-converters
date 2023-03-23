@@ -160,10 +160,11 @@ module.exports = [
         vendor: 'Woox',
         description: 'Smart siren',
         fromZigbee: [fz.battery, fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
-        toZigbee: [tz.warning, tz.ts0216_volume],
+        toZigbee: [tz.warning, tz.ts0216_volume, tz.ts0216_duration],
         exposes: [e.battery(), e.battery_voltage(), e.warning(), exposes.binary('alarm', ea.STATE, true, false),
             exposes.binary('ac_connected', ea.STATE, true, false).withDescription('Is the device plugged in'),
-            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren')],
+            exposes.numeric('volume', ea.ALL).withValueMin(0).withValueMax(100).withDescription('Volume of siren'),
+            exposes.numeric('duration', ea.ALL).withValueMin(0).withValueMax(3600).withDescription('Duration of siren')],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
