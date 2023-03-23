@@ -789,17 +789,17 @@ module.exports = [
     },
     {
         zigbeeModel: ['RouteLight-EF-3.0'],
-	    model: 'HS2RNL',
-	    vendor: 'HEIMAN',
-	    description: 'Smart Repeater & Night Light',
-	    fromZigbee: [fz.on_off,fz.battery],
-	    toZigbee: [tz.on_off],
-	    configure: async (device, coordinatorEndpoint, logger) => {
-		    const endpoint = device.getEndpoint(1);
-		    await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
-		    await reporting.onOff(endpoint); // switch the night light on/off
-		    await reporting.batteryPercentageRemaining(endpoint); // internal backup battery in case of power outage
-		},
-	    exposes: [e.switch(),e.battery()],
+        model: 'HS2RNL',
+        vendor: 'HEIMAN',
+        description: 'Smart repeater & night light',
+        fromZigbee: [fz.on_off, fz.battery],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint); // switch the night light on/off
+            await reporting.batteryPercentageRemaining(endpoint); // internal backup battery in case of power outage
+        },
+        exposes: [e.switch(), e.battery()],
     },
 ];
