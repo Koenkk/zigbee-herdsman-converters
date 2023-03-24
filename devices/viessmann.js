@@ -24,6 +24,7 @@ module.exports = [
             exposes.binary('window_open_force', ea.ALL, true, false)
                 .withDescription('Manually set window_open, ~1 minute to take affect.'),
             e.keypad_lockout(),
+            e.battery(),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
