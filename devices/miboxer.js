@@ -34,6 +34,15 @@ module.exports = [
             {modelID: 'TS0502B', manufacturerName: '_TZ3210_xwqng7ol'},
         ],
         model: 'FUT035Z',
+        description: 'Dual white 2 in 1 LED Controller',
+        vendor: 'Miboxer',
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0502B', manufacturerName: '_TZB210_lmqquxus'},
+        ],
+        model: 'FUT035Z+',
         description: 'Dual white LED controller',
         vendor: 'Miboxer',
         extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], disablePowerOnBehavior: true}),
