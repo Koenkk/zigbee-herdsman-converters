@@ -1,6 +1,6 @@
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const exposes = require('../lib/exposes');
 const e = exposes.presets;
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
+const tuya = require('../lib/tuya');
 
 /**
  * Definition for ["KnockautX Rauchwarnmelder"] (https://www.brelag.com/shop/smoal024-knockautx-rauchwarnmelder-4714#attr=)
@@ -10,7 +10,7 @@ const tuya = require('zigbee-herdsman-converters/lib/tuya');
  *
  * @author Patrik Gfeller <patrik.gfeller@gmail.com>
  */
-const definition = {
+module.exports = [{
     fingerprint: [
         {
             modelID: 'TS0601',
@@ -21,19 +21,16 @@ const definition = {
     vendor: 'KnockautX',
     description: 'Smoke sensor',
     fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.fz.datapoints],
+    toZigbee: [],
     configure: tuya.configureMagicPacket,
     exposes: [
         e.smoke(),
         tuya.exposes.batteryState(),
-        tuya.exposes.silence(),
     ],
     meta: {
         tuyaDatapoints: [
             [tuya.dataPoints.state, 'smoke', tuya.valueConverter.trueFalse0],
-            [tuya.dataPoints.runningState, 'battery_state', tuya.valueConverter.batteryState]
+            [tuya.dataPoints.runningState, 'battery_state', tuya.valueConverter.batteryState],
         ],
     },
-};
-
-module.exports = definition;
+}];
