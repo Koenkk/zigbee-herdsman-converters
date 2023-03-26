@@ -3372,6 +3372,7 @@ module.exports = [
             {modelID: 'TS0210', manufacturerName: '_TYZB01_kulduhbj'},
             {modelID: 'TS0210', manufacturerName: '_TYZB01_cc3jzhlj'},
             {modelID: 'TS0210', manufacturerName: '_TZ3000_bmfw9ykl'},
+            {modelID: 'TS0210', manufacturerName: '_TYZB01_geigpsy4'},
             {modelID: 'TS0210', manufacturerName: '_TZ3000_fkxmyics'}],
         model: 'TS0210',
         vendor: 'TuYa',
