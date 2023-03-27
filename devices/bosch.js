@@ -467,7 +467,7 @@ const definition = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.test()],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
