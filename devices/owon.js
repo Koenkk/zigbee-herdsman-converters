@@ -88,7 +88,7 @@ const fzLocal = {
 
 module.exports = [
     {
-        zigbeeModel: ['WSP402'],
+        zigbeeModel: ['WSP402', 'WSP403-E'],
         model: 'WSP402',
         vendor: 'OWON',
         description: 'Smart plug',
