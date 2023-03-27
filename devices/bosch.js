@@ -459,7 +459,7 @@ const definition = [
         model: 'BSD-2',
         vendor: 'Bosch',
         description: 'Bosch Smoke Alarm Detector',
-        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1, ],
+        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [],
         meta: {},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -467,7 +467,7 @@ const definition = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.smoke(), e.battery(), e.test(), ],
+        exposes: [e.smoke(), e.battery(), e.test()],
     },
     {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
