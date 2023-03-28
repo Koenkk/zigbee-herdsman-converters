@@ -106,6 +106,24 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['WSP403-E'],
+        model: 'WSP403',
+        vendor: 'OWON',
+        description: 'Smart plug',
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
+            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
+                change: [10, 10]}); // divider 1000: 0,01kWh
+        },
+    },
+    {
         zigbeeModel: ['WSP404'],
         model: 'WSP404',
         vendor: 'OWON',
