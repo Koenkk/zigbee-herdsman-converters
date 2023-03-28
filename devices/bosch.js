@@ -458,7 +458,7 @@ const definition = [
         zigbeeModel: ['RBSH-SD-ZB-EU'],
         model: 'BSD-2',
         vendor: 'Bosch',
-        description: 'Bosch Smoke Alarm Detector',
+        description: 'Bosch smoke alarm detector',
         fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [],
         meta: {},
