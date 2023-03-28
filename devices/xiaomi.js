@@ -1176,42 +1176,42 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ["lumi.switch.l3acn1"],
-        model: "QBKG29LM",
-        vendor: "Xiaomi",
-        description: "Aqara smart wall switch H1 EU (no neutral, triple rocker)",
-        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action , fz.aqara_opple],
+        zigbeeModel: ['lumi.switch.l3acn1'],
+        model: 'QBKG29LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara smart wall switch H1 EU (no neutral, triple rocker)',
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_flip_indicator_light, tz.xiaomi_led_disabled_night, tz.aqara_switch_mode_switch],
-        meta: { multiEndpoint: true },
-        endpoint: (device) => ({ left: 1, center: 2, right: 3, }),
+        meta: {multiEndpoint: true},
+        endpoint: (device) => ({left: 1, center: 2, right: 3}),
         exposes: [
-            e.switch().withEndpoint("left"), e.switch().withEndpoint("center"), e.switch().withEndpoint("right"),
+            e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right'),
             e.power_outage_memory(), e.flip_indicator_light(), e.led_disabled_night(), e.power_outage_count(),
-          exposes
-            .enum("operation_mode", ea.ALL, ["control_relay", "decoupled"])
-            .withDescription("Decoupled mode for left button")
-            .withEndpoint("left"),
-          exposes
-            .enum("operation_mode", ea.ALL, ["control_relay", "decoupled"])
-            .withDescription("Decoupled mode for center button")
-            .withEndpoint("center"),
-          exposes
-            .enum("operation_mode", ea.ALL, ["control_relay", "decoupled"])
-            .withDescription("Decoupled mode for right button")
-            .withEndpoint("right"),
-          exposes
-            .enum("mode_switch", ea.ALL, ["anti_flicker_mode", "quick_mode"])
-            .withDescription(
-              "Anti flicker mode can be used to solve blinking issues of some lights." +
-                "Quick mode makes the device respond faster."
-            ),
-          e.device_temperature().withAccess(ea.STATE),
-          e.action([
-            "single_left", "double_left", "single_center", "double_center", "single_right", "double_right",
-            "single_left_center", "double_left_center", "single_left_right", "double_left_right",
-            "single_center_right", "double_center_right", "single_all", "double_all",
-          ]),
+            exposes
+                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for left button')
+                .withEndpoint('left'),
+            exposes
+                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for center button')
+                .withEndpoint('center'),
+            exposes
+                .enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
+                .withDescription('Decoupled mode for right button')
+                .withEndpoint('right'),
+            exposes
+                .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
+                .withDescription(
+                'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'
+                ),
+            e.device_temperature().withAccess(ea.STATE),
+            e.action([
+                'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
+                'single_left_center', 'double_left_center', 'single_left_right', 'double_left_right',
+                'single_center_right', 'double_center_right', 'single_all', 'double_all',
+            ]),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
