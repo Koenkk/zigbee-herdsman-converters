@@ -4151,4 +4151,14 @@ module.exports = [
                 .withDescription('Volume of the alarm'),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0041', ['_TZ3000_fa9mlvja']),
+        model: 'IH-K663',
+        vendor: 'TuYa',
+        description: 'Smart button',
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double'])],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+    },
 ];
