@@ -455,6 +455,21 @@ const definition = [
         ],
     },
     {
+        zigbeeModel: ['RBSH-SD-ZB-EU'],
+        model: 'BSD-2',
+        vendor: 'Bosch',
+        description: 'Smoke alarm detector',
+        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        meta: {},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
+    },
+    {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
             'RFPR-ZB-EU', 'RFPR-ZB-CHI', 'RFPR-ZB-ES', 'RFPR-ZB-MS'],
         model: 'RADON TriTech ZB',
