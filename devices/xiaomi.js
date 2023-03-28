@@ -1203,9 +1203,8 @@ module.exports = [
             exposes
                 .enum('mode_switch', ea.ALL, ['anti_flicker_mode', 'quick_mode'])
                 .withDescription(
-                'Anti flicker mode can be used to solve blinking issues of some lights.' +
-                    'Quick mode makes the device respond faster.'
-                ),
+                    'Anti flicker mode can be used to solve blinking issues of some lights.' +
+                    'Quick mode makes the device respond faster.'),
             e.device_temperature().withAccess(ea.STATE),
             e.action([
                 'single_left', 'double_left', 'single_center', 'double_center', 'single_right', 'double_right',
