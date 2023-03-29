@@ -620,7 +620,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['LWA003', 'LWW002'],
+        zigbeeModel: ['LWA003', 'LWW002', 'LWA025'],
         model: '9290022268',
         vendor: 'Philips',
         description: 'Hue White A19 bulb with Bluetooth',
