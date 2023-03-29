@@ -1987,7 +1987,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_tqlv4ug4', '_TZ3000_gjrubzje', '_TZ3000_tygpxwqa']),
+        fingerprint: tuya.fingerprint('TS0001', ['_TZ3000_tqlv4ug4', '_TZ3000_gjrubzje', '_TZ3000_tygpxwqa', '_TZ3000_khmapq4n']),
         model: 'TS0001_switch_module',
         vendor: 'TuYa',
         description: '1 gang switch module',
@@ -1999,9 +1999,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_bvrlqyj7'},
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_7ed9cqgi'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_zmy4lslw'}, 
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_5gey1ohx'}],
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_01gpyda5', '_TZ3000_bvrlqyj7', '_TZ3000_7ed9cqgi', '_TZ3000_zmy4lslw', '_TZ3000_5gey1ohx']),
         model: 'TS0002_switch_module',
         vendor: 'TuYa',
         description: '2 gang switch module',
