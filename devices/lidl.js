@@ -836,9 +836,18 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
-        model: '14149505L/14149506L',
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
+        model: '14149505L/14149506L_1',
+        vendor: 'Lidl',
+        description: 'Livarno Lux light bar RGB+CCT (black/white)',
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
+        model: '14149505L/14149506L_2',
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
         toZigbee: [tz.on_off, tzLocal.led_control],
