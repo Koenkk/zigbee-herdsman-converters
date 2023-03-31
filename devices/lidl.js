@@ -193,8 +193,8 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
-                        hue: (meta.state.color ?? {}).h ?? 0, //          red
-                        saturation: (meta.state.color ?? {}).s ?? 100, // full saturation
+                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 
                     // Apply changes
@@ -217,8 +217,8 @@ const tzLocal = {
                         newSettings.saturation = color.saturation;
 
                         newState.color = {
-                            h: color.hue,
-                            s: color.saturation,
+                            hue: color.hue,
+                            saturation: color.saturation,
                         };
                     }
 
@@ -233,6 +233,10 @@ const tzLocal = {
                         utils.getOptions(meta.mapped, entity));
                 }
             }
+
+            // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
+            // of works in the other direction.
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger));
 
             return {state: newState};
         },
@@ -816,7 +820,7 @@ module.exports = [
         model: '14153905L',
         vendor: 'Lidl',
         description: 'Livarno Home LED floor lamp',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 333], noConfigure: true}),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
         },
@@ -832,9 +836,18 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
-        model: '14149505L/14149506L',
+        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
+        model: '14149505L/14149506L_1',
+        vendor: 'Lidl',
+        description: 'Livarno Lux light bar RGB+CCT (black/white)',
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
+        model: '14149505L/14149506L_2',
         vendor: 'Lidl',
         description: 'Livarno Lux light bar RGB+CCT (black/white)',
         toZigbee: [tz.on_off, tzLocal.led_control],

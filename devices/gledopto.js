@@ -452,6 +452,13 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-G-004P'],
+        model: 'GL-G-004P',
+        vendor: 'Gledopto',
+        description: 'Zigbee 7W garden light Pro RGB+CCT',
+        extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-B-007ZS'],
         model: 'GL-B-007ZS',
         vendor: 'Gledopto',
