@@ -246,4 +246,17 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position(), e.battery()],
     },
+    {
+        zigbeeModel: ['Z111PL0H-1JX', 'SA-029-1'],
+        model: 'SA-028/SA-029',
+        vendor: 'SONOFF',
+        whiteLabel: [{vendor: 'Woolley', model: 'SA-029-1'}],
+        description: 'Smart Plug',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];

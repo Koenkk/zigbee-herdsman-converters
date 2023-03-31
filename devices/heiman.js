@@ -394,10 +394,10 @@ module.exports = [
         zigbeeModel: ['SGMHM-I1'],
         model: 'SGMHM-I1',
         vendor: 'HEIMAN',
-        description: 'Combustible gas sensor',
-        fromZigbee: [fz.ias_gas_alarm_1],
+        description: 'Methane gas sensor',
+        fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
-        exposes: [e.gas(), e.battery_low(), e.tamper()],
+        exposes: [e.gas()],
     },
     {
         zigbeeModel: ['STHM-I1H'],
@@ -786,5 +786,20 @@ module.exports = [
             await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
+    },
+    {
+        zigbeeModel: ['RouteLight-EF-3.0'],
+        model: 'HS2RNL',
+        vendor: 'HEIMAN',
+        description: 'Smart repeater & night light',
+        fromZigbee: [fz.on_off, fz.battery],
+        toZigbee: [tz.on_off],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint); // switch the night light on/off
+            await reporting.batteryPercentageRemaining(endpoint); // internal backup battery in case of power outage
+        },
+        exposes: [e.switch(), e.battery()],
     },
 ];

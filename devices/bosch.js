@@ -48,6 +48,26 @@ const displayOrientation = {
 
 // Radiator Thermostat II
 const tzLocal = {
+    bwa1: {
+        key: ['alarm_on_motion', 'test'],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === 'alarm_on_motion') {
+                value = value.toUpperCase();
+                const index = stateOffOn[value];
+                await entity.write(0xFCAC, {0x0003: {value: index, type: 0x10}}, boschManufacturer);
+                return {state: {alarm_on_motion: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'alarm_on_motion':
+                await entity.read(0xFCAC, [0x0003], boschManufacturer);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.bosch_twinguard.convertGet ${key}`);
+            }
+        },
+    },
     bosch_thermostat: {
         key: ['window_open', 'boost', 'system_mode', 'pi_heating_demand'],
         convertSet: async (entity, key, value, meta) => {
@@ -212,6 +232,19 @@ const tzLocal = {
 
 
 const fzLocal = {
+    bwa1_alarm_on_motion: {
+        cluster: '64684',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x0003)) {
+                result.alarm_on_motion = (Object.keys(stateOffOn)[msg.data[0x0003]]);
+            }
+            return result;
+        },
+    },
     bosch_contact: {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
@@ -225,6 +258,21 @@ const fzLocal = {
             };
             if (result.action === 'none') delete result.action;
             return result;
+        },
+    },
+    bosch_ignore_dst: {
+        cluster: 'genTime',
+        type: 'read',
+        convert: async (model, msg, publish, options, meta) => {
+            if (msg.data.includes('dstStart', 'dstEnd', 'dstShift')) {
+                const response = {
+                    'dstStart': {attribute: 0x0003, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstEnd': {attribute: 0x0004, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                    'dstShift': {attribute: 0x0005, status: herdsman.Zcl.Status.SUCCESS, value: 0x00},
+                };
+
+                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+            }
         },
     },
     bosch_thermostat: {
@@ -382,6 +430,46 @@ const fzLocal = {
 
 const definition = [
     {
+        zigbeeModel: ['RBSH-WS-ZB-EU'],
+        model: 'BWA-1',
+        vendor: 'Bosch',
+        description: 'Zigbee smart water leak detector',
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fzLocal.bwa1_alarm_on_motion],
+        toZigbee: [tzLocal.bwa1],
+        meta: {battery: {voltageToPercentage: '3V_2500'}},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', '64684']);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            await endpoint.configureReporting(0xFCAC, [{
+                attribute: {ID: 0x0003, type: herdsman.Zcl.DataType.bool},
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }], boschManufacturer);
+        },
+        exposes: [
+            e.water_leak(), e.battery(), e.tamper(),
+            exposes.binary('alarm_on_motion', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable sound alarm on motion'),
+        ],
+    },
+    {
+        zigbeeModel: ['RBSH-SD-ZB-EU'],
+        model: 'BSD-2',
+        vendor: 'Bosch',
+        description: 'Smoke alarm detector',
+        fromZigbee: [fz.battery, fz.ias_smoke_alarm_1],
+        toZigbee: [],
+        meta: {},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.test()],
+    },
+    {
         zigbeeModel: ['RFDL-ZB', 'RFDL-ZB-EU', 'RFDL-ZB-H', 'RFDL-ZB-K', 'RFDL-ZB-CHI', 'RFDL-ZB-MS', 'RFDL-ZB-ES', 'RFPR-ZB',
             'RFPR-ZB-EU', 'RFPR-ZB-CHI', 'RFPR-ZB-ES', 'RFPR-ZB-MS'],
         model: 'RADON TriTech ZB',
@@ -421,7 +509,13 @@ const definition = [
         vendor: 'Bosch',
         description: 'Radiator thermostat II',
         ota: ota.zigbeeOTA,
-        fromZigbee: [fz.thermostat, fz.battery, fzLocal.bosch_thermostat, fzLocal.bosch_userInterface],
+        fromZigbee: [
+            fz.thermostat,
+            fz.battery,
+            fzLocal.bosch_ignore_dst,
+            fzLocal.bosch_thermostat,
+            fzLocal.bosch_userInterface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -482,7 +576,7 @@ const definition = [
                 maximumReportInterval: constants.repInterval.HOUR,
                 reportableChange: 1,
             }], boschManufacturer);
-            // report boost as it's disabled by thermostat after some time
+            // report boost as it's disabled by thermostat after 5 minutes
             await endpoint.configureReporting('hvacThermostat', [{
                 attribute: {ID: 0x4043, type: herdsman.Zcl.DataType.enum8},
                 minimumReportInterval: 0,

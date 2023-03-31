@@ -11,6 +11,73 @@ const e = exposes.presets;
 const utils = require('../lib/utils');
 const ota = require('../lib/ota');
 const {Buffer} = require('buffer');
+const herdsman = require('zigbee-herdsman');
+
+
+/* Start ZiPulses */
+
+const unitsZiPulses = [
+    'kWh',
+    'm3',
+    'ft3',
+    'ccf',
+    'US gl',
+    'IMP gl',
+    'BTUs',
+    'L (litre)',
+    'kPA (jauge)',
+    'kPA (absolu)',
+    'kPA (absolu)',
+    'sans unité',
+    'MJ',
+    'kVar',
+];
+
+const tzSeMetering = {
+    key: ['divisor', 'multiplier', 'unitOfMeasure'],
+    convertSet: async (entity, key, value, meta) => {
+        if (key === 'unitOfMeasure') {
+            const val = unitsZiPulses.indexOf(value);
+            const payload = {768: {value: val, type: herdsman.Zcl.DataType.enum8}};
+            await entity.write('seMetering', payload);
+            await entity.read('seMetering', [key]);
+            return {state: {'unitOfMeasure': value}};
+        } else {
+            await entity.write('seMetering', {
+                [key]: value,
+            });
+        }
+
+        return {state: {[key]: value}};
+    },
+    // convertGet: async (entity, key, meta) => {
+    //     await entity.read('seMetering', [key]);
+    // },
+};
+
+
+const fzZiPulses = {
+    cluster: 'seMetering',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const payload = {};
+        if (msg.data.hasOwnProperty('multiplier')) {
+            payload['multiplier'] = msg.data['multiplier'];
+        }
+        if (msg.data.hasOwnProperty('divisor')) {
+            payload['divisor'] = msg.data['divisor'];
+        }
+        if (msg.data.hasOwnProperty('unitOfMeasure')) {
+            const val = msg.data['unitOfMeasure'];
+            payload['unitOfMeasure'] = unitsZiPulses[val];
+        }
+
+        return payload;
+    },
+};
+
+
+/* End ZiPulses */
 
 const fzLocal = {
     lixee_ha_electrical_measurement: {
@@ -555,137 +622,158 @@ function getCurrentConfig(device, options, logger=console) {
 
     return myExpose;
 }
-const definition = {
-    zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
-    model: 'ZLinky_TIC',
-    vendor: 'LiXee',
-    description: 'Lixee ZLinky',
-    fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
-    toZigbee: [],
-    exposes: (device, options) => {
-        // docs generation
-        let exposes;
-        if (device == null && options == null) {
-            exposes = exposedData.map((e) => e.exposes)
-                .filter((value, index, self) =>
-                    index === self.findIndex((t) => (
-                        t.property === value.property // Remove duplicates
-                    )),
-                );
-        } else {
-            exposes = getCurrentConfig(device, options).map((e) => e.exposes);
-        }
-
-        exposes.push(e.linkquality());
-        return exposes;
-    },
-    options: [
-        exposes.options.measurement_poll_interval(),
-        exposes.enum(`linky_mode`, ea.SET, ['auto', linkyModeDef.legacy, linkyModeDef.standard])
-            .withDescription(`Counter with TIC in mode standard or historique. May require restart (default: auto)`),
-        exposes.enum(`energy_phase`, ea.SET, ['auto', linkyPhaseDef.single, linkyPhaseDef.three])
-            .withDescription(`Power with single or three phase. May require restart (default: auto)`),
-        exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (works ONLY when linky_mode: ${linkyModeDef.standard}, default: auto)`),
-        exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
-            .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
-        exposes.options.precision(`kWh`),
-        exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
-        exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
-    ],
-    configure: async (device, coordinatorEndpoint, logger, options) => {
-        const endpoint = device.getEndpoint(1);
-
-        await reporting.bind(endpoint, coordinatorEndpoint, [
-            clustersDef._0x0702, /* seMetering */
-            clustersDef._0x0B01, /* haMeterIdentification */
-            clustersDef._0x0B04, /* haElectricalMeasurement */
-            clustersDef._0xFF66, /* liXeePrivate */
-        ]);
-
-        await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
-            .catch((e) => {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                logger.warn(`Failed to read zigbee attributes: ${e}`);
-            });
-
-        const configReportings = [];
-        const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
-
-        const unsuscribe = endpoint.configuredReportings
-            .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.att));
-        // Unsuscribe reports that doesn't correspond with the current config
-        (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange), {manufacturerCode: null}))))
-            .filter((e) => e.status == 'rejected')
-            .forEach((e) => {
-                throw e.reason;
-            });
-
-        for (const e of suscribeNew) {
-            let params = {
-                att: e.att,
-                min: repInterval.MINUTE,
-                max: repInterval.MINUTES_15,
-                change: 1,
-            };
-            // Override reportings
-            if (e.hasOwnProperty('report')) {
-                params = {...params, ...e.report};
+module.exports = [
+    {
+        zigbeeModel: ['ZLinky_TIC', 'ZLinky_TIC\u0000'],
+        model: 'ZLinky_TIC',
+        vendor: 'LiXee',
+        description: 'Lixee ZLinky',
+        fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
+        toZigbee: [],
+        exposes: (device, options) => {
+            // docs generation
+            let exposes;
+            if (device == null && options == null) {
+                exposes = exposedData.map((e) => e.exposes)
+                    .filter((value, index, self) =>
+                        index === self.findIndex((t) => (
+                            t.property === value.property // Remove duplicates
+                        )),
+                    );
+            } else {
+                exposes = getCurrentConfig(device, options).map((e) => e.exposes);
             }
-            configReportings.push(endpoint
-                .configureReporting(
-                    e.cluster, reporting.payload(params.att, params.min, params.max, params.change),
-                    {manufacturerCode: null}),
-            );
-        }
-        (await Promise.allSettled(configReportings))
-            .filter((e) => e.status == 'rejected')
-            .forEach((e) => {
-                throw e.reason;
-            });
-    },
-    ota: ota.lixee,
-    onEvent: async (type, data, device, options) => {
-        const endpoint = device.getEndpoint(1);
-        if (type === 'start') {
-            endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+
+            exposes.push(e.linkquality());
+            return exposes;
+        },
+        options: [
+            exposes.options.measurement_poll_interval(),
+            exposes.enum(`linky_mode`, ea.SET, ['auto', linkyModeDef.legacy, linkyModeDef.standard])
+                .withDescription(`Counter with TIC in mode standard or historique. May require restart (default: auto)`),
+            exposes.enum(`energy_phase`, ea.SET, ['auto', linkyPhaseDef.single, linkyPhaseDef.three])
+                .withDescription(`Power with single or three phase. May require restart (default: auto)`),
+            exposes.enum(`production`, ea.SET, ['auto', 'true', 'false']).withDescription(`If you produce energy back to the grid (works ONLY when linky_mode: ${linkyModeDef.standard}, default: auto)`),
+            exposes.enum(`tarif`, ea.SET, [...Object.entries(tarifsDef).map(( [k, v] ) => (v.fname)), 'auto'])
+                .withDescription(`Overrides the automatic current tarif. This option will exclude unnecesary attributes. Open a issue to support more of them. Default: auto`),
+            exposes.options.precision(`kWh`),
+            exposes.numeric(`measurement_poll_chunk`, ea.SET).withValueMin(1).withDescription(`During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requieres Z2M restart. Default: 1`),
+            exposes.text(`tic_command_whitelist`, ea.SET).withDescription(`List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all`),
+        ],
+        configure: async (device, coordinatorEndpoint, logger, options) => {
+            const endpoint = device.getEndpoint(1);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                clustersDef._0x0702, /* seMetering */
+                clustersDef._0x0B01, /* haMeterIdentification */
+                clustersDef._0x0B04, /* haElectricalMeasurement */
+                clustersDef._0xFF66, /* liXeePrivate */
+            ]);
+
+            await endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
                 .catch((e) => {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                    console.warn(`Failed to read zigbee attributes: ${e}`);
+                    logger.warn(`Failed to read zigbee attributes: ${e}`);
                 });
-        } else if (type === 'stop') {
-            clearInterval(globalStore.getValue(device, 'interval'));
-            globalStore.clearValue(device, 'interval');
-        } else if (!globalStore.hasValue(device, 'interval')) {
-            const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
-            const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 1;
 
-            const interval = setInterval(async () => {
-                const currentExposes = getCurrentConfig(device, options)
-                    .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att));
+            const configReportings = [];
+            const suscribeNew = getCurrentConfig(device, options, logger).filter((e) => e.reportable);
 
-                for (const key in clustersDef) {
-                    if (Object.hasOwnProperty.call(clustersDef, key)) {
-                        const cluster = clustersDef[key];
+            const unsuscribe = endpoint.configuredReportings
+                .filter((e) => !suscribeNew.some((r) => e.cluster.name == r.cluster && e.attribute.name == r.att));
+            // Unsuscribe reports that doesn't correspond with the current config
+            (await Promise.allSettled(unsuscribe.map((e) => endpoint.configureReporting(e.cluster.name, reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange), {manufacturerCode: null}))))
+                .filter((e) => e.status == 'rejected')
+                .forEach((e) => {
+                    throw e.reason;
+                });
 
-                        const targ = currentExposes.filter((e)=> e.cluster == cluster).map((e)=> e.att);
-                        if (targ.length) {
-                            let i; let j;
-                            // Split array by chunks
-                            for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
-                                await endpoint
-                                    .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
-                                    .catch((e) => {
-                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                        console.warn(`Failed to read zigbee attributes: ${e}`);
-                                    });
+            for (const e of suscribeNew) {
+                let params = {
+                    att: e.att,
+                    min: repInterval.MINUTE,
+                    max: repInterval.MINUTES_15,
+                    change: 1,
+                };
+                // Override reportings
+                if (e.hasOwnProperty('report')) {
+                    params = {...params, ...e.report};
+                }
+                configReportings.push(endpoint
+                    .configureReporting(
+                        e.cluster, reporting.payload(params.att, params.min, params.max, params.change),
+                        {manufacturerCode: null}),
+                );
+            }
+            (await Promise.allSettled(configReportings))
+                .filter((e) => e.status == 'rejected')
+                .forEach((e) => {
+                    throw e.reason;
+                });
+        },
+        ota: ota.lixee,
+        onEvent: async (type, data, device, options) => {
+            const endpoint = device.getEndpoint(1);
+            if (type === 'start') {
+                endpoint.read('liXeePrivate', ['linkyMode', 'currentTarif'], {manufacturerCode: null})
+                    .catch((e) => {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                        console.warn(`Failed to read zigbee attributes: ${e}`);
+                    });
+            } else if (type === 'stop') {
+                clearInterval(globalStore.getValue(device, 'interval'));
+                globalStore.clearValue(device, 'interval');
+            } else if (!globalStore.hasValue(device, 'interval')) {
+                const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+                const measurement_poll_chunk = options && options.measurement_poll_chunk ? options.measurement_poll_chunk : 1;
+
+                const interval = setInterval(async () => {
+                    const currentExposes = getCurrentConfig(device, options)
+                        .filter((e) => !endpoint.configuredReportings.some((r) => r.cluster.name == e.cluster && r.attribute.name == e.att));
+
+                    for (const key in clustersDef) {
+                        if (Object.hasOwnProperty.call(clustersDef, key)) {
+                            const cluster = clustersDef[key];
+
+                            const targ = currentExposes.filter((e)=> e.cluster == cluster).map((e)=> e.att);
+                            if (targ.length) {
+                                let i; let j;
+                                // Split array by chunks
+                                for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
+                                    await endpoint
+                                        .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
+                                        .catch((e) => {
+                                            // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                            console.warn(`Failed to read zigbee attributes: ${e}`);
+                                        });
+                                }
                             }
                         }
                     }
-                }
-            }, seconds * 1000);
-            globalStore.putValue(device, 'interval', interval);
-        }
+                }, seconds * 1000);
+                globalStore.putValue(device, 'interval', interval);
+            }
+        },
     },
-};
 
-module.exports = [definition];
+    {
+        zigbeeModel: ['ZiPulses'],
+        model: 'ZiPulses',
+        vendor: 'LiXee',
+        description: 'Lixee ZiPulses',
+        fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
+        toZigbee: [tzSeMetering],
+        exposes: [e.battery_voltage(), e.temperature(),
+            exposes.numeric('multiplier', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
+            exposes.numeric('divisor', ea.STATE_SET).withValueMin(1).withValueMax(1000).withDescription('It is necessary to press the link button to update'),
+            exposes.enum('unitOfMeasure', ea.STATE_SET, unitsZiPulses).withDescription('It is necessary to press the link button to update'),
+            exposes.numeric('energy', ea.STATE),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ['genPowerCfg', 'seMetering', 'msTemperatureMeasurement'];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await endpoint.read('seMetering', ['divisor', 'unitOfMeasure', 'multiplier']);
+        },
+    },
+];

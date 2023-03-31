@@ -7,6 +7,13 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        zigbeeModel: ['ROB_200-060-0'],
+        model: 'ROB_200-060-0',
+        vendor: 'ROBB',
+        description: 'Zigbee LED driver',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [160, 450]}),
+    },
+    {
         zigbeeModel: ['ROB_200-061-0'],
         model: 'ROB_200-061-0',
         vendor: 'ROBB',
