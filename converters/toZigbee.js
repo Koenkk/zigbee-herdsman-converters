@@ -1221,6 +1221,29 @@ const converters = {
     thermostat_weekly_schedule: {
         key: ['weekly_schedule'],
         convertSet: async (entity, key, value, meta) => {
+            /*
+             * We want to support a simple human creatable format to send a schedule:
+                 {"weekly_schedule": {
+                   "dayofweek": ["monday", "tuesday"],
+                   "transitions": [
+                     {"heatSetpoint": 16, "transitionTime": "0:00"},
+                     {"heatSetpoint": 20, "transitionTime": "18:00"},
+                     {"heatSetpoint": 16, "transitionTime": "19:30"}
+                   ]}}
+
+             * However exposes is not flexible enough to describe something like this. There is a
+             *  much more verbose format we also support so that exposes work.
+                 {"weekly_schedule": {
+                   "dayofweek": [
+                     {"day": "monday"},
+                     {"day": "tuesday"}
+                   ],
+                   "transitions": [
+                     {"heatSetpoint": 16, "transitionTime": {"hour": 0,  "minute": 0}},
+                     {"heatSetpoint": 20, "transitionTime": {"hour": 18, "minute": 0}},
+                     {"heatSetpoint": 16, "transitionTime": {"hour": 19, "minute": 30}}
+                   ]}}
+             */
             const payload = {
                 dayofweek: value.dayofweek,
                 transitions: value.transitions,
@@ -1315,6 +1338,15 @@ const converters = {
             if (Array.isArray(payload.dayofweek)) {
                 let dayofweek = 0;
                 for (let d of payload.dayofweek) {
+                    if (typeof d === 'object') {
+                        if (!d.hasOwnProperty('day')) {
+                            throw new Error(
+                                'weekly_schedule: expected dayofweek to be string or {"day": "str"}, ' +
+                                `but got '${JSON.strinify(d)}'!`,
+                            );
+                        }
+                        d = d.day;
+                    }
                     // lookup dayofweek bit
                     d = utils.getKey(constants.thermostatDayOfWeek, d.toLowerCase(), d, Number);
                     dayofweek |= (1 << d);
@@ -1322,7 +1354,6 @@ const converters = {
                 payload.dayofweek = dayofweek;
             }
 
-            meta.logger.error(JSON.stringify(payload));
             await entity.command('hvacThermostat', 'setWeeklySchedule', payload, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
