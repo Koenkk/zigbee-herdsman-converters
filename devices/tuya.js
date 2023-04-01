@@ -2671,8 +2671,7 @@ module.exports = [
         description: '2 gang 2 usb 1 wall ac outlet',
         whiteLabel: [{vendor: 'Milfra', model: 'M11Z'}],
         vendor: 'TuYa',
-        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']}),
-endpoint: (device) => {
+        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']}), endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
         meta: {multiEndpoint: true},
