@@ -925,4 +925,15 @@ module.exports = [
         },
         ota: ota.ubisys,
     },
+    {
+        zigbeeModel: ['R0 (5501)'],
+        model: 'R0',
+        vendor: 'ubisys',
+        description: 'Zigbee Router R0',
+        supports: 'Router',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+        ota: ota.ubisys,
+    }
 ];
