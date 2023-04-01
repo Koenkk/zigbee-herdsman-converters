@@ -211,6 +211,22 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
+        zigbeeModel: ['A60 RGBW T'],
+        model: '4058075729025',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp E27 RGBTW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
+        zigbeeModel: ['A60 RGBW B22D T'],
+        model: '4058075729049',
+        vendor: 'LEDVANCE',
+        description: 'SMART+ lamp B22D RGBTW',
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        ota: ota.ledvance,
+    },
+    {
         zigbeeModel: ['A60 DIM T'],
         model: '4058075728981',
         vendor: 'LEDVANCE',
