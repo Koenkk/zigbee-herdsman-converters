@@ -1067,7 +1067,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_5nr7ncpl'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3040_bb6xaihh'}],
         model: 'TS0202_1',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1999,8 +2000,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_01gpyda5'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_bvrlqyj7'},
-            {modelID: 'TS0002', manufacturerName: '_TZ3000_7ed9cqgi'}, {modelID: 'TS0002', manufacturerName: '_TZ3000_zmy4lslw'}],
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_01gpyda5', '_TZ3000_bvrlqyj7', '_TZ3000_7ed9cqgi', '_TZ3000_zmy4lslw']),
         model: 'TS0002_switch_module',
         vendor: 'TuYa',
         description: '2 gang switch module',
@@ -2017,7 +2017,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_fisb3ajo'}],
+        fingerprint: tuya.fingerprint('TS0002', ['_TZ3000_fisb3ajo', '_TZ3000_5gey1ohx']),
         model: 'TS0002_switch_module_2',
         vendor: 'TuYa',
         description: '2 gang switch module',
@@ -2666,7 +2666,7 @@ module.exports = [
             ),
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1', '_TZE200_ytibqbra']),
         model: 'TS0601_smoke_1',
         vendor: 'TuYa',
         description: 'Smoke sensor',
@@ -3372,6 +3372,7 @@ module.exports = [
             {modelID: 'TS0210', manufacturerName: '_TYZB01_kulduhbj'},
             {modelID: 'TS0210', manufacturerName: '_TYZB01_cc3jzhlj'},
             {modelID: 'TS0210', manufacturerName: '_TZ3000_bmfw9ykl'},
+            {modelID: 'TS0210', manufacturerName: '_TYZB01_geigpsy4'},
             {modelID: 'TS0210', manufacturerName: '_TZ3000_fkxmyics'}],
         model: 'TS0210',
         vendor: 'TuYa',
@@ -4149,5 +4150,15 @@ module.exports = [
             exposes.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high'])
                 .withDescription('Volume of the alarm'),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0041', ['_TZ3000_fa9mlvja']),
+        model: 'IH-K663',
+        vendor: 'TuYa',
+        description: 'Smart button',
+        exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double'])],
+        fromZigbee: [fz.tuya_on_off_action, fz.battery],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
     },
 ];
