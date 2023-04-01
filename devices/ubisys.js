@@ -935,5 +935,5 @@ module.exports = [
         toZigbee: [],
         exposes: [],
         ota: ota.ubisys,
-    }
+    },
 ];
