@@ -123,25 +123,6 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['LXN-4S27LX1.0'],
-        model: 'HGZB-4S',
-        vendor: 'Nue / 3A',
-        description: 'Smart light switch - 4 gang v2.0',
-        extend: extend.switch(),
-        exposes: [
-            e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-        },
-    },
-    {
         zigbeeModel: ['FB56+ZSW1IKJ1.7', 'FB56+ZSW1IKJ2.5', 'FB56+ZSW1IKJ2.7'],
         model: 'HGZB-043',
         vendor: 'Nue / 3A',

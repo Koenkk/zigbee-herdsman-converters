@@ -757,18 +757,4 @@ module.exports = [
             await reporting.activePower(endpoint);
         },
     },
-    {
-        zigbeeModel: ['4512747'],
-        model: '4512747',
-        vendor: 'Namron',
-        description: 'Curtain motor controller',
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-    },
 ];
