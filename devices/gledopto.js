@@ -452,6 +452,13 @@ module.exports = [
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
     },
     {
+        zigbeeModel: ['GL-C-103P'],
+        model: 'GL-C-103P',
+        vendor: 'Gledopto',
+        description: 'Zigbee LED controller (pro)',
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+    },
+    {
         zigbeeModel: ['GL-G-004P'],
         model: 'GL-G-004P',
         vendor: 'Gledopto',
