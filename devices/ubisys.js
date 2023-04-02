@@ -928,10 +928,9 @@ module.exports = [
     {
         zigbeeModel: ['R0 (5501)'],
         model: 'R0',
-        vendor: 'ubisys',
-        description: 'Zigbee Router R0',
-        supports: 'Router',
-        fromZigbee: [],
+        vendor: 'Ubisys',
+        description: 'Zigbee Router',
+        fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
         ota: ota.ubisys,
