@@ -5,6 +5,55 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const herdsman = require('zigbee-herdsman');
+
+const manufacturerOptions = {manufacturerCode: herdsman.Zcl.ManufacturerCode._4_NOKS};
+
+const bitron = {
+    fz: {
+        thermostat_hysteresis: {
+            cluster: 'hvacThermostat',
+            type: ['attributeReport', 'readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result = {};
+
+                if (msg.data.hasOwnProperty('fourNoksHysteresisHigh')) {
+                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                    result.hysteresis.high = msg.data.fourNoksHysteresisHigh;
+                }
+
+                if (msg.data.hasOwnProperty('fourNoksHysteresisLow')) {
+                    if (!result.hasOwnProperty('hysteresis')) result.hysteresis = {};
+                    result.hysteresis.low = msg.data.fourNoksHysteresisLow;
+                }
+
+                return result;
+            },
+        },
+    },
+    tz: {
+        thermostat_hysteresis: {
+            key: ['hysteresis', 'hysteresis'],
+            convertSet: async (entity, key, value, meta) => {
+                const result = {state: {hysteresis: {}}};
+                if (value.hasOwnProperty('high')) {
+                    await entity.write('hvacThermostat', {'fourNoksHysteresisHigh': value.high}, manufacturerOptions);
+                    result.state.hysteresis.high = value.high;
+                }
+
+                if (value.hasOwnProperty('low')) {
+                    await entity.write('hvacThermostat', {'fourNoksHysteresisLow': value.low}, manufacturerOptions);
+                    result.state.hysteresis.low = value.low;
+                }
+
+                return result;
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
+            },
+        },
+    },
+};
 
 module.exports = [
     {
@@ -190,12 +239,12 @@ module.exports = [
         model: 'AV2010/32',
         vendor: 'SMaBiT (Bitron Video)',
         description: 'Wireless wall thermostat with relay',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface],
+        fromZigbee: [fz.legacy.thermostat_att_report, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
             tz.thermostat_control_sequence_of_operation, tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_local_temperature_calibration,
             tz.thermostat_local_temperature, tz.thermostat_running_state, tz.thermostat_temperature_display_mode,
-            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage,
+            tz.thermostat_keypad_lockout, tz.thermostat_system_mode, tz.battery_voltage, bitron.tz.thermostat_hysteresis,
         ],
         exposes: (device, options) => {
             const dynExposes = [];
@@ -214,6 +263,11 @@ module.exports = [
                 modes.push('cool');
             }
 
+            const hysteresisExposes = exposes.composite('hysteresis', 'hysteresis', ea.ALL)
+                .withFeature(exposes.numeric('low', ea.SET))
+                .withFeature(exposes.numeric('high', ea.SET))
+                .withDescription('Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)');
+
             dynExposes.push(exposes.climate()
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
@@ -222,9 +276,11 @@ module.exports = [
                 .withLocalTemperatureCalibration()
                 .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL));
             dynExposes.push(e.keypad_lockout());
+            dynExposes.push(hysteresisExposes);
             dynExposes.push(e.battery().withAccess(ea.STATE_GET));
             dynExposes.push(e.battery_low());
             dynExposes.push(e.linkquality());
+
             return dynExposes;
         },
         meta: {battery: {voltageToPercentage: '3V_2500'}},
@@ -241,6 +297,7 @@ module.exports = [
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read('hvacThermostat', ['ctrlSeqeOfOper', 'localTemperatureCalibration']);
+            await endpoint.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
         },
     },
     {
