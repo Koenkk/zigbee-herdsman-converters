@@ -10,7 +10,7 @@ module.exports = [
         model: 'EB-E14-P45-RGBW',
         vendor: 'EssentielB',
         description: 'Smart LED bulb',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
     },
     {
         zigbeeModel: ['EB-E14-FLA-CCT'],
