@@ -887,9 +887,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['LCA006'],
-        model: '9290024689',
+        model: '9290024688',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance B22 1100lm',
+        description: 'Hue white and color ambiance E27 1100lm',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
