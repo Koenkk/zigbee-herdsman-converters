@@ -1067,7 +1067,8 @@ module.exports = [
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_lltemgsf'},
             {modelID: 'TS0202', manufacturerName: '_TYZB01_5nr7ncpl'},
-            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'}],
+            {modelID: 'TS0202', manufacturerName: '_TZ3000_mg4dy6z6'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3040_bb6xaihh'}],
         model: 'TS0202_1',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1490,8 +1491,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_aqnazj70'}, {modelID: 'TS0601', manufacturerName: '_TZE200_k6jhsr0q'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_di3tfv5b'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik']),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
         description: '4 gang switch',
@@ -2663,6 +2663,26 @@ module.exports = [
                 device.applicationVersion !== 66, // polling for voltage, current and power
                 [66, 100, 160].includes(device.applicationVersion), // polling for energy
             ),
+    },
+    {
+        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wbloefbf'}],
+        model: 'TS011F_switch_5_gang',
+        description: '2 gang 2 usb 1 wall ac outlet',
+        whiteLabel: [{vendor: 'Milfra', model: 'M11Z'}],
+        vendor: 'TuYa',
+        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1', '_TZE200_ytibqbra']),

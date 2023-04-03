@@ -282,7 +282,7 @@ module.exports = [
         ],
     },
     {
-        zigbeeModel: ['PCT504'],
+        zigbeeModel: ['PCT504', 'PCT504-E'],
         model: 'PCT504',
         vendor: 'OWON',
         description: 'HVAC fan coil',
