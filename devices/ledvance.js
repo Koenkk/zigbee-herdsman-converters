@@ -198,7 +198,7 @@ module.exports = [
         zigbeeModel: ['CLA60 RGBW JP'],
         model: 'SMARTZBA60RGBW',
         vendor: 'LEDVANCE',
-        description: 'SMART+ lamp E26 RGBW',
+        description: 'SMART+ lamp B22D RGBTW',
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [153, 526]}),
         ota: ota.ledvance,
     },
