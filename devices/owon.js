@@ -308,7 +308,7 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl',
-                'msTemperatureMeasurement', 'msOccupancySensing'];
+                'msTemperatureMeasurement', 'msOccupancySensing','msRelativeHumidity'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.fanMode(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
