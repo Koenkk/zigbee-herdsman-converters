@@ -2728,6 +2728,36 @@ module.exports = [
         },
     },
     {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ux5v4dbd'}, // [KnockautX / Brelag AG, Switzerland](https://www.brelag.com)
+        ],
+        vendor: 'TuYa',
+        model: 'TS0601_smoke_3',
+        description: 'Photoelectric smoke detector',
+        whiteLabel: [
+            {vendor: 'KnockautX', model: 'SMOAL024'},
+        ],
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.smoke(), tuya.exposes.batteryState()],
+        meta: {
+            tuyaDatapoints: [
+                /**
+                 * According to the Vendor "KnockautX / Brelag AG" DP 16 "muffling"
+                 * is supported as well. But it was not possible to verify this using
+                 * SMOLA024 devices - therefore it is not included in the device definition.
+                 *
+                 * Data Transfer Type: Send and Report
+                 * Data Type: Bool
+                 * muffling: 16,
+                 */
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['5p1vj8r'],
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_t5p1vj8r', '_TZE200_uebojraa', '_TZE200_vzekyi4c', '_TZE200_yh7aoahi',
             '_TZE200_dnz6yvl2', '_TZE200_dq1mfjug']),
