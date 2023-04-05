@@ -2732,7 +2732,7 @@ module.exports = [
                  * According to the Vendor "KnockautX / Brelag AG" DP 16 "muffling"
                  * is supported as well. But it was not possible to verify this using
                  * SMOLA024 devices - therefore it is not included in the device definition.
-                 * 
+                 *
                  * Data Transfer Type: Send and Report
                  * Data Type: Bool
                  * muffling: 16,
