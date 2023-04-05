@@ -2707,25 +2707,19 @@ module.exports = [
         },
     },
     {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_ux5v4dbd'}, // [KnockautX / Brelag AG, Switzerland](https://www.brelag.com)
+        ],
         vendor: 'TuYa',
         model: 'TS0601_smoke_3',
         description: 'Photoelectric smoke detector',
-        /**
-         * `_TZE200_ux5v4dbd`: [KnockautX / Brelag AG, Switzerland](https://www.brelag.com)
-         */
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ux5v4dbd'},
-        ],
         whiteLabel: [
             {vendor: 'KnockautX', model: 'SMOAL024'},
         ],
         configure: tuya.configureMagicPacket,
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [],
-        exposes: [
-            e.smoke(),
-            tuya.exposes.batteryState(),
-        ],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.smoke(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
                 /**
@@ -2737,8 +2731,8 @@ module.exports = [
                  * Data Type: Bool
                  * muffling: 16,
                  */
-                [tuya.dataPoints.state, 'smoke', tuya.valueConverter.trueFalse0],
-                [tuya.dataPoints.runningState, 'battery_state', tuya.valueConverter.batteryState],
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [14, 'battery_state', tuya.valueConverter.batteryState],
             ],
         },
     },
