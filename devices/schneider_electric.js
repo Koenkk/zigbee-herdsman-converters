@@ -410,8 +410,8 @@ module.exports = [
                 ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
                 .withDescription('Led Indicator Mode'),
             ],
-            fromZigbee: [fz.on_off, fzLocal.switchindication],
-            toZigbee: [tz.on_off, tzLocal.switchindication],
+            fromZigbee: [fzLocal.switchindication],
+            toZigbee: [tzLocal.switchindication],
         }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
