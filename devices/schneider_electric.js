@@ -17,6 +17,21 @@ const tzLocal = {
             return {state: {lift_duration: value}};
         },
     },
+    switchindication: {
+        key: ['switchindication'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = entity.getDevice().getEndpoint(21);
+            const lookup = {'Reverse with load': 2, 'Consistent with load': 0, 'Always off': 3, 'Always on': 1};
+            // value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+            await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
+            return {state: {switchindication: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = entity.getDevice().getEndpoint(21);
+            await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
+        },
+    },
 };
 
 const fzLocal = {
@@ -168,6 +183,23 @@ const fzLocal = {
             }
 
             return ret;
+        },
+    },
+    switchindication: {
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {
+                0: 'Consistent with load',
+                1: 'Always on',
+                2: 'Reverse with load',
+                3: 'Always off',
+            };
+            if ('SwitchIndication' in msg.data) {
+                result.switchindication = lookup[msg.data['SwitchIndication']];
+            }
+            return result;
         },
     },
 };
@@ -372,7 +404,15 @@ module.exports = [
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2A',
-        extend: extend.switch(),
+        ota: ota.zigbeeOTA,
+        extend: extend.switch( {
+            exposes: [exposes.enum('switchindication', ea.ALL,
+                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
+                .withDescription('Led Indicator Mode'),
+            ],
+            fromZigbee: [fz.on_off, fzLocal.switchindication],
+            toZigbee: [tz.on_off, tzLocal.switchindication],
+        }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
