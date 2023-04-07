@@ -559,7 +559,7 @@ const definition = [
                 .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSystemMode(['off', 'heat', 'auto'])
-                .withPiHeatingDemand(ea.STATE)
+                .withPiHeatingDemand(ea.ALL)
                 .withRunningState(['idle', 'heat'], ea.STATE),
             exposes.binary('boost', ea.ALL, 'ON', 'OFF')
                 .withDescription('Activate Boost heating'),
