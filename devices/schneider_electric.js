@@ -385,13 +385,16 @@ module.exports = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.switchindication],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.switchindication],
         exposes: [e.light_brightness(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast')],
+                .withDescription('Specifies the maximum light output of the ballast'),
+            exposes.enum('switchindication', ea.ALL,
+                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
+                .withDescription('Led Indicator Mode')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -424,7 +427,14 @@ module.exports = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10A with ControlLink',
-        extend: extend.switch(),
+        extend: extend.switch({
+            exposes: [exposes.enum('switchindication', ea.ALL,
+                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
+                .withDescription('Led Indicator Mode'),
+            ],
+            fromZigbee: [fzLocal.switchindication],
+            toZigbee: [tzLocal.switchindication],
+        }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
