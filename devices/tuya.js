@@ -3771,6 +3771,13 @@ module.exports = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['TS0052'],
+        model: 'TS0052',
+        vendor: 'TuYa',
+        description: 'Zigbee dimmer module 1 channel',
+        extend: tuya.extend.light_onoff_brightness({minBrightness: true}),
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_ikvncluo'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_lyetpprm'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_jva8ink8'},
