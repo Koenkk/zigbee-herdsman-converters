@@ -9,6 +9,12 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const exposesLocal = {
+    indicator_mode: exposes.enum('indicator_mode', ea.ALL,
+        ['off/on', 'on/off', 'off', 'on'])
+        .withDescription('Led Indicator Mode'),
+};
+
 const tzLocal = {
     lift_duration: {
         key: ['lift_duration'],
@@ -17,15 +23,15 @@ const tzLocal = {
             return {state: {lift_duration: value}};
         },
     },
-    switchindication: {
-        key: ['switchindication'],
+    indicator_mode: {
+        key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = entity.getDevice().getEndpoint(21);
-            const lookup = {'Reverse with load': 2, 'Consistent with load': 0, 'Always off': 3, 'Always on': 1};
+            const lookup = {'on/off': 2, 'off/on': 0, 'off': 3, 'on': 1};
             // value = value.toLowerCase();
             utils.validateValue(value, Object.keys(lookup));
             await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
-            return {state: {switchindication: value}};
+            return {state: {indicator_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             const endpoint = entity.getDevice().getEndpoint(21);
@@ -185,19 +191,19 @@ const fzLocal = {
             return ret;
         },
     },
-    switchindication: {
+    indicator_mode: {
         cluster: 'clipsalWiserSwitchConfigurationClusterServer',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
             const lookup = {
-                0: 'Consistent with load',
-                1: 'Always on',
-                2: 'Reverse with load',
-                3: 'Always off',
+                0: 'off/on',
+                1: 'on',
+                2: 'on/off',
+                3: 'off',
             };
-            if ('SwitchIndication' in msg.data) {
-                result.switchindication = lookup[msg.data['SwitchIndication']];
+            if ('indicator_mode' in msg.data) {
+                result.indicator_mode = lookup[msg.data['indicator_mode']];
             }
             return result;
         },
@@ -385,16 +391,14 @@ module.exports = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.switchindication],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.switchindication],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.indicator_mode],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.indicator_mode],
         exposes: [e.light_brightness(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
-            exposes.enum('switchindication', ea.ALL,
-                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
-                .withDescription('Led Indicator Mode')],
+            exposesLocal.indicator_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -409,12 +413,9 @@ module.exports = [
         description: 'Wiser 40/300-Series module switch 2A',
         ota: ota.zigbeeOTA,
         extend: extend.switch( {
-            exposes: [exposes.enum('switchindication', ea.ALL,
-                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
-                .withDescription('Led Indicator Mode'),
-            ],
-            fromZigbee: [fzLocal.switchindication],
-            toZigbee: [tzLocal.switchindication],
+            exposes: [exposesLocal.indicator_mode],
+            fromZigbee: [fzLocal.indicator_mode],
+            toZigbee: [tzLocal.indicator_mode],
         }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -428,12 +429,9 @@ module.exports = [
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10A with ControlLink',
         extend: extend.switch({
-            exposes: [exposes.enum('switchindication', ea.ALL,
-                ['Reverse with load', 'Consistent with load', 'Always off', 'Always on'])
-                .withDescription('Led Indicator Mode'),
-            ],
-            fromZigbee: [fzLocal.switchindication],
-            toZigbee: [tzLocal.switchindication],
+            exposes: [exposesLocal.indicator_mode],
+            fromZigbee: [fzLocal.indicator_mode],
+            toZigbee: [tzLocal.indicator_mode],
         }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
