@@ -2239,6 +2239,14 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genBasic' &&
+                data.data.hasOwnProperty('1028') && data.data['1028'] == 0) {
+                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                // Might need to add delay, seems to be working without one but needs more tests.
+                await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
+            }
+        },
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
