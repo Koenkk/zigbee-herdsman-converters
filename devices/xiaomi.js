@@ -2242,7 +2242,6 @@ module.exports = [
         onEvent: async (type, data, device) => {
             if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genBasic' &&
                 data.data.hasOwnProperty('1028') && data.data['1028'] == 0) {
-                // Just copy codes from Koenkk/zigbee-herdsman-converters#4163 and make it suitable for ZNCLDJ11LM.
                 // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
                 // Might need to add delay, seems to be working without one but needs more tests.
                 await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
