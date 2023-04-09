@@ -25,6 +25,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003056701'],
+        model: '929003056701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore ceiling light',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003045301_01', '929003045301_02', '929003045301_03'],
         model: '929003045301',
         vendor: 'Philips',
