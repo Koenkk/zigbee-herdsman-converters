@@ -10,8 +10,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const exposesLocal = {
-    indicator_mode: exposes.enum('indicator_mode', ea.ALL,
-        ['off/on', 'on/off', 'off', 'on'])
+    indicator_mode: exposes.enum('indicator_mode', ea.ALL, ['consistent_with_load', 'reverse_with_load', 'always_off', 'always_on'])
         .withDescription('Led Indicator Mode'),
 };
 
@@ -27,8 +26,7 @@ const tzLocal = {
         key: ['indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = entity.getDevice().getEndpoint(21);
-            const lookup = {'on/off': 2, 'off/on': 0, 'off': 3, 'on': 1};
-            // value = value.toLowerCase();
+            const lookup = {'reverse_with_load': 2, 'consistent_with_load': 0, 'always_off': 3, 'always_on': 1};
             utils.validateValue(value, Object.keys(lookup));
             await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
             return {state: {indicator_mode: value}};
@@ -196,12 +194,7 @@ const fzLocal = {
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result = {};
-            const lookup = {
-                0: 'off/on',
-                1: 'on',
-                2: 'on/off',
-                3: 'off',
-            };
+            const lookup = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
             if ('indicator_mode' in msg.data) {
                 result.indicator_mode = lookup[msg.data['indicator_mode']];
             }
