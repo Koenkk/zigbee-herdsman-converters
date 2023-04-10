@@ -1310,7 +1310,7 @@ module.exports = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fjjbhx9d']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_fjjbhx9d', '_TZE200_e3oitdyu']),
         model: 'TS0601_dimmer_2',
         vendor: 'TuYa',
         description: '2 gang smart dimmer',
@@ -1343,6 +1343,7 @@ module.exports = [
         },
         whiteLabel: [
             {vendor: 'Moes', model: 'ZS-EUD_2gang'},
+            {vendor: 'Moes', model: 'MS-105B'}, // _TZE200_e3oitdyu
         ],
     },
     {
