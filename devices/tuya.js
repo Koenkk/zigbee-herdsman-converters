@@ -2128,7 +2128,6 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_udank5zs'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zuz7f94z'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_nv6nxo0c'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_68nvbio9'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_3ylew7b4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
@@ -2238,6 +2237,42 @@ module.exports = [
                 .withFeature(e.week())
                 .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
                 .withFeature(exposes.text('holidays_schedule', ea.STATE_SET))],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_68nvbio9']),
+        model: 'TS0601_cover_3',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        options: [exposes.options.invert_cover()],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.battery(), e.cover_position(),
+            exposes.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
+            exposes.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
+            exposes.enum('click_control', ea.STATE_SET, ['up', 'down']).withDescription('Single motor steps'),
+            exposes.binary('motor_fault', ea.STATE, true, false),
+        ],
+        whiteLabel: [
+            {vendor: 'Zemismart', model: 'ZM16EL-03/33'}, // _TZE200_68nvbio
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [5, 'reverse_direction', tuya.valueConverterBasic.lookup({'forward': tuya.enum(0), 'back': tuya.enum(1)})],
+                [12, 'motor_fault', tuya.valueConverter.trueFalse1],
+                [13, 'battery', tuya.valueConverter.raw],
+                [16, 'border', tuya.valueConverterBasic.lookup({
+                    'up': tuya.enum(0), 'down': tuya.enum(1), 'up_delete': tuya.enum(2), 'down_delete': tuya.enum(3),
+                    'remove_top_bottom': tuya.enum(4)})],
+                [20, 'click_control', tuya.valueConverterBasic.lookup({'up': tuya.enum(0), 'down': tuya.enum(1)})],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
