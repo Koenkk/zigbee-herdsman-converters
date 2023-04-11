@@ -36,6 +36,24 @@ const tzLocal = {
             await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
     },
+    dimmer_restore_level: {
+        // get/set the level the light should be restored to
+        // when switched back on
+        key: ['onLevel'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'previous': 255, 'maximum': 254};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(lookup));
+
+            await entity.write('genLevelCtrl', {onLevel: lookup[value]}, utils.getOptions(meta.mapped, entity));
+            return {state: {onLevel: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = entity.getDevice().getEndpoint(3);
+            await endpoint.read('genLevelCtrl', [0x11]);
+        },
+
+    },
 };
 
 const fzLocal = {
@@ -197,6 +215,21 @@ const fzLocal = {
             const lookup = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
             if ('indicator_mode' in msg.data) {
                 result.indicator_mode = lookup[msg.data['indicator_mode']];
+            }
+            return result;
+        },
+    },
+    dimmer_restore_level: {
+        cluster: 'genLevelCtrl',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {
+                255: 'previous',
+                254: 'maximum',
+            };
+            if ('onLevel' in msg.data) {
+                result.onLevel = lookup[msg.data['onLevel']];
             }
             return result;
         },
@@ -384,13 +417,32 @@ module.exports = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.indicator_mode],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.indicator_mode],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.lighting_ballast_configuration,
+            fzLocal.indicator_mode,
+            fzLocal.dimmer_restore_level,
+        ],
+        toZigbee: [
+            tz.light_onoff_brightness,
+            tz.level_config,
+            tz.ballast_config,
+            tzLocal.indicator_mode,
+            tzLocal.dimmer_restore_level,
+        ],
         exposes: [e.light_brightness(),
-            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            exposes.numeric('ballast_minimum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
-            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+            exposes.numeric('ballast_maximum_level', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
                 .withDescription('Specifies the maximum light output of the ballast'),
+            exposes.enum('onLevel', ea.ALL, ['previous', 'maximum'])
+                .withDescription('Startup Brightness Level'),
             exposesLocal.indicator_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
