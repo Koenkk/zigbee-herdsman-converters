@@ -3288,6 +3288,28 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['TS0726'],
+        model: 'TS0726',
+        vendor: 'TuYa',
+        description: '4 gang switch with neutral wire',
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_0, fz.ignore_basic_report],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_0],
+        exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
+            e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
+            e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0006', manufacturerName: '_TYZB01_ltundz9m'},
             {modelID: 'TS0006', manufacturerName: '_TZ3000_jyupj3fw'}],
         model: 'TS0006',
