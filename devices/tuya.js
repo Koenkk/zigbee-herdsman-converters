@@ -1513,8 +1513,8 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', 
-            '_TZE200_mexisfik', '_TZE200_hewlydpz'
+            '_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b',
+            '_TZE200_mexisfik', '_TZE200_hewlydpz',
         ]),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
