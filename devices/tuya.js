@@ -721,6 +721,26 @@ const fzLocal = {
             return result;
         },
     },
+    homeetec_cover: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataReport', 'commandDataResponse'],
+        options: [exposes.options.invert_cover()],
+        convert: (model, msg, publish, options, meta) => {
+            // Meta.tuyaDatapoints will be handled by `tuya.fz.datapoints` instead of default
+            const skipDPCodes = meta.tuyaDatapoints.map((d) => d[0]);
+            const msgDataDPValues = msg.data.dpValues.filter((dp) => skipDPCodes.includes(dp));
+
+            msg.data.dpValues = msgDataDPValues;
+
+            if (msg.data.dpValues.length === 0) {
+                return {};
+            } else {
+                const result = fz.tuya_cover.convert(model, msg, publish, options, meta);
+
+                return result;
+            }
+        },
+    },
 };
 
 module.exports = [
@@ -1492,7 +1512,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE200_hewlydpz']),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
         description: '4 gang switch',
@@ -2273,6 +2293,93 @@ module.exports = [
                 [20, 'click_control', tuya.valueConverterBasic.lookup({'up': tuya.enum(0), 'down': tuya.enum(1)})],
             ],
         },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'},
+        ],
+        model: 'TS0601_cover_4',
+        vendor: 'TuYa',
+        description: 'Curtain / Blind switch',
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        meta: {
+            tuyaDatapoints: [
+                [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
+                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
+                [103, 'child_lock', tuya.valueConverter.onOffNotStrict],
+            ],
+        },
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
+        ],
+        model: 'TS0601_cover_with_1_switch',
+        vendor: 'TuYa',
+        description: 'Curtain / Blind switch with 1 Gang switch',
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        meta: {
+            tuyaDatapoints: [
+                [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
+                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
+                [101, 'switch', tuya.valueConverter.onOffNotStrict],
+                [103, 'child_lock', tuya.valueConverter.onOffNotStrict],
+            ],
+        },
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.binary(101, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch On/Off'),
+            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5nldle7w'},
+        ],
+        model: 'TS0601_cover_with_2_switch',
+        vendor: 'TuYa',
+        description: 'Curtain / Blind switch with 2 Gang switch',
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        meta: {
+            tuyaDatapoints: [
+                [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
+                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
+                [101, 'switch_2', tuya.valueConverter.onOffNotStrict],
+                [102, 'switch_1', tuya.valueConverter.onOffNotStrict],
+                [103, 'child_lock', tuya.valueConverter.onOffNotStrict],
+            ],
+        },
+        exposes: [
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            exposes.binary(102, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 1 On/Off'),
+            exposes.binary(101, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 2 On/Off'),
+            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', [
