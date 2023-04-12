@@ -1512,7 +1512,10 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE200_hewlydpz']),
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', 
+            '_TZE200_mexisfik', '_TZE200_hewlydpz'
+        ]),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
         description: '4 gang switch',
@@ -2308,7 +2311,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
-                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
                 [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
                 [103, 'child_lock', tuya.valueConverter.onOffNotStrict],
             ],
@@ -2335,7 +2338,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
-                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
                 [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
                 [101, 'switch', tuya.valueConverter.onOffNotStrict],
                 [103, 'child_lock', tuya.valueConverter.onOffNotStrict],
@@ -2364,7 +2367,7 @@ module.exports = [
         meta: {
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
-                [7,'backlight_switch', tuya.valueConverter.onOffNotStrict],
+                [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
                 [8, 'motor_steering', tuya.valueConverterBasic.lookup({'forward': 0, 'back': 1})],
                 [101, 'switch_2', tuya.valueConverter.onOffNotStrict],
                 [102, 'switch_1', tuya.valueConverter.onOffNotStrict],
