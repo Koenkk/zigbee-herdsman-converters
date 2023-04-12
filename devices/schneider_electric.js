@@ -1081,11 +1081,11 @@ module.exports = [
         zigbeeModel: ['EKO07259'],
         model: 'EKO07259',
         vendor: 'Schneider Electric',
-        description: 'Smart Thermostat',
-        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface], 
-        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature, 
-            tz.thermostat_occupied_heating_setpoint, tz.schneider_pilot_mode,
-            tz.schneider_temperature_measured_value], 
+        description: 'Smart thermostat',
+        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface],
+        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.schneider_pilot_mode,
+            tz.schneider_temperature_measured_value],
         exposes: [
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
             exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
@@ -1097,5 +1097,6 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.thermostatPIHeatingDemand(endpoint1);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
+        },
     },
 ];
