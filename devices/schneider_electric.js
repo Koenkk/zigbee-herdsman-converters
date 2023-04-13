@@ -1089,8 +1089,8 @@ module.exports = [
             tz.schneider_temperature_measured_value, tz.schneider_thermostat_keypad_lockout],
         exposes: [exposes.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
             .withDescription('Enables/disables physical input on the device'),
-            exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
-            exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+        exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+        exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
             .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
