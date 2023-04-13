@@ -685,18 +685,6 @@ const ATTRIBUTES = {
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
     },
-    doubleTapUpForFullBrightness: {
-        ID: 53,
-        dataType: BOOLEAN,
-        min: 0,
-        max: 1,
-        description: 'Result of a double tap on the up button.',
-        values: {
-            'Button Press Event Only': 0,
-            'Button Press Event + Set Load to 100%': 1,
-        },
-        displayType: 'enum',
-    },
     relayClick: {
         ID: 261,
         dataType: BOOLEAN,
