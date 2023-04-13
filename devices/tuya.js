@@ -2304,8 +2304,8 @@ module.exports = [
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch',
-        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints, fz.cover_position_tilt],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
@@ -2331,8 +2331,8 @@ module.exports = [
         model: 'TS0601_cover_with_1_switch',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch with 1 Gang switch',
-        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints, fz.cover_position_tilt],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
@@ -2360,8 +2360,8 @@ module.exports = [
         model: 'TS0601_cover_with_2_switch',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch with 2 Gang switch',
-        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control],
+        fromZigbee: [fzLocal.homeetec_cover, fz.ignore_basic_report, tuya.fz.datapoints, fz.cover_position_tilt],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
