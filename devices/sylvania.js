@@ -197,4 +197,12 @@ module.exports = [
         extend: extend.ledvance.light_onoff_brightness_colortemp_color({colorTempRange: [142, 555]}),
         ota: ota.ledvance,
     },
+    {
+        zigbeeModel: ['BR30 W 10 year'],
+        model: '74453',
+        vendor: 'Sylvania',
+        description: 'LIGHTIFY LED soft white BR30',
+        extend: extend.ledvance.light_onoff_brightness(),
+        ota: ota.ledvance,
+    },
 ];
