@@ -319,9 +319,51 @@ const tarifsDef = {
             'EJPHPM',
             'PEJP',
         ]},
+    stand_SEM_WE_LUNDI: {
+        fname: 'Standard - Sem WE Lundi',
+        currentTarf: 'SEM WE LUNDI', excluded: [
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD02',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
     stand_SEM_WE_MERCR: {
         fname: 'Standard - Sem WE Mercredi',
         currentTarf: 'SEM WE MERCREDI', excluded: [
+            'EASF07',
+            'EASF08',
+            'EASF09',
+            'EASF10',
+            'EASD02',
+            'EASD03',
+            'EASD04',
+            'DPM1',
+            'DPM2',
+            'DPM3',
+            'FPM1',
+            'FPM2',
+            'FPM3',
+            'NJOURF',
+            'NJOURF+1',
+            'PJOURF+1',
+            'PPOINTE1',
+        ]},
+    stand_SEM_WE_VENDR: {
+        fname: 'Standard - Sem WE Vendredi',
+        currentTarf: 'SEM WE VENDREDI', excluded: [
             'EASF07',
             'EASF08',
             'EASF09',
@@ -595,8 +637,14 @@ function getCurrentConfig(device, options, logger=console) {
     case linkyMode == linkyModeDef.legacy && currentTarf && currentTarf.startsWith(tarifsDef.histo_BBR.currentTarf):
         myExpose = myExpose.filter((a) => !tarifsDef.histo_BBR.excluded.includes(a.exposes.name));
         break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_LUNDI.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_LUNDI.excluded.includes(a.exposes.name));
+        break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_MERCR.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_MERCR.excluded.includes(a.exposes.name));
+        break;
+    case linkyMode == linkyModeDef.standard && tarifsDef.stand_SEM_WE_VENDR.currentTarf:
+        myExpose = myExpose.filter((a) => !tarifsDef.stand_SEM_WE_VENDR.excluded.includes(a.exposes.name));
         break;
     case linkyMode == linkyModeDef.standard && tarifsDef.stand_HPHC.currentTarf:
         myExpose = myExpose.filter((a) => !tarifsDef.stand_HPHC.excluded.includes(a.exposes.name));
