@@ -1082,10 +1082,11 @@ module.exports = [
         model: 'EKO07259',
         vendor: 'Schneider Electric',
         description: 'Smart thermostat',
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface], // We will add this later
-        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state, tz.thermostat_local_temperature, 
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface],
+        toZigbee: [tz.schneider_temperature_measured_value, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode,
-            tz.schneider_temperature_measured_value, tz.schneider_thermostat_keypad_lockout], // Should be empty, unless device can be controlled (e.g. lights, switches).
+            tz.schneider_temperature_measured_value, tz.schneider_thermostat_keypad_lockout],
         exposes: [exposes.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
                     .withDescription('Enables/disables physical input on the device'),
             exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
