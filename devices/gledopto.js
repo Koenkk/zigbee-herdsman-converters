@@ -342,6 +342,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee GU10 LED lamp',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color({colorTempRange: [158, 495]}),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['GL-MC-001P'],
@@ -392,6 +393,7 @@ module.exports = [
         ota: ota.zigbeeOTA,
         description: 'Zigbee 4W MR16 Bulb RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp_color(),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['GL-S-007Z', 'GL-S-007Z(lk)'],
@@ -604,6 +606,7 @@ module.exports = [
         vendor: 'Gledopto',
         description: 'Zigbee 7W E26/E27 Bulb RGB+CCT (pro)',
         extend: gledoptoExtend.light_onoff_brightness_colortemp({colorTempRange: [155, 495]}),
+        meta: {turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['GL-FL-004TZS'],
