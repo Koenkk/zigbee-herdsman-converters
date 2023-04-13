@@ -311,4 +311,35 @@ module.exports = [
         },
         exposes: [e.cover_position()],
     },
+    {
+        zigbeeModel: ['Battery switch, 4 button'],
+        model: '552-720X4',
+        vendor: 'Niko',
+        description: 'Battery switch with 4 buttons',
+        meta: {multiEndpoint: true},
+        fromZigbee: [fz.command_on, fz.command_off, fz.identify, fz.battery, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {top_left: 1, bottom_left: 2, top_right: 3, bottom_right: 4};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const ep1 = device.getEndpoint(1);
+            await reporting.bind(ep1, coordinatorEndpoint, ['genGroups', 'genOnOff', 'genLevelCtrl']);
+            await reporting.batteryPercentageRemaining(ep1);
+            const ep2 = device.getEndpoint(2);
+            await reporting.bind(ep2, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const ep3 = device.getEndpoint(3);
+            await reporting.bind(ep3, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            const ep4 = device.getEndpoint(4);
+            await reporting.bind(ep4, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+        },
+        exposes: [
+            e.action(['on_top_left', 'off_top_left', 'on_bottom_left', 'off_bottom_left', 'on_top_right', 'off_top_right',
+                'on_bottom_right', 'off_bottom_right', 'brightness_move_up_top_left', 'brightness_move_up_bottom_left',
+                'brightness_move_up_top_right', 'brightness_move_up_bottom_right', 'brightness_move_down_top_left',
+                'brightness_move_down_bottom_left', 'brightness_move_down_top_right', 'brightness_move_down_bottom_right',
+                'brightness_stop_top_left', 'brightness_stop_bottom_left', 'brightness_stop_top_right', 'brightness_stop_bottom_right']),
+            e.battery(),
+        ],
+    },
 ];
