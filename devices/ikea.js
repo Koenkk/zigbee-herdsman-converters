@@ -1115,6 +1115,7 @@ module.exports = [
         description: 'Vindstyrka air quality and humidity sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.pm25, ikea.fz.ikea_voc_index],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.temperature(), e.humidity(), e.pm25(), e.voc_index().withDescription('Sensirion VOC index')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep = device.getEndpoint(1);
