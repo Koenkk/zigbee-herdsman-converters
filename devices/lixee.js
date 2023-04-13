@@ -322,9 +322,6 @@ const tarifsDef = {
     stand_SEM_WE_MERCR: {
         fname: 'Standard - Sem WE Mercredi',
         currentTarf: 'SEM WE MERCREDI', excluded: [
-            'EASF04',
-            'EASF05',
-            'EASF06',
             'EASF07',
             'EASF08',
             'EASF09',
