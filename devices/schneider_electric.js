@@ -1098,6 +1098,7 @@ module.exports = [
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
             await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
         },
