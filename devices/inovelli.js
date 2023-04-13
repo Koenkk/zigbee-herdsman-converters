@@ -321,14 +321,14 @@ const ATTRIBUTES = {
         description:
       'For use with Smart Bulbs that need constant power and are controlled via commands rather than power.',
     },
-    doubleTapUptoParam55: {
+    doubleTapUpToParam55: {
         ID: 53,
         dataType: BOOLEAN,
         displayType: 'enum',
         values: {'Disabled': 0, 'Enabled': 1},
         description: 'Enable or Disable setting brightness to parameter 55 on double-tap UP.',
     },
-    doubleTapUptoParam56: {
+    doubleTapDownToParam56: {
         ID: 54,
         dataType: BOOLEAN,
         displayType: 'enum',
@@ -338,8 +338,8 @@ const ATTRIBUTES = {
     brightnessLevelForDoubleTapUp: {
         ID: 55,
         dataType: UINT8,
-        min: 0,
-        max: 100,
+        min: 2,
+        max: 254,
         description: 'Set this level on double-tap UP (if enabled by P53).',
     },
     brightnessLevelForDoubleTapDown: {
