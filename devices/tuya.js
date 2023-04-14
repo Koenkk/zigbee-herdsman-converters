@@ -4310,8 +4310,8 @@ module.exports = [
         fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
         exposes: [
-            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), 
-            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), 
+            e.switch().withEndpoint('l1').setAccess('state', ea.ALL), 
+            e.switch().withEndpoint('l2').setAccess('state', ea.ALL), 
             exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
         endpoint: (device) => {
