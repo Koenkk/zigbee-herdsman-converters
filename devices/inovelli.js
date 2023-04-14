@@ -277,10 +277,19 @@ const ATTRIBUTES = {
         ID: 22,
         dataType: UINT8,
         displayType: 'enum',
-        values: {'Single Pole': 0, '3-Way Dumb Switch': 1, '3-Way Aux Switch': 2},
+        values: {'Single Pole': 0, '3-Way Dumb Switch': 1, '3-Way Aux Switch': 2, 'Single-Pole Full Sine Wave': 3},
         min: 0,
-        max: 2,
+        max: 3,
         description: 'Set the switch configuration.',
+    },
+    higherOutputInNonNeutral: {
+        ID: 25,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled (default)': 0, 'Enabled': 1},
+        min: 0,
+        max: 1,
+        description: 'Increase level in non-neutral mode',
     },
     buttonDelay: {
         ID: 50,
@@ -311,6 +320,34 @@ const ATTRIBUTES = {
         values: {'Disabled': 0, 'Smart Bulb Mode': 1},
         description:
       'For use with Smart Bulbs that need constant power and are controlled via commands rather than power.',
+    },
+    doubleTapUpToParam55: {
+        ID: 53,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Enable or Disable setting brightness to parameter 55 on double-tap UP.',
+    },
+    doubleTapDownToParam56: {
+        ID: 54,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Enable or Disable setting brightness to parameter 56 on double-tap DOWN.',
+    },
+    brightnessLevelForDoubleTapUp: {
+        ID: 55,
+        dataType: UINT8,
+        min: 2,
+        max: 254,
+        description: 'Set this level on double-tap UP (if enabled by P53).',
+    },
+    brightnessLevelForDoubleTapDown: {
+        ID: 56,
+        dataType: UINT8,
+        min: 0,
+        max: 254,
+        description: 'Set this level on double-tap DOWN (if enabled by P54).',
     },
     ledColorWhenOn: {
         ID: 95,
@@ -361,6 +398,27 @@ const ATTRIBUTES = {
         min: 0,
         max: 100,
         description: 'Set the intensity of the LED Indicator when the load is off.',
+    },
+    ledBarScaling: {
+        ID: 100,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Gen3 method (VZM-style)': 0, 'Gen2 method (LZW-style)': 1},
+        description: 'Method used for scaling.',
+    },
+    auxSwitchUniqueScenes: {
+        ID: 123,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Have unique scene numbers for scenes activated with the aux switch.',
+    },
+    bindingOffToOnSyncLevel: {
+        ID: 125,
+        dataType: BOOLEAN,
+        displayType: 'enum',
+        values: {'Disabled': 0, 'Enabled': 1},
+        description: 'Send Move_To_Level using Default Level with Off/On to bound devices.',
     },
     localProtection: {
         ID: 256,
@@ -626,18 +684,6 @@ const ATTRIBUTES = {
         max: 101,
         description:
       'Intesity of LED strip when off. 101 = Syncronized with default all LED strip intensity parameter.',
-    },
-    doubleTapUpForFullBrightness: {
-        ID: 53,
-        dataType: BOOLEAN,
-        min: 0,
-        max: 1,
-        description: 'Result of a double tap on the up button.',
-        values: {
-            'Button Press Event Only': 0,
-            'Button Press Event + Set Load to 100%': 1,
-        },
-        displayType: 'enum',
     },
     relayClick: {
         ID: 261,
