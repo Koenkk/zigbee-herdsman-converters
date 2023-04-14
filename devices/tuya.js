@@ -4292,7 +4292,7 @@ module.exports = [
         exposes: [
             e.switch(), 
             e.power_on_behavior(),
-            exposes.binary('backlight_mode', ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode'),
+            exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -4312,7 +4312,7 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), 
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), 
-            exposes.binary('backlight_mode', ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode'),
+            exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
@@ -4338,7 +4338,7 @@ module.exports = [
             e.switch().withEndpoint('left'), 
             e.switch().withEndpoint('center'), 
             e.switch().withEndpoint('right'),
-            exposes.binary('backlight_mode', ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode'),
+            exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
