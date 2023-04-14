@@ -4281,7 +4281,7 @@ module.exports = [
     },
     {
         fingerprint: [{
-            modelID: 'TS0001', 
+            modelID: 'TS0001',
             manufacturerName: '_TZ3000_bmqxalil',
         }],
         model: 'TS0001_switch_1_gang',
@@ -4290,7 +4290,7 @@ module.exports = [
         fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
         exposes: [
-            e.switch(), 
+            e.switch(),
             e.power_on_behavior(),
             exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
@@ -4301,7 +4301,7 @@ module.exports = [
     },
     {
         fingerprint: [{
-            modelID: 'TS0002', 
+            modelID: 'TS0002',
             manufacturerName: '_TZ3000_in5qxhtt',
         }],
         model: 'TS0002_switch_2_gang',
@@ -4310,8 +4310,8 @@ module.exports = [
         fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
         exposes: [
-            e.switch().withEndpoint('l1'), 
-            e.switch().withEndpoint('l2'), 
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
             exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
         endpoint: (device) => {
@@ -4326,7 +4326,7 @@ module.exports = [
     },
     {
         fingerprint: [{
-            modelID: 'TS0003', 
+            modelID: 'TS0003',
             manufacturerName: '_TZ3000_pv4puuxi',
         }],
         model: 'TS0003_switch_3_gang',
@@ -4335,8 +4335,8 @@ module.exports = [
         fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
         exposes: [
-            e.switch().withEndpoint('left'), 
-            e.switch().withEndpoint('center'), 
+            e.switch().withEndpoint('left'),
+            e.switch().withEndpoint('center'),
             e.switch().withEndpoint('right'),
             exposes.binary('backlight_mode', ea.ALL, 'on', 'off').withDescription('Backlight Mode'),
         ],
@@ -4353,7 +4353,7 @@ module.exports = [
     },
     {
         fingerprint: [{
-            modelID: 'TS0601', 
+            modelID: 'TS0601',
             manufacturerName: '_TZE200_hewlydpz',
         }],
         model: 'TS0601_switch_4_gang_2',
@@ -4369,7 +4369,7 @@ module.exports = [
             exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Mode'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
             exposes.enum('relay_status', ea.STATE_SET, ['power_off', 'power_on', 'last']).withDescription('Relay Status'),
-        ], 
+        ],
         configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
@@ -4377,12 +4377,16 @@ module.exports = [
                 [2, 'switch_2', tuya.valueConverter.onOffNotStrict],
                 [3, 'switch_3', tuya.valueConverter.onOffNotStrict],
                 [4, 'switch_4', tuya.valueConverter.onOffNotStrict],
-                [14, 'relay_status', tuya.valueConverterBasic.lookup({'power_off': tuya.enum(0), 'power_on': tuya.enum(1), 'last': tuya.enum(2)})],
+                [14, 'relay_status', tuya.valueConverterBasic.lookup({
+                    'power_off': tuya.enum(0),
+                    'power_on': tuya.enum(1),
+                    'last': tuya.enum(2),
+                })],
                 [16, 'backlight_mode', tuya.valueConverter.onOffNotStrict],
                 [101, 'child_lock', tuya.valueConverter.onOffNotStrict],
             ],
-        }
-    },     
+        },
+    },
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'},
