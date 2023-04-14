@@ -75,6 +75,19 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['5123.1110'],
+        model: '5123.1110',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 controller with adjustable current 250-1500mA, max. 50W / 48V SELV',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['511.010'],
         model: '511.010',
         vendor: 'Iluminize',
