@@ -2160,7 +2160,7 @@ module.exports = [
             e.switch().withEndpoint('left'), 
             e.switch().withEndpoint('center'), 
             e.switch().withEndpoint('right'),
-            exposes.binary("backlight_mode", ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode')
+            exposes.binary("backlight_mode", ea.ALL, 'on', 'off').withDescription('Backlight Mode')
         ],
         endpoint: (device) => {
             return {'left': 1, 'center': 2, 'right': 3};
