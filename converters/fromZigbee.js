@@ -2338,13 +2338,17 @@ const converters = {
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
             const result = {};
-            const ignoreUndefinedDatapoints = model.meta.ignoreUndefinedDatapoints || false;
-            
+            const tuyaDatapoints = model.meta.tuyaDatapoints.map((d) => d[0]);
+
             // Iterate through dpValues in case of some zigbee models returning multiple dp values in one message
             // For example: [TS0601, _TZE200_3ylew7b4]
             for (const dpValue of msg.data.dpValues) {
                 const dp = dpValue.dp;
                 const value = tuya.getDataValue(dpValue);
+
+                if (tuyaDatapoints.includes(dp)) {
+                    continue;
+                }
 
                 switch (dp) {
                 case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
@@ -2384,11 +2388,9 @@ const converters = {
                     break;
                 case tuya.dataPoints.config: // Returned by configuration set; ignore
                     break;
-                default: // Unknown code
-                    if (!ignoreUndefinedDatapoints) {
-                        meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                default: // Unknown code        
+                    meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                         ${JSON.stringify(dpValue)}`);
-                    }
                 }
             }
 

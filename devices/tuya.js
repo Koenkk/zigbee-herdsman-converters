@@ -1519,8 +1519,8 @@ module.exports = [
         model: 'TS0601_switch_4_gang_2',
         vendor: 'TuYa',
         description: '4-Gang switch with backlight',
-        fromZigbee: [tuya.fz.datapoints, fz.tuya_switch],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_switch_state],
+        fromZigbee: [fz.tuya_switch, tuya.fz.datapoints],
+        toZigbee: [tz.tuya_switch_state, tuya.tz.datapoints],
         exposes: [
             e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), 
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), 
@@ -1533,7 +1533,9 @@ module.exports = [
         },
         meta: {
             multiEndpoint: true, 
-            dpWithoutEndpoints: true,
+            multiEndpointSkip: [
+                'backlight_mode'
+            ],
             tuyaDatapoints: [
                 [16, 'backlight_mode', tuya.valueConverter.onOffNotStrict],
             ],
@@ -2389,8 +2391,6 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
-            ignoreUndefinedDatapoints: true,
-            dpWithoutEndpoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
@@ -2418,7 +2418,6 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
-            ignoreUndefinedDatapoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
@@ -2448,7 +2447,6 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
-            ignoreUndefinedDatapoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
