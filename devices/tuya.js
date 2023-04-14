@@ -2405,7 +2405,7 @@ module.exports = [
             exposes.enum('motor_steering', ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
-    }
+    },
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
