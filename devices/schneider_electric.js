@@ -380,7 +380,7 @@ module.exports = [
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
         },
-    }
+    },
     {
         zigbeeModel: ['NHPB/DIMMER/1'],
         model: 'WDE002386',
