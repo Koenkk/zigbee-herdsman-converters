@@ -737,6 +737,34 @@ const definition = [
         },
         exposes: [e.switch(), e.power_on_behavior(), e.power(), e.energy()],
     },
+    {
+        zigbeeModel: ['RBSH-MMS-ZB-EU'],
+        model: 'BMCT-SLZ',
+        vendor: 'Bosch',
+        description: 'Bosch Light/Shutter Control II',
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 2, 'l2': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+
+            // Configuration values:
+            //                   0x0000    0x0001
+            // Roller Shutter       1         3
+            // Window Blind         2         3
+            // Light Switch         4         3
+
+            // Configure device as dual switch.
+            // Device will perform a rejoin after this write
+            await device.getEndpoint(1).write(0xfca0, {0x0000: {value: 0x04, type: 0x30}, 0x0001: {value: 0x03, type: 0x30}});
+
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    };
+
 ];
 
 module.exports = definition;
