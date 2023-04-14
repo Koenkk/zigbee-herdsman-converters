@@ -721,26 +721,6 @@ const fzLocal = {
             return result;
         },
     },
-    homeetec_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
-        options: [exposes.options.invert_cover()],
-        convert: (model, msg, publish, options, meta) => {
-            // Meta.tuyaDatapoints will be handled by `tuya.fz.datapoints` instead of default
-            const skipDPCodes = meta.tuyaDatapoints.map((d) => d[0]);
-            const msgDataDPValues = msg.data.dpValues.filter((dp) => skipDPCodes.includes(dp));
-
-            msg.data.dpValues = msgDataDPValues;
-
-            if (msg.data.dpValues.length === 0) {
-                return {};
-            } else {
-                const result = fz.tuya_cover.convert(model, msg, publish, options, meta);
-
-                return result;
-            }
-        },
-    },
 };
 
 module.exports = [
@@ -1514,7 +1494,7 @@ module.exports = [
     {
         fingerprint: tuya.fingerprint('TS0601', [
             '_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b',
-            '_TZE200_mexisfik', '_TZE200_hewlydpz',
+            '_TZE200_mexisfik',
         ]),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
@@ -1530,6 +1510,34 @@ module.exports = [
             // Endpoint selection is made in tuya_switch_state
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
         },
+    },
+    {
+        fingerprint: [{
+            modelID: 'TS0601', 
+            manufacturerName: '_TZE200_hewlydpz'
+        }],
+        model: 'TS0601_switch_4_gang_2',
+        vendor: 'TuYa',
+        description: '4-Gang switch with backlight',
+        fromZigbee: [tuya.fz.datapoints, fz.tuya_switch],
+        toZigbee: [tuya.tz.datapoints, tz.tuya_switch_state],
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), 
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), 
+            e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
+            e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET),
+            exposes.binary("backlight_mode", ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Mode'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+        meta: {
+            multiEndpoint: true, 
+            dpWithoutEndpoints: true,
+            tuyaDatapoints: [
+                [16, 'backlight_mode', tuya.valueConverter.onOffNotStrict],
+            ],
+        }
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_jwsjbxjs']),
@@ -1992,6 +2000,26 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{
+            modelID: 'TS0001', 
+            manufacturerName: '_TZ3000_bmqxalil'
+        }],
+        model: 'TS0001_switch_1_gang',
+        vendor: 'TuYa',
+        description: '1-Gang switch with backlight',
+        fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
+        exposes: [
+            e.switch(), 
+            e.power_on_behavior(),
+            exposes.binary("backlight_mode", ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode'),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         zigbeeModel: ['TS0002'],
         model: 'TS0002',
         vendor: 'TuYa',
@@ -2057,6 +2085,31 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{
+            modelID: 'TS0002', 
+            manufacturerName: '_TZ3000_in5qxhtt'
+        }],
+        model: 'TS0002_switch_2_gang',
+        vendor: 'TuYa',
+        description: '2-Gang switch with backlight',
+        fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
+        exposes: [
+            e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET), 
+            e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), 
+            exposes.binary("backlight_mode", ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode')
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true, disableDefaultResponse: false},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_4o16jdca'}],
         model: 'TS0003_switch_module_2',
         vendor: 'TuYa',
@@ -2084,6 +2137,33 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
         meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [{
+            modelID: 'TS0003', 
+            manufacturerName: '_TZ3000_pv4puuxi'
+        }],
+        model: 'TS0003_switch_3_gang',
+        vendor: 'TuYa',
+        description: '3-Gang switch with backlight',
+        fromZigbee: [tuya.fz.backlight_mode_off_on, fz.on_off, tuya.fz.power_on_behavior_2],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tuya.tz.backlight_indicator_mode_2],
+        exposes: [
+            e.switch().withEndpoint('left'), 
+            e.switch().withEndpoint('center'), 
+            e.switch().withEndpoint('right'),
+            exposes.binary("backlight_mode", ea.STATE_SET, 'on', 'off').withDescription('Backlight Mode')
+        ],
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -2304,11 +2384,13 @@ module.exports = [
         model: 'TS0601_cover_4',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch',
-        fromZigbee: [tuya.fz.datapoints, fzLocal.homeetec_cover, fz.ignore_basic_report, fz.cover_position_tilt],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report, fz.cover_position_tilt, tuya.fz.datapoints],
+        toZigbee: [tz.tuya_cover_control, tz.cover_position_tilt, tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
+            ignoreUndefinedDatapoints: true,
+            dpWithoutEndpoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
@@ -2318,12 +2400,12 @@ module.exports = [
         },
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
-            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
-            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
-            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+            exposes.enum('accurate_calibration', ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary('backlight_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
-    },
+    }
     {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
@@ -2331,11 +2413,12 @@ module.exports = [
         model: 'TS0601_cover_with_1_switch',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch with 1 Gang switch',
-        fromZigbee: [tuya.fz.datapoints, fzLocal.homeetec_cover, fz.ignore_basic_report, fz.cover_position_tilt],
+        fromZigbee: [tuya.fz.datapoints, fz.tuya_cover, fz.ignore_basic_report, fz.cover_position_tilt],
         toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
+            ignoreUndefinedDatapoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
@@ -2346,11 +2429,11 @@ module.exports = [
         },
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.binary(101, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch On/Off'),
-            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
-            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
-            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
-            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+            exposes.binary('switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch On/Off'),
+            exposes.enum('accurate_calibration', ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary('backlight_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
     },
     {
@@ -2360,11 +2443,12 @@ module.exports = [
         model: 'TS0601_cover_with_2_switch',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch with 2 Gang switch',
-        fromZigbee: [tuya.fz.datapoints, fzLocal.homeetec_cover, fz.ignore_basic_report, fz.cover_position_tilt],
-        toZigbee: [tuya.tz.datapoints, tz.tuya_cover_control, tz.cover_position_tilt],
+        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report, fz.cover_position_tilt, tuya.fz.datapoints],
+        toZigbee: [tz.tuya_cover_control, tz.cover_position_tilt, tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         meta: {
+            ignoreUndefinedDatapoints: true,
             tuyaDatapoints: [
                 [3, 'accurate_calibration', tuya.valueConverterBasic.lookup({'start': 0, 'end': 1})],
                 [7, 'backlight_switch', tuya.valueConverter.onOffNotStrict],
@@ -2376,12 +2460,12 @@ module.exports = [
         },
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.binary(102, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 1 On/Off'),
-            exposes.binary(101, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 2 On/Off'),
-            exposes.enum(3, ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
-            exposes.binary(7, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
-            exposes.enum(8, ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
-            exposes.binary(103, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+            exposes.binary('switch_1', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 1 On/Off'),
+            exposes.binary('switch_2', ea.STATE_SET, 'ON', 'OFF').withDescription('Switch 2 On/Off'),
+            exposes.enum('accurate_calibration', ea.STATE_SET, ['start', 'end']).withDescription('Accurate Calibration'),
+            exposes.binary('backlight_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight Switch'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['forward', 'back']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
     },
     {
