@@ -2088,6 +2088,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
     },
     {
+        zigbeeModel: ['915005987401'],
+        model: '915005987401',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Gradient Signe table lamp (black)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LOM005'],
         model: '9290022408',
         vendor: 'Philips',
