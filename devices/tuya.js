@@ -3270,11 +3270,7 @@ module.exports = [
         model: 'TS0004',
         vendor: 'TuYa',
         description: 'Smart light switch - 4 gang with neutral wire',
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2],
-        exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
+        extend: tuya.extend.switch({powerOnBehavior2: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
@@ -3292,11 +3288,7 @@ module.exports = [
         model: 'TS0726',
         vendor: 'TuYa',
         description: '4 gang switch with neutral wire',
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2],
-        exposes: [e.switch().withEndpoint('l1'), e.power_on_behavior().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.power_on_behavior().withEndpoint('l2'), e.switch().withEndpoint('l3'), e.power_on_behavior().withEndpoint('l3'),
-            e.switch().withEndpoint('l4'), e.power_on_behavior().withEndpoint('l4')],
+        extend: tuya.extend.switch({powerOnBehavior2: true, endpoints: ['l1', 'l2', 'l3', 'l4']}),
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
