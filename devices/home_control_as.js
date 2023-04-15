@@ -24,4 +24,27 @@ module.exports = [
         exposes: [
             e.lock(), e.battery(), e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()],
     },
+    {
+        zigbeeModel: ['HC-IWDIM-1'],
+        model: 'HC-IWDIM-1',
+        vendor: 'Heimgard Technologies',
+        description: 'Heimgard Dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.electrical_measurement, fz.metering],
+        toZigbee: [tz.on_off, tz.light_brightness_move, tz.light_onoff_brightness],
+        ota: ota.zigbeeOTA,
+        exposes: [e.light_brightness(), e.power(), e.current(), e.voltage(), e.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, { change: 2 });
+            await reporting.rmsCurrent(endpoint, { change: 5 });
+            await reporting.activePower(endpoint, { change: 2 });
+            await reporting.currentSummDelivered(endpoint, 2);
+            await reporting.onOff(endpoint);
+            await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
+            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            device.save();
+        },
+    },
 ];
