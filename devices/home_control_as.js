@@ -36,9 +36,9 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.rmsVoltage(endpoint, { change: 2 });
-            await reporting.rmsCurrent(endpoint, { change: 5 });
-            await reporting.activePower(endpoint, { change: 2 });
+            await reporting.rmsVoltage(endpoint, {change: 2});
+            await reporting.rmsCurrent(endpoint, {change: 5});
+            await reporting.activePower(endpoint, {change: 2});
             await reporting.currentSummDelivered(endpoint, 2);
             await reporting.onOff(endpoint);
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
