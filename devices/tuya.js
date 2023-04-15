@@ -4077,7 +4077,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_weaqkhab']),
         model: 'TS110E_1gang_1',
         vendor: 'TuYa',
         description: '1 channel dimmer',
@@ -4089,7 +4089,14 @@ module.exports = [
             [tz.light_onoff_brightness],
             [tzLocal.TS110E_light_onoff_brightness],
         ),
-        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior(), tuya.exposes.switchType()],
+        exposes: (device, options) => {
+            const exps = [e.light_brightness().withMinBrightness().withMaxBrightness()];
+            if (!device || !device.manufacturerName === '_TZ3210_weaqkhab') {
+                // _TZ3210_weaqkhab doesn't support power_on_behavior and switch_type
+                exps.push(e.power_on_behavior(), tuya.exposes.switchType());
+            }
+            return exps;
+        },
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
