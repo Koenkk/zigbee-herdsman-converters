@@ -4082,7 +4082,7 @@ module.exports = [
             [tzLocal.TS110E_light_onoff_brightness],
         ),
         exposes: (device, options) => {
-            const exps = [e.light_brightness().withMinBrightness().withMaxBrightness()];
+            const exps = [e.light_brightness().withMinBrightness().withMaxBrightness(), e.linkquality()];
             if (!device || !device.manufacturerName === '_TZ3210_weaqkhab') {
                 // _TZ3210_weaqkhab doesn't support power_on_behavior and switch_type
                 exps.push(e.power_on_behavior(), tuya.exposes.switchType());
