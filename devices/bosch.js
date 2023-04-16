@@ -155,7 +155,7 @@ const tzLocal = {
                 await endpoint_right.read(0xFCA0, [0x0008], boschManufacturer);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bmct.convertGet ${key}`);
             }
         },
     },
