@@ -56,4 +56,18 @@ module.exports = [
         toZigbee: [tz.identify],
         exposes: [e.battery(), e.tamper(), e.occupancy()],
     },
+    {
+        zigbeeModel: ['HC-IWSWI-1'],
+        model: 'HC-IWSWI-1',
+        vendor: 'Heimgard Technologies',
+        description: 'In wall light switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.identify, tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
