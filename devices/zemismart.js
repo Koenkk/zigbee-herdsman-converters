@@ -199,7 +199,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'}],
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',
