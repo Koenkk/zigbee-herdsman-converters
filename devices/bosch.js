@@ -856,8 +856,8 @@ const definition = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
-        fromZigbee: [fzLocal.bmct, fz.on_off, fz.cover_position_tilt ],
-        toZigbee: [ tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.on_off ],
+        fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.power_on_behavior, fz.on_off ],
+        toZigbee: [ tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior, tz.on_off ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
@@ -887,8 +887,8 @@ const definition = [
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('Enable/Disable child lock'),
-            //e.power_on_behavior().withEndpoint('right'),
-            //e.power_on_behavior().withEndpoint('left'),
+            e.power_on_behavior().withEndpoint('right'),
+            e.power_on_behavior().withEndpoint('left'),
 // cover
             exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor)).withDescription('Shutter motor actual state '),
             exposes.numeric('calibration_closing_time', ea.SET_STATE).withUnit('S').withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
