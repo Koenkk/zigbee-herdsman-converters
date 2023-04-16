@@ -890,7 +890,6 @@ const definition = [
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
 // cover
-            e.energy(),
             exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor)).withDescription('Shutter motor actual state '),
             exposes.numeric('calibration_closing_time', ea.SET_STATE).withUnit('S').withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             exposes.numeric('calibration_opening_time', ea.SET_STATE).withUnit('S').withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
