@@ -878,8 +878,8 @@ const definition = [
         },
         exposes: [
 // light
-            exposes.enum('device_type', ea.STATE_SET, Object.keys(stateDeviceType)).withDescription('Device type: '),
-            exposes.enum('switch_type', ea.STATE_SET, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
+            exposes.enum('device_type', ea.ALL, Object.keys(stateDeviceType)).withDescription('Device type: '),
+            exposes.enum('switch_type', ea.ALL, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
