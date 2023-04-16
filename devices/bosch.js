@@ -593,7 +593,6 @@ const definition = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, [ 'genIdentify', 'closuresWindowCovering', 'haElectricalMeasurement', 64672]);
-            await device.getEndpoint(1).unbind('genOnOff', coordinatorEndpoint);
             await reporting.currentPositionLiftPercentage(endpoint1);
             await reporting.currentPositionTiltPercentage(endpoint1);
             await endpoint1.read(64672, [0x0000, 0x0001, 0x0002, 0x0003, 0x0008, 0x0013, ], boschManufacturer);
