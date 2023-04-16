@@ -134,7 +134,7 @@ const tzLocal = {
                 await entity.read(0xFCA0, [0x0001], boschManufacturer);
                 break;
             case 'child_lock':
-                await entity.read(0xFCA0, [0x0001], boschManufacturer);
+                await entity.read(0xFCA0, [0x0008], boschManufacturer);
                 break;
             case 'calibration_closing_time':
                 await entity.read(0xFCA0, [0x0002], boschManufacturer);
