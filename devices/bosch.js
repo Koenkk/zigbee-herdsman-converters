@@ -856,7 +856,7 @@ const definition = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
-        fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.power_on_behavior, fz.on_off ],
+        fromZigbee: [ fzLocal.bmct, fz.cover_position_tilt, fz.power_on_behavior, fz.on_off ],
         toZigbee: [ tzLocal.bmct, tz.cover_position_tilt, tz.power_on_behavior, tz.on_off ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
         endpoint: (device) => {
@@ -866,8 +866,6 @@ const definition = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, [ 'genIdentify', 'closuresWindowCovering', 64672]);
             await endpoint1.unbind('genOnOff', coordinatorEndpoint);
-            await reporting.currentPositionLiftPercentage(endpoint1);
-            await reporting.currentPositionTiltPercentage(endpoint1);
             await endpoint1.read(64672, [0x0000, 0x0001, 0x0002, 0x0003, 0x0008, 0x0013, ], boschManufacturer);
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.read(64672, [0x0008], boschManufacturer);
