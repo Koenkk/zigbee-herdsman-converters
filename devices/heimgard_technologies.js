@@ -52,9 +52,14 @@ module.exports = [
         model: 'HT-MOT-2',
         vendor: 'Heimgard Technologies',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
         toZigbee: [tz.identify],
         exposes: [e.battery(), e.tamper(), e.occupancy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
     },
     {
         zigbeeModel: ['HC-IWSWI-1'],
