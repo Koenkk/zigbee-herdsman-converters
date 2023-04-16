@@ -47,4 +47,13 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['HT-MOT-2'],
+        model: 'HT-MOT-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
+        toZigbee: [tz.identify],
+        exposes: [e.battery(), e.tamper(), e.occupancy()],
+    },
 ];
