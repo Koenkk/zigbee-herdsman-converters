@@ -27,9 +27,9 @@ const stateMotor = {
 // BMCT
 const stateSwitchType = {
   'Button': 0x01,
-  'Button - Key Change': 0x02,
-  'Rocker Switch': 0x03,
-  'Rocker Switch - Key ange': 0x04,
+  'Button_Key_Change': 0x02,
+  'Rocker_Switch': 0x03,
+  'Rocker_Switch_Key_Change': 0x04,
 };
 
 // Twinguard
