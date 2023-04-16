@@ -856,6 +856,7 @@ const definition = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
+        extend: extend.switch(),
         fromZigbee: [fzLocal.bmct, fz.on_off, fz.power_on_behavior, fz.cover_position_tilt ],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior, tz.on_off ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
