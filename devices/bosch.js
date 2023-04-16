@@ -347,7 +347,28 @@ const tzLocal = {
 };
 
 
-const fzLocal = {
+const fzLocal = {   
+    bmct: {
+        cluster: '64672',
+        type: ['attributeReport', 'readResponse'],
+        options: [],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const data = msg.data;
+            if (data.hasOwnProperty(0x0000)) {
+                result.device_type = (Object.keys(stateDeviceType)[msg.data[0x0000]]);
+            } else if (data.hasOwnProperty(0x0001)) {
+                result.switch_type = (Object.keys(stateSwitchType)[msg.data[0x0001]]);
+            } else if (data.hasOwnProperty(0x0002)) {
+                result.calibration_closing_time = msg.data[0x0002];
+            } else if (data.hasOwnProperty(0x0003)) {
+                result.calibration_opening_time = msg.data[0x0003];
+            } else if (data.hasOwnProperty(0x0013)) {
+                result.motor_state = (Object.keys(stateMotor)[msg.data[0x0013]]);
+            } 
+            return result;
+        },
+    },
     bwa1_alarm_on_motion: {
         cluster: '64684',
         type: ['attributeReport', 'readResponse'],
@@ -835,8 +856,8 @@ const definition = [
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
-        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering, fz.cover_position_tilt ],
-        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior ],
+        fromZigbee: [fzLocal.bmct, fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.cover_position_tilt, fz.cover_state ],
+        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior, tz.on_off ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
