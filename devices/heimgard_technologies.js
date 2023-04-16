@@ -44,7 +44,36 @@ module.exports = [
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read('seMetering', ['unitOfMeasure', 'multiplier', 'divisor']);
             device.save();
+        },
+    },
+    {
+        zigbeeModel: ['HT-MOT-2'],
+        model: 'HT-MOT-2',
+        vendor: 'Heimgard Technologies',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
+        toZigbee: [tz.identify],
+        exposes: [e.battery(), e.tamper(), e.occupancy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['HC-IWSWI-1'],
+        model: 'HC-IWSWI-1',
+        vendor: 'Heimgard Technologies',
+        description: 'In wall light switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.identify, tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
         },
     },
 ];
