@@ -74,38 +74,31 @@ const displayedTemperature = {
 
 // Radiator Thermostat II
 const tzLocal = {
-    bmct_on_off: {
-        key: ['state'],
+        bmct: {
+        key: ['device_type', 'switch_type', 'child_lock', 'child_lock_left', 'child_lock_right', 'calibration_closing_time', 'calibration_opening_time', 'state' ],
         convertSet: async (entity, key, value, meta) => {
-            //const state = meta.message.hasOwnProperty('state') ? meta.message.state.toLowerCase() : null;
-            const state = value.toLowerCase();
-            utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
-            if ( state === 'on' || state ===  'off' || state ===  'toggle') {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                if (state === 'toggle') {
+            if (key === 'state') {
+                const state = value.toLowerCase();
+                utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
+                if ( state === 'on' || state ===  'off' || state ===  'toggle') {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
-                    return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
-                } else {
-                    return {state: {state: state.toUpperCase()}};
-                }
-            } else if ( state === 'open' || state ===  'close' || state ===  'stop') {
-                const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
-                value = value.toLowerCase();
-                utils.validateValue(value, Object.keys(lookup));
-                await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
+                    await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
+                    if (state === 'toggle') {
+                        const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                        return currentState ? {state: {state: currentState === 'OFF' ? 'ON' : 'OFF'}} : {};
+                    } else {
+                        return {state: {state: state.toUpperCase()}};
+                    }
+                } else if ( state === 'open' || state ===  'close' || state ===  'stop') {
+                    const lookup = {'open': 'upOpen', 'close': 'downClose', 'stop': 'stop', 'on': 'upOpen', 'off': 'downClose'};
+                    value = value.toLowerCase();
+                    utils.validateValue(value, Object.keys(lookup));
+                    await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
+                }  
             }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['onOff']);
-        },
-    },
-    bmct: {
-        key: ['device_type', 'switch_type', 'child_lock', 'calibration_closing_time', 'calibration_opening_time', 'test', ],
-        convertSet: async (entity, key, value, meta) => {
             if (key === 'device_type') {
                 const index = stateDeviceType[value];
-                await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer); // 0x0000 - typ urzadzenia - 0x04 - swiatlo
+                await entity.write(0xFCA0, {0x0000: {value: index, type: 0x30}}, boschManufacturer); 
                 return {state: {device_type: value}};
             }
             if (key === 'switch_type') {
@@ -131,6 +124,9 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
+            case 'state':
+                await entity.read('genOnOff', ['onOff'], boschManufacturer);
+                break;
             case 'device_type':
                 await entity.read(0xFCA0, [0x0000], boschManufacturer);
                 break;
@@ -147,7 +143,7 @@ const tzLocal = {
                 await entity.read(0xFCA0, [0x0003], boschManufacturer);
                 break;
             default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.bmct.convertGet ${key}`);
+                throw new Error(`Unhandled key toZigbee.bcmt.convertGet ${key}`);
             }
         },
     },
@@ -585,7 +581,7 @@ const definition = [
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
         fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering, fz.cover_position_tilt, fzLocal.bmct ],
-        toZigbee: [tzLocal.bmct_on_off, tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior, tz.on_off ],
+        toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.power_on_behavior ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
@@ -593,6 +589,7 @@ const definition = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, [ 'genIdentify', 'closuresWindowCovering', 'haElectricalMeasurement', 64672]);
+            await endpoint1.unbind('genOnOff', coordinatorEndpoint);
             await reporting.currentPositionLiftPercentage(endpoint1);
             await reporting.currentPositionTiltPercentage(endpoint1);
             await endpoint1.read(64672, [0x0000, 0x0001, 0x0002, 0x0003, 0x0008, 0x0013, ], boschManufacturer);
@@ -606,8 +603,9 @@ const definition = [
             await reporting.onOff(endpoint3);
         },
         exposes: [
-            exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter']).withDescription('Device type: '),
-            exposes.enum('switch_type', ea.STATE_SET, ['Rocker Switch', 'Rocker Switch - Key Change', 'Button', 'Button - Key Change']).withDescription('Module controlled by a rocker switch or a button'),
+// light
+            exposes.enum('device_type', ea.STATE_SET, Object.keys(stateDeviceType)).withDescription('Device type: '),
+            exposes.enum('switch_type', ea.STATE_SET, Object.keys(stateSwitchType)).withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
@@ -615,8 +613,9 @@ const definition = [
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('Enable/Disable child lock'),
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
+// cover
             e.energy(),
-            exposes.enum('motor_state', ea.STATE, [ 'Opening', 'Closing', 'Idle']).withDescription('Shutter motor actual state '),
+            exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor)).withDescription('Shutter motor actual state '),
             exposes.numeric('calibration_closing_time', ea.SET_STATE).withUnit('S').withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             exposes.numeric('calibration_opening_time', ea.SET_STATE).withUnit('S').withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
             e.cover_position(),
