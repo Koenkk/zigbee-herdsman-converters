@@ -82,14 +82,14 @@ module.exports = [
         vendor: 'Climax',
         description: 'Smart siren',
         fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning],
+        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning, tz.squawk],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'ssIasZone', 'ssIasWd']);
             await endpoint.read('ssIasZone', ['zoneState', 'iasCieAddr', 'zoneId']);
             await endpoint.read('ssIasWd', ['maxDuration']);
         },
-        exposes: [e.battery_low(), e.tamper(), e.warning(),
+        exposes: [e.battery_low(), e.tamper(), e.warning(), e.squawk(),
             exposes.numeric('max_duration', ea.ALL).withUnit('s').withValueMin(0).withValueMax(600).withDescription('Duration of Siren'),
             exposes.binary('alarm', ea.SET, 'START', 'OFF').withDescription('Manual start of siren')],
     },
