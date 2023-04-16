@@ -857,7 +857,7 @@ const definition = [
         vendor: 'Bosch',
         description: 'Bosch Light/shutter control unit II',
         fromZigbee: [fzLocal.bmct, fz.on_off, fz.cover_position_tilt ],
-        toZigbee: [ tz.bmct, tz.cover_position_tilt, tz.cover_state, tz.on_off ],
+        toZigbee: [ tzLocal.bmct, tz.cover_position_tilt, tz.cover_state, tz.on_off ],
         meta: {multiEndpoint: true, multiEndpointEnforce: true},
         endpoint: (device) => {
             return {'left': 2, 'right': 3};
