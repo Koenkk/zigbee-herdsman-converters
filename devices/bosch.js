@@ -615,7 +615,7 @@ const definition = [
             await reporting.onOff(endpoint3);
         },
         exposes: [
-            exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter').withDescription('Device type: '),
+            exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter']).withDescription('Device type: '),
             exposes.enum('switch_type', ea.STATE_SET, ['Rocker Switch', 'Rocker Switch - Key Change', 'Button', 'Button - Key Change']).withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
