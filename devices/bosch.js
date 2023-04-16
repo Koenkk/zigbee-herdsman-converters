@@ -4,6 +4,7 @@ const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
+const extend = require('../lib/extend');
 const constants = require('../lib/constants');
 const ota = require('../lib/ota');
 const e = exposes.presets;
@@ -749,7 +750,6 @@ const definition = [
         },
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
-
             // Configuration values:
             //                   0x0000    0x0001
             // Roller Shutter       1         3
@@ -763,8 +763,7 @@ const definition = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
-    };
-
+    },
 ];
 
 module.exports = definition;
