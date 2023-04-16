@@ -17,8 +17,6 @@ const boschManufacturer = {manufacturerCode: 0x1209};
 const stateDeviceType = {
   'Light': 0x04,
   'Shutter': 0x01,
-  'Venetian blind': 0x02,
-  'Unknown': 0x00,
 }
 //BMCT-SLZ
 const stateMotor = {
@@ -617,24 +615,20 @@ const definition = [
             await reporting.onOff(endpoint3);
         },
         exposes: [
-// light
-            exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter', 'Venetian blind']).withDescription('Device type: '),
+            exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter').withDescription('Device type: '),
             exposes.enum('switch_type', ea.STATE_SET, ['Rocker Switch', 'Rocker Switch - Key Change', 'Button', 'Button - Key Change']).withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock').withEndpoint('left'),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock').withEndpoint('right'),
+            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
+            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
-// cover
             e.energy(),
             exposes.enum('motor_state', ea.STATE, [ 'Opening', 'Closing', 'Idle']).withDescription('Shutter motor actual state '),
             exposes.numeric('calibration_closing_time', ea.SET_STATE).withUnit('S').withDescription('Calibration opening time').withValueMin(1).withValueMax(90),
             exposes.numeric('calibration_opening_time', ea.SET_STATE).withUnit('S').withDescription('Calibration closing time').withValueMin(1).withValueMax(90),
             e.cover_position(),
-
         ],
-
     },
     {
         zigbeeModel: ['RBSH-WS-ZB-EU'],
