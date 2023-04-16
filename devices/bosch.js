@@ -125,7 +125,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
             case 'state':
-                await entity.read('genOnOff', ['onOff'], boschManufacturer);
+                await entity.read('genOnOff', ['onOff']);
                 break;
             case 'device_type':
                 await entity.read(0xFCA0, [0x0000], boschManufacturer);
@@ -885,9 +885,9 @@ const definition = [
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('Enable/Disable child lock'),
-            exposes.enum('state', ea.ALL, ['Open', 'Close', 'Stop']).withDescription('Shutter state'),
-            exposes.binary('state', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('On/off state of the switch'),
-            exposes.binary('state', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('On/off state of the switch'),
+            //exposes.enum('state', ea.ALL, ['Open', 'Close', 'Stop']).withDescription('Shutter state'),
+            //exposes.binary('state', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('On/off state of the switch'),
+            //exposes.binary('state', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('On/off state of the switch'),
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
 // cover
