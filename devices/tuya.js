@@ -728,7 +728,7 @@ const fzLocal = {
 
             // Skip the first reported 0 values as this may be a false measurement
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
-            if ([''].includes(meta.device.manufacturerName)) {
+            if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (result[key] === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
                         delete result[key];
@@ -2701,7 +2701,9 @@ module.exports = [
             {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'},
             {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'}],
         ota: ota.zigbeeOTA,
-        extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+            powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
