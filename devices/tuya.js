@@ -721,6 +721,24 @@ const fzLocal = {
             return result;
         },
     },
+    TS011F_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+
+            // Skip the first reported 0 values as this may be a false measurement
+            // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
+            if ([''].includes(meta.device.manufacturerName)) {
+                for (const key of ['power', 'current', 'voltage']) {
+                    if (result[key] === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
+                        delete result[key];
+                    }
+                    globalStore.putValue(msg.endpoint, key, result[key]);
+                }
+            }
+            return result;
+        },
+    },
 };
 
 module.exports = [
@@ -2069,7 +2087,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0004', manufacturerName: '_TZ3000_ltt60asa'}],
+        fingerprint: tuya.fingerprint('TS0004', ['_TZ3000_ltt60asa', '_TZ3000_5ajpkyq6']),
         model: 'TS0004_switch_module',
         vendor: 'TuYa',
         description: '4 gang switch module',
