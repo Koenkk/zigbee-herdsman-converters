@@ -101,7 +101,7 @@ const tzLocal = {
         },
     },
     bmct: {
-        key: ['device_type', 'switch_type', 'child_lock', 'child_lock_left', 'child_lock_right', 'calibration_closing_time', 'calibration_opening_time', 'test', ],
+        key: ['device_type', 'switch_type', 'child_lock', 'calibration_closing_time', 'calibration_opening_time', 'test', ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'device_type') {
                 const index = stateDeviceType[value];
@@ -145,14 +145,6 @@ const tzLocal = {
                 break;
             case 'calibration_opening_time':
                 await entity.read(0xFCA0, [0x0003], boschManufacturer);
-                break;
-            case 'child_lock_left':
-                const endpoint_left = meta.device.getEndpoint(2);
-                await endpoint_left.read(0xFCA0, [0x0008], boschManufacturer);
-                break;
-            case 'child_lock_right':
-                const endpoint_right = meta.device.getEndpoint(3);
-                await endpoint_right.read(0xFCA0, [0x0008], boschManufacturer);
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key toZigbee.bmct.convertGet ${key}`);
