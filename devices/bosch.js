@@ -741,7 +741,7 @@ const definition = [
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
-        description: 'Bosch Light/Shutter Control II',
+        description: 'Light/shutter control II',
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
