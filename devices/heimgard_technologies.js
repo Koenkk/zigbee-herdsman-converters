@@ -44,6 +44,7 @@ module.exports = [
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
             await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read('seMetering', ['unitOfMeasure', 'multiplier', 'divisor']);
             device.save();
         },
     },
