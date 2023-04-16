@@ -607,11 +607,11 @@ const definition = [
         },
         exposes: [
             exposes.enum('device_type', ea.STATE_SET, ['Light', 'Shutter']).withDescription('Device type: '),
-            //exposes.enum('switch_type', ea.STATE_SET, ['Rocker Switch', 'Rocker Switch - Key Change', 'Button', 'Button - Key Change']).withDescription('Module controlled by a rocker switch or a button'),
+            exposes.enum('switch_type', ea.STATE_SET, ['Rocker Switch', 'Rocker Switch - Key Change', 'Button', 'Button - Key Change']).withDescription('Module controlled by a rocker switch or a button'),
             e.switch().withEndpoint('left'),
             e.switch().withEndpoint('right'),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
-            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('left').withDescription('Enable/Disable child lock'),
+            exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right').withDescription('Enable/Disable child lock'),
             e.power_on_behavior().withEndpoint('right'),
             e.power_on_behavior().withEndpoint('left'),
             e.energy(),
