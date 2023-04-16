@@ -124,9 +124,6 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-            case 'state':
-                await entity.read('genOnOff', ['onOff'], boschManufacturer);
-                break;
             case 'device_type':
                 await entity.read(0xFCA0, [0x0000], boschManufacturer);
                 break;
