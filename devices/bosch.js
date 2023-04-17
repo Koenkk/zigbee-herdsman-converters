@@ -75,7 +75,7 @@ const displayedTemperature = {
 const tzLocal = {
     bmct: {
         key: [
-            'device_type', 
+            'device_type',
             'switch_type',
             'child_lock', 'child_lock_left', 'child_lock_right',
             'calibration_closing_time', 'calibration_opening_time',
