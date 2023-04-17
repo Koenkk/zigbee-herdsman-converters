@@ -1,6 +1,7 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
+const utils = require('../lib/utils');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -13,9 +14,8 @@ const local = {
             convert: (model, msg, publish, options, meta) => {
                 const state = {};
                 if (msg.data.hasOwnProperty('switchOperationMode')) {
-                    const operationModeProperty = `operation_mode${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
                     const operationModeMap = {0x02: 'control_relay', 0x01: 'decoupled', 0x00: 'unknown'};
-                    state[operationModeProperty] = operationModeMap[msg.data.switchOperationMode];
+                    state['operation_mode'] = operationModeMap[msg.data.switchOperationMode];
                 }
                 return state;
             },
@@ -88,12 +88,18 @@ const local = {
                 if (!operationModeLookup.hasOwnProperty(value)) {
                     throw new Error(`operation_mode was called with an invalid value (${value})`);
                 } else {
-                    await entity.write('manuSpecificNiko1', {'switchOperationMode': operationModeLookup[value]});
+                    await utils.enforceEndpoint(entity, key, meta).write(
+                        'manuSpecificNiko1',
+                        {'switchOperationMode': operationModeLookup[value]},
+                    );
                     return {state: {operation_mode: value.toLowerCase()}};
                 }
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('manuSpecificNiko1', ['switchOperationMode']);
+                await utils.enforceEndpoint(entity, key, meta).read(
+                    'manuSpecificNiko1',
+                    ['switchOperationMode'],
+                );
             },
         },
         switch_led_enable: {
@@ -272,7 +278,7 @@ module.exports = [
         endpoint: (device) => {
             return {'l1': 1, 'l2': 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpointEnforce: {'operation_mode': 1}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const ep1 = device.getEndpoint(1);
             const ep2 = device.getEndpoint(2);
@@ -289,8 +295,7 @@ module.exports = [
                 'left_single', 'left_hold', 'left_release',
                 'right_single', 'right_hold', 'right_release',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
-            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
+            exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
             exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l2').withDescription('Enable LED'),
             exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withEndpoint('l1').withDescription('LED State'),
