@@ -14,21 +14,21 @@ const boschManufacturer = {manufacturerCode: 0x1209};
 
 // BMCT
 const stateDeviceType = {
-    'Light': 0x04,
-    'Shutter': 0x01,
+    'light': 0x04,
+    'shutter': 0x01,
 };
 // BMCT
 const stateMotor = {
-    'Idle': 0x00,
-    'Opening': 0x02,
-    'Closing': 0x01,
+    'idle': 0x00,
+    'opening': 0x02,
+    'closing': 0x01,
 };
 // BMCT
 const stateSwitchType = {
-    'Button': 0x01,
-    'Button_Key_Change': 0x02,
-    'Rocker_Switch': 0x03,
-    'Rocker_Switch_Key_Change': 0x04,
+    'button': 0x01,
+    'button_key_change': 0x02,
+    'rocker_switch': 0x03,
+    'rocker_rwitch_key_change': 0x04,
 };
 
 
