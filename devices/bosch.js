@@ -895,7 +895,7 @@ const definition = [
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
                 .withDescription('Enable/Disable child lock'),
             // cover
-            e.cover_position().setAccess('state', ea.SET_STATE),
+            e.cover_position().setAccess('state', ea.ALL),
             exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                 .withDescription('Shutter motor actual state '),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
