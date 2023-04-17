@@ -4,7 +4,6 @@ const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const utils = require('../lib/utils');
-const extend = require('../lib/extend');
 const constants = require('../lib/constants');
 const ota = require('../lib/ota');
 const e = exposes.presets;
@@ -77,17 +76,16 @@ const tzLocal = {
     bmct: {
         key: [
             'device_type', 
-            'switch_type', 
-            'child_lock', 'child_lock_left', 'child_lock_right', 
-            'calibration_closing_time', 'calibration_opening_time', 
-            'state' 
+            'switch_type',
+            'child_lock', 'child_lock_left', 'child_lock_right',
+            'calibration_closing_time', 'calibration_opening_time',
+            'state',
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'state') {
                 const state = value.toLowerCase();
                 utils.validateValue(state, ['toggle', 'off', 'on', 'open', 'close', 'stop']);
                 if ( state === 'on' || state === 'off' || state === 'toggle') {
-                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
                     await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
                     if (state === 'toggle') {
                         const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
@@ -100,7 +98,7 @@ const tzLocal = {
                     value = value.toLowerCase();
                     utils.validateValue(value, Object.keys(lookup));
                     await entity.command('closuresWindowCovering', lookup[value], {}, utils.getOptions(meta.mapped, entity));
-                }  
+                }
             }
             if (key === 'device_type') {
                 const index = stateDeviceType[value];
@@ -897,7 +895,7 @@ const definition = [
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withEndpoint('right')
                 .withDescription('Enable/Disable child lock'),
             // cover
-            e.cover_position().setAccess('state', ea.ALL),
+            e.cover_position().setAccess('state', ea.SET_STATE),
             exposes.enum('motor_state', ea.STATE, Object.keys(stateMotor))
                 .withDescription('Shutter motor actual state '),
             exposes.binary('child_lock', ea.ALL, 'ON', 'OFF').withDescription('Enable/Disable child lock'),
