@@ -36,12 +36,12 @@ const local = {
                         48: 'release',
                     } : {
                         16: null,
-                        64: 'left_single',
-                        32: 'left_hold',
-                        48: 'left_release',
-                        4096: 'right_single',
-                        8192: 'right_hold',
-                        12288: 'right_release',
+                        64: 'single_left',
+                        32: 'hold_left',
+                        48: 'release_left',
+                        4096: 'single_right',
+                        8192: 'hold_right',
+                        12288: 'release_right',
                     };
 
                     state['action'] = actionMap[msg.data.switchAction];
@@ -292,8 +292,8 @@ module.exports = [
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.action([
-                'left_single', 'left_hold', 'left_release',
-                'right_single', 'right_hold', 'right_release',
+                'single_left', 'hold_left', 'release_left',
+                'single_right', 'hold_right', 'release_right',
             ]),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
