@@ -29,9 +29,22 @@ const local = {
                 if (msg.data.hasOwnProperty('switchAction')) {
                     // NOTE: a single press = two seperate values reported, 16 followed by 64
                     //       a hold/release cyle = three seperate values, 16, 32, and 48
-                    const actionProperty = `action${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`;
-                    const actionMap = {16: null, 64: 'single', 32: 'hold', 48: 'release'};
-                    state[actionProperty] = actionMap[msg.data.switchAction];
+                    const actionMap = (model.model == '552-721X1') ? {
+                        16: null,
+                        64: 'single',
+                        32: 'hold',
+                        48: 'release',
+                    } : {
+                        16: null,
+                        64: 'left_single',
+                        32: 'left_hold',
+                        48: 'left_release',
+                        4096: 'right_single',
+                        8192: 'right_hold',
+                        12288: 'right_release',
+                    };
+
+                    state['action'] = actionMap[msg.data.switchAction];
                 }
                 return state;
             },
@@ -272,8 +285,10 @@ module.exports = [
         },
         exposes: [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.action(['single', 'hold', 'release']).withEndpoint('l1'),
-            e.action(['single', 'hold', 'release']).withEndpoint('l2'),
+            e.action([
+                'left_single', 'left_hold', 'left_release',
+                'right_single', 'right_hold', 'right_release',
+            ]),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l1'),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']).withEndpoint('l2'),
             exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
