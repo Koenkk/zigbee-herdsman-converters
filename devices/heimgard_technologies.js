@@ -25,6 +25,25 @@ module.exports = [
             e.lock(), e.battery(), e.auto_relock_time().withValueMin(0).withValueMax(3600), e.sound_volume()],
     },
     {
+    zigbeeModel: ['HT-SLM-2'],
+    model: 'HT-SLM-2',
+    vendor: 'Heimgard Technologies',
+    description: 'Heimgard doorlock with fingerprint',
+    fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
+    toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
+    meta: {pinCodeCount: 39},
+    ota: ota.zigbeeOTA,
+    configure: async (device, coordinatorEndpoint, logger) => {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+        await reporting.lockState(endpoint);
+        await reporting.batteryPercentageRemaining(endpoint);
+        await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
+    },
+    exposes: [
+        e.lock(), e.pincode(), e.battery(), e.sound_volume()],
+    },
+    {
         zigbeeModel: ['HC-IWDIM-1'],
         model: 'HC-IWDIM-1',
         vendor: 'Heimgard Technologies',
