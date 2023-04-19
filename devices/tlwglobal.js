@@ -21,18 +21,18 @@ module.exports = [
         extend: extend.light_onoff_brightness(),
     },
     // K10-1230Z and K10-1250Z untested, but assumed to be consistent with K10-1220W
-    //{
-    //    zigbeeModel: ['K10-1230Z'],
-    //    model: 'K10-1230Z',
-    //    vendor: 'TLW Global',
-    //    description: '12V LED smart driver 30W with 6-port micro plug connector',
-    //    extend: extend.light_onoff_brightness(),
-    //},
-    //{
-    //    zigbeeModel: ['K10-1250Z'],
-    //    model: 'K10-1250Z',
-    //    vendor: 'TLW Global',
-    //    description: '12V LED smart driver 50W with 6-port micro plug connector',
-    //    extend: extend.light_onoff_brightness(),
-    //},
+    {
+        zigbeeModel: ['K10-1230Z'],
+        model: 'K10-1230Z',
+        vendor: 'TLW Global',
+        description: '12V LED smart driver 30W with 6-port micro plug connector',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
+        zigbeeModel: ['K10-1250Z'],
+        model: 'K10-1250Z',
+        vendor: 'TLW Global',
+        description: '12V LED smart driver 50W with 6-port micro plug connector',
+        extend: extend.light_onoff_brightness(),
+    },
 ];
