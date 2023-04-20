@@ -1,17 +1,7 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const extend = require('zigbee-herdsman-converters/lib/extend');
-const ota = require('zigbee-herdsman-converters/lib/ota');
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
-const utils = require('zigbee-herdsman-converters/lib/utils');
-const globalStore = require('zigbee-herdsman-converters/lib/store');
-const e = exposes.presets;
-const ea = exposes.access;
+const extend = require('../lib/extend');
 
 module.exports = [
-    // Tested working with firmare 2.5.3_r58: dimming, on/off, and effects give no 
+    // Tested working with firmare 2.5.3_r58: dimming, on/off, and effects give no
     // errors (although the stop effect and the finish effect do nothing).
     {
         zigbeeModel: ['K10-1220Z'],
