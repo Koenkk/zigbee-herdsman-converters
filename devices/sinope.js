@@ -181,11 +181,11 @@ const fzLocal = {
             }
             if (msg.data.hasOwnProperty('actionReport')) {
                 const lookup = {2: 'key_up_pressed', 3: 'key_up_held', 4: 'key_up_pressed2x',
-                18: 'key_dn_pressed', 19: 'key_dn_held', 20: 'key_dn_pressed2x'};
+                    18: 'key_dn_pressed', 19: 'key_dn_held', 20: 'key_dn_pressed2x'};
                 result.action_report = lookup[msg.data['actionReport']];
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
-                const lookup = {0: 'unlock',1: 'lock'};
+                const lookup = {0: 'unlock', 1: 'lock'};
                 result.keypad_lockout = lookup[msg.data['keypadLockout']];
             }
             return result;
@@ -486,8 +486,8 @@ const tzLocal = {
         // SW2500ZB
         key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
-                const lookup = {'unlock': 0, 'lock': 1};
-                await entity.write('manuSpecificSinope', {keypadLockout: lookup[value]});
+            const lookup = {'unlock': 0, 'lock': 1};
+            await entity.write('manuSpecificSinope', {keypadLockout: lookup[value]});
             return {state: {keypad_lockout: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -995,9 +995,9 @@ module.exports = [
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lock],
         exposes: [e.switch(),
-            exposes.enum('action_report',ea.STATE,['key_up_pressed', 'key_up_pressed2x', 'key_up_held',
-                    'key_dn_pressed', 'key_dn_pressed2x', 'key_dn_held'])
-                    .withDescription('Triggered action (e.g. a button click)'),
+            exposes.enum('action_report', ea.STATE, ['key_up_pressed', 'key_up_pressed2x', 'key_up_held',
+                'key_dn_pressed', 'key_dn_pressed2x', 'key_dn_held'])
+                .withDescription('Triggered action (e.g. a button click)'),
             exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
                 .withDescription('Automatically turn off load after x seconds'),
             exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
@@ -1026,7 +1026,7 @@ module.exports = [
                 minimumReportInterval: 0,
                 maximumReportInterval: 0,
                 reportableChange: 0,
-                }];
+            }];
             await endpoint.configureReporting('manuSpecificSinope', payload);
         },
     },
