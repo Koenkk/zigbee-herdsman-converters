@@ -179,6 +179,15 @@ const fzLocal = {
             if (msg.data.hasOwnProperty('minimumBrightness')) {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
+            if (msg.data.hasOwnProperty('actionReport')) {
+                const lookup = {2: 'key_up_pressed', 3: 'key_up_held', 4: 'key_up_pressed2x',
+                18: 'key_dn_pressed', 19: 'key_dn_held', 20: 'key_dn_pressed2x'};
+                result.action_report = lookup[msg.data['actionReport']];
+            }
+            if (msg.data.hasOwnProperty('keypadLockout')) {
+                const lookup = {0: 'unlock',1: 'lock'};
+                result.keypad_lockout = lookup[msg.data['keypadLockout']];
+            }
             return result;
         },
     },
@@ -471,6 +480,18 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['dimmerTimmer']);
+        },
+    },
+    keypad_lock: {
+        // SW2500ZB
+        key: ['keypad_lockout'],
+        convertSet: async (entity, key, value, meta) => {
+                const lookup = {'unlock': 0, 'lock': 1};
+                await entity.write('manuSpecificSinope', {keypadLockout: lookup[value]});
+            return {state: {keypad_lockout: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('manuSpecificSinope', ['keypadLockout']);
         },
     },
 };
@@ -972,8 +993,11 @@ module.exports = [
         description: 'Zigbee smart light switch',
         fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.sinope],
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
-            tzLocal.led_color_on, tzLocal.led_color_off],
+            tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lock],
         exposes: [e.switch(),
+            exposes.enum('action_report',ea.STATE,['key_up_pressed', 'key_up_pressed2x', 'key_up_held',
+                    'key_dn_pressed', 'key_dn_pressed2x', 'key_dn_held'])
+                    .withDescription('Triggered action (e.g. a button click)'),
             exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
                 .withDescription('Automatically turn off load after x seconds'),
             exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
@@ -989,12 +1013,21 @@ module.exports = [
                 .withFeature(exposes.numeric('r', ea.SET))
                 .withFeature(exposes.numeric('g', ea.SET))
                 .withFeature(exposes.numeric('b', ea.SET))
-                .withDescription('Control status LED color when load OFF')],
+                .withDescription('Control status LED color when load OFF'),
+            exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock'])
+                .withDescription('Enables or disables the device’s buttons')],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ['genOnOff'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
+            const payload = [{
+                attribute: 'actionReport',
+                minimumReportInterval: 0,
+                maximumReportInterval: 0,
+                reportableChange: 0,
+                }];
+            await endpoint.configureReporting('manuSpecificSinope', payload);
         },
     },
     {
