@@ -180,8 +180,8 @@ const fzLocal = {
                 result.minimum_brightness = msg.data['minimumBrightness'];
             }
             if (msg.data.hasOwnProperty('actionReport')) {
-                const lookup = {2: 'key_up_pressed', 3: 'key_up_held', 4: 'key_up_pressed2x',
-                    18: 'key_dn_pressed', 19: 'key_dn_held', 20: 'key_dn_pressed2x'};
+                const lookup = {2: 'up_single', 3: 'up_hold', 4: 'up_double',
+                    18: 'down_single', 19: 'down_hold', 20: 'down_double'};
                 result.action_report = lookup[msg.data['actionReport']];
             }
             if (msg.data.hasOwnProperty('keypadLockout')) {
@@ -995,8 +995,8 @@ module.exports = [
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lock],
         exposes: [e.switch(),
-            exposes.enum('action_report', ea.STATE, ['key_up_pressed', 'key_up_pressed2x', 'key_up_held',
-                'key_dn_pressed', 'key_dn_pressed2x', 'key_dn_held'])
+            exposes.enum('action_report',ea.STATE,['up_single', 'up_double', 'up_hold',
+                'down_single', 'down_double', 'down_hold'])
                 .withDescription('Triggered action (e.g. a button click)'),
             exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
                 .withDescription('Automatically turn off load after x seconds'),
