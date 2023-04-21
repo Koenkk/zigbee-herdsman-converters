@@ -4362,7 +4362,7 @@ module.exports = [
         configure: tuya.configureMagicPacket,
         whiteLabel: [{vendor: 'Wenzhou Taiye Electric', model: 'TAC7361C BI'}],
         exposes: [
-            exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the relay ON/OFF'),
+            e.switch().setAccess('state', ea.STATE_SET),
             e.power(),
             exposes.numeric('consumed_energy', ea.STATE).withUnit('kWh'),
             exposes.numeric('produced_energy', ea.STATE).withUnit('kWh'),
@@ -4378,7 +4378,7 @@ module.exports = [
         ],
         meta: {tuyaDatapoints: [
             [16, 'state', tuya.valueConverter.onOff],
-            [1, 'consumed_energy', tuya.valueConverter.divideBy100],
+            [1, 'energy', tuya.valueConverter.divideBy100],
             [2, 'produced_energy', tuya.valueConverter.divideBy100],
             [9, 'power', tuya.valueConverter.raw],
             [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
