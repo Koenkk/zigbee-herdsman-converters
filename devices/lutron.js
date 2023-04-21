@@ -13,7 +13,7 @@ module.exports = [
         description: 'Connected bulb remote control',
         fromZigbee: [fz.legacy.insta_down_hold, fz.legacy.insta_up_hold, fz.legacy.LZL4B_onoff, fz.legacy.insta_stop],
         toZigbee: [],
-        exposes: [e.action(['down', 'up', 'stop'])],
+        exposes: [e.action(['brightness_step_down', 'brightness_step_up', 'brightness_stop', 'brightness_move_to_level'])],
     },
     {
         zigbeeModel: ['Z3-1BRL'],

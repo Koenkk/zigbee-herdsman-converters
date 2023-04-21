@@ -25,6 +25,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
     },
     {
+        zigbeeModel: ['929003056701'],
+        model: '929003056701',
+        vendor: 'Philips',
+        description: 'Hue white ambiance Adore ceiling light',
+        extend: philips.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 454]}),
+    },
+    {
         zigbeeModel: ['929003045301_01', '929003045301_02', '929003045301_03'],
         model: '929003045301',
         vendor: 'Philips',
@@ -613,7 +620,7 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
-        zigbeeModel: ['LCG002', '929003047701', '929003047701', '929003526202_01', '929003526202_02', '929003526202_03'],
+        zigbeeModel: ['LCG002', '929003047701', '929003047701', '929003526202_01', '929003526202_02', '929003526202_03', '929003526101'],
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
@@ -887,9 +894,9 @@ module.exports = [
     },
     {
         zigbeeModel: ['LCA006'],
-        model: '9290024689',
+        model: '9290024688',
         vendor: 'Philips',
-        description: 'Hue white and color ambiance B22 1100lm',
+        description: 'Hue white and color ambiance E27 1100lm',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
@@ -2079,6 +2086,13 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
         ota: ota.zigbeeOTA,
+    },
+    {
+        zigbeeModel: ['915005987401'],
+        model: '915005987401',
+        vendor: 'Philips',
+        description: 'Hue White and color ambiance Gradient Signe table lamp (black)',
+        extend: philips.extend.light_onoff_brightness_colortemp_color_gradient({colorTempRange: [153, 500]}),
     },
     {
         zigbeeModel: ['LOM005'],

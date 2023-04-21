@@ -315,24 +315,6 @@ module.exports = [
                 .withValueMax(900).withValueStep(100)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_e3oitdyu'}],
-        model: 'MS-105B',
-        vendor: 'Moes',
-        description: 'Smart dimmer module (2 gang)',
-        fromZigbee: [fz.moes_105_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.moes_105_dimmer],
-        meta: {turnsOffAtBrightness1: true, multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
-            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        exposes: [e.light_brightness().withEndpoint('l1').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
-            e.light_brightness().withEndpoint('l2').setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_7hcgjxpc'},
             {modelID: 'TS0505B', manufacturerName: '_TZ3210_rcggc0ys'}],
         model: 'ZLD-RCW',

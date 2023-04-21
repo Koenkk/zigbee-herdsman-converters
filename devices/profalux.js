@@ -17,7 +17,10 @@ module.exports = [
         exposes: [],
     },
     {
-        zigbeeModel: ['MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
+        zigbeeModel: [
+            'MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            'MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+        ],
         fingerprint: [{manufId: 4368, endpoints: [{ID: 1, profileID: 260, deviceID: 512,
             inputClusters: [0, 3, 4, 5, 6, 8, 10, 21, 256, 64544, 64545], outputClusters: [3, 64544]}]}],
         model: 'NSAV061',
@@ -31,5 +34,14 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
             await reporting.brightness(endpoint);
         },
+    },
+    {
+        zigbeeModel: ['MAI-ZTP20F'],
+        model: 'MAI-ZTP20F',
+        vendor: 'Profalux',
+        description: 'Cover remote',
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
     },
 ];

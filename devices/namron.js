@@ -217,7 +217,16 @@ module.exports = [
         zigbeeModel: ['4512701'],
         model: '4512701',
         vendor: 'Namron',
-        description: 'Zigbee 1 channel switch K2',
+        description: 'Zigbee 1 channel switch K2 (White)',
+        fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
+        exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ['4512728'],
+        model: '4512728',
+        vendor: 'Namron',
+        description: 'Zigbee 1 channel switch K2 (Black)',
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.command_move, fz.command_stop],
         exposes: [e.battery(), e.action(['on', 'off', 'brightness_move_up', 'brightness_move_down', 'brightness_stop'])],
         toZigbee: [],
@@ -471,13 +480,6 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
-
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'occupancy',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
-            }]);
 
             // Metering
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);

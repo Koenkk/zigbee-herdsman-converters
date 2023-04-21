@@ -124,7 +124,7 @@ module.exports = [
             'button_6_hold', 'button_6_single', 'button_6_double'])],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_zigisuyh', '_TZ3000_v4mevirn', '_TZ3000_mlswgkc3']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_zigisuyh', '_TZ3000_v4mevirn', '_TZ3000_mlswgkc3', '_TZ3000_dlug3kbc']),
         model: 'ZIGBEE-B09-UK',
         vendor: 'Zemismart',
         description: 'Zigbee smart outlet universal socket with USB port',
@@ -142,7 +142,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_iossyxra'}],
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_iossyxra', '_TZE200_cxu0jkjk']),
         model: 'ZM-AM02_cover',
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
@@ -199,7 +199,7 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_1n2kyphz'}, {modelID: 'TS0601', manufacturerName: '_TZE200_shkxsgis'}],
         model: 'TB26-4',
         vendor: 'Zemismart',
         description: '4-gang smart wall switch',

@@ -101,7 +101,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}, {modelID: 'TS110E', manufacturerName: '_TZ3210_weaqkhab'}],
+        fingerprint: [{modelID: 'TS110F', manufacturerName: '_TZ3000_ktuoyvt5'}],
         model: 'QS-Zigbee-D02-TRIAC-L',
         vendor: 'Lonsonho',
         description: '1 gang smart dimmer switch module without neutral',
@@ -173,7 +173,7 @@ module.exports = [
         vendor: 'Lonsonho',
         description: 'Zigbee 3.0 LED-bulb, RGBW LED',
         extend: extend.light_onoff_brightness_colortemp_color(
-            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true}),
+            {disableColorTempStartup: true, colorTempRange: [153, 500], disableEffect: true, disablePowerOnBehavior: true}),
     },
     {
         fingerprint: [{modelID: 'TS0003', manufacturerName: '_TYZB01_zsl6z0pw'}, {modelID: 'TS0003', manufacturerName: '_TYZB01_uqkphoed'}],

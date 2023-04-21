@@ -776,12 +776,12 @@ module.exports = [
         model: 'ZNLDP12LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart LED bulb',
-        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).toZigbee.concat([
-            tz.xiaomi_light_power_outage_memory]),
-        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).fromZigbee,
+        toZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true})
+            .toZigbee.concat([tz.xiaomi_light_power_outage_memory]),
+        fromZigbee: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}).fromZigbee,
         // power_on_behavior 'toggle' does not seem to be supported
-        exposes: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}).exposes.concat([
-            e.power_outage_memory().withAccess(ea.STATE_SET)]),
+        exposes: xiaomiExtend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true})
+            .exposes.concat([e.power_outage_memory().withAccess(ea.STATE_SET)]),
         ota: ota.zigbeeOTA,
     },
     {
@@ -2239,6 +2239,14 @@ module.exports = [
         vendor: 'Xiaomi',
         fromZigbee: [fz.xiaomi_basic, fz.xiaomi_curtain_position, fz.xiaomi_curtain_position_tilt],
         toZigbee: [tz.xiaomi_curtain_position_state, tz.xiaomi_curtain_options],
+        onEvent: async (type, data, device) => {
+            if (type === 'message' && data.type === 'attributeReport' && data.cluster === 'genBasic' &&
+                data.data.hasOwnProperty('1028') && data.data['1028'] == 0) {
+                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                // Might need to add delay, seems to be working without one but needs more tests.
+                await device.getEndpoint(1).read('genAnalogOutput', ['presentValue']);
+            }
+        },
         exposes: [e.cover_position().setAccess('state', ea.ALL),
             exposes.binary('running', ea.STATE, true, false)
                 .withDescription('Whether the motor is moving or not'),
@@ -3146,6 +3154,24 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.battery(), e.battery_voltage(), e.action(['single', 'double', 'hold', 'release']),
             e.device_temperature(), e.power_outage_count()],
+    },
+    {
+        zigbeeModel: ['lumi.remote.b286acn03'],
+        model: 'WXKG04LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 double rocker wireless remote switch',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        fromZigbee: [fz.xiaomi_basic, fz.aqara_opple_multistate, fz.aqara_opple],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {left: 1, right: 2, both: 3};
+        },
+        exposes: [e.battery(), e.battery_voltage(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+        ])],
+        ota: ota.zigbeeOTA,
     },
     {
         zigbeeModel: ['lumi.remote.cagl02'],

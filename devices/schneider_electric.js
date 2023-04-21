@@ -9,12 +9,31 @@ const ota = require('../lib/ota');
 const e = exposes.presets;
 const ea = exposes.access;
 
+const exposesLocal = {
+    indicator_mode: exposes.enum('indicator_mode', ea.ALL, ['consistent_with_load', 'reverse_with_load', 'always_off', 'always_on'])
+        .withDescription('Led Indicator Mode'),
+};
+
 const tzLocal = {
     lift_duration: {
         key: ['lift_duration'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write(0x0102, {0xe000: {value, type: 0x21}}, {manufacturerCode: 0x105e});
             return {state: {lift_duration: value}};
+        },
+    },
+    indicator_mode: {
+        key: ['indicator_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = entity.getDevice().getEndpoint(21);
+            const lookup = {'reverse_with_load': 2, 'consistent_with_load': 0, 'always_off': 3, 'always_on': 1};
+            utils.validateValue(value, Object.keys(lookup));
+            await endpoint.write(0xFF17, {0x0000: {value: lookup[value], type: 0x30}}, {manufacturerCode: 0x105e});
+            return {state: {indicator_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = entity.getDevice().getEndpoint(21);
+            await endpoint.read(0xFF17, [0x0000], {manufacturerCode: 0x105e});
         },
     },
 };
@@ -168,6 +187,18 @@ const fzLocal = {
             }
 
             return ret;
+        },
+    },
+    indicator_mode: {
+        cluster: 'clipsalWiserSwitchConfigurationClusterServer',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const lookup = {0: 'consistent_with_load', 1: 'always_on', 2: 'reverse_with_load', 3: 'always_off'};
+            if ('indicator_mode' in msg.data) {
+                result.indicator_mode = lookup[msg.data['indicator_mode']];
+            }
+            return result;
         },
     },
 };
@@ -330,6 +361,27 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['NHPB/UNIDIM/1'],
+        model: 'WDE002960',
+        vendor: 'Schneider Electric',
+        description: 'Push button dimmer',
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        exposes: [e.light_brightness().withLevelConfig(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum light output of the ballast'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum light output of the ballast'),
+            exposes.enum('dimmer_mode', ea.ALL, ['auto', 'rc', 'rl', 'rl_led'])
+                .withDescription('Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['NHPB/DIMMER/1'],
         model: 'WDE002386',
         vendor: 'Schneider Electric',
@@ -353,13 +405,14 @@ module.exports = [
         model: '41EPBDWCLMZ/354PBDMBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series Module Dimmer',
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration, fzLocal.indicator_mode],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.indicator_mode],
         exposes: [e.light_brightness(),
             exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
                 .withDescription('Specifies the minimum light output of the ballast'),
             exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
-                .withDescription('Specifies the maximum light output of the ballast')],
+                .withDescription('Specifies the maximum light output of the ballast'),
+            exposesLocal.indicator_mode],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl', 'lightingBallastCfg']);
@@ -372,7 +425,12 @@ module.exports = [
         model: '41E2PBSWMZ/356PB2MBTZ',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 2A',
-        extend: extend.switch(),
+        ota: ota.zigbeeOTA,
+        extend: extend.switch( {
+            exposes: [exposesLocal.indicator_mode],
+            fromZigbee: [fzLocal.indicator_mode],
+            toZigbee: [tzLocal.indicator_mode],
+        }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -384,7 +442,11 @@ module.exports = [
         model: '41E10PBSWMZ-VW',
         vendor: 'Schneider Electric',
         description: 'Wiser 40/300-Series module switch 10A with ControlLink',
-        extend: extend.switch(),
+        extend: extend.switch({
+            exposes: [exposesLocal.indicator_mode],
+            fromZigbee: [fzLocal.indicator_mode],
+            toZigbee: [tzLocal.indicator_mode],
+        }),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -1035,5 +1097,31 @@ module.exports = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.tamper()],
+    },
+    {
+        zigbeeModel: ['EKO07259'],
+        model: 'EKO07259',
+        vendor: 'Schneider Electric',
+        description: 'Smart thermostat',
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_running_state,
+            tz.thermostat_local_temperature, tz.thermostat_control_sequence_of_operation, tz.schneider_pilot_mode,
+            tz.schneider_thermostat_keypad_lockout, tz.thermostat_temperature_display_mode],
+        exposes: [exposes.binary('keypad_lockout', ea.STATE_SET, 'lock1', 'unlock')
+            .withDescription('Enables/disables physical input on the device'),
+        exposes.enum('schneider_pilot_mode', ea.ALL, ['contactor', 'pilot']).withDescription('Controls piloting mode'),
+        exposes.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit'])
+            .withDescription('The temperature format displayed on the thermostat screen'),
+        exposes.climate().withSetpoint('occupied_heating_setpoint', 4, 30, 0.5).withLocalTemperature()
+            .withSystemMode(['off', 'heat']).withRunningState(['idle', 'heat']).withPiHeatingDemand()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ['seMetering']);
+            await endpoint1.read('hvacUserInterfaceCfg', ['keypadLockout', 'tempDisplayMode']);
+        },
     },
 ];
