@@ -995,7 +995,7 @@ module.exports = [
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lock],
         exposes: [e.switch(),
-            exposes.enum('action_report',ea.STATE,['up_single', 'up_double', 'up_hold',
+            exposes.enum('action_report', ea.STATE, ['up_single', 'up_double', 'up_hold',
                 'down_single', 'down_double', 'down_hold'])
                 .withDescription('Triggered action (e.g. a button click)'),
             exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
