@@ -9,6 +9,18 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['5120.2210'],
+        model: '5120.2210',
+        vendor: 'iluminize',
+        description: 'ZigBee 3.0 actuator mini 1x 230V',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['511.050'],
         model: '511.050',
         vendor: 'Iluminize',
