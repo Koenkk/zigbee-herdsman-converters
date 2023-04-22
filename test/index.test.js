@@ -287,7 +287,7 @@ describe('index.js', () => {
             if (device.whiteLabel) {
                 for (const whiteLabel of device.whiteLabel) {
                     verifyKeys(['vendor', 'model'], Object.keys(whiteLabel), `whitelabel-of-${device.model}`);
-                    containsOnly(['vendor', 'model', 'description', 'fingerprint'], Object.keys(definition));
+                    containsOnly(['vendor', 'model', 'description', 'fingerprint'], Object.keys(whiteLabel));
                     if (whiteLabel.fingerprint && foundModels.includes(whiteLabel.model.toLowerCase())) {
                         throw new Error(`Duplicate whitelabel zigbee model ${whiteLabel.model}`)
                     }
