@@ -267,7 +267,7 @@ describe('index.js', () => {
             }
 
             // Check for duplicate model ids
-            if (foundModels.includes(device.model)) {
+            if (foundModels.includes(device.model.toLowerCase())) {
                 throw new Error(`Duplicate model ${device.model}`)
             }
 
@@ -285,10 +285,22 @@ describe('index.js', () => {
             }
 
             if (device.whiteLabel) {
-                for (const definition of device.whiteLabel) {
-                    containsOnly(['vendor', 'model', 'description'], Object.keys(definition));
+                for (const whiteLabel of device.whiteLabel) {
+                    verifyKeys(['vendor', 'model'], Object.keys(whiteLabel), `whitelabel-of-${device.model}`);
+                    containsOnly(['vendor', 'model', 'description', 'fingerprint'], Object.keys(definition));
+                    if (whiteLabel.fingerprint && foundModels.includes(whiteLabel.model.toLowerCase())) {
+                        throw new Error(`Duplicate whitelabel zigbee model ${whiteLabel.model}`)
+                    }
                 }
             }
+
+            // Add to found models after duplicate checks, within the same device, same models are allowed
+            // We do not allow whitelabels with a fingerprint to carry a duplicate model
+            foundModels.push(device.model.toLowerCase());
+            if (device.whiteLabel) {
+                foundModels.push(...device.whiteLabel.filter((w) => w.fingerprint).map((w) => w.model.toLowerCase()));
+            }
+
 
             if (device.meta) {
                 containsOnly(['disableActionGroup', 'multiEndpoint', 'multiEndpointSkip', 'multiEndpointEnforce', 'applyRedFix', 'disableDefaultResponse', 'enhancedHue', 'timeout', 'supportsHueAndSaturation', 'battery', 'coverInverted', 'turnsOffAtBrightness1', 'coverStateFromTilt', 'pinCodeCount', 'tuyaThermostatSystemMode', 'tuyaThermostatPreset', 'tuyaDatapoints', 'tuyaThermostatPresetToSystemMode', 'thermostat', 'fanStateOn', 'separateWhite', 'publishDuplicateTransaction', 'tuyaSendCommand'], Object.keys(device.meta));
@@ -297,8 +309,6 @@ describe('index.js', () => {
             if (device.zigbeeModel) {
                 foundZigbeeModels = foundZigbeeModels.concat(device.zigbeeModel.map((z) => z.toLowerCase()));
             }
-
-            foundModels.push(device.model);
         });
     });
 
@@ -431,6 +441,31 @@ describe('index.js', () => {
                 }
             }
         });
+    });
+
+    it('Find by fingerprint - whitelabel', () => {
+        const HG06492B = {
+            type: 'Router',
+            manufacturerName: '_TZ3000_oborybow',
+            modelID: 'TS0502A',
+            endpoints: [],
+        };
+        const TS0502A = {
+            type: 'Router',
+            manufacturerName: 'JUST_A_RANDOM_MANUFACTURER_NAME  ',
+            modelID: 'TS0502A',
+            endpoints: [],
+        };
+
+        const HG06492B_match = index.findByDevice(HG06492B)
+        expect(HG06492B_match.model).toBe('HG06492B');
+        expect(HG06492B_match.description).toBe('Livarno Lux E14 candle CCT');
+        expect(HG06492B_match.vendor).toBe('Lidl');
+
+        const TS0502A_match = index.findByDevice(TS0502A)
+        expect(TS0502A_match.model).toBe('TS0502A');
+        expect(TS0502A_match.description).toBe('Light controller');
+        expect(TS0502A_match.vendor).toBe('TuYa');
     });
 
     it('Check if all exposes have a color temp range', () => {
