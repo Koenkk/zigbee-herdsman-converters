@@ -12,7 +12,7 @@ module.exports = [
         zigbeeModel: ['5120.2210'],
         model: '5120.2210',
         vendor: 'iluminize',
-        description: 'ZigBee 3.0 actuator mini 1x 230V',
+        description: 'Zigbee 3.0 actuator mini 1x 230V',
         extend: extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
