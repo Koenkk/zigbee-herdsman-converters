@@ -2776,6 +2776,23 @@ module.exports = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_dlug3kbc']),
+        model: 'TS011F_3_gang',
+        description: '3 gang wall ac outlet',
+        vendor: 'TuYa',
+        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3']}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            for (const ep of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+    },
+    {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ntcy3xu1']),
         model: 'TS0601_smoke_1',
         vendor: 'TuYa',
