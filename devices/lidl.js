@@ -627,16 +627,6 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_r0xgkft5'}],
-        model: '14156506L',
-        vendor: 'Lidl',
-        description: 'Livarno Lux smart LED mood light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_iystcadi'}],
         model: '14149505L/14149506L_2',
         vendor: 'Lidl',

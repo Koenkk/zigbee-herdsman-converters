@@ -1032,7 +1032,6 @@ module.exports = [
             tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
             tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
             tuya.whitelabel('UR Lighting', 'TH008L10RGBCCT', '10W RGB+CCT downlight', ['_TZ3210_dn5higyl']),
-            tuya.whitelabel('Lidl', '14156506L', 'Livarno Lux smart LED mood light', ['_TZ3210_r0xgkft5']),
             tuya.whitelabel('Lidl', 'HG08010', 'Livarno Home outdoor spotlight', ['_TZ3210_umi6vbsz']),
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
