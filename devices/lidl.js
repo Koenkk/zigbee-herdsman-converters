@@ -785,16 +785,6 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_oborybow'}],
-        model: 'HG06492B',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E14 candle CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_49qchf10'}],
         model: 'HG06492C',
         vendor: 'Lidl',

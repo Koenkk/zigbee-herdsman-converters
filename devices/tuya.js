@@ -1690,7 +1690,13 @@ module.exports = [
         model: 'TS0502A',
         vendor: 'TuYa',
         description: 'Light controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp(),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG06492B', 'Livarno Lux E14 candle CCT', ['_TZ3000_oborybow']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
     },
     {
         zigbeeModel: ['TS0502B'],
