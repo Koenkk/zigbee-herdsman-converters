@@ -1012,8 +1012,34 @@ module.exports = [
             {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
             {vendor: 'Feconn', model: 'FE-GU10-5W', description: 'Zigbee GU10 5W smart bulb'},
             {vendor: 'Nedis', model: 'ZBLC1E14'},
+            tuya.whitelabel('Aldi', 'L122FF63H11A5.0W', 'LIGHTWAY smart home LED-lamp - spot', ['_TZ3000_j0gtlepx']),
+            tuya.whitelabel('Aldi', 'L122AA63H11A6.5W', 'LIGHTWAY smart home LED-lamp - candle', ['_TZ3000_iivsrikg']),
+            tuya.whitelabel('Aldi', 'C422AC11D41H140.0W', 'MEGOS LED panel RGB+CCT 40W 3600lm 62 x 62 cm', ['_TZ3000_v1srfw9x']),
+            tuya.whitelabel('Aldi', 'C422AC14D41H140.0W', 'MEGOS LED panel RGB+CCT 40W 3600lm 30 x 120 cm', ['_TZ3000_gb5gaeca']),
+            tuya.whitelabel('MiBoxer', 'FUT066Z', 'RGB+CCT LED Downlight', ['_TZ3210_zrvxvydd']),
+            tuya.whitelabel('Miboxer', 'FUT039Z', 'RGB+CCT LED controller', ['_TZ3210_jicmoite']),
+            tuya.whitelabel('Lidl', '14156506L', 'Livarno Lux smart LED mood light', ['_TZ3210_r0xgkft5']),
+            tuya.whitelabel('Lidl', 'HG08010', 'Livarno Home outdoor spotlight', ['_TZ3210_umi6vbsz']),
+            tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
+            tuya.whitelabel('TuYa', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
+            tuya.whitelabel('Lidl', '14158704L', 'Livarno Home LED floor lamp, RGBW', ['_TZ3210_z1vlyufu']),
+            tuya.whitelabel('Lidl', '14158804L', 'Livarno Home LED desk lamp RGBW', ['_TZ3210_hxtfthp5']),
+            tuya.whitelabel('Lidl', 'HG07834A', 'Livarno Lux GU10 spot RGB', ['_TZ3000_quqaeew6']),
+            tuya.whitelabel('Lidl', 'HG07834B', 'Livarno Lux E14 candle RGB', ['_TZ3000_th6zqqy6', '_TZ3000_wr6g6olr']),
+            tuya.whitelabel('Lidl', 'HG08131C', 'Livarno Home outdoor E27 bulb in set with flare', ['_TZ3000_q50zhdsc']),
+            tuya.whitelabel('Lidl', 'HG07834C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_qd7hej8u']),
+            tuya.whitelabel('Lidl', 'HG08383B', 'Livarno outdoor LED light chain', ['_TZ3000_bwlvyjwk']),
+            tuya.whitelabel('Lidl', 'HG08383A', 'Livarno outdoor LED light chain', ['_TZ3000_taspddvq']),
+            tuya.whitelabel('Garza Smart', 'Garza-Standard-A60', 'Standard A60 bulb', ['_TZ3210_sln7ah6r']),
+            tuya.whitelabel('UR Lighting', 'TH008L10RGBCCT', '10W RGB+CCT downlight', ['_TZ3210_dn5higyl']),
+            tuya.whitelabel('Lidl', 'HG08010', 'Livarno Home outdoor spotlight', ['_TZ3210_umi6vbsz']),
+            tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
+            tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
         ],
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
     },
     {
         zigbeeModel: ['TS0503B'],
@@ -1040,6 +1066,12 @@ module.exports = [
         description: 'Zigbee light',
         vendor: 'TuYa',
         extend: tuya.extend.light_onoff_brightness(),
+        meta: {turnsOffAtBrightness1: false},
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG06463A', 'Livarno Lux E27 ST64 filament bulb', ['_TZ3000_j2w1dw29']),
+            tuya.whitelabel('Lidl', 'HG06463B', 'Livarno Lux E27 G95 filament bulb', ['_TZ3000_nosnx7im']),
+            tuya.whitelabel('Lidl', 'HG06462A', 'Livarno Lux E27 A60 filament bulb', ['_TZ3000_7dcddnye', '_TZ3000_nbnmw9nc']),
+        ],
     },
     {
         zigbeeModel: ['TS0501B'],
@@ -1047,6 +1079,9 @@ module.exports = [
         description: 'Zigbee light',
         vendor: 'TuYa',
         extend: tuya.extend.light_onoff_brightness(),
+        whiteLabel: [
+            tuya.whitelabel('Miboxer', 'FUT036Z', 'Single color LED controller', ['_TZ3210_dxroobu3', '_TZ3210_dbilpfqk']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TYZB01_vwqnz1sn']),
@@ -1690,7 +1725,17 @@ module.exports = [
         model: 'TS0502A',
         vendor: 'TuYa',
         description: 'Light controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp(),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG06492B', 'Livarno Lux E14 candle CCT', ['_TZ3000_oborybow']),
+            tuya.whitelabel('Lidl', 'HG06492A', 'Livarno Lux GU10 spot CCT', ['_TZ3000_el5kt5im']),
+            tuya.whitelabel('Lidl', 'HG06492C', 'Livarno Lux E27 bulb CCT', ['_TZ3000_49qchf10']),
+            tuya.whitelabel('Lidl', '14147206L', 'Livarno Lux ceiling light', ['_TZ3000_rylaozuc', '_TZ3000_5fkufhn1']),
+            tuya.whitelabel('Lidl', '14153905L', 'Livarno Home LED floor lamp', ['_TZ3000_8uaoilu9']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
     },
     {
         zigbeeModel: ['TS0502B'],
@@ -1700,8 +1745,14 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Mercator Ikuü', model: 'SMI7040', description: 'Ford Batten Light'},
             {vendor: 'Mercator Ikuü', model: 'SMD9300', description: 'Donovan Panel Light'},
+            tuya.whitelabel('Aldi', 'F122SB62H22A4.5W', 'LIGHTWAY smart home LED-lamp - filament', ['_TZ3000_g1glzzfk']),
+            tuya.whitelabel('Miboxer', 'FUT035Z', 'Dual white LED controller', ['_TZ3210_frm6149r', '_TZ3210_jtifm80b', '_TZ3210_xwqng7ol']),
+            tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
         ],
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
+        },
     },
     {
         zigbeeModel: ['TS0504A'],
@@ -1724,7 +1775,19 @@ module.exports = [
         model: 'TS0505A',
         vendor: 'TuYa',
         description: 'RGB+CCT light controller',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color(),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
+        whiteLabel: [
+            tuya.whitelabel('Lidl', 'HG06106B', 'Livarno Lux E14 candle RGB', ['_TZ3000_odygigth']),
+            tuya.whitelabel('Lidl', 'HG06106A', 'Livarno Lux GU10 spot RGB', ['_TZ3000_kdpxju99']),
+            tuya.whitelabel('Lidl', 'HG06106C', 'Livarno Lux E27 bulb RGB', ['_TZ3000_dbou1ap4']),
+            tuya.whitelabel('Lidl', '14148906L', 'Livarno Lux mood light RGB+CCT', ['_TZ3000_9cpuaca6']),
+            tuya.whitelabel('Lidl', '14149505L/14149506L_1', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3000_gek6snaj']),
+            tuya.whitelabel('Mycket', 'MS-SP-LE27WRGB', 'E27 RGBW bulb', ['_TZ3000_evag0pvn']),
+            tuya.whitelabel('Lidl', 'HG06104A', 'Livarno Lux smart LED light strip 2.5m', ['_TZ3000_riwp3k79', '_TZ3000_riwp3k79']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
     },
     {
         fingerprint: [{manufacturerName: '_TZ2000_a476raq2'}],
@@ -2773,6 +2836,23 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_dlug3kbc']),
+        model: 'TS011F_3_gang',
+        description: '3 gang wall ac outlet',
+        vendor: 'TuYa',
+        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3']}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            for (const ep of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ['genOnOff']);
+            }
         },
     },
     {
@@ -4273,6 +4353,33 @@ module.exports = [
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],
                 [134, 'device_status', tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_x8fp01wi']),
+        model: 'TS0601_3_phase_clamp_meter_relay',
+        vendor: 'TuYa',
+        description: '3-phase clamp power meter with relay',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        whiteLabel: [{vendor: 'Wenzhou Taiye Electric', model: 'TAC7361C BI'}],
+        exposes: [
+            e.switch().setAccess('state', ea.STATE_SET), e.power(), e.energy(), e.produced_energy(),
+            tuya.exposes.voltageWithPhase('a'), tuya.exposes.voltageWithPhase('b'), tuya.exposes.voltageWithPhase('c'),
+            tuya.exposes.powerWithPhase('a'), tuya.exposes.powerWithPhase('b'), tuya.exposes.powerWithPhase('c'),
+            tuya.exposes.currentWithPhase('a'), tuya.exposes.currentWithPhase('b'), tuya.exposes.currentWithPhase('c'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [16, 'state', tuya.valueConverter.onOff],
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [2, 'produced_energy', tuya.valueConverter.divideBy100],
+                [9, 'power', tuya.valueConverter.raw],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase('a')],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase('b')],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase('c')],
             ],
         },
     },

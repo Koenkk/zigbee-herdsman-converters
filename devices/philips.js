@@ -2596,6 +2596,13 @@ module.exports = [
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
+        zigbeeModel: ['929003553001'],
+        model: '929003553001',
+        vendor: 'Philips',
+        description: 'Hue outdoor Resonate downward wall lamp',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
+    {
         zigbeeModel: ['LWE003'],
         model: '9290020400',
         vendor: 'Philips',
