@@ -112,7 +112,7 @@ module.exports = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['KP-ACE_00.00.03.12TC'],
+        zigbeeModel: ['KP-ACE_00.00.03.12TC', 'KP-ACE_00.00.03.11TC'],
         model: 'KP-23EL-ZBS-ACE',
         vendor: 'Climax',
         description: 'Remote Keypad',
