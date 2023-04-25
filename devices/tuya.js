@@ -1001,6 +1001,20 @@ module.exports = [
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [142, 500]}),
     },
     {
+        zigbeeModel: ['SM0001'],
+        model: 'SM0001',
+        vendor: 'TuYa',
+        description: 'Switch',
+        extend: tuya.extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('ZemiSmart', 'ZM-H7', 'Hand wave wall smart switch', ['_TZ3000_jcqs2mrv']),
+        ],
+    },
+    {
         zigbeeModel: ['TS0505B'],
         model: 'TS0505B',
         vendor: 'TuYa',
