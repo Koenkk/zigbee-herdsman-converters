@@ -7758,6 +7758,14 @@ const converters = {
                 buttonMapping = {1: '1', 2: '2'};
             } else if (model.model === 'SBM300ZB3') {
                 buttonMapping = {1: '1', 2: '2', 3: '3'};
+            } else if (model.model === 'SBM300ZB4') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
+            } else if (model.model === 'SBM300ZC2') {
+                buttonMapping = {1: '1', 2: '2'};
+            } else if (model.model === 'SBM300ZC3') {
+                buttonMapping = {1: '1', 2: '2', 3: '3'};
+            } else if (model.model === 'SBM300ZC4') {
+                buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             } else if (model.model === 'MSM-300ZB') {
                 buttonMapping = {1: '1', 2: '2', 3: '3', 4: '4'};
             }
