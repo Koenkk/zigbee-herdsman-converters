@@ -567,7 +567,6 @@ module.exports = [
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
-    
     },
     {
         zigbeeModel: ['SBM300ZC3'],
