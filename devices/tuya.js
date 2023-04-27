@@ -3075,14 +3075,13 @@ module.exports = [
         whiteLabel: [{vendor: 'Hiking', model: 'DDS238-2'}, {vendor: 'TuYa', model: 'RC-MCB'}],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_lsanae15', '_TZE204_lsanae15']),
         model: 'TS0601_din_2',
         vendor: 'TuYa',
         description: 'Zigbee DIN energy meter',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [{vendor: 'XOCA', model: 'DAC2161C'}],
         exposes: [tuya.exposes.switch(), e.energy(), e.power(), e.voltage(), e.current(),
             exposes.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
                 'over_voltage threshold', 'wrong_frequency_threshold']).withDescription('Fault status of the device (clear = nothing)'),
@@ -3121,6 +3120,9 @@ module.exports = [
                 [24, null, null], // Forward Energy T4 - don't know what this
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('MatSee Plus', 'DAC2161C', 'Smart Zigbee energy meter 80A din rail', ['_TZE200_lsanae15', '_TZE204_lsanae15']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rhblgy0z']),
