@@ -341,7 +341,7 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.moes_cover, fz.ignore_basic_report],
         toZigbee: [tz.moes_cover],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
+        exposes: [e.cover_position_tilt().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },
     {
