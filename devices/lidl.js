@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
+const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -608,16 +608,6 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_riwp3k79'}, {manufacturerName: '_TZ3000_riwp3k79'}],
-        model: 'HG06104A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux smart LED light strip 2.5m',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_s8gkrkxk'}],
         model: 'HG06467',
         vendor: 'Lidl',
@@ -627,220 +617,11 @@ module.exports = [
         exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_odygigth'}],
-        model: 'HG06106B',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E14 candle RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
         fingerprint: [{modelID: 'TS0504B', manufacturerName: '_TZ3210_sroezl0s'}],
         model: '14153806L',
         vendor: 'Lidl',
         description: 'Livarno smart LED ceiling light',
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_r0xgkft5'}],
-        model: '14156506L',
-        vendor: 'Lidl',
-        description: 'Livarno Lux smart LED mood light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502B', manufacturerName: '_TZ3210_c2iwpxf1'}],
-        model: '14156408L',
-        vendor: 'Lidl',
-        description: 'Livarno Lux smart LED ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_umi6vbsz'}],
-        model: 'HG08010',
-        vendor: 'Lidl',
-        description: 'Livarno Home outdoor spotlight',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_p9ao60da'}],
-        model: 'HG08008',
-        vendor: 'Lidl',
-        description: 'Livarno Home LED ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_zbabx9wh'}],
-        model: 'HG08007',
-        vendor: 'TuYa',
-        description: 'Livarno Home outdoor LED band',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_z1vlyufu'}],
-        model: '14158704L',
-        vendor: 'Lidl',
-        description: 'Livarno Home LED floor lamp, RGBW',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_hxtfthp5'}],
-        model: '14158804L',
-        vendor: 'Lidl',
-        description: 'Livarno Home LED desk lamp RGBW',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_quqaeew6'}],
-        model: 'HG07834A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux GU10 spot RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_th6zqqy6'},
-            {modelID: 'TS0505B', manufacturerName: '_TZ3000_wr6g6olr'}],
-        model: 'HG07834B',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E14 candle RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_q50zhdsc'}],
-        model: 'HG08131C',
-        vendor: 'Lidl',
-        description: 'Livarno Home outdoor E27 bulb in set with flare',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_kdpxju99'}],
-        model: 'HG06106A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux GU10 spot RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_dbou1ap4'}],
-        model: 'HG06106C',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 bulb RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_qd7hej8u'}],
-        model: 'HG07834C',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 bulb RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_el5kt5im'}],
-        model: 'HG06492A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux GU10 spot CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_oborybow'}],
-        model: 'HG06492B',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E14 candle CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_49qchf10'}],
-        model: 'HG06492C',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 bulb CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_rylaozuc'},
-            {modelID: 'TS0502A', manufacturerName: '_TZ3000_5fkufhn1'}],
-        model: '14147206L',
-        vendor: 'Lidl',
-        description: 'Livarno Lux ceiling light',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0502A', manufacturerName: '_TZ3000_8uaoilu9'}],
-        model: '14153905L',
-        vendor: 'Lidl',
-        description: 'Livarno Home LED floor lamp',
-        extend: tuya.extend.light_onoff_brightness_colortemp({colorTempRange: [153, 500], noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 16});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_9cpuaca6'}],
-        model: '14148906L',
-        vendor: 'Lidl',
-        description: 'Livarno Lux mood light RGB+CCT',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
-        },
-    },
-    {
-        fingerprint: [{modelID: 'TS0505A', manufacturerName: '_TZ3000_gek6snaj'}],
-        model: '14149505L/14149506L_1',
-        vendor: 'Lidl',
-        description: 'Livarno Lux light bar RGB+CCT (black/white)',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -870,22 +651,6 @@ module.exports = [
             .withUnit('min').withDescription('Auto off after specific time.')],
     },
     {
-        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_j2w1dw29'}],
-        model: 'HG06463A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 ST64 filament bulb',
-        extend: tuya.extend.light_onoff_brightness(),
-        meta: {turnsOffAtBrightness1: false},
-    },
-    {
-        fingerprint: [{modelID: 'TS0501A', manufacturerName: '_TZ3000_nosnx7im'}],
-        model: 'HG06463B',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 G95 filament bulb',
-        extend: tuya.extend.light_onoff_brightness(),
-        meta: {turnsOffAtBrightness1: false},
-    },
-    {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_br3laukf'}],
         model: 'HG06620',
         vendor: 'Lidl',
@@ -896,17 +661,6 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
             await reporting.onOff(endpoint);
         },
-    },
-    {
-        fingerprint: [
-            {modelID: 'TS0501A', manufacturerName: '_TZ3000_7dcddnye'},
-            {modelID: 'TS0501A', manufacturerName: '_TZ3000_nbnmw9nc'}, // UK
-        ],
-        model: 'HG06462A',
-        vendor: 'Lidl',
-        description: 'Livarno Lux E27 A60 filament bulb',
-        extend: tuya.extend.light_onoff_brightness(),
-        meta: {turnsOffAtBrightness1: false},
     },
     {
         fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3000_pnzfdr9y'}],
@@ -926,13 +680,6 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
         extend: tuya.extend.light_onoff_brightness_colortemp_color({supportsHS: true, preferHS: true, colorTempRange: [153, 500]}),
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_bwlvyjwk'}],
-        model: 'HG08383B',
-        vendor: 'Lidl',
-        description: 'Livarno outdoor LED light chain',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
@@ -989,12 +736,5 @@ module.exports = [
                 return expose;
             }),
         ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3000_taspddvq'}],
-        model: 'HG08383A',
-        vendor: 'Lidl',
-        description: 'Livarno outdoor LED light chain',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];

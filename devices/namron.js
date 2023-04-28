@@ -481,13 +481,6 @@ module.exports = [
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
 
-            await endpoint.configureReporting('hvacThermostat', [{
-                attribute: 'occupancy',
-                minimumReportInterval: 0,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: null,
-            }]);
-
             // Metering
             await endpoint.read('haElectricalMeasurement', ['acVoltageMultiplier', 'acVoltageDivisor', 'acCurrentMultiplier']);
             await endpoint.read('haElectricalMeasurement', ['acCurrentDivisor']);

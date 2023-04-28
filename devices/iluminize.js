@@ -9,6 +9,18 @@ const ea = exposes.access;
 
 module.exports = [
     {
+        zigbeeModel: ['5120.2210'],
+        model: '5120.2210',
+        vendor: 'iluminize',
+        description: 'Zigbee 3.0 actuator mini 1x 230V',
+        extend: extend.switch(),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
         zigbeeModel: ['511.050'],
         model: '511.050',
         vendor: 'Iluminize',
@@ -66,6 +78,19 @@ module.exports = [
         model: '5120.2110',
         vendor: 'Iluminize',
         description: 'ZigBee 3.0 dimming actuator mini 1x 230V',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ['5123.1110'],
+        model: '5123.1110',
+        vendor: 'Iluminize',
+        description: 'Zigbee 3.0 controller with adjustable current 250-1500mA, max. 50W / 48V SELV',
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);

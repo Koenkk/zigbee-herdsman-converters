@@ -3156,6 +3156,24 @@ module.exports = [
             e.device_temperature(), e.power_outage_count()],
     },
     {
+        zigbeeModel: ['lumi.remote.b286acn03'],
+        model: 'WXKG04LM',
+        vendor: 'Xiaomi',
+        description: 'Aqara T1 double rocker wireless remote switch',
+        meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
+        fromZigbee: [fz.xiaomi_basic, fz.aqara_opple_multistate, fz.aqara_opple],
+        toZigbee: [],
+        endpoint: (device) => {
+            return {left: 1, right: 2, both: 3};
+        },
+        exposes: [e.battery(), e.battery_voltage(), e.action([
+            'button_1_hold', 'button_1_release', 'button_1_single', 'button_1_double', 'button_1_triple',
+            'button_2_hold', 'button_2_release', 'button_2_single', 'button_2_double', 'button_2_triple',
+            'button_3_hold', 'button_3_release', 'button_3_single', 'button_3_double', 'button_3_triple',
+        ])],
+        ota: ota.zigbeeOTA,
+    },
+    {
         zigbeeModel: ['lumi.remote.cagl02'],
         model: 'CTP-R01',
         vendor: 'Xiaomi',

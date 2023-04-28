@@ -307,7 +307,7 @@ module.exports = [
         vendor: 'Gledopto',
         ota: ota.zigbeeOTA,
         description: 'Zigbee LED Controller W (pro)',
-        extend: gledoptoExtend.light_onoff_brightness({noConfigure: true}),
+        extend: gledoptoExtend.light_onoff_brightness({noConfigure: true, disablePowerOnBehavior: false}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             await configureReadModelID(device, coordinatorEndpoint, logger);
