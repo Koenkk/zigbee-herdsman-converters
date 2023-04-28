@@ -4646,23 +4646,23 @@ module.exports = [
             powerOutageMemory: true, indicatorMode: true})
         .exposes.concat([
             e.temperature(),
-            exposes.numeric('temperature_threshold', ea.STATE_set).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
+             exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
                 .withDescription('High temperature threshold'),
             exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('High temperature breaker'),
-            exposes.numeric('power_threshold', ea.STATE_set).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
+            exposes.numeric('power_threshold', ea.STATE_SET).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
                 .withDescription('High power threshold'),
             exposes.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('High power breaker'),
-            exposes.numeric('over_current_threshold', ea.STATE_set).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
+            exposes.numeric('over_current_threshold', ea.STATE_SET).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
                 .withDescription('Over-current threshold'),
             exposes.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Over-current breaker'),
-            exposes.numeric('over_voltage_threshold', ea.STATE_set).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
+            exposes.numeric('over_voltage_threshold', ea.STATE_SET).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
                 .withDescription('Over-voltage threshold'),
             exposes.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Over-voltage breaker'),
-            exposes.numeric('under_voltage_threshold', ea.STATE_set).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
+            exposes.numeric('under_voltage_threshold', ea.STATE_SET).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
                 .withDescription('Under-voltage threshold'),
             exposes.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Under-voltage breaker'),
