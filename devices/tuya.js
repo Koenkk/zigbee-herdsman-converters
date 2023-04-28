@@ -4630,23 +4630,20 @@ module.exports = [
         ota: ota.zigbeeOTA,
         fromZigbee: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true})
-        .fromZigbee.concat([
+            powerOutageMemory: true, indicatorMode: true}).fromZigbee.concat([
             fz.temperature,
             fzLocal.TS011F_threshold,
         ]),
         toZigbee: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true})
-        .toZigbee.concat([
+            powerOutageMemory: true, indicatorMode: true}).toZigbee.concat([
             tzLocal.TS011F_threshold,
         ]),
         exposes: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true})
-        .exposes.concat([
+            powerOutageMemory: true, indicatorMode: true}).exposes.concat([
             e.temperature(),
-             exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
+            exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
                 .withDescription('High temperature threshold'),
             exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('High temperature breaker'),
