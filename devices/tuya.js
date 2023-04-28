@@ -1296,7 +1296,7 @@ module.exports = [
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
             {vendor: 'Tesla Smart', model: 'TS0202'},
-            {vendor: 'MiBoxer', model: 'PIR1-ZB'}],
+            tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR Sensor', ['_TZ3040_wqmtjsyk'])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
