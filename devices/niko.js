@@ -34,14 +34,27 @@ const local = {
                         64: 'single',
                         32: 'hold',
                         48: 'release',
+                        256: null,
+                        1024: 'single_left_ext',
+                        512: 'hold_left_ext',
+                        768: 'release_left_ext',
                     } : {
                         16: null,
                         64: 'single_left',
                         32: 'hold_left',
                         48: 'release_left',
-                        4096: 'single_right',
+                        256: null,
+                        1024: 'single_left_ext',
+                        512: 'hold_left_ext',
+                        768: 'release_left_ext',
+                        4096: null,
+                        16384: 'single_right',
                         8192: 'hold_right',
                         12288: 'release_right',
+                        65536: null,
+                        262144: 'single_right_ext',
+                        131072: 'hold_right_ext',
+                        196608: 'release_right_ext',
                     };
 
                     state['action'] = actionMap[msg.data.switchAction];
@@ -262,7 +275,10 @@ module.exports = [
         },
         exposes: [
             e.switch(),
-            e.action(['single', 'hold', 'release']),
+            e.action([
+                'single', 'hold', 'release',
+                'single_ext', 'hold_ext', 'release_ext'
+            ]),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
             exposes.binary('led_state', ea.ALL, 'ON', 'OFF').withDescription('LED State'),
@@ -293,7 +309,9 @@ module.exports = [
             e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
             e.action([
                 'single_left', 'hold_left', 'release_left',
+                'single_left_ext', 'hold_left_ext', 'release_left_ext',
                 'single_right', 'hold_right', 'release_right',
+                'single_right_ext', 'hold_right_ext', 'release_right_ext',
             ]),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             exposes.binary('led_enable', ea.ALL, true, false).withEndpoint('l1').withDescription('Enable LED'),
