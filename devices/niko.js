@@ -277,7 +277,7 @@ module.exports = [
             e.switch(),
             e.action([
                 'single', 'hold', 'release',
-                'single_ext', 'hold_ext', 'release_ext'
+                'single_ext', 'hold_ext', 'release_ext',
             ]),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled']),
             exposes.binary('led_enable', ea.ALL, true, false).withDescription('Enable LED'),
