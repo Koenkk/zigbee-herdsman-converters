@@ -297,10 +297,10 @@ const getDefintions = (model = null) => {
             toZigbee: [tuya.tz.homeetec_cover],
             exposes: [
                 e.cover_position(),
-                exposes.enum(DP_KEYS.Calibration, ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
-                exposes.binary(DP_KEYS.Backlight, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-                exposes.enum(DP_KEYS.MotorSteering, ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
-                exposes.binary(DP_KEYS.ChildLock, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+                exposes.enum(DP_KEYS.Calibration, ea.ALL, ['START', 'END']).withDescription('Calibration'),
+                exposes.binary(DP_KEYS.Backlight, ea.ALL, 'ON', 'OFF').withDescription('Backlight'),
+                exposes.enum(DP_KEYS.MotorSteering, ea.ALL, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+                exposes.binary(DP_KEYS.ChildLock, ea.ALL, 'ON', 'OFF').withDescription('Child Lock'),
             ],
         },
         {
@@ -314,11 +314,11 @@ const getDefintions = (model = null) => {
             toZigbee: [tuya.tz.homeetec_cover],
             exposes: [                
                 e.cover_position(),
-                exposes.binary(DP_KEYS.Switch, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch On/Off'),
-                exposes.enum(DP_KEYS.Calibration, ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
-                exposes.binary(DP_KEYS.Backlight, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-                exposes.enum(DP_KEYS.MotorSteering, ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
-                exposes.binary(DP_KEYS.ChildLock, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+                exposes.binary(DP_KEYS.Switch, ea.ALL, 'ON', 'OFF').withDescription('Switch On/Off'),
+                exposes.enum(DP_KEYS.Calibration, ea.ALL, ['START', 'END']).withDescription('Calibration'),
+                exposes.binary(DP_KEYS.Backlight, ea.ALL, 'ON', 'OFF').withDescription('Backlight'),
+                exposes.enum(DP_KEYS.MotorSteering, ea.ALL, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+                exposes.binary(DP_KEYS.ChildLock, ea.ALL, 'ON', 'OFF').withDescription('Child Lock'),
             ],
             meta: {
                 tuyaDatapoints: [
@@ -336,14 +336,14 @@ const getDefintions = (model = null) => {
             options: [exposes.options.invert_cover()],
             fromZigbee: [tuya.fz.homeetec_cover],
             toZigbee: [tuya.tz.homeetec_cover],
-            exposes: [                
+            exposes: [
                 e.cover_position(),
-                exposes.binary(DP_KEYS.Switch1, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch Top On/Off'),
-                exposes.binary(DP_KEYS.Switch2, ea.STATE_SET, 'ON', 'OFF').withDescription('Switch Bottom On/Off'),
-                exposes.enum(DP_KEYS.Calibration, ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
-                exposes.binary(DP_KEYS.Backlight, ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-                exposes.enum(DP_KEYS.MotorSteering, ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
-                exposes.binary(DP_KEYS.ChildLock, ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+                exposes.binary(DP_KEYS.Switch1, ea.ALL, 'ON', 'OFF').withDescription('Switch Top On/Off'),
+                exposes.binary(DP_KEYS.Switch2, ea.ALL, 'ON', 'OFF').withDescription('Switch Bottom On/Off'),
+                exposes.enum(DP_KEYS.Calibration, ea.ALL, ['START', 'END']).withDescription('Calibration'),
+                exposes.binary(DP_KEYS.Backlight, ea.ALL, 'ON', 'OFF').withDescription('Backlight'),
+                exposes.enum(DP_KEYS.MotorSteering, ea.ALL, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+                exposes.binary(DP_KEYS.ChildLock, ea.ALL, 'ON', 'OFF').withDescription('Child Lock'),
             ],
             meta: {
                 tuyaDatapoints: [
