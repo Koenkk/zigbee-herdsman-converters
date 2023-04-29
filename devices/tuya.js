@@ -2529,8 +2529,8 @@ module.exports = [
             exposes.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
             exposes.numeric('motor_speed', ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription('Motor speed').withUnit('rpm'),
             exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            exposes.enum('set_upper_limit', ea.SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
-            exposes.enum('set_bottom_limit', ea.SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
+            exposes.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
+            exposes.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
             exposes.binary('factory_reset', ea.STATE_SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
