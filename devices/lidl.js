@@ -639,6 +639,19 @@ module.exports = [
         },
     },
     {
+        fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_c0s1xloa'}],
+        model: '14149505L/14149506L_2',
+        vendor: 'Lidl',
+        description: 'Livarno Lux Ceiling Panel RGB+CCT',
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
         model: 'PSBZS A1',
         vendor: 'Lidl',
