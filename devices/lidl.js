@@ -640,7 +640,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0505B', manufacturerName: '_TZ3210_c0s1xloa'}],
-        model: '14149505L/14149506L_2',
+        model: '399629_2110',
         vendor: 'Lidl',
         description: 'Livarno Lux Ceiling Panel RGB+CCT',
         toZigbee: [tz.on_off, tzLocal.led_control],
