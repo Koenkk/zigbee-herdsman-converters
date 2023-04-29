@@ -370,7 +370,7 @@ const tzLocal = {
         },
     },
     connected_load: {
-        // TH1400ZB specific
+        // TH1400ZB and SW2500ZB
         key: ['connected_load'],
         convertSet: async (entity, key, value, meta) => {
             await entity.write('manuSpecificSinope', {connectedLoad: value});
@@ -413,7 +413,7 @@ const tzLocal = {
             if (value >= 0 && value <= 100) {
                 await entity.write('manuSpecificSinope', {ledIntensityOn: value});
             }
-            return {readAfterWriteTime: 250, state: {ledIntensityOn: value}};
+            return {state: {led_intensity_on: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOn']);
@@ -426,7 +426,7 @@ const tzLocal = {
             if (value >= 0 && value <= 100) {
                 await entity.write('manuSpecificSinope', {ledIntensityOff: value});
             }
-            return {readAfterWriteTime: 250, state: {ledIntensityOff: value}};
+            return {state: {led_intensity_off: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['ledIntensityOff']);
@@ -476,13 +476,13 @@ const tzLocal = {
             if (value >= 0 && value <= 10800) {
                 await entity.write('manuSpecificSinope', {dimmerTimmer: value});
             }
-            return {readAfterWriteTime: 250, state: {dimmerTimmer: value}};
+            return {state: {timer_seconds: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read('manuSpecificSinope', ['dimmerTimmer']);
         },
     },
-    keypad_lock: {
+    keypad_lockout: {
         // SW2500ZB
         key: ['keypad_lockout'],
         convertSet: async (entity, key, value, meta) => {
@@ -991,16 +991,16 @@ module.exports = [
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.sinope],
+        fromZigbee: [fz.on_off, fzLocal.sinope, fz.metering],
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
-            tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lock],
+            tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lockout, tzLocal.connected_load],
         exposes: [e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
-            exposes.numeric('timer_seconds', ea.ALL).withValueMin(0).withValueMax(10800)
+            exposes.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(10800)
                 .withDescription('Automatically turn off load after x seconds'),
-            exposes.numeric('led_intensity_on', ea.ALL).withValueMin(0).withValueMax(100)
+            exposes.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
-            exposes.numeric('led_intensity_off', ea.ALL).withValueMin(0).withValueMax(100)
+            exposes.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load OFF'),
             exposes.composite('led_color_on', 'led_color_on', ea.SET)
                 .withFeature(exposes.numeric('r', ea.SET))
@@ -1013,12 +1013,20 @@ module.exports = [
                 .withFeature(exposes.numeric('b', ea.SET))
                 .withDescription('Control status LED color when load OFF'),
             exposes.enum('keypad_lockout', ea.ALL, ['unlock', 'lock'])
-                .withDescription('Enables or disables the device’s buttons')],
+                .withDescription('Enables or disables the device’s buttons'),
+            exposes.numeric('connected_load', ea.ALL)
+                .withUnit('W').withValueMin(1).withValueMax(1800)
+                .withDescription('Load connected in watt'),
+            e.energy(),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genOnOff'];
+            const binds = ['genOnOff', 'manuSpecificSinope', 'seMetering'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.onOff(endpoint);
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: [0, 10]});
+            } catch (error) {/* Do nothing*/}
             const payload = [{
                 attribute: 'actionReport',
                 minimumReportInterval: 0,
