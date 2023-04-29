@@ -649,7 +649,6 @@ module.exports = [
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
-    
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_htnnfasr'}],
