@@ -35,9 +35,9 @@ const local = {
                         32: 'hold',
                         48: 'release',
                         256: null,
-                        1024: 'single_left_ext',
-                        512: 'hold_left_ext',
-                        768: 'release_left_ext',
+                        1024: 'single_ext',
+                        512: 'hold_ext',
+                        768: 'release_ext',
                     } : {
                         16: null,
                         64: 'single_left',
