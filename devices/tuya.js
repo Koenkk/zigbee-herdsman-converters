@@ -4630,42 +4630,35 @@ module.exports = [
         description: 'Din rail switch with power monitoring and threshold settings',
         vendor: 'TuYa',
         ota: ota.zigbeeOTA,
-        fromZigbee: tuya.extend.switch({
+        extend: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true}).fromZigbee.concat([
-            fz.temperature,
-            fzLocal.TS011F_threshold,
-        ]),
-        toZigbee: tuya.extend.switch({
-            electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true}).toZigbee.concat([
-            tzLocal.TS011F_threshold,
-        ]),
-        exposes: tuya.extend.switch({
-            electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-            powerOutageMemory: true, indicatorMode: true}).exposes.concat([
-            e.temperature(),
-            exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
-                .withDescription('High temperature threshold'),
-            exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('High temperature breaker'),
-            exposes.numeric('power_threshold', ea.STATE_SET).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
-                .withDescription('High power threshold'),
-            exposes.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('High power breaker'),
-            exposes.numeric('over_current_threshold', ea.STATE_SET).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
-                .withDescription('Over-current threshold'),
-            exposes.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Over-current breaker'),
-            exposes.numeric('over_voltage_threshold', ea.STATE_SET).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
-                .withDescription('Over-voltage threshold'),
-            exposes.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Over-voltage breaker'),
-            exposes.numeric('under_voltage_threshold', ea.STATE_SET).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
-                .withDescription('Under-voltage threshold'),
-            exposes.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Under-voltage breaker'),
-        ]),
+            powerOutageMemory: true, indicatorMode: true,
+            fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
+            toZigbee: [tzLocal.TS011F_threshold],
+            exposes: [
+                e.temperature(),
+                exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
+                    .withDescription('High temperature threshold'),
+                exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High temperature breaker'),
+                exposes.numeric('power_threshold', ea.STATE_SET).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
+                    .withDescription('High power threshold'),
+                exposes.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High power breaker'),
+                exposes.numeric('over_current_threshold', ea.STATE_SET).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
+                    .withDescription('Over-current threshold'),
+                exposes.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-current breaker'),
+                exposes.numeric('over_voltage_threshold', ea.STATE_SET).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
+                    .withDescription('Over-voltage threshold'),
+                exposes.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-voltage breaker'),
+                exposes.numeric('under_voltage_threshold', ea.STATE_SET).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
+                    .withDescription('Under-voltage threshold'),
+                exposes.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Under-voltage breaker'),
+            ],
+        }),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -4680,5 +4673,8 @@ module.exports = [
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
+        whiteLabel: [
+            tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
+        ],
     },
 ];
