@@ -338,6 +338,79 @@ const tzLocal = {
             }
         },
     },
+    TS011F_threshold: {
+        key: [
+            'temperature_threshold', 'temperature_breaker', 'power_threshold', 'power_breaker',
+            'over_current_threshold', 'over_current_breaker', 'over_voltage_threshold', 'over_voltage_breaker',
+            'under_voltage_threshold', 'under_voltage_breaker',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_threshold': {
+                const state = meta.state['temperature_breaker'];
+                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'temperature_breaker': {
+                const threshold = meta.state['temperature_threshold'];
+                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'power_threshold': {
+                const state = meta.state['power_breaker'];
+                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'power_breaker': {
+                const threshold = meta.state['power_threshold'];
+                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'over_current_threshold': {
+                const state = meta.state['over_current_breaker'];
+                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_current_breaker': {
+                const threshold = meta.state['over_current_threshold'];
+                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_voltage_threshold': {
+                const state = meta.state['over_voltage_breaker'];
+                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_voltage_breaker': {
+                const threshold = meta.state['over_voltage_threshold'];
+                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'under_voltage_threshold': {
+                const state = meta.state['under_voltage_breaker'];
+                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'under_voltage_breaker': {
+                const threshold = meta.state['under_voltage_threshold'];
+                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
 };
 
 const fzLocal = {
@@ -737,6 +810,46 @@ const fzLocal = {
                 }
             }
             return result;
+        },
+    },
+    TS011F_threshold: {
+        cluster: 'manuSpecificTuya_3',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const splitToAttributes = (value) => {
+                const result = {};
+                const len = value.length;
+                let i = 0;
+                while (i < len) {
+                    const key = value.readUInt8(i);
+                    result[key] = [value.readUInt8(i+1), value.readUInt16BE(i+2)];
+                    i += 4;
+                }
+                return result;
+            };
+            const lookup = {0: 'OFF', 1: 'ON'};
+            const command = msg.data[2];
+            const data = msg.data.slice(3);
+            if (command == 0xE6) {
+                const value = splitToAttributes(data);
+                return {
+                    'temperature_threshold': value[0x05][1],
+                    'temperature_breaker': lookup[value[0x05][0]],
+                    'power_threshold': value[0x07][1],
+                    'power_breaker': lookup[value[0x07][0]],
+                };
+            }
+            if (command == 0xE7) {
+                const value = splitToAttributes(data);
+                return {
+                    'over_current_threshold': value[0x01][1],
+                    'over_current_breaker': lookup[value[0x01][0]],
+                    'over_voltage_threshold': value[0x03][1],
+                    'over_voltage_breaker': lookup[value[0x03][0]],
+                    'under_voltage_threshold': value[0x04][1],
+                    'under_voltage_breaker': lookup[value[0x04][0]],
+                };
+            }
         },
     },
 };
@@ -1175,13 +1288,15 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_sr0vaafi'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3040_wqmtjsyk'},
         ],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
-            {vendor: 'Tesla Smart', model: 'TS0202'}],
+            {vendor: 'Tesla Smart', model: 'TS0202'},
+            tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR Sensor', ['_TZ3040_wqmtjsyk'])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -4508,5 +4623,58 @@ module.exports = [
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a']),
+        model: 'TS011F_with_threshold',
+        description: 'Din rail switch with power monitoring and threshold settings',
+        vendor: 'TuYa',
+        ota: ota.zigbeeOTA,
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+            powerOutageMemory: true, indicatorMode: true,
+            fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
+            toZigbee: [tzLocal.TS011F_threshold],
+            exposes: [
+                e.temperature(),
+                exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
+                    .withDescription('High temperature threshold'),
+                exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High temperature breaker'),
+                exposes.numeric('power_threshold', ea.STATE_SET).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
+                    .withDescription('High power threshold'),
+                exposes.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High power breaker'),
+                exposes.numeric('over_current_threshold', ea.STATE_SET).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
+                    .withDescription('Over-current threshold'),
+                exposes.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-current breaker'),
+                exposes.numeric('over_voltage_threshold', ea.STATE_SET).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
+                    .withDescription('Over-voltage threshold'),
+                exposes.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-voltage breaker'),
+                exposes.numeric('under_voltage_threshold', ea.STATE_SET).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
+                    .withDescription('Under-voltage threshold'),
+                exposes.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Under-voltage breaker'),
+            ],
+        }),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            endpoint.command('genBasic', 'tuyaSetup', {});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        whiteLabel: [
+            tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
+        ],
     },
 ];
