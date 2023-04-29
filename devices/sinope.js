@@ -994,7 +994,7 @@ module.exports = [
         fromZigbee: [fz.on_off, fzLocal.sinope, fz.metering],
         toZigbee: [tz.on_off, tzLocal.timer_seconds, tzLocal.led_intensity_on, tzLocal.led_intensity_off,
             tzLocal.led_color_on, tzLocal.led_color_off, tzLocal.keypad_lockout, tzLocal.connected_load],
-        exposes: [e.switch(), 
+        exposes: [e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
             exposes.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(10800)
                 .withDescription('Automatically turn off load after x seconds'),
