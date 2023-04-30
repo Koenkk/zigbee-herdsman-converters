@@ -14,8 +14,108 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const globalStore = require('../lib/store');
+const {ColorMode, colorModeLookup} = require('../lib/constants');
 
 const tzLocal = {
+    led_control: {
+        key: ['brightness', 'color', 'color_temp', 'transition'],
+        options: [exposes.options.color_sync()],
+        convertSet: async (entity, _key, _value, meta) => {
+            const newState = {};
+
+            // The color mode encodes whether the light is using its white LEDs or its color LEDs
+            let colorMode = meta.state.color_mode ?? colorModeLookup[ColorMode.ColorTemp];
+
+            // Color mode switching is done by setting color temperature (switch to white LEDs) or setting color (switch
+            // to color LEDs)
+            if ('color_temp' in meta.message) colorMode = colorModeLookup[ColorMode.ColorTemp];
+            if ('color' in meta.message) colorMode = colorModeLookup[ColorMode.HS];
+
+            if (colorMode != meta.state.color_mode) {
+                newState.color_mode = colorMode;
+
+                // To switch between white mode and color mode, we have to send a special command:
+                const rgbMode = (colorMode == colorModeLookup[ColorMode.HS]);
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
+            }
+
+            // A transition time of 0 would be treated as about 1 second, probably some kind of fallback/default
+            // transition time, so for "no transition" we use 1 (tenth of a second).
+            const transtime = 'transition' in meta.message ? meta.message.transition * 10 : 1;
+
+            if (colorMode == colorModeLookup[ColorMode.ColorTemp]) {
+                if ('brightness' in meta.message) {
+                    const zclData = {level: Number(meta.message.brightness), transtime};
+                    await entity.command('genLevelCtrl', 'moveToLevel', zclData, utils.getOptions(meta.mapped, entity));
+                    newState.brightness = meta.message.brightness;
+                }
+
+                if ('color_temp' in meta.message) {
+                    const zclData = {colortemp: meta.message.color_temp, transtime: transtime};
+                    await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                    newState.color_temp = meta.message.color_temp;
+                }
+            } else if (colorMode == colorModeLookup[ColorMode.HS]) {
+                if ('brightness' in meta.message || 'color' in meta.message) {
+                    // We ignore the brightness of the color and instead use the overall brightness setting of the lamp
+                    // for the brightness because I think that's the expected behavior and also because the color
+                    // conversion below always returns 100 as brightness ("value") even for very dark colors, except
+                    // when the color is completely black/zero.
+
+                    // Load current state or defaults
+                    const newSettings = {
+                        brightness: meta.state.brightness ?? 254, //      full brightness
+                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
+                    };
+
+                    // Apply changes
+                    if ('brightness' in meta.message) {
+                        newSettings.brightness = meta.message.brightness;
+                        newState.brightness = meta.message.brightness;
+                    }
+                    if ('color' in meta.message) {
+                        // The Z2M UI sends `{ hex:'#xxxxxx' }`.
+                        // Home Assistant sends `{ h: xxx, s: xxx }`.
+                        // We convert the former into the latter.
+                        const c = libColor.Color.fromConverterArg(meta.message.color);
+                        if (c.isRGB()) {
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/13421#issuecomment-1426044963
+                            c.hsv = c.rgb.gammaCorrected().toXY().toHSV();
+                        }
+                        const color = c.hsv;
+
+                        newSettings.hue = color.hue;
+                        newSettings.saturation = color.saturation;
+
+                        newState.color = {
+                            hue: color.hue,
+                            saturation: color.saturation,
+                        };
+                    }
+
+                    // Convert to device specific format and send
+                    const zclData = {
+                        brightness: utils.mapNumberRange(newSettings.brightness, 0, 254, 0, 1000),
+                        hue: newSettings.hue,
+                        saturation: utils.mapNumberRange(newSettings.saturation, 0, 100, 0, 1000),
+                    };
+                    // This command doesn't support a transition time
+                    await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness2', zclData,
+                        utils.getOptions(meta.mapped, entity));
+                }
+            }
+
+            // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
+            // of works in the other direction.
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger));
+
+            return {state: newState};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'currentLevel', 'tuyaRgbMode', 'colorTemperature']);
+        },
+    },
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -1129,7 +1229,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0505B'],
-        model: 'TS0505B',
+        model: 'TS0505B_1',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMD4106W-RGB-ZB'},
@@ -1164,6 +1264,21 @@ module.exports = [
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
         ],
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_c0s1xloa', '_TZ3210_iystcadi']),
+        model: 'TS0505B_2',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [
+            tuya.whitelabel('Lidl', '14149505L/14149506L_2', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3210_iystcadi']),
+            tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa']),
+        ],
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
