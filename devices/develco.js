@@ -383,7 +383,7 @@ module.exports = [
             await reporting.acFrequency(endpoint);
         },
         endpoint: (device) => {
-            return { default: 2 };
+            return {default: 2};
         },
     },
     {
