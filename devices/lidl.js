@@ -830,8 +830,15 @@ module.exports = [
         model: 'PSBZS A1',
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints, fz.watering_time_left],
-        toZigbee: [tz.on_off, tz.lidl_watering_timer],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints, fzLocal.watering_time_left],
+        toZigbee: [
+            {
+                ...tuya.tz.datapoints,
+                key: ['state', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday',
+                    ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) => `schedule_slot_${timeSlotNumber}`),
+                ],
+            },
+        ],
         onEvent: async (type, data, device) => {
             await tuya.onEventSetLocalTime(type, data, device);
 
