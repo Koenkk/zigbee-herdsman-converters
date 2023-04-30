@@ -551,7 +551,7 @@ const tzLocal = {
 };
 
 const valueConverterLocal = {
-    resetFrostGuard: {
+    resetFrostLock: {
         to: (value) => {
             utils.validateValue(value, ['RESET']);
             return 0;
@@ -871,15 +871,15 @@ module.exports = [
                 .withUnit('min')
                 .withDescription('Remaining time until the watering turns off.'),
             exposes
-                .binary('frost_guard', ea.STATE, 'ON', 'OFF')
+                .binary('frost_lock', ea.STATE, 'ON', 'OFF')
                 .withDescription(
                     'Indicates if the frost guard is currently active. ' +
                     'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
                     'You need to reset the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.',
                 ),
             exposes
-                .enum('reset_frost_guard', ea.SET, ['RESET'])
-                .withDescription('Resets frost_guard to make the device workable again.'),
+                .enum('reset_frost_lock', ea.SET, ['RESET'])
+                .withDescription('Resets frost lock to make the device workable again.'),
             exposes
                 .enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
                 .withDescription('Scheduling mode that is currently in use.'),
@@ -954,9 +954,9 @@ module.exports = [
                 [5, 'timer', tuya.valueConverter.raw],
                 [6, 'time_left', tuya.valueConverter.raw],
                 [11, 'battery', tuya.valueConverter.raw],
-                [108, 'frost_guard', tuya.valueConverter.onOff],
+                [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_guard', valueConverterLocal.resetFrostGuard, {optimistic: false}],
+                [109, 'reset_frost_lock', valueConverterLocal.resetFrostLock, {optimistic: false}],
                 [107, null, valueConverterLocal.scheduleMode],
                 [107, 'schedule_periodic', valueConverterLocal.schedulePeriodic],
                 [107, 'schedule_weekday', valueConverterLocal.scheduleWeekday],
