@@ -1037,6 +1037,27 @@ module.exports = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
+        model: 'TS0601_contact_temperature_humidity_sensor',
+        vendor: 'TuYa',
+        description: 'Contact, temperature and humidity sensor',
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.contact(), e.temperature(), e.humidity(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.trueFalseInvert],
+                [2, 'battery', tuya.valueConverter.raw],
+                [7, 'temperature', tuya.valueConverter.divideBy10],
+                [8, 'humidity', tuya.valueConverter.raw],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Aubess', '1005005194831629', 'Contact, temperature and humidity sensor', ['_TZE200_nvups4nh']),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
         model: 'TS0601_illuminance_temperature_humidity_sensor',
         vendor: 'TuYa',
