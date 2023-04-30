@@ -202,7 +202,6 @@ const fzLocal = {
                     // time slot execution is already completed
                     Date.now() > maximumEndTime ||
                     // scheduling was interrupted by turning watering on manually
-                    // TODO verify that this statement still works in this minimal converter
                     (reportedState === 'ON' && reportedState != meta.state.state && meta.state.time_left > 0)
                 ) {
                     // reporting is no longer necessary
