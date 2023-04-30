@@ -363,6 +363,30 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: ['SPLZB-137'],
+        model: 'SPLZB-137',
+        vendor: 'Develco',
+        description: 'Power plug',
+        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
+            await reporting.activePower(endpoint);
+            await reporting.rmsCurrent(endpoint);
+            await reporting.rmsVoltage(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.acFrequency(endpoint);
+        },
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ['SMRZB-143'],
         model: 'SMRZB-143',
         vendor: 'Develco',
