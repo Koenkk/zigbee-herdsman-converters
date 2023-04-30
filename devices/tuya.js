@@ -1271,6 +1271,7 @@ module.exports = [
     {
         fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_c0s1xloa', '_TZ3210_iystcadi']),
         model: 'TS0505B_2',
+        vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [
             tuya.whitelabel('Lidl', '14149505L/14149506L_2', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3210_iystcadi']),
