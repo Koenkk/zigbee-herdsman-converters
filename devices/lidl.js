@@ -578,8 +578,8 @@ const valueConverterLocal = {
     },
     schedulePeriodic: {
         to: (value) => {
-            const scheduleValue = utils.numberWithinRange(value, 0, 6);
-            // Note: value of 0 switches to disabled weekday scheduler
+            const scheduleValue = utils.numberWithinRange(value, 0, 7);
+            // Note: mode value of 0 switches to disabled weekday scheduler
             const scheduleMode = scheduleValue > 0 ? 1 : 0;
             return [scheduleMode, scheduleValue];
         },
@@ -612,34 +612,30 @@ const valueConverterLocal = {
             };
         },
         to: (value, meta) => {
-            // fallback to values from current config to allow partial updates
+            // use default values from current config to allow partial updates
             const timeslot = utils.getObjectProperty(meta.state, `schedule_slot_${timeSlotNumber}`, {});
 
-            const state = utils.getObjectProperty(value, 'state', timeslot.state);
-            const startHour = utils.getObjectProperty(value, 'start_hour', timeslot.start_hour);
-            const startMinute = utils.getObjectProperty(value, 'start_minute', timeslot.start_minute);
-            const totalDurationInMinutes = utils.getObjectProperty(value, 'timer', timeslot.timer);
-            const durationHours = Math.floor(totalDurationInMinutes / 60);
-            const durationMinutes = totalDurationInMinutes % 60;
-            const totalPauseInMinutes = utils.getObjectProperty(value, 'pause', timeslot.pause);
-            const pauseHours = Math.floor(totalPauseInMinutes / 60);
-            const pauseMinutes = totalPauseInMinutes % 60;
-            const iterations = utils.getObjectProperty(value, 'iterations', timeslot.iterations);
-
-            if (iterations > 1 && totalPauseInMinutes === 0) {
-                throw new Error(`Pause value must be at least 1 minute when using multiple iterations!`);
-            }
+            const state = utils.getObjectProperty(value, 'state', timeslot.state ?? false);
+            const startHour = utils.numberWithinRange(utils.getObjectProperty(value, 'start_hour', timeslot.start_hour ?? 23), 0, 23);
+            const startMinute = utils.numberWithinRange(utils.getObjectProperty(value, 'start_minute', timeslot.start_minute ?? 59), 0, 59);
+            const totalDurationInMinutes = utils.numberWithinRange(utils.getObjectProperty(value, 'timer', timeslot.timer ?? 1), 1, 599);
+            const iterations = utils.numberWithinRange(utils.getObjectProperty(value, 'iterations', timeslot.iterations ?? 1), 1, 9);
+            const totalPauseInMinutes = utils.numberWithinRange(
+                utils.getObjectProperty(value, 'pause', timeslot.pause ?? 0),
+                iterations > 1 ? 1 : 0, // Pause value must be at least 1 minute when using multiple iterations
+                599,
+            );
 
             return [
                 state === 'ON' ? 1 : 0, // time slot enabled or not
                 startHour, // start hour
                 startMinute, // start minute
-                durationHours, // duration for n hours
-                durationMinutes, // + n minutes
-                0, // ??? -> always 0
-                pauseHours, // pause in hours
-                pauseMinutes, // pause in minutes
-                0, // ??? -> always 0
+                Math.floor(totalDurationInMinutes / 60), // duration for n hours
+                totalDurationInMinutes % 60, // duration + n minutes
+                0, // what's this? -> was always reported as 0
+                Math.floor(totalPauseInMinutes / 60), // pause in hours
+                totalPauseInMinutes % 60, // pause + n minutes
+                0, // what's this? -> was always reported as 0
                 iterations, // iterations
             ];
         },
@@ -869,7 +865,7 @@ module.exports = [
             exposes
                 .numeric('timer', ea.STATE_SET)
                 .withValueMin(1)
-                .withValueMax(9 * 60 + 59)
+                .withValueMax(599)
                 .withUnit('min')
                 .withDescription('Auto off after specific time for manual watering.'),
             exposes
@@ -892,7 +888,7 @@ module.exports = [
             exposes
                 .numeric('schedule_periodic', ea.STATE_SET)
                 .withValueMin(0)
-                .withValueMax(6)
+                .withValueMax(7)
                 .withUnit('day')
                 .withDescription('Watering by periodic interval: Irrigate every n days'),
             exposes
@@ -933,7 +929,7 @@ module.exports = [
                             .numeric('timer', ea.STATE_SET)
                             .withUnit('min')
                             .withValueMin(1)
-                            .withValueMax(9 * 60 + 59)
+                            .withValueMax(599)
                             .withDescription('Auto off after specific time for scheduled watering.'),
                     )
                     .withFeature(
@@ -941,7 +937,7 @@ module.exports = [
                             .numeric('pause', ea.STATE_SET)
                             .withUnit('min')
                             .withValueMin(0)
-                            .withValueMax(9 * 60 + 59)
+                            .withValueMax(599)
                             .withDescription('Pause after each iteration.'),
                     )
                     .withFeature(
@@ -957,7 +953,7 @@ module.exports = [
             tuyaDatapoints: [
                 // disable optimistic state reporting (device may not turn on when battery is low)
                 [1, 'state', tuya.valueConverter.onOff, {optimistic: false}],
-                [5, 'timer', tuya.valueConverter.raw],
+                [5, 'timer', tuya.valueConverter.range(1, 599)],
                 [6, 'time_left', tuya.valueConverter.raw],
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
