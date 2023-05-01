@@ -220,7 +220,7 @@ const definitions = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'},
         ],
-        model: 'TS0601_cover_4',
+        model: 'TS0601_cover_5',
         vendor: 'TuYa',
         description: 'Curtain / Blind switch',
         fromZigbee: [tuya.fz.homeetec_cover],
