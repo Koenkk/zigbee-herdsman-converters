@@ -150,6 +150,7 @@ const fzLocal = {
             // Setup workaround for time_left reporting
             // Background: Device reports the real time_left value only on manual watering
             // for scheduled watering it will report just '0' in the beginning and at the end
+            // Note: this procedure relies on the continuous reporting every minute
             const result = {};
             let reportedState = undefined;
 
@@ -550,13 +551,13 @@ const tzLocal = {
 };
 
 const valueConverterLocal = {
-    resetFrostLock: {
+    wateringResetFrostLock: {
         to: (value) => {
             utils.validateValue(value, ['RESET']);
             return 0;
         },
     },
-    scheduleMode: {
+    wateringScheduleMode: {
         from: (value) => {
             const [scheduleMode, scheduleValue] = value;
             const isWeekday = scheduleMode === 0;
@@ -576,7 +577,7 @@ const valueConverterLocal = {
             };
         },
     },
-    schedulePeriodic: {
+    wateringSchedulePeriodic: {
         to: (value) => {
             if (!utils.isInRange(0, 7, value)) throw new Error(`Invalid value: ${value} (expected ${0} to ${7})`);
             // Note: mode value of 0 switches to disabled weekday scheduler
@@ -584,7 +585,7 @@ const valueConverterLocal = {
             return [scheduleMode, value];
         },
     },
-    scheduleWeekday: {
+    wateringScheduleWeekday: {
         to: (value, meta) => {
             // map each day to ON/OFF and use current state as default to allow partial updates
             const dayValues = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -600,7 +601,7 @@ const valueConverterLocal = {
             return [scheduleMode, scheduleValue];
         },
     },
-    scheduleSlot: (timeSlotNumber) => ({
+    wateringScheduleSlot: (timeSlotNumber) => ({
         from: (buffer) => {
             return {
                 state: buffer.readUInt8(0) === 1 ? 'ON' : 'OFF',
@@ -961,16 +962,16 @@ module.exports = [
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
                 // there is no state reporting for reset
-                [109, 'reset_frost_lock', valueConverterLocal.resetFrostLock, {optimistic: false}],
-                [107, null, valueConverterLocal.scheduleMode],
-                [107, 'schedule_periodic', valueConverterLocal.schedulePeriodic],
-                [107, 'schedule_weekday', valueConverterLocal.scheduleWeekday],
-                [101, 'schedule_slot_1', valueConverterLocal.scheduleSlot(1)],
-                [102, 'schedule_slot_2', valueConverterLocal.scheduleSlot(2)],
-                [103, 'schedule_slot_3', valueConverterLocal.scheduleSlot(3)],
-                [104, 'schedule_slot_4', valueConverterLocal.scheduleSlot(4)],
-                [105, 'schedule_slot_5', valueConverterLocal.scheduleSlot(5)],
-                [106, 'schedule_slot_6', valueConverterLocal.scheduleSlot(6)],
+                [109, 'reset_frost_lock', valueConverterLocal.wateringResetFrostLock, {optimistic: false}],
+                [107, null, valueConverterLocal.wateringScheduleMode],
+                [107, 'schedule_periodic', valueConverterLocal.wateringSchedulePeriodic],
+                [107, 'schedule_weekday', valueConverterLocal.wateringScheduleWeekday],
+                [101, 'schedule_slot_1', valueConverterLocal.wateringScheduleSlot(1)],
+                [102, 'schedule_slot_2', valueConverterLocal.wateringScheduleSlot(2)],
+                [103, 'schedule_slot_3', valueConverterLocal.wateringScheduleSlot(3)],
+                [104, 'schedule_slot_4', valueConverterLocal.wateringScheduleSlot(4)],
+                [105, 'schedule_slot_5', valueConverterLocal.wateringScheduleSlot(5)],
+                [106, 'schedule_slot_6', valueConverterLocal.wateringScheduleSlot(6)],
             ],
         },
     },
