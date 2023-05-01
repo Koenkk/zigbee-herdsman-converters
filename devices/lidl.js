@@ -578,10 +578,10 @@ const valueConverterLocal = {
     },
     schedulePeriodic: {
         to: (value) => {
-            const scheduleValue = utils.numberWithinRange(value, 0, 7);
+            if (!utils.isInRange(0, 7, value)) throw new Error(`Invalid value: ${value} (expected ${0} to ${7})`);
             // Note: mode value of 0 switches to disabled weekday scheduler
-            const scheduleMode = scheduleValue > 0 ? 1 : 0;
-            return [scheduleMode, scheduleValue];
+            const scheduleMode = value > 0 ? 1 : 0;
+            return [scheduleMode, value];
         },
     },
     scheduleWeekday: {
@@ -616,25 +616,28 @@ const valueConverterLocal = {
             const timeslot = utils.getObjectProperty(meta.state, `schedule_slot_${timeSlotNumber}`, {});
 
             const state = utils.getObjectProperty(value, 'state', timeslot.state ?? false);
-            const startHour = utils.numberWithinRange(utils.getObjectProperty(value, 'start_hour', timeslot.start_hour ?? 23), 0, 23);
-            const startMinute = utils.numberWithinRange(utils.getObjectProperty(value, 'start_minute', timeslot.start_minute ?? 59), 0, 59);
-            const totalDurationInMinutes = utils.numberWithinRange(utils.getObjectProperty(value, 'timer', timeslot.timer ?? 1), 1, 599);
-            const iterations = utils.numberWithinRange(utils.getObjectProperty(value, 'iterations', timeslot.iterations ?? 1), 1, 9);
-            const totalPauseInMinutes = utils.numberWithinRange(
-                utils.getObjectProperty(value, 'pause', timeslot.pause ?? 0),
-                iterations > 1 ? 1 : 0, // Pause value must be at least 1 minute when using multiple iterations
-                599,
-            );
+            const startHour = utils.getObjectProperty(value, 'start_hour', timeslot.start_hour ?? 23);
+            const startMinute = utils.getObjectProperty(value, 'start_minute', timeslot.start_minute ?? 59);
+            const duratonInMin = utils.getObjectProperty(value, 'timer', timeslot.timer ?? 1);
+            const iterations = utils.getObjectProperty(value, 'iterations', timeslot.iterations ?? 1);
+            const pauseInMin = utils.getObjectProperty(value, 'pause', timeslot.pause ?? 0);
+
+            if (!utils.isInRange(0, 23, startHour)) throw new Error(`Invalid start hour value ${startHour} (expected ${0} to ${23})`);
+            if (!utils.isInRange(0, 59, startMinute)) throw new Error(`Invalid start minute value: ${startMinute} (expected ${0} to ${59})`);
+            if (!utils.isInRange(1, 599, duratonInMin)) throw new Error(`Invalid timer value: ${duratonInMin} (expected ${1} to ${599})`);
+            if (!utils.isInRange(1, 599, iterations)) throw new Error(`Invalid iterations value: ${iterations} (expected ${1} to ${599})`);
+            if (!utils.isInRange(0, 599, pauseInMin)) throw new Error(`Invalid pause value: ${pauseInMin} (expected ${0} to ${599})`);
+            if (iterations > 1 && pauseInMin === 0) throw new Error(`Pause value must be at least 1 minute when using multiple iterations`);
 
             return [
                 state === 'ON' ? 1 : 0, // time slot enabled or not
                 startHour, // start hour
                 startMinute, // start minute
-                Math.floor(totalDurationInMinutes / 60), // duration for n hours
-                totalDurationInMinutes % 60, // duration + n minutes
+                Math.floor(duratonInMin / 60), // duration for n hours
+                duratonInMin % 60, // duration + n minutes
                 0, // what's this? -> was always reported as 0
-                Math.floor(totalPauseInMinutes / 60), // pause in hours
-                totalPauseInMinutes % 60, // pause + n minutes
+                Math.floor(pauseInMin / 60), // pause in hours
+                pauseInMin % 60, // pause + n minutes
                 0, // what's this? -> was always reported as 0
                 iterations, // iterations
             ];
