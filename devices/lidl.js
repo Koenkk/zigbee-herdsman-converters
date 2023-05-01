@@ -187,7 +187,7 @@ const fzLocal = {
                         timer: timeslot.timer,
                         pause: timeslot.pause,
                         iteration_duration: timeslot.timer + timeslot.pause,
-                        iterations: Math.max(timeslot.iterations, 1),
+                        iterations: timeslot.iterations,
                         iteration_report: false, // will be set in the next step
                         iteration_timestamp: 0, // will be set in the next step
                     });
@@ -605,11 +605,11 @@ const valueConverterLocal = {
         from: (buffer) => {
             return {
                 state: buffer.readUInt8(0) === 1 ? 'ON' : 'OFF',
-                start_hour: utils.numberWithinRange(buffer.readUInt8(1), 0, 23), // device reports 255 initially when timeslot was never used before
-                start_minute: utils.numberWithinRange(buffer.readUInt8(2), 0, 59), // device reports 255 initially when timeslot was never used before
-                timer: buffer.readUInt8(3) * 60 + buffer.readUInt8(4),
-                pause: buffer.readUInt8(6) * 60 + buffer.readUInt8(7),
-                iterations: buffer.readUInt8(9),
+                start_hour: utils.numberWithinRange(buffer.readUInt8(1), 0, 23), // device reports non-valid value 255 initially
+                start_minute: utils.numberWithinRange(buffer.readUInt8(2), 0, 59), // device reports non-valid value 255 initially
+                timer: utils.numberWithinRange(buffer.readUInt8(3) * 60 + buffer.readUInt8(4), 1, 599), // device reports non-valid value 0 initially
+                pause: utils.numberWithinRange(buffer.readUInt8(6) * 60 + buffer.readUInt8(7), 0, 599),
+                iterations: utils.numberWithinRange(buffer.readUInt8(9), 1, 9), // device reports non-valid value 0 initially
             };
         },
         to: (value, meta) => {
@@ -626,7 +626,7 @@ const valueConverterLocal = {
             if (!utils.isInRange(0, 23, startHour)) throw new Error(`Invalid start hour value ${startHour} (expected ${0} to ${23})`);
             if (!utils.isInRange(0, 59, startMinute)) throw new Error(`Invalid start minute value: ${startMinute} (expected ${0} to ${59})`);
             if (!utils.isInRange(1, 599, duratonInMin)) throw new Error(`Invalid timer value: ${duratonInMin} (expected ${1} to ${599})`);
-            if (!utils.isInRange(1, 599, iterations)) throw new Error(`Invalid iterations value: ${iterations} (expected ${1} to ${599})`);
+            if (!utils.isInRange(1, 9, iterations)) throw new Error(`Invalid iterations value: ${iterations} (expected ${1} to ${9})`);
             if (!utils.isInRange(0, 599, pauseInMin)) throw new Error(`Invalid pause value: ${pauseInMin} (expected ${0} to ${599})`);
             if (iterations > 1 && pauseInMin === 0) throw new Error(`Pause value must be at least 1 minute when using multiple iterations`);
 
