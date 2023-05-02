@@ -14,8 +14,108 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const globalStore = require('../lib/store');
+const {ColorMode, colorModeLookup} = require('../lib/constants');
 
 const tzLocal = {
+    led_control: {
+        key: ['brightness', 'color', 'color_temp', 'transition'],
+        options: [exposes.options.color_sync()],
+        convertSet: async (entity, _key, _value, meta) => {
+            const newState = {};
+
+            // The color mode encodes whether the light is using its white LEDs or its color LEDs
+            let colorMode = meta.state.color_mode ?? colorModeLookup[ColorMode.ColorTemp];
+
+            // Color mode switching is done by setting color temperature (switch to white LEDs) or setting color (switch
+            // to color LEDs)
+            if ('color_temp' in meta.message) colorMode = colorModeLookup[ColorMode.ColorTemp];
+            if ('color' in meta.message) colorMode = colorModeLookup[ColorMode.HS];
+
+            if (colorMode != meta.state.color_mode) {
+                newState.color_mode = colorMode;
+
+                // To switch between white mode and color mode, we have to send a special command:
+                const rgbMode = (colorMode == colorModeLookup[ColorMode.HS]);
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
+            }
+
+            // A transition time of 0 would be treated as about 1 second, probably some kind of fallback/default
+            // transition time, so for "no transition" we use 1 (tenth of a second).
+            const transtime = 'transition' in meta.message ? meta.message.transition * 10 : 1;
+
+            if (colorMode == colorModeLookup[ColorMode.ColorTemp]) {
+                if ('brightness' in meta.message) {
+                    const zclData = {level: Number(meta.message.brightness), transtime};
+                    await entity.command('genLevelCtrl', 'moveToLevel', zclData, utils.getOptions(meta.mapped, entity));
+                    newState.brightness = meta.message.brightness;
+                }
+
+                if ('color_temp' in meta.message) {
+                    const zclData = {colortemp: meta.message.color_temp, transtime: transtime};
+                    await entity.command('lightingColorCtrl', 'moveToColorTemp', zclData, utils.getOptions(meta.mapped, entity));
+                    newState.color_temp = meta.message.color_temp;
+                }
+            } else if (colorMode == colorModeLookup[ColorMode.HS]) {
+                if ('brightness' in meta.message || 'color' in meta.message) {
+                    // We ignore the brightness of the color and instead use the overall brightness setting of the lamp
+                    // for the brightness because I think that's the expected behavior and also because the color
+                    // conversion below always returns 100 as brightness ("value") even for very dark colors, except
+                    // when the color is completely black/zero.
+
+                    // Load current state or defaults
+                    const newSettings = {
+                        brightness: meta.state.brightness ?? 254, //      full brightness
+                        hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
+                    };
+
+                    // Apply changes
+                    if ('brightness' in meta.message) {
+                        newSettings.brightness = meta.message.brightness;
+                        newState.brightness = meta.message.brightness;
+                    }
+                    if ('color' in meta.message) {
+                        // The Z2M UI sends `{ hex:'#xxxxxx' }`.
+                        // Home Assistant sends `{ h: xxx, s: xxx }`.
+                        // We convert the former into the latter.
+                        const c = libColor.Color.fromConverterArg(meta.message.color);
+                        if (c.isRGB()) {
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/13421#issuecomment-1426044963
+                            c.hsv = c.rgb.gammaCorrected().toXY().toHSV();
+                        }
+                        const color = c.hsv;
+
+                        newSettings.hue = color.hue;
+                        newSettings.saturation = color.saturation;
+
+                        newState.color = {
+                            hue: color.hue,
+                            saturation: color.saturation,
+                        };
+                    }
+
+                    // Convert to device specific format and send
+                    const zclData = {
+                        brightness: utils.mapNumberRange(newSettings.brightness, 0, 254, 0, 1000),
+                        hue: newSettings.hue,
+                        saturation: utils.mapNumberRange(newSettings.saturation, 0, 100, 0, 1000),
+                    };
+                    // This command doesn't support a transition time
+                    await entity.command('lightingColorCtrl', 'tuyaMoveToHueAndSaturationBrightness2', zclData,
+                        utils.getOptions(meta.mapped, entity));
+                }
+            }
+
+            // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
+            // of works in the other direction.
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger));
+
+            return {state: newState};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'currentLevel', 'tuyaRgbMode', 'colorTemperature']);
+        },
+    },
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -331,6 +431,79 @@ const tzLocal = {
             switch (key) {
             case 'temperature_unit': {
                 await entity.write('manuSpecificTuya_2', {'57355': {value: {'celsius': 0, 'fahrenheit': 1}[value], type: 48}});
+                break;
+            }
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    },
+    TS011F_threshold: {
+        key: [
+            'temperature_threshold', 'temperature_breaker', 'power_threshold', 'power_breaker',
+            'over_current_threshold', 'over_current_breaker', 'over_voltage_threshold', 'over_voltage_breaker',
+            'under_voltage_threshold', 'under_voltage_breaker',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_threshold': {
+                const state = meta.state['temperature_breaker'];
+                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'temperature_breaker': {
+                const threshold = meta.state['temperature_threshold'];
+                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'power_threshold': {
+                const state = meta.state['power_breaker'];
+                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'power_breaker': {
+                const threshold = meta.state['power_threshold'];
+                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
+                break;
+            }
+            case 'over_current_threshold': {
+                const state = meta.state['over_current_breaker'];
+                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_current_breaker': {
+                const threshold = meta.state['over_current_threshold'];
+                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_voltage_threshold': {
+                const state = meta.state['over_voltage_breaker'];
+                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'over_voltage_breaker': {
+                const threshold = meta.state['over_voltage_threshold'];
+                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'under_voltage_threshold': {
+                const state = meta.state['under_voltage_breaker'];
+                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
+                break;
+            }
+            case 'under_voltage_breaker': {
+                const threshold = meta.state['under_voltage_threshold'];
+                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             default: // Unknown key
@@ -730,13 +903,54 @@ const fzLocal = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
-                    if (result[key] === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
+                    const value = result[key];
+                    if (value === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
                         delete result[key];
                     }
-                    globalStore.putValue(msg.endpoint, key, result[key]);
+                    globalStore.putValue(msg.endpoint, key, value);
                 }
             }
             return result;
+        },
+    },
+    TS011F_threshold: {
+        cluster: 'manuSpecificTuya_3',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const splitToAttributes = (value) => {
+                const result = {};
+                const len = value.length;
+                let i = 0;
+                while (i < len) {
+                    const key = value.readUInt8(i);
+                    result[key] = [value.readUInt8(i+1), value.readUInt16BE(i+2)];
+                    i += 4;
+                }
+                return result;
+            };
+            const lookup = {0: 'OFF', 1: 'ON'};
+            const command = msg.data[2];
+            const data = msg.data.slice(3);
+            if (command == 0xE6) {
+                const value = splitToAttributes(data);
+                return {
+                    'temperature_threshold': value[0x05][1],
+                    'temperature_breaker': lookup[value[0x05][0]],
+                    'power_threshold': value[0x07][1],
+                    'power_breaker': lookup[value[0x07][0]],
+                };
+            }
+            if (command == 0xE7) {
+                const value = splitToAttributes(data);
+                return {
+                    'over_current_threshold': value[0x01][1],
+                    'over_current_breaker': lookup[value[0x01][0]],
+                    'over_voltage_threshold': value[0x03][1],
+                    'over_voltage_breaker': lookup[value[0x03][0]],
+                    'under_voltage_threshold': value[0x04][1],
+                    'under_voltage_breaker': lookup[value[0x04][0]],
+                };
+            }
         },
     },
 };
@@ -822,6 +1036,27 @@ module.exports = [
             exps.push(e.linkquality());
             return exps;
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
+        model: 'TS0601_contact_temperature_humidity_sensor',
+        vendor: 'TuYa',
+        description: 'Contact, temperature and humidity sensor',
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.contact(), e.temperature(), e.humidity(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'contact', tuya.valueConverter.trueFalseInvert],
+                [2, 'battery', tuya.valueConverter.raw],
+                [7, 'temperature', tuya.valueConverter.divideBy10],
+                [8, 'humidity', tuya.valueConverter.raw],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Aubess', '1005005194831629', 'Contact, temperature and humidity sensor', ['_TZE200_nvups4nh']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_vzqtvljm'}],
@@ -1016,7 +1251,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0505B'],
-        model: 'TS0505B',
+        model: 'TS0505B_1',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMD4106W-RGB-ZB'},
@@ -1051,6 +1286,22 @@ module.exports = [
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
         ],
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_c0s1xloa', '_TZ3210_iystcadi']),
+        model: 'TS0505B_2',
+        vendor: 'TuYa',
+        description: 'Zigbee RGB+CCT light',
+        whiteLabel: [
+            tuya.whitelabel('Lidl', '14149505L/14149506L_2', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3210_iystcadi']),
+            tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa']),
+        ],
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
+        exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
         configure: async (device, coordinatorEndpoint, logger) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue('lightingColorCtrl', {colorCapabilities: 29});
         },
@@ -1175,13 +1426,17 @@ module.exports = [
             {modelID: 'TS0202', manufacturerName: '_TZ3000_h4wnrtck'},
             {modelID: 'TS0202', manufacturerName: '_TZ3000_sr0vaafi'},
             {modelID: 'WHD02', manufacturerName: '_TZ3000_hktqahrq'},
+            {modelID: 'TS0202', manufacturerName: '_TZ3040_wqmtjsyk'},
         ],
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
-            {vendor: 'Tesla Smart', model: 'TS0202'}],
+            {vendor: 'Tesla Smart', model: 'TS0202'},
+            tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
+            tuya.whitelabel('TuYa', 'ZMS01', 'Motion sensor', ['_TZ3000_otvn3lne']),
+        ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -1516,7 +1771,10 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
-        whiteLabel: [{vendor: 'LoraTap', model: 'SC400'}],
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'SC400'},
+            tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
+        ],
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']),
@@ -2260,6 +2518,8 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_3ylew7b4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
+            {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -2414,8 +2674,8 @@ module.exports = [
             exposes.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
             exposes.numeric('motor_speed', ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription('Motor speed').withUnit('rpm'),
             exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            exposes.enum('set_upper_limit', ea.SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
-            exposes.enum('set_bottom_limit', ea.SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
+            exposes.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
+            exposes.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
             exposes.binary('factory_reset', ea.STATE_SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
@@ -2456,6 +2716,7 @@ module.exports = [
             {vendor: 'AVATTO', model: 'TRV06'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
+            tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
@@ -2812,7 +3073,9 @@ module.exports = [
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
             {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'},
             {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'},
-            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'}],
+            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'},
+            tuya.whitelabel('NOUS', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
+        ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
@@ -2944,6 +3207,9 @@ module.exports = [
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'PA-44Z', 'Smoke detector', ['_TZE200_m9skfctm']),
+        ],
     },
     {
         fingerprint: [
@@ -4063,6 +4329,9 @@ module.exports = [
             exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_whkgqxse'}],
@@ -4508,5 +4777,58 @@ module.exports = [
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cayepv1a']),
+        model: 'TS011F_with_threshold',
+        description: 'Din rail switch with power monitoring and threshold settings',
+        vendor: 'TuYa',
+        ota: ota.zigbeeOTA,
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+            powerOutageMemory: true, indicatorMode: true,
+            fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
+            toZigbee: [tzLocal.TS011F_threshold],
+            exposes: [
+                e.temperature(),
+                exposes.numeric('temperature_threshold', ea.STATE_SET).withValueMin(40).withValueMax(100).withValueStep(1).withUnit('*C')
+                    .withDescription('High temperature threshold'),
+                exposes.binary('temperature_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High temperature breaker'),
+                exposes.numeric('power_threshold', ea.STATE_SET).withValueMin(1).withValueMax(26).withValueStep(1).withUnit('kW')
+                    .withDescription('High power threshold'),
+                exposes.binary('power_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('High power breaker'),
+                exposes.numeric('over_current_threshold', ea.STATE_SET).withValueMin(1).withValueMax(64).withValueStep(1).withUnit('A')
+                    .withDescription('Over-current threshold'),
+                exposes.binary('over_current_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-current breaker'),
+                exposes.numeric('over_voltage_threshold', ea.STATE_SET).withValueMin(220).withValueMax(260).withValueStep(1).withUnit('V')
+                    .withDescription('Over-voltage threshold'),
+                exposes.binary('over_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Over-voltage breaker'),
+                exposes.numeric('under_voltage_threshold', ea.STATE_SET).withValueMin(76).withValueMax(240).withValueStep(1).withUnit('V')
+                    .withDescription('Under-voltage threshold'),
+                exposes.binary('under_voltage_breaker', ea.STATE_SET, 'ON', 'OFF')
+                    .withDescription('Under-voltage breaker'),
+            ],
+        }),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            endpoint.command('genBasic', 'tuyaSetup', {});
+            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+            await reporting.activePower(endpoint, {change: 10});
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        whiteLabel: [
+            tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
+        ],
     },
 ];
