@@ -1770,7 +1770,10 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
-        whiteLabel: [{vendor: 'LoraTap', model: 'SC400'}],
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'SC400'},
+            tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
+        ],
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']),
