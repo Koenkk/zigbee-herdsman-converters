@@ -2712,6 +2712,7 @@ module.exports = [
             {vendor: 'AVATTO', model: 'TRV06'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
+            tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
