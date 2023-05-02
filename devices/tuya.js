@@ -3198,6 +3198,9 @@ module.exports = [
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'PA-44Z', 'Smoke detector', ['_TZE200_m9skfctm']),
+        ],
     },
     {
         fingerprint: [
