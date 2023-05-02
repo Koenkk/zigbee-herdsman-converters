@@ -3068,7 +3068,9 @@ module.exports = [
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
             {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'},
             {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'},
-            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'}],
+            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'},
+            tuya.whitelabel('NOUS', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
+        ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
