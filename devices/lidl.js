@@ -896,7 +896,7 @@ module.exports = [
                 .withUnit('day')
                 .withDescription('Watering by periodic interval: Irrigate every n days'),
             exposes
-                .composite('schedule_weekday', 'schedule_weekday')
+                .composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
                 .withDescription('Watering by weekday: Irrigate individually for each day.')
                 .withFeature(exposes.binary('monday', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(exposes.binary('tuesday', ea.STATE_SET, 'ON', 'OFF'))
@@ -907,7 +907,7 @@ module.exports = [
                 .withFeature(exposes.binary('sunday', ea.STATE_SET, 'ON', 'OFF')),
             ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) =>
                 exposes
-                    .composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`)
+                    .composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
                     .withDescription(`Watering time slot ${timeSlotNumber}`)
                     .withFeature(
                         exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'),
