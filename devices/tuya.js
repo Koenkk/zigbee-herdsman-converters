@@ -903,10 +903,11 @@ const fzLocal = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
-                    if (result[key] === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
+                    const value = result[key];
+                    if (value === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
                         delete result[key];
                     }
-                    globalStore.putValue(msg.endpoint, key, result[key]);
+                    globalStore.putValue(msg.endpoint, key, value);
                 }
             }
             return result;
