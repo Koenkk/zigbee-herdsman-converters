@@ -860,7 +860,7 @@ const definition = [
         zigbeeModel: ['RBSH-MMS-ZB-EU'],
         model: 'BMCT-SLZ',
         vendor: 'Bosch',
-        description: 'Bosch Light/shutter control unit II',
+        description: 'Light/shutter control unit II',
         fromZigbee: [fzLocal.bmct, fz.cover_position_tilt, fz.on_off, fz.power_on_behavior],
         toZigbee: [tzLocal.bmct, tz.cover_position_tilt, tz.on_off, tz.power_on_behavior],
         meta: {multiEndpoint: true},
