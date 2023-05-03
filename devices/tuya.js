@@ -2391,8 +2391,9 @@ module.exports = [
         vendor: 'TuYa',
         description: '2 gang switch module',
         whiteLabel: [
-            {vendor: 'OXT', model: 'SWTZ22'}, {vendor: 'Nous', model: 'L13Z'},
+            {vendor: 'OXT', model: 'SWTZ22'},
             tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
+            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
         ],
         extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
