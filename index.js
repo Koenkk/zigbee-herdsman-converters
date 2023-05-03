@@ -131,7 +131,7 @@ function findByZigbeeModel(zigbeeModel) {
 }
 
 function findByDevice(device) {
-    let definition = findDefintion(device);
+    let definition = findDefinition(device);
     if (definition && definition.whiteLabel) {
         const match = definition.whiteLabel.find((w) => w.fingerprint && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
         if (match) {
@@ -146,7 +146,7 @@ function findByDevice(device) {
     return definition;
 }
 
-function findDefintion(device) {
+function findDefinition(device) {
     if (!device) {
         return null;
     }

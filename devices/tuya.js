@@ -903,10 +903,11 @@ const fzLocal = {
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
-                    if (result[key] === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
+                    const value = result[key];
+                    if (value === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
                         delete result[key];
                     }
-                    globalStore.putValue(msg.endpoint, key, result[key]);
+                    globalStore.putValue(msg.endpoint, key, value);
                 }
             }
             return result;
@@ -1433,7 +1434,9 @@ module.exports = [
         whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
             {vendor: 'Tesla Smart', model: 'TS0202'},
-            tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR Sensor', ['_TZ3040_wqmtjsyk'])],
+            tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
+            tuya.whitelabel('TuYa', 'ZMS01', 'Motion sensor', ['_TZ3000_otvn3lne']),
+        ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
@@ -1768,7 +1771,10 @@ module.exports = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
-        whiteLabel: [{vendor: 'LoraTap', model: 'SC400'}],
+        whiteLabel: [
+            {vendor: 'LoraTap', model: 'SC400'},
+            tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
+        ],
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
             exposes.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']),
@@ -2513,6 +2519,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_llm0epxg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_n1aauwb4'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_xu4a5rhj'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_r0jdjrvi'},
         ],
         model: 'TS0601_cover_1',
         vendor: 'TuYa',
@@ -2709,6 +2716,7 @@ module.exports = [
             {vendor: 'AVATTO', model: 'TRV06'},
             {vendor: 'Tesla Smart', model: 'TSL-TRV-TV01ZG'},
             {vendor: 'Unknown/id3.pl', model: 'GTZ08'},
+            tuya.whitelabel('Moes', 'ZTRV-ZX-TV01-MS', 'Thermostat radiator valve', ['_TZE200_7yoranx2']),
         ],
         ota: ota.zigbeeOTA,
         fromZigbee: [tuya.fz.datapoints],
@@ -3065,7 +3073,9 @@ module.exports = [
         whiteLabel: [{vendor: 'LELLKI', model: 'TS011F_plug'}, {vendor: 'NEO', model: 'NAS-WR01B'},
             {vendor: 'BlitzWolf', model: 'BW-SHP15'}, {vendor: 'Nous', model: 'A1Z'}, {vendor: 'BlitzWolf', model: 'BW-SHP13'},
             {vendor: 'MatSee Plus', model: 'PJ-ZSW01'}, {vendor: 'MODEMIX', model: 'MOD037'}, {vendor: 'MODEMIX', model: 'MOD048'},
-            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'}],
+            {vendor: 'Coswall', model: 'CS-AJ-DE2U-ZG-11'}, {vendor: 'Aubess', model: 'TS011F_plug_1'}, {vendor: 'Immax', model: '07752L'},
+            tuya.whitelabel('NOUS', 'A1Z', 'Smart plug (with power monitoring)', ['_TZ3000_2putqrmw']),
+        ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({
             electricalMeasurements: true, electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
@@ -3197,6 +3207,9 @@ module.exports = [
                 [101, 'test', tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'PA-44Z', 'Smoke detector', ['_TZE200_m9skfctm']),
+        ],
     },
     {
         fingerprint: [
@@ -4315,6 +4328,9 @@ module.exports = [
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
             exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
         ],
     },
     {
