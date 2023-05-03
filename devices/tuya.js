@@ -4832,11 +4832,11 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [{modelID: 'TS000F', manufacturerName: '_TZ3000_m8f3z8ju'}],
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_m8f3z8ju']),
         model: 'QS-Zigbee-SEC02-U',
         vendor: 'TuYa',
         description: 'Zigbee 3.0 smart light switch module 2 gang',
-        toZigbee: [tz.TYZB01_on_off],
+        toZigbee: [tz.on_off],
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
         endpoint: (device) => {
