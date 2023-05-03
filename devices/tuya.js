@@ -4835,4 +4835,21 @@ module.exports = [
             tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_m8f3z8ju']),
+        model: 'QS-Zigbee-SEC02-U',
+        vendor: 'TuYa',
+        description: 'Zigbee 3.0 smart light switch module 2 gang',
+        toZigbee: [tz.on_off],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
 ];
