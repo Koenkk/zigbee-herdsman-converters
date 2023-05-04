@@ -4865,6 +4865,9 @@ module.exports = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
+        ],
     },
     {
         fingerprint: [
@@ -4883,6 +4886,9 @@ module.exports = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+        ],
     },
     {
         fingerprint: [
@@ -4902,6 +4908,9 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+        ],
     },
     {
         fingerprint: [
@@ -4933,6 +4942,9 @@ module.exports = [
                 [7, 'backlight_mode', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022714', '4 Gang switch with backlight', ['_TZE200_hewlydpz']),
+        ],
     },
     {
         fingerprint: [
@@ -4961,6 +4973,9 @@ module.exports = [
                 [103, 'child_lock', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022483', 'Curtain / Blind switch', ['_TZE200_p6vz3wzt']),
+        ],
     },
     {
         fingerprint: [
@@ -4995,6 +5010,9 @@ module.exports = [
                 [103, 'child_lock', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022493', 'Curtain / Blind switch with 1 Gang switch', ['_TZE200_jhkttplm']),
+        ],
     },
     {
         fingerprint: [
@@ -5031,5 +5049,8 @@ module.exports = [
                 [103, 'child_lock', tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022173', 'Curtain / Blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
+        ],
     },
 ];
