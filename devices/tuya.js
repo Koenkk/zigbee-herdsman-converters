@@ -2347,7 +2347,9 @@ module.exports = [
         description: '1 gang switch',
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
-            {vendor: 'Bandi', model: 'BDS03G1'}],
+            {vendor: 'Bandi', model: 'BDS03G1'},
+            tuya.whitelabel('TuYa ', 'ZN231392', 'Smart water/gas valve', ['_TZ3000_5ucujjts']),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
