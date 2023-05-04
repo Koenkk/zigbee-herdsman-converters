@@ -1201,7 +1201,9 @@ module.exports = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
-            {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'}],
+            {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'},
+        ],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
@@ -2348,7 +2350,6 @@ module.exports = [
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
             {vendor: 'Bandi', model: 'BDS03G1'},
-            tuya.whitelabel('TuYa ', 'ZN231392', 'Smart water/gas valve', ['_TZ3000_5ucujjts']),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
