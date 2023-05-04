@@ -4848,4 +4848,204 @@ module.exports = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
     },
+    {
+        fingerprint: [
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_bmqxalil'},
+        ],
+        model: 'TS0001_switch_1_gang',
+        vendor: 'TuYa',
+        description: '1-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
+        ],
+        model: 'TS0002_switch_2_gang',
+        vendor: 'TuYa',
+        description: '2-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
+        ],
+        model: 'TS0003_switch_3_gang',
+        vendor: 'TuYa',
+        description: '3-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['left', 'center', 'right']}),
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_hewlydpz'},
+        ],
+        model: 'TS0601_switch_4_gang_2',
+        vendor: 'TuYa',
+        description: '4-Gang switch with backlight',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.backlightModeOffOn(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022714', '4 Gang switch with backlight', ['_TZE200_hewlydpz']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'},
+        ],
+        model: 'TS0601_cover_5',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022483', 'Curtain/blind switch', ['_TZE200_p6vz3wzt']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
+        ],
+        model: 'TS0601_cover_with_1_switch',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch with 1 Gang switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            tuya.exposes.switch().withEndpoint('l1'),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [101, 'state_l1', tuya.valueConverter.onOff],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022493', 'Curtain/blind switch with 1 Gang switch', ['_TZE200_jhkttplm']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5nldle7w'},
+        ],
+        model: 'TS0601_cover_with_2_switch',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch with 2 Gang switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [101, 'state_l2', tuya.valueConverter.onOff],
+                [102, 'state_l1', tuya.valueConverter.onOff],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022173', 'Curtain/blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
+        ],
+    },
 ];
