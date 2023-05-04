@@ -4952,7 +4952,7 @@ module.exports = [
         ],
         model: 'TS0601_cover_5',
         vendor: 'TuYa',
-        description: 'Curtain / Blind switch',
+        description: 'Curtain/blind switch',
         options: [exposes.options.invert_cover()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -4974,7 +4974,7 @@ module.exports = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel('Homeetec', '37022483', 'Curtain / Blind switch', ['_TZE200_p6vz3wzt']),
+            tuya.whitelabel('Homeetec', '37022483', 'Curtain/blind switch', ['_TZE200_p6vz3wzt']),
         ],
     },
     {
@@ -4983,7 +4983,7 @@ module.exports = [
         ],
         model: 'TS0601_cover_with_1_switch',
         vendor: 'TuYa',
-        description: 'Curtain / Blind switch with 1 Gang switch',
+        description: 'Curtain/blind switch with 1 Gang switch',
         options: [exposes.options.invert_cover()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -5011,7 +5011,7 @@ module.exports = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel('Homeetec', '37022493', 'Curtain / Blind switch with 1 Gang switch', ['_TZE200_jhkttplm']),
+            tuya.whitelabel('Homeetec', '37022493', 'Curtain/blind switch with 1 Gang switch', ['_TZE200_jhkttplm']),
         ],
     },
     {
@@ -5020,7 +5020,7 @@ module.exports = [
         ],
         model: 'TS0601_cover_with_2_switch',
         vendor: 'TuYa',
-        description: 'Curtain / Blind switch with 2 Gang switch',
+        description: 'Curtain/blind switch with 2 Gang switch',
         options: [exposes.options.invert_cover()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -5050,7 +5050,7 @@ module.exports = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel('Homeetec', '37022173', 'Curtain / Blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
+            tuya.whitelabel('Homeetec', '37022173', 'Curtain/blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
         ],
     },
 ];
