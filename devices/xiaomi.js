@@ -3251,7 +3251,7 @@ module.exports = [
         model: 'ZNQBKG26LM',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch H1M (with neutral, triple rocker)',
-        fromZigbee: [fz.on_off, fzLocal.xiaomi_multistate_action, fz.aqara_opple, fz.xiaomi_power],
+        fromZigbee: [fz.on_off, fz.xiaomi_multistate_action, fz.aqara_opple, fz.xiaomi_power],
         toZigbee: [tz.on_off, tz.xiaomi_switch_operation_mode_opple, tz.aqara_switch_mode_switch,
             tz.xiaomi_flip_indicator_light],
         endpoint: (device) => {
