@@ -1654,6 +1654,12 @@ const converters = {
             await entity.read('haElectricalMeasurement', ['acFrequency']);
         },
     },
+    electrical_measurement_power_reactive: {
+        key: ['power_reactive'],
+        convertGet: async (entity, key, meta) => {
+            await entity.read('haElectricalMeasurement', ['reactivePower']);
+        },
+    },
     powerfactor: {
         key: ['power_factor'],
         convertGet: async (entity, key, meta) => {

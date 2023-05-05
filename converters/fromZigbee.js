@@ -778,6 +778,7 @@ const converters = {
                 {key: 'activePowerPhB', name: 'power_phase_b', factor: 'acPower'},
                 {key: 'activePowerPhC', name: 'power_phase_c', factor: 'acPower'},
                 {key: 'apparentPower', name: 'power_apparent', factor: 'acPower'},
+                {key: 'reactivePower', name: 'power_reactive', factor: 'acPower'},
                 {key: 'rmsCurrent', name: 'current', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhB', name: 'current_phase_b', factor: 'acCurrent'},
                 {key: 'rmsCurrentPhC', name: 'current_phase_c', factor: 'acCurrent'},
