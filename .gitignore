@@ -10,4 +10,3 @@ tmp
 # Eclipse project files
 .project
 .settings/
-*.js~
