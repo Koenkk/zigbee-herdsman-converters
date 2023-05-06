@@ -73,7 +73,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'CCT Light', manufacturerName: 'Paulmann lamp'}],
-        zigbeeModel: ['CCT light', 'CCT_light', 'CCT light '],
+        zigbeeModel: ['CCT light', 'CCT_light', 'CCT light ', 'CCT'],
         model: '50064',
         vendor: 'Paulmann',
         description: 'SmartHome led spot',
