@@ -11,7 +11,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_6qoazbre'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_fcooykb4'},
         ],
-        model: 'WZ5_dim',
+        model: 'WZ5_dim_1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
         fromZigbee: [fz.tuya_light_wz5],
