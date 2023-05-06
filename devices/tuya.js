@@ -899,15 +899,18 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
 
-            // Skip the first reported 0 values as this may be a false measurement
+            // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
-                    const value = result[key];
-                    if (value === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
-                        delete result[key];
+                    if (key in result) {
+                        const value = result[key];
+                        clearTimeout(globalStore.getValue(msg.endpoint, key));
+                        if (value === 0) {
+                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), 5 * 1000));
+                            delete result[key];
+                        }
                     }
-                    globalStore.putValue(msg.endpoint, key, value);
                 }
             }
             return result;
