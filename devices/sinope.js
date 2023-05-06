@@ -249,7 +249,7 @@ const tzLocal = {
             await entity.read('hvacThermostat', ['SinopeAuxCycleOutput']);
         },
     },
-    enable_outdoor_temperature: { //DEPRECATED: Use Second Display Mode or control via the timeout
+    enable_outdoor_temperature: { // DEPRECATED: Use Second Display Mode or control via the timeout
         key: ['enable_outdoor_temperature'],
         convertSet: async (entity, key, value, meta) => {
             if (value.toLowerCase() == 'on') {
@@ -609,7 +609,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TH1124ZB'],
+        zigbeeModel: ['TH1124ZA'],
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
@@ -1085,7 +1085,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['SW2500ZB'],
+        zigbeeModel: ['SW2500ZA'],
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
@@ -1095,7 +1095,7 @@ module.exports = [
         exposes: [e.switch(),
             e.action(['up_single', 'up_double', 'up_hold', 'down_single', 'down_double', 'down_hold']),
             exposes.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled',0).withDescription('Automatically turn off load after x seconds'),
+                .withPreset('Disabled', 0).withDescription('Automatically turn off load after x seconds'),
             exposes.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
             exposes.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
@@ -1145,7 +1145,7 @@ module.exports = [
             tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
             exposes.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled',0).withDescription('Automatically turn off load after x seconds'),
+                .withPreset('Disabled', 0).withDescription('Automatically turn off load after x seconds'),
             exposes.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
             exposes.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
@@ -1181,7 +1181,7 @@ module.exports = [
             tzLocal.minimum_brightness, tzLocal.led_color_on, tzLocal.led_color_off],
         exposes: [e.light_brightness(),
             exposes.numeric('timer_seconds', ea.ALL).withUnit('seconds').withValueMin(0).withValueMax(65535)
-                .withPreset('Disabled',0).withDescription('Automatically turn off load after x seconds'),
+                .withPreset('Disabled', 0).withDescription('Automatically turn off load after x seconds'),
             exposes.numeric('led_intensity_on', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Control status LED intensity when load ON'),
             exposes.numeric('led_intensity_off', ea.ALL).withUnit('%').withValueMin(0).withValueMax(100)
