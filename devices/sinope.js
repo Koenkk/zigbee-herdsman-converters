@@ -609,7 +609,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['TH1124ZA'],
+        zigbeeModel: ['TH1124ZB'],
         model: 'TH1124ZB',
         vendor: 'Sinopé',
         description: 'Zigbee line volt thermostat',
@@ -1085,7 +1085,7 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['SW2500ZA'],
+        zigbeeModel: ['SW2500ZB'],
         model: 'SW2500ZB',
         vendor: 'Sinopé',
         description: 'Zigbee smart light switch',
