@@ -141,96 +141,6 @@ const fzLocal = {
             }
         },
     },
-    watering_time_left: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            // Setup workaround for time_left reporting
-            // Background: Device reports the real time_left value only on manual watering
-            // for scheduled watering it will report just '0' in the beginning and at the end
-            // Note: this procedure relies on the continuous reporting every minute
-            const result = {};
-            let reportedState = undefined;
-
-            for (const dpValue of msg.data.dpValues) {
-                const value = tuya.getDataValue(dpValue);
-                if (dpValue.dp === 1) {
-                    reportedState = value ? 'ON' : 'OFF';
-                    if (reportedState === 'OFF') {
-                        result.time_left = 0;
-                    }
-                }
-            }
-
-            // Indications when the watering was triggered by scheduler:
-            // - scheduling is enabled
-            // - current state is on
-            // - time_left is 0
-            // - current hour & minute matches scheduling period
-            if (
-                meta.state.schedule_mode !== 'OFF' &&
-                reportedState === 'ON' &&
-                meta.state.time_left === 0 &&
-                !globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot')
-            ) {
-                const now = new Date();
-                const timeslot = [1, 2, 3, 4, 5, 6]
-                    .map((slotNumber) => utils.getObjectProperty(meta.state, `schedule_slot_${slotNumber}`, {}))
-                    .find((ts) =>ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
-
-                if (timeslot) {
-                    // automatic watering detected
-                    globalStore.putValue(msg.endpoint, 'watering_timer_active_time_slot', {
-                        timeslot_start_timestamp: now.getTime(),
-                        timer: timeslot.timer,
-                        pause: timeslot.pause,
-                        iteration_duration: timeslot.timer + timeslot.pause,
-                        iterations: timeslot.iterations,
-                        iteration_report: false, // will be set in the next step
-                        iteration_timestamp: 0, // will be set in the next step
-                    });
-                }
-            }
-
-            // Verify that we still have to workaround the missing time_left update
-            if (globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot')) {
-                const ts = globalStore.getValue(msg.endpoint, 'watering_timer_active_time_slot');
-                const maximumEndTime = ts.timeslot_start_timestamp + ts.iterations * ts.iteration_duration * 60 * 1000;
-
-                if (
-                    // time slot execution is already completed
-                    Date.now() > maximumEndTime ||
-                    // scheduling was interrupted by turning watering on manually
-                    (reportedState === 'ON' && reportedState != meta.state.state && meta.state.time_left > 0)
-                ) {
-                    // reporting is no longer necessary
-                    globalStore.clearValue(msg.endpoint, 'watering_timer_active_time_slot');
-                } else if (reportedState === 'OFF' && reportedState !== meta.state.state) {
-                    // manually turned off --> disable reporting for this iteration
-                    ts.iteration_report = false;
-                } else if (reportedState === 'ON' && result.state !== meta.state.state && meta.state.time_left === 0) {
-                    // automatic scheduling detected (reported as ON, but without any info about duration)
-                    ts.iteration_report = true;
-                    ts.iteration_timestamp = Date.now();
-                }
-            }
-
-            // report manually
-            if (globalStore.hasValue(msg.endpoint, 'watering_timer_active_time_slot')) {
-                const wateringTimeSlot = globalStore.getValue(msg.endpoint, 'watering_timer_active_time_slot');
-                if (result.time_left === undefined && wateringTimeSlot.iteration_report) {
-                    const now = Date.now();
-                    const wateringEndTime = wateringTimeSlot.iteration_timestamp + wateringTimeSlot.timer * 60 * 1000;
-                    const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
-                    if (timeLeftInMinutes > 0) {
-                        result.time_left = timeLeftInMinutes;
-                    }
-                }
-            }
-
-            return result;
-        },
-    },
 };
 const tzLocal = {
     zs_thermostat_child_lock: {
@@ -450,6 +360,97 @@ const tzLocal = {
 };
 
 const valueConverterLocal = {
+    wateringState: {
+        from: (value, meta, options, publish) => {
+            const result = {
+                state: value ? 'ON' : 'OFF',
+                ...(value ? {} : {
+                    // ensure time_left is set to zero when it's OFF
+                    time_left: 0,
+                }),
+            };
+
+            // prepare the time reporting for water scheduler
+            // indications when the watering was triggered by scheduler:
+            // - scheduling is enabled
+            // - current state is on
+            // - time_left wasn't reported before and is 0
+            // - current hour & minute matches scheduling period
+            if (
+                meta.state.schedule_mode !== 'OFF' &&
+                result.state === 'ON' &&
+                meta.state.time_left === 0 &&
+                !globalStore.hasValue(meta.device, 'watering_timer_active_time_slot')
+            ) {
+                const now = new Date();
+                const timeslot = [1, 2, 3, 4, 5, 6]
+                    .map((slotNumber) => utils.getObjectProperty(meta.state, `schedule_slot_${slotNumber}`, {}))
+                    .find((ts) =>ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
+
+                if (timeslot) {
+                    meta.logger.error(`Setup time slot h${timeslot.start_hour}:m${timeslot.start_minute}`);
+                    const iterationDuration = timeslot.timer + timeslot.pause;
+                    // automatic watering detected
+                    globalStore.putValue(meta.device, 'watering_timer_active_time_slot', {
+                        timeslot_start_timestamp: now.getTime(),
+                        // end of last watering excluding last pause
+                        timeslot_end_timestamp: now.getTime() + (timeslot.iterations * iterationDuration - timeslot.pause) * 60 * 1000,
+                        timer: timeslot.timer,
+                        iteration_inverval: null, // will be set in the next step
+                        iteration_start_timestamp: 0, // will be set in the next step
+                    });
+                }
+            }
+
+            // setup time reporting for water scheduler when necessary
+            if (globalStore.hasValue(meta.device, 'watering_timer_active_time_slot')) {
+                const ts = globalStore.getValue(meta.device, 'watering_timer_active_time_slot');
+
+                if (
+                    // time slot execution is already completed
+                    (Date.now() > (ts.timeslot_end_timestamp - 5000)) ||
+                    // scheduling was interrupted by turning watering on manually
+                    (result.state === 'ON' && result.state != meta.state.state && meta.state.time_left > 0)
+                ) {
+                    meta.logger.error(`Remove timeslot reporting.`);
+                    // reporting is no longer necessary
+                    clearInterval(ts.iteration_inverval);
+                    globalStore.clearValue(meta.device, 'watering_timer_active_time_slot');
+                } else if (result.state === 'OFF' && result.state !== meta.state.state) {
+                    meta.logger.error(`Skip timeslot reporting for this iteration.`);
+                    // turned off --> disable reporting for this iteration only
+                    clearInterval(ts.iteration_inverval);
+                    ts.iteration_inverval = null;
+                } else if (result.state === 'ON' && result.state !== meta.state.state && meta.state.time_left === 0) {
+                    meta.logger.error(`Prepare timeslot reporting ${ts.timer}m.`);
+                    // automatic scheduling detected (reported as ON, but without any info about duration)
+                    ts.iteration_report = true;
+                    ts.iteration_start_timestamp = Date.now();
+                    if (ts.timer > 1) {
+                        // report every minute
+                        const interval = ts.iteration_inverval = setInterval(() => {
+                            const now = Date.now();
+                            const wateringEndTime = ts.iteration_start_timestamp + ts.timer * 60 * 1000;
+                            const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
+                            if (timeLeftInMinutes > 0) {
+                                meta.logger.error(`Report time_left ${timeLeftInMinutes}m.`);
+                                if (timeLeftInMinutes === 1) {
+                                    meta.logger.error(`Disable interval within interval`);
+                                    clearInterval(interval);
+                                }
+                                publish({
+                                    time_left: timeLeftInMinutes,
+                                });
+                            }
+                        }, 60 * 1000);
+                    }
+                    // initial reporting
+                    result.time_left = ts.timer;
+                }
+            }
+            return result;
+        },
+    },
     wateringResetFrostLock: {
         to: (value) => {
             utils.validateValue(value, ['RESET']);
@@ -716,7 +717,7 @@ module.exports = [
         model: 'PSBZS A1',
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints, fzLocal.watering_time_left],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [
             {
                 ...tuya.tz.datapoints,
@@ -842,6 +843,7 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
+                [1, null, valueConverterLocal.wateringState],
                 // disable optimistic state reporting (device may not turn on when battery is low)
                 [1, 'state', tuya.valueConverter.onOff, {optimistic: false}],
                 [5, 'timer', tuya.valueConverter.range(1, 599)],
