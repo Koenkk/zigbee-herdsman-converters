@@ -4,6 +4,64 @@ const e = exposes.presets;
 
 module.exports = [
     {
+        fingerprint: [
+            {modelID: 'HOMA1001', endpoints: [
+                {ID: 10, profileID: 49246, deviceID: 256, inputClusters: [0,3,4,5,6,8], outputClusters: []},
+                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0,3,4,5,6,8,768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        zigbeeModel: ['HOMA1001'],
+        model: 'HOMA1001',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver RGBW',
+        extend: extend.light_onoff_brightness_color(),
+        exposes: [e.light_brightness().withEndpoint('white'), e.light_brightness_colorxy().withEndpoint('rgb')],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {white: 10, rgb: 11};
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'HOMA1001', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0,3,4,5,6,8,768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        zigbeeModel: ['HOMA1001'],
+        model: 'HOMA1001',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver RGB',
+        extend: extend.light_onoff_brightness_color(),
+    },
+    {
+        fingerprint: [
+            {modelID: 'HOMA1001', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 544, inputClusters: [0,3,4,5,6,8,768], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        zigbeeModel: ['HOMA1001'],
+        model: 'HOMA1001',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver CT',
+        extend: extend.light_onoff_brightness_colortemp(),
+    },
+    {
+        fingerprint: [
+            {modelID: 'HOMA1001', endpoints: [
+                {ID: 11, profileID: 49246, deviceID: 256, inputClusters: [0,3,4,5,6,8], outputClusters: []},
+                {ID: 13, profileID: 49246, deviceID: 57694, inputClusters: [4096], outputClusters: [4096]},
+            ]},
+        ],
+        zigbeeModel: ['HOMA1001'],
+        model: 'HOMA1001',
+        vendor: 'Shenzhen Homa',
+        description: 'Smart LED driver SC',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         zigbeeModel: ['HOMA1008', '00A'],
         model: 'HLD812-Z-SC',
         vendor: 'Shenzhen Homa',
@@ -18,7 +76,7 @@ module.exports = [
         extend: extend.light_onoff_brightness_colortemp(),
     },
     {
-        zigbeeModel: ['HOMA1002', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019', 'HOMA1004'],
+        zigbeeModel: ['HOMA1002', 'HOMA1004', 'HOMA0019', 'HOMA0006', 'HOMA000F', '019'],
         model: 'HLC610-Z',
         vendor: 'Shenzhen Homa',
         description: 'Wireless dimmable controller',
