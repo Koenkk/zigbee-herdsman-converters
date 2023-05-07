@@ -712,14 +712,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Parkside smart watering timer',
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
-        toZigbee: [
-            {
-                ...tuya.tz.datapoints,
-                key: ['state', 'timer', 'reset_frost_lock', 'schedule_periodic', 'schedule_weekday',
-                    ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) => `schedule_slot_${timeSlotNumber}`),
-                ],
-            },
-        ],
+        toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
             await tuya.onEventSetLocalTime(type, data, device);
 
@@ -840,7 +833,7 @@ module.exports = [
                 [1, null, valueConverterLocal.wateringState],
                 // disable optimistic state reporting (device may not turn on when battery is low)
                 [1, 'state', tuya.valueConverter.onOff, {optimistic: false}],
-                [5, 'timer', tuya.valueConverter.range(1, 599)],
+                [5, 'timer', tuya.valueConverter.raw],
                 [6, 'time_left', tuya.valueConverter.raw],
                 [11, 'battery', tuya.valueConverter.raw],
                 [108, 'frost_lock', tuya.valueConverter.onOff],
