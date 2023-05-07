@@ -883,7 +883,8 @@ module.exports = [
                 .withRunningMode(['off', 'heat'])
                 .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
                 .withLocalTemperature()
-                .withPiHeatingDemand(ea.STATE_GET),
+                .withPiHeatingDemand(ea.STATE_GET)
+                .withWeeklySchedule(['heat']),
             exposes.binary('vacation_mode', ea.STATE_GET, true, false)
                 .withDescription('When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.'),
         ],
