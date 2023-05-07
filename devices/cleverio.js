@@ -33,4 +33,18 @@ module.exports = [
         toZigbee: [],
         configure: tuya.configureMagicPacket,
     },
+    {
+        fingerprint: [{modelID: 'SM0202', manufacturerName: '_TYZB01_z2umiwvq'}],
+        model: 'SS200',
+        vendor: 'Cleverio',
+        description: 'Cleverio Smart Motion Sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
 ];
