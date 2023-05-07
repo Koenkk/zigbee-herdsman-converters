@@ -388,7 +388,6 @@ const valueConverterLocal = {
                     .find((ts) =>ts.state === 'ON' && ts.start_hour === now.getHours() && ts.start_minute === now.getMinutes() && ts.timer > 0);
 
                 if (timeslot) {
-                    meta.logger.error(`Setup time slot h${timeslot.start_hour}:m${timeslot.start_minute}`);
                     const iterationDuration = timeslot.timer + timeslot.pause;
                     // automatic watering detected
                     globalStore.putValue(meta.device, 'watering_timer_active_time_slot', {
@@ -412,17 +411,14 @@ const valueConverterLocal = {
                     // scheduling was interrupted by turning watering on manually
                     (result.state === 'ON' && result.state != meta.state.state && meta.state.time_left > 0)
                 ) {
-                    meta.logger.error(`Remove timeslot reporting.`);
                     // reporting is no longer necessary
                     clearInterval(ts.iteration_inverval);
                     globalStore.clearValue(meta.device, 'watering_timer_active_time_slot');
                 } else if (result.state === 'OFF' && result.state !== meta.state.state) {
-                    meta.logger.error(`Skip timeslot reporting for this iteration.`);
                     // turned off --> disable reporting for this iteration only
                     clearInterval(ts.iteration_inverval);
                     ts.iteration_inverval = null;
                 } else if (result.state === 'ON' && result.state !== meta.state.state && meta.state.time_left === 0) {
-                    meta.logger.error(`Prepare timeslot reporting ${ts.timer}m.`);
                     // automatic scheduling detected (reported as ON, but without any info about duration)
                     ts.iteration_report = true;
                     ts.iteration_start_timestamp = Date.now();
@@ -433,9 +429,7 @@ const valueConverterLocal = {
                             const wateringEndTime = ts.iteration_start_timestamp + ts.timer * 60 * 1000;
                             const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
                             if (timeLeftInMinutes > 0) {
-                                meta.logger.error(`Report time_left ${timeLeftInMinutes}m.`);
                                 if (timeLeftInMinutes === 1) {
-                                    meta.logger.error(`Disable interval within interval`);
                                     clearInterval(interval);
                                 }
                                 publish({
