@@ -164,6 +164,9 @@ module.exports = [
         },
     },
     {
+        fingerprint: [
+            {type: 'EndDevice', manufacturerName: 'SONOFF', modelID: 'SNZB-02D'}
+        ],
         zigbeeModel: ['SNZB-02D'],
         model: 'SNZB-02D',
         vendor: 'SONOFF',
