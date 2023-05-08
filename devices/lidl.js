@@ -741,37 +741,22 @@ module.exports = [
         exposes: [
             e.battery(),
             tuya.exposes.switch(),
-            exposes
-                .numeric('timer', ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(599)
-                .withUnit('min')
+            exposes.numeric('timer', ea.STATE_SET).withValueMin(1).withValueMax(599).withUnit('min')
                 .withDescription('Auto off after specific time for manual watering.'),
-            exposes
-                .numeric('time_left', ea.STATE)
-                .withUnit('min')
+            exposes.numeric('time_left', ea.STATE).withUnit('min')
                 .withDescription('Remaining time until the watering turns off.'),
-            exposes
-                .binary('frost_lock', ea.STATE, 'ON', 'OFF')
+            exposes.binary('frost_lock', ea.STATE, 'ON', 'OFF')
                 .withDescription(
                     'Indicates if the frost guard is currently active. ' +
                     'If the temperature drops below 5° C, device activates frost guard and disables irrigation. ' +
                     'You need to reset the frost guard to activate irrigation again. Note: There is no way to enable frost guard manually.',
                 ),
-            exposes
-                .enum('reset_frost_lock', ea.SET, ['RESET'])
-                .withDescription('Resets frost lock to make the device workable again.'),
-            exposes
-                .enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
+            exposes.enum('reset_frost_lock', ea.SET, ['RESET']).withDescription('Resets frost lock to make the device workable again.'),
+            exposes.enum('schedule_mode', ea.STATE, ['OFF', 'WEEKDAY', 'PERIODIC'])
                 .withDescription('Scheduling mode that is currently in use.'),
-            exposes
-                .numeric('schedule_periodic', ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(7)
-                .withUnit('day')
+            exposes.numeric('schedule_periodic', ea.STATE_SET).withValueMin(0).withValueMax(7).withUnit('day')
                 .withDescription('Watering by periodic interval: Irrigate every n days'),
-            exposes
-                .composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
+            exposes.composite('schedule_weekday', 'schedule_weekday', ea.STATE_SET)
                 .withDescription('Watering by weekday: Irrigate individually for each day.')
                 .withFeature(exposes.binary('monday', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(exposes.binary('tuesday', ea.STATE_SET, 'ON', 'OFF'))
@@ -781,51 +766,19 @@ module.exports = [
                 .withFeature(exposes.binary('saturday', ea.STATE_SET, 'ON', 'OFF'))
                 .withFeature(exposes.binary('sunday', ea.STATE_SET, 'ON', 'OFF')),
             ...[1, 2, 3, 4, 5, 6].map((timeSlotNumber) =>
-                exposes
-                    .composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
+                exposes.composite(`schedule_slot_${timeSlotNumber}`, `schedule_slot_${timeSlotNumber}`, ea.STATE_SET)
                     .withDescription(`Watering time slot ${timeSlotNumber}`)
-                    .withFeature(
-                        exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'),
-                    )
-                    .withFeature(
-                        exposes
-                            .numeric('start_hour', ea.STATE_SET)
-                            .withUnit('h')
-                            .withValueMin(0)
-                            .withValueMax(23)
-                            .withDescription('Starting time (hour)'),
-                    )
-                    .withFeature(
-                        exposes
-                            .numeric('start_minute', ea.STATE_SET)
-                            .withUnit('min')
-                            .withValueMin(0)
-                            .withValueMax(59)
-                            .withDescription('Starting time (minute)'),
-                    )
-                    .withFeature(
-                        exposes
-                            .numeric('timer', ea.STATE_SET)
-                            .withUnit('min')
-                            .withValueMin(1)
-                            .withValueMax(599)
-                            .withDescription('Auto off after specific time for scheduled watering.'),
-                    )
-                    .withFeature(
-                        exposes
-                            .numeric('pause', ea.STATE_SET)
-                            .withUnit('min')
-                            .withValueMin(0)
-                            .withValueMax(599)
-                            .withDescription('Pause after each iteration.'),
-                    )
-                    .withFeature(
-                        exposes
-                            .numeric('iterations', ea.STATE_SET)
-                            .withValueMin(1)
-                            .withValueMax(9)
-                            .withDescription('Number of watering iterations. Works only if there is a pause.'),
-                    ),
+                    .withFeature(exposes.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('On/off state of the time slot'))
+                    .withFeature(exposes.numeric('start_hour', ea.STATE_SET).withUnit('h').withValueMin(0).withValueMax(23)
+                        .withDescription('Starting time (hour)'))
+                    .withFeature(exposes.numeric('start_minute', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(59)
+                        .withDescription('Starting time (minute)'))
+                    .withFeature(exposes.numeric('timer', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(599)
+                        .withDescription('Auto off after specific time for scheduled watering.'))
+                    .withFeature(exposes.numeric('pause', ea.STATE_SET).withUnit('min').withValueMin(0).withValueMax(599)
+                        .withDescription('Pause after each iteration.'))
+                    .withFeature(exposes.numeric('iterations', ea.STATE_SET).withValueMin(1).withValueMax(9)
+                        .withDescription('Number of watering iterations. Works only if there is a pause.')),
             ),
         ],
         meta: {
