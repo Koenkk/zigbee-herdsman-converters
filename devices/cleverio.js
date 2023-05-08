@@ -37,7 +37,7 @@ module.exports = [
         fingerprint: [{modelID: 'SM0202', manufacturerName: '_TYZB01_z2umiwvq'}],
         model: 'SS200',
         vendor: 'Cleverio',
-        description: 'Cleverio Smart Motion Sensor',
+        description: 'Smart motion sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
