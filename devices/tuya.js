@@ -901,7 +901,7 @@ const fzLocal = {
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
-            if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
+            if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (key in result) {
                         const value = result[key];
@@ -3101,7 +3101,8 @@ module.exports = [
             await reporting.rmsCurrent(endpoint, {change: 50});
             await reporting.activePower(endpoint, {change: 10});
             await reporting.currentSummDelivered(endpoint);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            const acCurrentDivisor = device.manufacturerName === '_TZ3000_typdpbpg' ? 2000 : 1000;
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor, acCurrentMultiplier: 1});
             endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
             device.save();
         },
