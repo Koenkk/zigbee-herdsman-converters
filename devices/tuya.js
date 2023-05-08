@@ -1456,7 +1456,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3000_msl6wxk9'}, {modelID: 'TS0202', manufacturerName: '_TZ3040_fwxuzcf4'}],
+        fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_msl6wxk9', '_TZ3040_fwxuzcf4', '_TZ3040_msl6wxk9']),
         model: 'ZM-35H-Q',
         vendor: 'TuYa',
         description: 'Motion sensor',
@@ -1468,21 +1468,8 @@ module.exports = [
         ],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
-            tuya.whitelabel('Aubess', '40ZH-O', 'Motion sensor', ['_TZ3000_msl6wxk9']),
+            tuya.whitelabel('Aubess', '40ZH-O', 'Motion sensor', ['_TZ3000_msl6wxk9', '_TZ3040_msl6wxk9']),
         ],
-    },
-    {
-        fingerprint: [{modelID: 'TS0202', manufacturerName: '_TZ3040_msl6wxk9'}],
-        model: '40ZH-O',
-        vendor: 'TuYa',
-        description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, fzLocal.ZM35HQ_battery],
-        toZigbee: [tz.ZM35HQ_attr],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(),
-            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
-        ],
-        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint('TS0202', ['_TZ3000_mcxw5ehu', '_TZ3000_6ygjfyll', '_TZ3040_6ygjfyll']),
@@ -4349,9 +4336,6 @@ module.exports = [
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
             exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
-        ],
-        whiteLabel: [
-            tuya.whitelabel('TuYa', 'ZY-M100-S', 'Human presence sensor', ['_TZE204_ztc6ggyl']),
         ],
     },
     {
