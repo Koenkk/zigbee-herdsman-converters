@@ -899,15 +899,18 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
 
-            // Skip the first reported 0 values as this may be a false measurement
+            // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
             if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
-                    const value = result[key];
-                    if (value === 0 && globalStore.getValue(msg.endpoint, key) !== 0) {
-                        delete result[key];
+                    if (key in result) {
+                        const value = result[key];
+                        clearTimeout(globalStore.getValue(msg.endpoint, key));
+                        if (value === 0) {
+                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), 5 * 1000));
+                            delete result[key];
+                        }
                     }
-                    globalStore.putValue(msg.endpoint, key, value);
                 }
             }
             return result;
@@ -1201,7 +1204,9 @@ module.exports = [
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_rk2yzt0u'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_o4cjetlm'}, {manufacturerName: '_TZ3000_o4cjetlm'},
             {modelID: 'TS0001', manufacturerName: '_TZ3000_iedbgyxt'}, {modelID: 'TS0001', manufacturerName: '_TZ3000_h3noz0a5'},
-            {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'}],
+            {modelID: 'TS0001', manufacturerName: '_TYZB01_4tlksk8a'}, {modelID: 'TS0011', manufacturerName: '_TYZB01_rifa0wlb'},
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_5ucujjts'},
+        ],
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
@@ -1284,6 +1289,8 @@ module.exports = [
             tuya.whitelabel('Lidl', 'HG08010', 'Livarno Home outdoor spotlight', ['_TZ3210_umi6vbsz']),
             tuya.whitelabel('Lidl', 'HG08008', 'Livarno Home LED ceiling light', ['_TZ3210_p9ao60da']),
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
+            tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa']),
+            tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
         ],
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1291,13 +1298,12 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_c0s1xloa', '_TZ3210_iystcadi']),
+        fingerprint: tuya.fingerprint('TS0505B', ['_TZ3210_iystcadi']),
         model: 'TS0505B_2',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
         whiteLabel: [
             tuya.whitelabel('Lidl', '14149505L/14149506L_2', 'Livarno Lux light bar RGB+CCT (black/white)', ['_TZ3210_iystcadi']),
-            tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa']),
         ],
         toZigbee: [tz.on_off, tzLocal.led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
@@ -1818,7 +1824,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_aqnazj70', '_TZE200_k6jhsr0q', '_TZE200_di3tfv5b', '_TZE200_mexisfik', '_TZE204_6wi2mope']),
         model: 'TS0601_switch_4_gang',
         vendor: 'TuYa',
         description: '4 gang switch',
@@ -1921,6 +1927,7 @@ module.exports = [
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_kyfqmmyl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_2hf7x9n3'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_atpwqgml'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_bynnczcb'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_atpwqgml'}],
         model: 'TS0601_switch_3_gang',
@@ -2205,7 +2212,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Wireless switch with 4 buttons',
         whiteLabel: [{vendor: 'Lonsonho', model: 'TS0044'}, {vendor: 'Haozee', model: 'ESW-OZAA-EU'},
-            {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'}],
+            {vendor: 'LoraTap', model: 'SS6400ZB'}, {vendor: 'Moes', model: 'ZT-SY-EU-G-4S-WH-MS'},
+            tuya.whitelabel('Moes', 'ZT-SR-EU4', 'Star Ring 4 Gang Scene Switch', ['_TZ3000_a4xycprs'])],
         fromZigbee: [fz.tuya_on_off_action, fz.battery],
         exposes: [e.battery(), e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
             '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold'])],
@@ -2347,7 +2355,8 @@ module.exports = [
         description: '1 gang switch',
         extend: tuya.extend.switch(),
         whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0001', description: 'Valve control'}, {vendor: 'Lonsonho', model: 'X701'},
-            {vendor: 'Bandi', model: 'BDS03G1'}],
+            {vendor: 'Bandi', model: 'BDS03G1'},
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -2391,8 +2400,9 @@ module.exports = [
         vendor: 'TuYa',
         description: '2 gang switch module',
         whiteLabel: [
-            {vendor: 'OXT', model: 'SWTZ22'}, {vendor: 'Nous', model: 'L13Z'},
+            {vendor: 'OXT', model: 'SWTZ22'},
             tuya.whitelabel('pcblab.io', 'RR620ZB', '2 gang Zigbee switch module', ['_TZ3000_4xfqlgqo']),
+            tuya.whitelabel('Nous', 'L13Z', '2 gang switch', ['_TZ3000_ruxexjfz']),
         ],
         extend: tuya.extend.switch({switchType: true, endpoints: ['l1', 'l2']}),
         endpoint: (device) => {
@@ -3113,7 +3123,9 @@ module.exports = [
         description: 'Smart plug (with power monitoring by polling)',
         vendor: 'TuYa',
         whiteLabel: [{vendor: 'VIKEFON', model: 'TS011F'}, {vendor: 'BlitzWolf', model: 'BW-SHP15'},
-            {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'}],
+            {vendor: 'Avatto', model: 'MIUCOT10Z'}, {vendor: 'Neo', model: 'NAS-WR01B'}, {vendor: 'Neo', model: 'PLUG-001SPB2'},
+            tuya.whitelabel('TuYa', 'BSD29', 'Smart plug (with power monitoring by polling)', ['_TZ3000_okaz9tjs']),
+        ],
         ota: ota.zigbeeOTA,
         extend: tuya.extend.switch({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4218,7 +4230,8 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS004F', manufacturerName: '_TZ3000_4fjiwweb'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_uri7ongn'},
-            {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'}],
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_ixla93vd'}, {modelID: 'TS004F', manufacturerName: '_TZ3000_qja6nq5z'},
+            {modelID: 'TS004F', manufacturerName: '_TZ3000_abrsvsou'}],
         model: 'ERS-10TZBVK-AA',
         vendor: 'TuYa',
         description: 'Smart knob',
@@ -4542,7 +4555,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6', '_TZ3210_weaqkhab']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_zxbtub8r', '_TZ3210_k1msuvg6']),
         model: 'TS110E_1gang_1',
         vendor: 'TuYa',
         description: '1 channel dimmer',
@@ -4554,14 +4567,7 @@ module.exports = [
             [tz.light_onoff_brightness],
             [tzLocal.TS110E_light_onoff_brightness],
         ),
-        exposes: (device, options) => {
-            const exps = [e.light_brightness().withMinBrightness().withMaxBrightness(), e.linkquality()];
-            if (!device || !device.manufacturerName === '_TZ3210_weaqkhab') {
-                // _TZ3210_weaqkhab doesn't support power_on_behavior and switch_type
-                exps.push(e.power_on_behavior(), tuya.exposes.switchType());
-            }
-            return exps;
-        },
+        exposes: [e.light_brightness().withMinBrightness().withMaxBrightness()],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
@@ -4569,7 +4575,7 @@ module.exports = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia']),
+        fingerprint: tuya.fingerprint('TS110E', ['_TZ3210_ngqk6jia', '_TZ3210_weaqkhab']),
         model: 'TS110E_1gang_2',
         vendor: 'TuYa',
         description: '1 channel dimmer',
@@ -4829,6 +4835,223 @@ module.exports = [
         },
         whiteLabel: [
             tuya.whitelabel('TONGOU', 'TO-Q-SY2-163JZT', 'Smart circuit breaker', ['_TZ3000_cayepv1a']),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_m8f3z8ju']),
+        model: 'QS-Zigbee-SEC02-U',
+        vendor: 'TuYa',
+        description: 'Zigbee 3.0 smart light switch module 2 gang',
+        toZigbee: [tz.on_off],
+        extend: extend.switch(),
+        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2')],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0001', manufacturerName: '_TZ3000_bmqxalil'},
+        ],
+        model: 'TS0001_switch_1_gang',
+        vendor: 'TuYa',
+        description: '1-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022454', '1 Gang switch with backlight', ['_TZ3000_bmqxalil']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0002', manufacturerName: '_TZ3000_in5qxhtt'},
+        ],
+        model: 'TS0002_switch_2_gang',
+        vendor: 'TuYa',
+        description: '2-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['l1', 'l2']}),
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022463', '2 Gang switch with backlight', ['_TZ3000_in5qxhtt']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0003', manufacturerName: '_TZ3000_pv4puuxi'},
+        ],
+        model: 'TS0003_switch_3_gang',
+        vendor: 'TuYa',
+        description: '3-Gang switch with backlight',
+        extend: tuya.extend.switch({powerOnBehavior2: true, backlightModeOffOn: true, endpoints: ['left', 'center', 'right']}),
+        endpoint: (device) => {
+            return {'left': 1, 'center': 2, 'right': 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022474', '3 Gang switch with backlight', ['_TZ3000_pv4puuxi']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_hewlydpz'},
+        ],
+        model: 'TS0601_switch_4_gang_2',
+        vendor: 'TuYa',
+        description: '4-Gang switch with backlight',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            tuya.exposes.switch().withEndpoint('l3'),
+            tuya.exposes.switch().withEndpoint('l4'),
+            tuya.exposes.backlightModeOffOn(),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [2, 'state_l2', tuya.valueConverter.onOff],
+                [3, 'state_l3', tuya.valueConverter.onOff],
+                [4, 'state_l4', tuya.valueConverter.onOff],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022714', '4 Gang switch with backlight', ['_TZE200_hewlydpz']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_p6vz3wzt'},
+        ],
+        model: 'TS0601_cover_5',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022483', 'Curtain/blind switch', ['_TZE200_p6vz3wzt']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_jhkttplm'},
+        ],
+        model: 'TS0601_cover_with_1_switch',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch with 1 Gang switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            tuya.exposes.switch().withEndpoint('l1'),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [101, 'state_l1', tuya.valueConverter.onOff],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022493', 'Curtain/blind switch with 1 Gang switch', ['_TZE200_jhkttplm']),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_5nldle7w'},
+        ],
+        model: 'TS0601_cover_with_2_switch',
+        vendor: 'TuYa',
+        description: 'Curtain/blind switch with 2 Gang switch',
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            tuya.exposes.switch().withEndpoint('l1'),
+            tuya.exposes.switch().withEndpoint('l2'),
+            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
+        ],
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'calibration', tuya.valueConverterBasic.lookup({'START': tuya.enum(0), 'END': tuya.enum(1)})],
+                [7, 'backlight_mode', tuya.valueConverter.onOff],
+                [8, 'motor_steering', tuya.valueConverterBasic.lookup({'FORWARD': tuya.enum(0), 'BACKWARD': tuya.enum(1)})],
+                [101, 'state_l2', tuya.valueConverter.onOff],
+                [102, 'state_l1', tuya.valueConverter.onOff],
+                [103, 'child_lock', tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('Homeetec', '37022173', 'Curtain/blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
         ],
     },
 ];
