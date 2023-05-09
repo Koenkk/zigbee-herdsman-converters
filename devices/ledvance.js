@@ -16,7 +16,7 @@ module.exports = [
         model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
         description: 'Smart Zigbee outdoor plug',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         ota: ota.ledvance,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
