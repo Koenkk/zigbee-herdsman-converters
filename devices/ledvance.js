@@ -12,7 +12,7 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['Outdoor Plug', 'Plug Value'],
+        zigbeeModel: ['Outdoor Plug'],
         model: 'AC26940/AC31266',
         vendor: 'LEDVANCE',
         description: 'Smart Zigbee outdoor plug',
@@ -299,7 +299,7 @@ module.exports = [
         ota: ota.ledvance,
     },
     {
-        zigbeeModel: ['PLUG COMPACT EU T'],
+        zigbeeModel: ['PLUG COMPACT EU T', 'Plug Value'],
         model: '4058075729322',
         vendor: 'LEDVANCE',
         description: 'SMART+ Compact Outdoor Plug EU',
