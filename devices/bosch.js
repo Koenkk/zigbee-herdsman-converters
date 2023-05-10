@@ -588,7 +588,7 @@ const definition = [
         meta: {battery: {voltageToPercentage: '3V_2500'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', '64684']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 64684]);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.configureReporting(0xFCAC, [{
