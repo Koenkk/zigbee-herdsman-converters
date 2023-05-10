@@ -2504,6 +2504,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cf1sl3tj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ol5jlkkr'},
+            {modelID: 'TS0601', manufacturerName: 'Shenzhen Golden Security Technology'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
@@ -2541,6 +2542,7 @@ module.exports = [
             {vendor: 'Zemismart', model: 'BCM500DS-TYZ', description: 'Curtain motor'},
             {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
+            {vendor: 'Shenzhen Golden Security Technology', model: 'GM46'},
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
