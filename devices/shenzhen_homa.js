@@ -43,7 +43,7 @@ module.exports = [
         model: 'HOMA1001_CT',
         vendor: 'Shenzhen Homa',
         description: 'Smart LED driver CT',
-        extend: extend.light_onoff_brightness_colortemp(),
+        extend: extend.light_onoff_brightness(),
     },
     {
         fingerprint: [
