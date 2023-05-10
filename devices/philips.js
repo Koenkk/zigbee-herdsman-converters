@@ -3143,4 +3143,11 @@ module.exports = [
         description: 'Hue White Ambiance Devote',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
+    {
+        zigbeeModel: ['LLM011'],
+        model: '800094',
+        vendor: 'Philips',
+        description: 'Hue Phoenix dimmable LED smart pendant light',
+        extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
+    },
 ];
