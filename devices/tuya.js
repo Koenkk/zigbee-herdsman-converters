@@ -2065,11 +2065,14 @@ module.exports = [
         model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
-        whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-IS4'}],
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fzLocal.TS0201_humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            {vendor: 'BlitzWolf', model: 'BW-IS4'},
+            tuya.whitelabel('TuYa', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
+        ],
     },
     {
         fingerprint: [
