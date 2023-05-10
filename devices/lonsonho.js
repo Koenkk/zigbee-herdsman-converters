@@ -197,7 +197,7 @@ module.exports = [
         model: 'QS-Zigbee-S05-LN',
         vendor: 'Lonsonho',
         description: '1 gang switch module with neutral wire',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         toZigbee: [tz.power_on_behavior, tz.TYZB01_on_off],
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
