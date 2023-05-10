@@ -3147,7 +3147,7 @@ module.exports = [
         zigbeeModel: ['LLM011'],
         model: '800094',
         vendor: 'Philips',
-        description: 'Hue Phoenix Dimmable LED Smart Pendant Light',
+        description: 'Hue Phoenix dimmable LED smart pendant light',
         extend: philips.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500]}),
     },
 ];
