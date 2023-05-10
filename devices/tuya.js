@@ -1443,6 +1443,7 @@ module.exports = [
             {vendor: 'Tesla Smart', model: 'TS0202'},
             tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
             tuya.whitelabel('TuYa', 'ZMS01', 'Motion sensor', ['_TZ3000_otvn3lne']),
+            tuya.whitelabel('Nous', 'E2', 'Motion sensor', ['_TZ3000_h4wnrtck']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
