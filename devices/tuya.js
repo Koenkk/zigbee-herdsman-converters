@@ -1767,7 +1767,7 @@ module.exports = [
         description: 'Motion Sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, 
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [e.tamper(), e.battery(), e.occupancy()],
         meta: {
