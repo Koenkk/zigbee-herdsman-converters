@@ -2573,6 +2573,44 @@ module.exports = [
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
+        fingerprint: [
+            { modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn' },
+        ],
+        model: 'TS0601_cover_3',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        whiteLabel: [
+            {vendor: 'TuYa', model: 'LY-108'},
+        ],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            exposes.text('work_state', ea.STATE),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.battery(),
+            exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
+            exposes.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
+            exposes.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
+            exposes.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('Tuya', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
+                [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
+                [107, 'factory_reset', tuya.valueConverter.setLimit],
+            ],
+        },
+    },
+    {
         zigbeeModel: ['kud7u2l'],
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_ckud7u2l'},
