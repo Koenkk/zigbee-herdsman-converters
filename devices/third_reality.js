@@ -205,7 +205,6 @@ module.exports = [
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
             device.powerSource = 'Battery';
             device.save();
-	    },
+        },
     },
-
 ];
