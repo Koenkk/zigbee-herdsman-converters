@@ -2591,7 +2591,7 @@ module.exports = [
             exposes.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
         ],
         whiteLabel: [
-            tuya.whitelabel('Tuya', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
+            tuya.whitelabel('TuYa', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
         ],
         meta: {
             tuyaDatapoints: [
