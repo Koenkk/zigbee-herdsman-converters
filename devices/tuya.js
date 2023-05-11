@@ -1379,7 +1379,6 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [{vendor: 'Linkoze', model: 'LKMSZ001'}],
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.action(['single', 'double', 'hold']),
             exposes.enum('light', ea.STATE, ['dark', 'bright'])],
         meta: {
@@ -1388,6 +1387,10 @@ module.exports = [
                 [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'double': 1, 'hold': 2})],
             ],
         },
+        whiteLabel: [
+            {vendor: 'Linkoze', model: 'LKMSZ001'},
+            tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
@@ -2321,6 +2324,8 @@ module.exports = [
             device.save();
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+            tuya.whitelabel('pcblab.io', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_xkap8wtb']),
