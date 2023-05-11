@@ -1762,9 +1762,9 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mgxy2d9f'}],
-        model: 'TS0601_SP02_Motion_Sensor',
+        model: 'TS0601_motion_sensor_2',
         vendor: 'TuYa',
-        description: 'Motion Sensor',
+        description: 'Motion sensor',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -4131,7 +4131,7 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_auin8mzr'}],
-        model: 'TS0601_motion_sensor',
+        model: 'TS0601_motion_sensor_1',
         vendor: 'TuYa',
         description: 'Human presence sensor AIR',
         fromZigbee: [fz.tuya_motion_sensor],
