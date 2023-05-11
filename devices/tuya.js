@@ -2576,7 +2576,7 @@ module.exports = [
         fingerprint: [
             { modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn' },
         ],
-        model: 'TS0601_cover_3',
+        model: 'TS0601_cover_6',
         vendor: 'TuYa',
         description: 'Cover motor',
         whiteLabel: [
