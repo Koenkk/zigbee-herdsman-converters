@@ -196,7 +196,7 @@ module.exports = [
         zigbeeModel: ['3RVS01031Z'],
         model: '3RVS01031Z',
         vendor: 'Third Reality',
-        description: 'zigbee vibration sensor',
+        description: 'Zigbee vibration sensor',
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage()],
