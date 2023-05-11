@@ -192,4 +192,20 @@ module.exports = [
             device.save();
         },
     },
+    {
+        zigbeeModel: ['3RVS01031Z'],
+        model: '3RVS01031Z',
+        vendor: 'Third Reality',
+        description: 'zigbee vibration sensor',
+        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+            device.powerSource = 'Battery';
+            device.save();
+	    },
+    },
+
 ];
