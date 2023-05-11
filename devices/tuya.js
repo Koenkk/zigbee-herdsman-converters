@@ -2324,7 +2324,8 @@ module.exports = [
             device.save();
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
-            tuya.whitelabel('pcblab.io', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
         ],
     },
     {
