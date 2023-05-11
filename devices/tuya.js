@@ -1761,6 +1761,25 @@ module.exports = [
             exposes.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_mgxy2d9f'}],
+        model: 'TS0601_SP02_Motion_Sensor',
+        vendor: 'TuYa',
+        description: 'Motion Sensor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, 
+        configure: tuya.configureMagicPacket,
+        exposes: [e.tamper(), e.battery(), e.occupancy()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [5, 'tamper', tuya.valueConverter.raw],
+            ],
+        },
+        whiteLabel: [{vendor: 'iAlarm', model: 'SP02'}, {vendor: 'Meian', model: 'SP02'}],
+    },
+    {
         zigbeeModel: ['TS130F'],
         model: 'TS130F',
         vendor: 'TuYa',
