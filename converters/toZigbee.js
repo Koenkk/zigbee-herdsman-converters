@@ -2365,6 +2365,18 @@ const converters = {
             await entity.read('aqaraOpple', [0x0000], manufacturerOptions.xiaomi);
         },
     },
+    aqara_detection_distance: {
+        key: ['detection_distance'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'10mm': 1, '20mm': 2, '30mm': 3};
+            await entity.write('aqaraOpple', {0x010C: {value: lookup[value], type: 0x20}}, manufacturerOptions.xiaomi);
+            return {state: {detection_distance: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x010C], manufacturerOptions.xiaomi);
+        },
+    },
     aqara_detection_interval: {
         key: ['detection_interval'],
         convertSet: async (entity, key, value, meta) => {
