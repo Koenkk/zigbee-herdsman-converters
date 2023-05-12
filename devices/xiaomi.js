@@ -754,7 +754,7 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara P1 door & window contact sensor',
         fromZigbee: [fz.xiaomi_contact, fz.ias_contact_alarm_1, fz.aqara_opple],
-        toZigbee: [tz.aqara_detection_distance],
+        toZigbee: [tzLocal.aqara_detection_distance],
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
             exposes.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
