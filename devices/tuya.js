@@ -2542,7 +2542,7 @@ module.exports = [
             {vendor: 'Zemismart', model: 'BCM500DS-TYZ', description: 'Curtain motor'},
             {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
-            {vendor: 'Shenzhen Golden Security Technology', model: 'GM46'},
+            tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
