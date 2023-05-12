@@ -1389,7 +1389,6 @@ module.exports = [
         },
         whiteLabel: [
             {vendor: 'Linkoze', model: 'LKMSZ001'},
-            tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
         ],
     },
     {
@@ -1410,6 +1409,9 @@ module.exports = [
             await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_dr6sduka'},
