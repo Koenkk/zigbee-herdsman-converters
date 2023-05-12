@@ -10,7 +10,7 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
-const {printNumberAsHex, printNumbersAsHexSequence} = utils;
+const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
 
 const xiaomiExtend = {
