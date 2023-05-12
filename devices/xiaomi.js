@@ -35,12 +35,11 @@ const preventReset = async (type, data, device) => {
     ) {
         return;
     }
-    const options = {manufacturerCode: 0x115f};
     const payload = {[0xfff0]: {
         value: [0xaa, 0x10, 0x05, 0x41, 0x47, 0x01, 0x01, 0x10, 0x01],
         type: 0x41,
     }};
-    await device.getEndpoint(1).write('genBasic', payload, options);
+    await device.getEndpoint(1).write('genBasic', payload, {manufacturerCode});
 };
 
 const daysLookup = {
@@ -354,6 +353,18 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    aqara_detection_distance: {
+        key: ['detection_distance'],
+        convertSet: async (entity, key, value, meta) => {
+            value = value.toLowerCase();
+            const lookup = {'10mm': 1, '20mm': 2, '30mm': 3};
+            await entity.write('aqaraOpple', {0x010C: {value: lookup[value], type: 0x20}}, {manufacturerCode});
+            return {state: {detection_distance: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read('aqaraOpple', [0x010C], {manufacturerCode});
+        },
+    },
     aqara_trv: {
         key: ['system_mode', 'preset', 'window_detection', 'valve_detection', 'child_lock', 'away_preset_temperature',
             'calibrate', 'sensor', 'sensor_temp', 'identify', 'schedule', 'schedule_settings'],
@@ -747,9 +758,8 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         exposes: [e.contact(), e.battery(), e.battery_voltage(),
             exposes.binary('battery_cover', ea.STATE, 'OPEN', 'CLOSE'),
-            // eslint-disable-next-line max-len
-            exposes.enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm']).withDescription('The sensor will be considered "off" within the set distance. ' +
-            'Please press the device button before setting'),
+            exposes.enum('detection_distance', ea.ALL, ['10mm', '20mm', '30mm'])
+                .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
         ],
     },
     {
