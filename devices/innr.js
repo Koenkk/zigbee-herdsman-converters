@@ -67,7 +67,7 @@ module.exports = [
         model: 'FL 120 C',
         vendor: 'Innr',
         description: 'Color Flex LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true}),
+        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHS: true, disablePowerOnBehavior: true}),
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {

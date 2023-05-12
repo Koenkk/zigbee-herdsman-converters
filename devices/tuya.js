@@ -1291,6 +1291,7 @@ module.exports = [
             tuya.whitelabel('Lidl', 'HG08007', 'Livarno Home outdoor LED band', ['_TZ3210_zbabx9wh']),
             tuya.whitelabel('Lidl', '399629_2110', 'Livarno Lux Ceiling Panel RGB+CCT', ['_TZ3210_c0s1xloa']),
             tuya.whitelabel('Skydance', 'WZ5_dim_2', 'Zigbee & RF 5 in 1 LED controller (DIM mode)', ['_TZB210_3zfp8mki']),
+            tuya.whitelabel('TuYa', 'TS0505B_1_1', 'Zigbee 3.0 18W led light bulb E27 RGBCW', ['_TZ3210_jd3z4yig']),
         ],
         extend: tuya.extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 500], noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1378,7 +1379,6 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [{vendor: 'Linkoze', model: 'LKMSZ001'}],
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.action(['single', 'double', 'hold']),
             exposes.enum('light', ea.STATE, ['dark', 'bright'])],
         meta: {
@@ -1387,6 +1387,10 @@ module.exports = [
                 [101, 'action', tuya.valueConverterBasic.lookup({'single': 0, 'double': 1, 'hold': 2})],
             ],
         },
+        whiteLabel: [
+            {vendor: 'Linkoze', model: 'LKMSZ001'},
+            tuya.whitelabel('TuYa', '809WZT', 'Motion sensor', ['_TZ3040_bb6xaihh']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0202', manufacturerName: '_TYZB01_jytabjkb'},
@@ -1442,6 +1446,7 @@ module.exports = [
             {vendor: 'Tesla Smart', model: 'TS0202'},
             tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
             tuya.whitelabel('TuYa', 'ZMS01', 'Motion sensor', ['_TZ3000_otvn3lne']),
+            tuya.whitelabel('Nous', 'E2', 'Motion sensor', ['_TZ3000_h4wnrtck']),
         ],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
@@ -1770,6 +1775,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'LoraTap', model: 'SC400'},
             tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
+            tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
         ],
         exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
@@ -2064,11 +2070,14 @@ module.exports = [
         model: 'TS0201',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with display',
-        whiteLabel: [{vendor: 'BlitzWolf', model: 'BW-IS4'}],
         fromZigbee: [fzLocal.TS0201_battery, fz.temperature, fzLocal.TS0201_humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
+        whiteLabel: [
+            {vendor: 'BlitzWolf', model: 'BW-IS4'},
+            tuya.whitelabel('TuYa', 'TS0201_1', 'Zigbee 3.0 temperature humidity sensor with display', ['_TZ3210_alxkwn0h']),
+        ],
     },
     {
         fingerprint: [
@@ -2315,6 +2324,9 @@ module.exports = [
             device.save();
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
         },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'XSH01B', '2 gang switch module with power monitoring', ['_TZ3000_irrmjcgi']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS000F', ['_TZ3000_xkap8wtb']),
@@ -2536,13 +2548,13 @@ module.exports = [
             {vendor: 'TuYa', model: 'DT82LEMA-1.2N'},
             {vendor: 'TuYa', model: 'ZD82TN', description: 'Curtain motor'},
             {vendor: 'Larkkey', model: 'ZSTY-SM-1SRZG-EU'},
-            {vendor: 'Zemismart', model: 'ZM85EL-2Z', description: 'Roman Rod I type curtains track'},
             {vendor: 'Zemismart', model: 'AM43', description: 'Roller blind motor'},
             {vendor: 'Zemismart', model: 'M2805EGBZTN', description: 'Tubular motor'},
             {vendor: 'Zemismart', model: 'BCM500DS-TYZ', description: 'Curtain motor'},
             {vendor: 'A-OK', model: 'AM25', description: 'Tubular motor'},
             {vendor: 'Alutech', model: 'AM/R-Sm', description: 'Tubular motor'},
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
+            tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj']),
         ],
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
@@ -2568,6 +2580,41 @@ module.exports = [
         fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+    },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_cpbo62rn'},
+        ],
+        model: 'TS0601_cover_6',
+        vendor: 'TuYa',
+        description: 'Cover motor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            exposes.text('work_state', ea.STATE),
+            e.cover_position().setAccess('position', ea.STATE_SET),
+            e.battery(),
+            exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
+            exposes.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
+            exposes.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
+            exposes.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
+        ],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
+                [2, 'position', tuya.valueConverter.coverPosition],
+                [3, 'position', tuya.valueConverter.raw],
+                [4, 'opening_mode', tuya.valueConverterBasic.lookup({'tilt': tuya.enum(0), 'lift': tuya.enum(1)})],
+                [7, 'work_state', tuya.valueConverterBasic.lookup({'standby': tuya.enum(0), 'success': tuya.enum(1), 'learning': tuya.enum(2)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [101, 'motor_direction', tuya.valueConverterBasic.lookup({'left': tuya.enum(0), 'right': tuya.enum(1)})],
+                [102, 'set_upper_limit', tuya.valueConverterBasic.lookup({'start': tuya.enum(1), 'stop': tuya.enum(0)})],
+                [107, 'factory_reset', tuya.valueConverter.setLimit],
+            ],
+        },
     },
     {
         zigbeeModel: ['kud7u2l'],
