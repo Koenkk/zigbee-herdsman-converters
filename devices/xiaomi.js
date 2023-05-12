@@ -253,7 +253,6 @@ const fzLocal = {
 
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = parseInt(key);
-                const eventKeyHex = printNumberAsHex(eventKey, 4);
 
                 switch (eventKey) {
                 case fp1.constants.region_event_key: {
