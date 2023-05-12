@@ -2504,7 +2504,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_cf1sl3tj'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_b2u1drdv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ol5jlkkr'},
-            {modelID: 'TS0601', manufacturerName: 'Shenzhen Golden Security Technology'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_guvc7pdy'},
             // Roller blinds:
             {modelID: 'TS0601', manufacturerName: '_TZE200_fctwhugx'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_hsgrhjpf'},
