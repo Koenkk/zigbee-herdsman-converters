@@ -287,21 +287,6 @@ const fzLocal = {
                     payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
                 }
-                case 0xf7: {
-                    const valueHexSequence = printNumbersAsHexSequence(value, 2);
-                    log('debug', `Unhandled key ${eventKeyHex} = ${valueHexSequence}`);
-                    break;
-                }
-                case 0x0142:
-                case 0x0143:
-                case 0x0144:
-                case 0x0146: {
-                    log('debug', `Unhandled key ${eventKeyHex} = ${value}`);
-                    break;
-                }
-                default: {
-                    log('warn', `Unknown key ${eventKeyHex} = ${value}`);
-                }
                 }
             });
 
