@@ -10,7 +10,7 @@ const ea = exposes.access;
 const globalStore = require('../lib/store');
 const xiaomi = require('../lib/xiaomi');
 const utils = require('../lib/utils');
-const {printNumberAsHex, printNumbersAsHexSequence} = utils;
+const {printNumbersAsHexSequence} = utils;
 const {fp1, manufacturerCode, trv} = xiaomi;
 
 const xiaomiExtend = {
@@ -253,7 +253,6 @@ const fzLocal = {
 
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = parseInt(key);
-                const eventKeyHex = printNumberAsHex(eventKey, 4);
 
                 switch (eventKey) {
                 case fp1.constants.region_event_key: {
@@ -286,21 +285,6 @@ const fzLocal = {
                     log('debug', `action: Triggered event (region "${regionId}", type "${eventTypeName}")`);
                     payload.action = `region_${regionId}_${eventTypeName}`;
                     break;
-                }
-                case 0xf7: {
-                    const valueHexSequence = printNumbersAsHexSequence(value, 2);
-                    log('debug', `Unhandled key ${eventKeyHex} = ${valueHexSequence}`);
-                    break;
-                }
-                case 0x0142:
-                case 0x0143:
-                case 0x0144:
-                case 0x0146: {
-                    log('debug', `Unhandled key ${eventKeyHex} = ${value}`);
-                    break;
-                }
-                default: {
-                    log('warn', `Unknown key ${eventKeyHex} = ${value}`);
                 }
                 }
             });
