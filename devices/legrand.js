@@ -393,7 +393,7 @@ module.exports = [
         exposes: [e.action([
             'home_arrival', 'home_departure', // ZLGP14
             'press_1', 'press_2', 'press_3', 'press_4', // ZLGP15
-            'daytime_day', 'daytime_night' // ZLGP16
+            'daytime_day', 'daytime_night', // ZLGP16
         ])],
     },
     {
