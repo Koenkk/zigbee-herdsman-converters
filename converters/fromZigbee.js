@@ -5264,16 +5264,20 @@ const converters = {
             return payload;
         },
     },
-    legrand_zlgp15: {
+    legrand_greenpower_254: {
         cluster: 'greenPower',
         type: ['commandNotification', 'commandCommisioningNotification'],
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
             if (commandID === 224) return;
-            const lookup = {0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4'};
+            const lookup = {
+                0x10: 'home_arrival', 0x11: 'home_departure', // ZLGP14
+                0x12: 'daytime_day', 0x13: 'daytime_night', // ZLGP16, yes these commandIDs are lower than ZLGP15s'
+                0x14: 'press_1', 0x15: 'press_2', 0x16: 'press_3', 0x17: 'press_4', // ZLGP15
+            };
             if (!lookup.hasOwnProperty(commandID)) {
-                meta.logger.error(`ZLGP15: missing command '${commandID}'`);
+                meta.logger.error(`GreenPower_254: missing command '${commandID}'`);
             } else {
                 return {action: lookup[commandID]};
             }
