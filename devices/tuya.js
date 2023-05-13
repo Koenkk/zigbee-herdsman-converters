@@ -901,7 +901,7 @@ const fzLocal = {
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
-            if (['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6'].includes(meta.device.manufacturerName)) {
+            if (result && ['_TZ3000_gvn91tmx', '_TZ3000_amdymr7l', '_TZ3000_typdpbpg', '_TZ3000_hdopuwv6'].includes(meta.device.manufacturerName)) {
                 for (const key of ['power', 'current', 'voltage']) {
                     if (key in result) {
                         const value = result[key];
