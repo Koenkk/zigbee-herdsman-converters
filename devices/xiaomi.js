@@ -1759,6 +1759,8 @@ module.exports = [
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x0102], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x010c], {manufacturerCode: 0x115f});
+            // This cluster is not discovered automatically and needs to be explicitly attached to enable OTA
+            utils.attachOutputCluster(device, 'genOta');
         },
         ota: ota.zigbeeOTA,
     },
