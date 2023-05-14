@@ -1089,7 +1089,7 @@ module.exports = [
         description: 'Smart air house keeper',
         fromZigbee: [fz.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('µg/m³'),
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('Âµg/mÂ³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
     },
     {
@@ -1259,8 +1259,8 @@ module.exports = [
         model: 'TS0505B_1',
         vendor: 'TuYa',
         description: 'Zigbee RGB+CCT light',
-        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMD4106W-RGB-ZB'},
-            {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator Ikuü', model: 'S9E27LED9W-RGB-Z'},
+        whiteLabel: [{vendor: 'Mercator IkuÃ¼', model: 'SMD4106W-RGB-ZB'},
+            {vendor: 'TuYa', model: 'A5C-21F7-01'}, {vendor: 'Mercator IkuÃ¼', model: 'S9E27LED9W-RGB-Z'},
             {vendor: 'Aldi', model: 'L122CB63H11A9.0W', description: 'LIGHTWAY smart home LED-lamp - bulb'},
             {vendor: 'Lidl', model: '14153706L', description: 'Livarno smart LED ceiling light'},
             {vendor: 'Zemismart', model: 'LXZB-ZB-09A', description: 'Zemismart LED Surface Mounted Downlight 9W RGBW'},
@@ -1443,7 +1443,7 @@ module.exports = [
         model: 'TS0202',
         vendor: 'TuYa',
         description: 'Motion sensor',
-        whiteLabel: [{vendor: 'Mercator Ikuü', model: 'SMA02P'},
+        whiteLabel: [{vendor: 'Mercator IkuÃ¼', model: 'SMA02P'},
             {vendor: 'TuYa', model: 'TY-ZPR06'},
             {vendor: 'Tesla Smart', model: 'TS0202'},
             tuya.whitelabel('MiBoxer', 'PIR1-ZB', 'PIR sensor', ['_TZ3040_wqmtjsyk']),
@@ -1583,7 +1583,7 @@ module.exports = [
             {vendor: 'Earda', model: 'EDM-1ZAA-EU'},
             {vendor: 'Earda', model: 'EDM-1ZAB-EU'},
             {vendor: 'Earda', model: 'EDM-1ZBA-EU'},
-            {vendor: 'Mercator Ikuü', model: 'SSWD01'},
+            {vendor: 'Mercator IkuÃ¼', model: 'SSWD01'},
             {vendor: 'Moes', model: 'ZS-USD'},
             {vendor: 'Moes', model: 'EDM-1ZBB-EU'},
         ],
@@ -2020,8 +2020,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Light controller',
         whiteLabel: [
-            {vendor: 'Mercator Ikuü', model: 'SMI7040', description: 'Ford Batten Light'},
-            {vendor: 'Mercator Ikuü', model: 'SMD9300', description: 'Donovan Panel Light'},
+            {vendor: 'Mercator IkuÃ¼', model: 'SMI7040', description: 'Ford Batten Light'},
+            {vendor: 'Mercator IkuÃ¼', model: 'SMD9300', description: 'Donovan Panel Light'},
             tuya.whitelabel('Aldi', 'F122SB62H22A4.5W', 'LIGHTWAY smart home LED-lamp - filament', ['_TZ3000_g1glzzfk']),
             tuya.whitelabel('Miboxer', 'FUT035Z', 'Dual white LED controller', ['_TZ3210_frm6149r', '_TZ3210_jtifm80b', '_TZ3210_xwqng7ol']),
             tuya.whitelabel('Lidl', '14156408L', 'Livarno Lux smart LED ceiling light', ['_TZ3210_c2iwpxf1']),
@@ -2671,7 +2671,7 @@ module.exports = [
                 .withRunningState(['idle', 'heat'], ea.STATE),
             e.auto_lock(), e.away_mode(), e.away_preset_days(), e.boost_time(), e.comfort_temperature(), e.eco_temperature(), e.force(),
             e.max_temperature().withValueMin(16).withValueMax(70), e.min_temperature(), e.away_preset_temperature(),
-            exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE ⏱ - In this mode, ' +
+            exposes.composite('programming_mode', 'programming_mode', ea.STATE).withDescription('Schedule MODE â± - In this mode, ' +
                     'the device executes a preset week programming temperature time and temperature.')
                 .withFeature(e.week())
                 .withFeature(exposes.text('workdays_schedule', ea.STATE_SET))
@@ -2784,9 +2784,9 @@ module.exports = [
                     ' by switching the heating off. To achieve this, the valve is closed fully. To activate the '+
                     'heating stop, the device display "HS", press the pair button to cancel.'),
             tuya.exposes.frostProtection('When Anti-Freezing function is activated, the temperature in the house is kept '+
-                    'at 8 °C, the device display "AF".press the pair button to cancel.'),
+                    'at 8 Â°C, the device display "AF".press the pair button to cancel.'),
             exposes.numeric('boost_timeset_countdown', ea.STATE_SET).withUnit('second').withDescription('Setting '+
-                    'minimum 0 - maximum 465 seconds boost time. The boost (♨) function is activated. The remaining '+
+                    'minimum 0 - maximum 465 seconds boost time. The boost (â¨) function is activated. The remaining '+
                     'time for the function will be counted down in seconds ( 465 to 0 ).').withValueMin(0).withValueMax(465),
             e.holiday_temperature().withValueMin(5).withValueMax(30),
             exposes.text('holiday_start_stop', ea.STATE_SET).withDescription('The holiday mode will automatically start ' +
@@ -2923,7 +2923,7 @@ module.exports = [
                 'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
                 'again.'),
             exposes.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('When the room temperature is lower than ' +
-                '5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.'),
+                '5 Â°C, the valve opens; when the temperature rises to 8 Â°C, the valve closes.'),
             exposes.numeric('error', ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
         ],
         meta: {
@@ -3013,9 +3013,9 @@ module.exports = [
                 .withLocalTemperature(ea.STATE).withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                 .withPreset(['auto', 'manual', 'off', 'on'],
-                    'MANUAL MODE ☝ - In this mode, the device executes manual temperature setting. ' +
+                    'MANUAL MODE â - In this mode, the device executes manual temperature setting. ' +
                 'When the set temperature is lower than the "minimum temperature", the valve is closed (forced closed). ' +
-                'AUTO MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ' +
+                'AUTO MODE â± - In this mode, the device executes a preset week programming temperature time and temperature. ' +
                 'ON - In this mode, the thermostat stays open ' +
                 'OFF - In this mode, the thermostat stays closed')
                 .withSystemMode(['auto', 'heat', 'off'], ea.STATE)
@@ -3023,7 +3023,7 @@ module.exports = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
             exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Boost Heating: press and hold "+" for 3 seconds, ' +
-                'the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP'),
+                'the device will enter the boost heating mode, and the â·âµâ will flash. The countdown will be displayed in the APP'),
             exposes.numeric('boost_time', ea.STATE_SET).withUnit('min').withDescription('Countdown in minutes')
                 .withValueMin(0).withValueMax(1000),
         ],
@@ -3605,7 +3605,7 @@ module.exports = [
             {vendor: 'Vrey', model: 'VR-X712U-0013'},
             {vendor: 'TUYATEC', model: 'GDKES-01TZXD'},
             {vendor: 'Lonsonho', model: 'QS-Zigbee-S05-L', description: '1 gang smart switch module without neutral wire'},
-            {vendor: 'Mercator Ikuü', model: 'SSW01'},
+            {vendor: 'Mercator IkuÃ¼', model: 'SSW01'},
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3733,7 +3733,7 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
         },
         whiteLabel: [{vendor: 'TUYATEC', model: 'GDKES-04TZXD'}, {vendor: 'Vizo', model: 'VZ-222S'},
-            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}, {vendor: 'Mercator Ikuü', model: 'SSW04'}],
+            {vendor: 'MakeGood', model: 'MG-ZG04W/B/G'}, {vendor: 'Mercator IkuÃ¼', model: 'SSW04'}],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3975,13 +3975,13 @@ module.exports = [
                 .withDescription('Antifreeze function'),
             exposes.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Resets all settings to default. Doesn\'t unpair device.'),
-            exposes.numeric('heating_temp_limit', ea.STATE_SET).withUnit('°C').withValueMax(60)
+            exposes.numeric('heating_temp_limit', ea.STATE_SET).withUnit('Â°C').withValueMax(60)
                 .withValueMin(5).withValueStep(1).withPreset('default', 35, 'Default value')
                 .withDescription('Heating temperature limit'),
-            exposes.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMax(9.5)
+            exposes.numeric('deadzone_temperature', ea.STATE_SET).withUnit('Â°C').withValueMax(9.5)
                 .withValueMin(0.5).withValueStep(0.5).withPreset('default', 1, 'Default value')
                 .withDescription('The delta between local_temperature and current_heating_setpoint to trigger Heat'),
-            exposes.numeric('upper_temp', ea.STATE_SET).withUnit('°C').withValueMax(95)
+            exposes.numeric('upper_temp', ea.STATE_SET).withUnit('Â°C').withValueMax(95)
                 .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
         ],
         onEvent: tuya.onEventSetTime,
@@ -4106,9 +4106,9 @@ module.exports = [
                 'msTemperatureMeasurement', 'msIlluminanceMeasurement', 'msRelativeHumidity', 'manuSpecificTuya_2']);
         },
         exposes: [e.temperature(), e.humidity(), e.battery(), e.illuminance(), e.illuminance_lux(),
-            exposes.numeric('alarm_temperature_max', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature max')
+            exposes.numeric('alarm_temperature_max', ea.STATE_SET).withUnit('Â°C').withDescription('Alarm temperature max')
                 .withValueMin(-20).withValueMax(80),
-            exposes.numeric('alarm_temperature_min', ea.STATE_SET).withUnit('°C').withDescription('Alarm temperature min')
+            exposes.numeric('alarm_temperature_min', ea.STATE_SET).withUnit('Â°C').withDescription('Alarm temperature min')
                 .withValueMin(-20).withValueMax(80),
             exposes.numeric('alarm_humidity_max', ea.STATE_SET).withUnit('%').withDescription('Alarm humidity max')
                 .withValueMin(0).withValueMax(100),
@@ -4444,9 +4444,9 @@ module.exports = [
             exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
             exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
-            exposes.numeric('max_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+            exposes.numeric('max_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature max'),
-            exposes.numeric('min_temperature', ea.STATE_SET).withUnit('°C').withValueMin(-20).withValueMax(60)
+            exposes.numeric('min_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature min'),
             exposes.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Humidity alarm status'),
@@ -5134,20 +5134,15 @@ module.exports = [
         ],
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'},
-        ],
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}],
         model: 'SPM01',
         vendor: 'TuYa',
-        description: 'SPM01 Smart Energy Monitor for 1P+N System',
+        description: 'Smart energy monitor for 1P+N system',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.voltage(),
-            e.power(),
-            e.current(),
-            // �hange the description according to the specifications of the device
+        exposes: [e.voltage(), e.power(), e.current(),
+            // Change the description according to the specifications of the device
             e.energy().withDescription('Total forward active energy'),
             e.produced_energy().withDescription('Total reverse active energy'),
         ],
