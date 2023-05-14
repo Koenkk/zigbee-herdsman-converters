@@ -82,7 +82,7 @@ module.exports = [
         model: 'ZB-SW01',
         vendor: 'eWeLink',
         description: 'Smart light switch - 1 gang',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         fromZigbee: [fz.on_off_skip_duplicate_transaction],
         onEvent: async (type, data, device) => {
             device.skipDefaultResponse = true;
