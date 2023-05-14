@@ -78,12 +78,17 @@ module.exports = [
         model: '45857GE',
         vendor: 'GE',
         description: 'ZigBee in-wall smart dimmer',
+        exposes: extend.light_onoff_brightness({noConfigure: true}).exposes.concat([e.energy(), e.power()]),
+        fromZigbee: extend.light_onoff_brightness({noConfigure: true}).fromZigbee.concat([fz.metering]),
         extend: extend.light_onoff_brightness({noConfigure: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
             await reporting.onOff(endpoint);
+            await reporting.instantaneousDemand(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
         },
     },
     {
