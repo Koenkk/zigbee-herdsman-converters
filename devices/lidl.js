@@ -553,7 +553,7 @@ module.exports = [
         model: 'HG06337',
         vendor: 'Lidl',
         description: 'Silvercrest smart plug (EU, CH, FR, BS, DK)',
-        extend: tuya.extend.switch(),
+        extend: tuya.extend.switch({indicatorMode: true}),
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
