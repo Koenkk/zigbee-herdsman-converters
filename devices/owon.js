@@ -123,10 +123,9 @@ module.exports = [
             await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
                 change: [10, 10]}); // divider 1000: 0,01kWh
 
-            if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
-                device.save();
-            }
+            // At least some white label devices, like the Oz Smart Things device, don't report a power source so we need to force it
+            device.powerSource = 'Mains (single phase)';
+            device.save();
         },
     },
     {
