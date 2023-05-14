@@ -1527,13 +1527,20 @@ module.exports = [
         exposes: [e.water_leak(), e.battery_low(), e.battery()],
     },
     {
-        fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq']),
+        fingerprint: tuya.fingerprint('TS0101', ['_TYZB01_ijihzffk', '_TZ3210_tfxwxklq', '_TZ3210_2dfy6tol']),
         model: 'TS0101',
         vendor: 'TuYa',
         description: 'Zigbee Socket',
-        whiteLabel: [{vendor: 'Larkkey', model: 'PS080'}, {vendor: 'Mercator', model: 'SPBS01G'}],
+        whiteLabel: [
+            {vendor: 'Larkkey', model: 'PS080'}, {vendor: 'Mercator', model: 'SPBS01G'},
+            tuya.whitelabel('Mercator', 'SISW01', 'Ikuü inline switch', ['_TZ3210_2dfy6tol']),
+        ],
         extend: tuya.extend.switch(),
-        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
     },
     {
         fingerprint: [{modelID: 'TS0108', manufacturerName: '_TYZB01_7yidyqxd'}],
