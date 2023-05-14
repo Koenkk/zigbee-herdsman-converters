@@ -385,12 +385,16 @@ module.exports = [
     },
     {
         fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: /^0x00000000005.....$/}],
-        model: 'ZLGP15',
+        model: 'ZLGP14/ZLGP15/ZLGP16',
         vendor: 'Legrand',
-        description: 'Wireless and batteryless 4 scenes control',
-        fromZigbee: [fz.legrand_zlgp15],
+        description: 'Wireless and batteryless scenario switch (home arrival/departure, 1-4 switches, daytime day/night)',
+        fromZigbee: [fz.legrand_greenpower_254],
         toZigbee: [],
-        exposes: [e.action(['press_1', 'press_2', 'press_3', 'press_4'])],
+        exposes: [e.action([
+            'home_arrival', 'home_departure', // ZLGP14
+            'press_1', 'press_2', 'press_3', 'press_4', // ZLGP15
+            'daytime_day', 'daytime_night', // ZLGP16
+        ])],
     },
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000005.....$/}],
