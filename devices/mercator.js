@@ -222,4 +222,18 @@ module.exports = [
             device.save();
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0101', manufacturerName: '_TZ3210_2dfy6tol'}],
+        model: 'SISW01',
+        vendor: 'Mercator',
+        description: 'Ikuü inline switch',
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        exposes: [e.switch()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
