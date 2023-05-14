@@ -5135,7 +5135,7 @@ module.exports = [
     },
     {
         fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'},
         ],
         model: 'SPM01',
         vendor: 'TuYa',
@@ -5153,21 +5153,21 @@ module.exports = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1,'energy',tuya.valueConverter.divideBy100],
-                [2,"produced_energy",tuya.valueConverter.divideBy100],
-                [6, null,{
-                    from:(v) => {
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [2, 'produced_energy', tuya.valueConverter.divideBy100],
+                [6, null, {
+                    from: (v) => {
                         return {
-                            voltage: v.readUint16BE(0)/10, 
+                            voltage: v.readUint16BE(0)/10,
                             current: ((v.readUint8(2)<<16)+(v.readUint8(3)<<8)+v.readUint8(4))/1000,
-                            power:   ((v.readUint8(5)<<16)+(v.readUint8(6)<<8)+v.readUint8(7))
+                            power: ((v.readUint8(5)<<16)+(v.readUint8(6)<<8)+v.readUint8(7)),
                         };
                     },
                 }],
-                [6,"voltage",tuya.valueConverter.raw],
-                [6,"current",tuya.valueConverter.raw],
-                [6,"power",tuya.valueConverter.raw]
-                //[9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
+                [6, 'voltage', tuya.valueConverter.raw],
+                [6, 'current', tuya.valueConverter.raw],
+                [6, 'power', tuya.valueConverter.raw],
+                // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
             ],
         },
     },
