@@ -5133,4 +5133,42 @@ module.exports = [
             tuya.whitelabel('Homeetec', '37022173', 'Curtain/blind switch with 2 Gang switch', ['_TZE200_5nldle7w']),
         ],
     },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_bcusnqt8'}
+        ],
+        model: 'SPM01',
+        vendor: 'TuYa',
+        description: 'SPM01 Smart Energy Monitor for 1P+N System',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.voltage(),
+            e.power(),
+            e.current(),
+            // Ñhange the description according to the specifications of the device
+            e.energy().withDescription('Total forward active energy'),
+            e.produced_energy().withDescription('Total reverse active energy'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1,'energy',tuya.valueConverter.divideBy100],
+                [2,"produced_energy",tuya.valueConverter.divideBy100],
+                [6, null,{
+                    from:(v) => {
+                        return {
+                            voltage: v.readUint16BE(0)/10, 
+                            current: ((v.readUint8(2)<<16)+(v.readUint8(3)<<8)+v.readUint8(4))/1000,
+                            power:   ((v.readUint8(5)<<16)+(v.readUint8(6)<<8)+v.readUint8(7))
+                        };
+                    },
+                }],
+                [6,"voltage",tuya.valueConverter.raw],
+                [6,"current",tuya.valueConverter.raw],
+                [6,"power",tuya.valueConverter.raw]
+                //[9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
+            ],
+        },
+    },
 ];
