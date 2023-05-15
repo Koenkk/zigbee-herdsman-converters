@@ -1517,7 +1517,10 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Water leak detector',
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        whiteLabel: [{vendor: 'CR Smart Home', model: 'TS0207'}],
+        whiteLabel: [
+            {vendor: 'CR Smart Home', model: 'TS0207'},
+            tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
+        ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
