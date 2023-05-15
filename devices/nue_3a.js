@@ -37,7 +37,7 @@ module.exports = [
         model: 'HGZB-01',
         vendor: 'Nue / 3A',
         description: 'Smart Zigbee 3.0 light controller',
-        extend: extend.switch(),
+        extend: extend.switch({disablePowerOnBehavior: true}),
         whiteLabel: [{vendor: 'Zemismart', model: 'ZW-EU-01', description: 'Smart light relay - 1 gang'},
             {vendor: 'Moes', model: 'ZK-CH-2U', description: 'Plug with 2 USB ports'}],
         configure: async (device, coordinatorEndpoint, logger) => {
