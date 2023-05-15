@@ -514,6 +514,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TS0222_humidity: {
+        ...fz.humidity,
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.humidity.convert(model, msg, publish, options, meta);
+            result.humidity *= 10;
+            return result;
+        },
+    },
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -3996,6 +4004,18 @@ module.exports = [
                 .withValueMin(35).withValueStep(1).withPreset('default', 60, 'Default value'),
         ],
         onEvent: tuya.onEventSetTime,
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay']),
+        model: 'TS0222_temperature_humidity',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fzLocal.TS0222_humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay']),
+        ],
     },
     {
         fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
