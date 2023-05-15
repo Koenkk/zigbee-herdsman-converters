@@ -1520,6 +1520,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'CR Smart Home', model: 'TS0207'},
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
+            tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
