@@ -514,6 +514,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TS0222_humidity: {
+        ...fz.humidity,
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.humidity.convert(model, msg, publish, options, meta);
+            result.humidity *= 10;
+            return result;
+        },
+    },
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -3998,6 +4006,18 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
     },
     {
+        fingerprint: tuya.fingerprint('TS0222', ['_TZ3000_kky16aay']),
+        model: 'TS0222_temperature_humidity',
+        vendor: 'TuYa',
+        description: 'Temperature & humidity sensor',
+        fromZigbee: [fzLocal.TS0222_humidity, fz.battery, fz.temperature, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.illuminance()],
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'QT-07S', 'Soil sensor', ['_TZ3000_kky16aay']),
+        ],
+    },
+    {
         fingerprint: [{modelID: 'TS0222', manufacturerName: '_TYZB01_4mdqxxnn'},
             {modelID: 'TS0222', manufacturerName: '_TYZB01_m6ec2pgj'}],
         model: 'TS0222',
@@ -5216,5 +5236,27 @@ module.exports = [
         whiteLabel: [
             tuya.whitelabel('ZYXH', 'TS0601_switch_8', '8 Gang switch', ['_TZE200_vmcgja59']),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8']),
+        model: 'TS011F_4',
+        description: '2 gang plug',
+        vendor: 'TuYa',
+        ota: ota.zigbeeOTA,
+        extend: tuya.extend.switch({
+            electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ['l1', 'l2']}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 100, multiplier: 1});
+            device.save();
+        },
+        options: [exposes.options.measurement_poll_interval()],
+        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
 ];
