@@ -199,6 +199,7 @@ module.exports = [
         description: 'Zigbee vibration sensor',
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
+        ota: ota.zigbeeOTA,
         exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
