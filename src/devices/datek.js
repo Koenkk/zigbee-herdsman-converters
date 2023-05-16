@@ -243,4 +243,19 @@ module.exports = [
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
     },
+    {
+        zigbeeModel: ['Contact Switch'],
+        model: 'Contact Switch',
+        vendor: 'Datek',
+        description: 'Door/window sensor',
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['ssIasZone', 'msTemperatureMeasurement']);
+            await reporting.temperature(endpoint);
+            await endpoint.read('ssIasZone', ['iasCieAddr', 'zoneState', 'zoneId']);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
+    },
 ];
