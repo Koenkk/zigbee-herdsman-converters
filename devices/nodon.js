@@ -50,7 +50,7 @@ module.exports = [
             await reporting.currentPositionTiltPercentage(endpoint);
         },
         exposes: [e.cover_position()],
-    },    
+    },
     {
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
