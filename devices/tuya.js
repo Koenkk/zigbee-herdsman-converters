@@ -1902,6 +1902,22 @@ module.exports = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ojtqawav']),
+        model: 'TS0601_switch_1_gang',
+        vendor: 'TuYa',
+        description: '1 gang switch',
+        exposes: [e.switch().setAccess('state', ea.STATE_SET)],
+        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        toZigbee: [tz.tuya_switch_state],
+        whiteLabel: [
+            tuya.whitelabel('Shawader', 'SMKG-1KNL-US/TZB-W', '1 gang switch', ['_TZE204_ojtqawav']),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_nkjintbl'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_ji1gn7rw'},
