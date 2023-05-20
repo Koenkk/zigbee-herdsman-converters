@@ -37,6 +37,21 @@ module.exports = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ['SIN-4-RS-20_LEX'],
+        model: 'SIN-4-RS-20_LEX',
+        vendor: 'NodOn',
+        description: 'Roller shutter controller (Leroy Merlin version)',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        exposes: [e.cover_position()],
+    },
+    {
         zigbeeModel: ['SIN-4-1-20'],
         model: 'SIN-4-1-20',
         vendor: 'NodOn',
