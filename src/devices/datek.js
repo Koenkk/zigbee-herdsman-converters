@@ -245,7 +245,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['Contact Switch'],
-        model: 'Contact Switch',
+        model: 'HSE2936T',
         vendor: 'Datek',
         description: 'Door/window sensor',
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.temperature, fz.ias_enroll],
