@@ -773,4 +773,13 @@ module.exports = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
+    {
+        zigbeeModel: ['4512763'],
+        model: '4512763',
+        vendor: 'Namron',
+        description: 'Zigbee movement sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.occupancy()],
+    },
 ];
