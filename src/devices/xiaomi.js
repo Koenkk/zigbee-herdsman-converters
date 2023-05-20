@@ -2143,7 +2143,8 @@ module.exports = [
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
                 'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
                 'before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. ' +
-                'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
+                'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
+                'but for this "linkage_alarm" option must be enabled'),
             exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
             exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
             exposes.binary('linkage_alarm', ea.ALL, true, false).withDescription('When this option is enabled and a gas ' +
@@ -2155,6 +2156,7 @@ module.exports = [
             e.power_outage_count().withAccess(ea.STATE_GET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013d], {manufacturerCode: 0x115f});
@@ -2183,7 +2185,8 @@ module.exports = [
             exposes.enum('buzzer', ea.SET, ['mute', 'alarm']).withDescription('The buzzer can be muted and alarmed manually. ' +
                 'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("mute") and unmuted ("alarm"). ' +
                 'The buzzer cannot be pre-muted, as this function only works during a smoke alarm. ' +
-                'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute")'),
+                'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
+                'but for this "linkage_alarm" option must be enabled'),
             exposes.binary('buzzer_manual_alarm', ea.STATE_GET, true, false).withDescription('Buzzer alarmed (manually)'),
             exposes.binary('buzzer_manual_mute', ea.STATE_GET, true, false).withDescription('Buzzer muted (manually)'),
             exposes.binary('heartbeat_indicator', ea.ALL, true, false).withDescription('When this option is enabled then in ' +
@@ -2196,6 +2199,7 @@ module.exports = [
         meta: {battery: {voltageToPercentage: '3V_2850_3000'}},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            await endpoint.write('aqaraOpple', {0x014b: {value: 1, type: 0x20}}, {manufacturerCode: 0x115f});
             await endpoint.read('genPowerCfg', ['batteryVoltage']);
             await endpoint.read('aqaraOpple', [0x013a], {manufacturerCode: 0x115f});
             await endpoint.read('aqaraOpple', [0x013b], {manufacturerCode: 0x115f});
