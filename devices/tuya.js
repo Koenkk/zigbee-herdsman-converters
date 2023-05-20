@@ -5227,14 +5227,14 @@ module.exports = [
 
     // TS011F
     {
-        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
+        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_8fdayfch', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
         model: 'TS011F_1',
         vendor: 'TuYa',
         description: 'Switch',
         extend: tuya.extend.switch(),
         whiteLabel: [
             {vendor: 'Mumubiz', model: 'ZJSB9-80Z'},
-            tuya.whitelabel('KTNNKG', 'ZB1248-10A', 'Relay switch', ['_TZ3000_rqbjepe8']),
+            tuya.whitelabel('KTNNKG', 'ZB1248-10A', 'Relay switch', ['_TZ3000_8fdayfch']),
             tuya.whitelabel('UseeLink', 'SM-AZ713', 'Smart water/gas valve', ['_TZ3000_tvuarksa']),
         ],
     },
