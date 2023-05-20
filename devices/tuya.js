@@ -1226,22 +1226,6 @@ module.exports = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_1hwjutgo'}, {modelID: 'TS011F', manufacturerName: '_TZ3000_lnggrqqi'}],
-        model: 'TS011F_circuit_breaker',
-        vendor: 'TuYa',
-        description: 'Circuit breaker',
-        extend: tuya.extend.switch(),
-        whiteLabel: [{vendor: 'Mumubiz', model: 'ZJSB9-80Z'}],
-    },
-    {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8fdayfch'}],
-        model: 'TS011F_relay_switch',
-        vendor: 'TuYa',
-        description: 'Dry contact relay switch',
-        extend: tuya.extend.switch(),
-        whiteLabel: [{vendor: 'KTNNKG', model: 'ZB1248-10A'}],
-    },
-    {
         zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)'],
         model: 'CK-BL702-AL-01',
         vendor: 'TuYa',
@@ -5240,6 +5224,20 @@ module.exports = [
             tuya.whitelabel('ZYXH', 'TS0601_switch_8', '8 Gang switch', ['_TZE200_vmcgja59']),
         ],
     },
+
+    // TS011F
+    {
+        fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8', '_TZ3000_1hwjutgo', '_TZ3000_lnggrqqi', '_TZ3000_tvuarksa']),
+        model: 'TS011F_1',
+        vendor: 'TuYa',
+        description: 'Switch',
+        extend: tuya.extend.switch(),
+        whiteLabel: [
+            {vendor: 'Mumubiz', model: 'ZJSB9-80Z'},
+            tuya.whitelabel('KTNNKG', 'ZB1248-10A', 'Relay switch', ['_TZ3000_rqbjepe8']),
+            tuya.whitelabel('UseeLink', 'SM-AZ713', 'Smart water/gas valve', ['_TZ3000_tvuarksa']),
+        ],
+    },
     {
         fingerprint: tuya.fingerprint('TS01FF', ['_TZ3000_rqbjepe8']),
         model: 'TS011F_4',
@@ -5261,5 +5259,26 @@ module.exports = [
         },
         options: [exposes.options.measurement_poll_interval()],
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
+    },
+    {
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_cfnprab5', '_TZ3000_o005nuxx']),
+        model: 'TS011F_5',
+        description: '5 gang switch',
+        vendor: 'TuYa',
+        extend: tuya.extend.switch({powerOutageMemory: true, childLock: true, endpoints: ['l1', 'l2', 'l3', 'l4', 'l5']}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
+            for (const ID of [1, 2, 3, 4, 5]) {
+                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ['genOnOff']);
+            }
+        },
+        whiteLabel: [
+            tuya.whitelabel('UseeLink', 'SM-0306E-2W', '4 gang switch, with USB', ['_TZ3000_cfnprab5']),
+            tuya.whitelabel('UseeLink', 'SM-O301-AZ', 'AU 4 plug 10A power board + USB', ['_TZ3000_o005nuxx']),
+        ],
     },
 ];
