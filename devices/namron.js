@@ -775,10 +775,11 @@ module.exports = [
     },
     {
         zigbeeModel: ['4512763'],
-        model: 'Zigbee Movement Sensor',
+        model: '4512763',
         vendor: 'Namron',
-        description: 'Zigbee Movement Sensor',
+        description: 'Zigbee movement sensor',
         fromZigbee: [fz.ias_occupancy_alarm_1],
+        toZigbee: [],
         exposes: [e.occupancy()],
     },
 ];
