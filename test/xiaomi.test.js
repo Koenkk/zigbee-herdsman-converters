@@ -1,4 +1,4 @@
-const {trv} = require('../lib/xiaomi');
+const {trv} = require('../src/lib/xiaomi');
 
 describe('lib/xiaomi', () => {
     describe('trv', () => {
