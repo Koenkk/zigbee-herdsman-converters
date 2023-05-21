@@ -1027,8 +1027,10 @@ module.exports = [
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (neutral, single rocker)',
         fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
-        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory, tz.xiaomi_flip_indicator_light],
-        exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(), e.power_outage_count(), e.device_temperature().withAccess(ea.STATE),
+        toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
+            tz.xiaomi_flip_indicator_light],
+        exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(), e.power_outage_count(),
+            e.device_temperature().withAccess(ea.STATE),
             e.power().withAccess(ea.STATE_GET), e.energy(), e.voltage(), e.power_outage_memory(),
             exposes.enum('operation_mode', ea.ALL, ['control_relay', 'decoupled'])
                 .withDescription('Decoupled mode')],
