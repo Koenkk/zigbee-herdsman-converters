@@ -1029,14 +1029,14 @@ module.exports = [
         fromZigbee: [
             fz.on_off,
             fz.xiaomi_power,
-            fz.aqara_opple
+            fz.aqara_opple,
         ],
         toZigbee: [
             tz.on_off,
             tz.xiaomi_power,
             tz.xiaomi_switch_operation_mode_opple,
             tz.xiaomi_switch_power_outage_memory,
-            tz.xiaomi_flip_indicator_light
+            tz.xiaomi_flip_indicator_light,
         ],
         exposes: [
             e.switch(),
@@ -1049,7 +1049,7 @@ module.exports = [
             e.power().withAccess(ea.STATE_GET),
             e.energy(),
             e.voltage(),
-            e.power_outage_memory()
+            e.power_outage_memory(),
         ],
         onEvent: preventReset,
         configure: async (device, coordinatorEndpoint, logger) => {
