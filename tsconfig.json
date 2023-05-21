@@ -10,7 +10,7 @@
       "sourceMap": true,
       "declaration": true,
       "declarationMap": true,
-      "outDir": "dist",
+      "outDir": ".",
       "baseUrl": ".",
       "resolveJsonModule": true,
       "allowJs": true

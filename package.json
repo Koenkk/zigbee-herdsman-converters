@@ -2,10 +2,13 @@
   "name": "zigbee-herdsman-converters",
   "version": "15.0.116",
   "description": "Collection of device converters to be used with zigbee-herdsman",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "files": [
-    "dist"
+    "/index.js",
+    "/converters",
+    "/devices",
+    "/lib"
   ],
   "repository": {
     "type": "git",
@@ -23,7 +26,7 @@
     "lint": "eslint .",
     "test": "ZHC_TEST=true jest test",
     "test-watch": "ZHC_TEST=true jest test --watch",
-    "clean": "rimraf dist",
+    "clean": "rimraf index* devices lib converters",
     "build": "tsc",
     "prepack": "npm run clean && npm run build"
   },

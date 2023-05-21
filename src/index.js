@@ -114,7 +114,7 @@ function addDefinition(definition) {
 
 // Load all definitions from devices folder
 const devicesPath = path.join(__dirname, 'devices');
-for (const file of fs.readdirSync(devicesPath)) {
+for (const file of fs.readdirSync(devicesPath).filter((f) => f.endsWith('.js'))) {
     for (const definition of require(path.join(devicesPath, file))) {
         addDefinition(definition);
     }

@@ -1,4 +1,6 @@
 node_modules/*
 test/*
-lib/**/*.d.ts
-dist/*
+index.*
+converters/*
+devices/*
+lib/*
