@@ -89,7 +89,7 @@ module.exports = [
     },
     {
         zigbeeModel: ['SmokeSensor-N', 'SmokeSensor-EM'],
-        model: 'HS3SA',
+        model: 'HS3SA/HS1SA',
         vendor: 'HEIMAN',
         description: 'Smoke detector',
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
