@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "target": "es2018",
+      "lib": ["es2018"],
+      "noImplicitAny": true,
+      "noImplicitThis": true,
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "declaration": true,
+      "declarationMap": true,
+      "outDir": ".",
+      "baseUrl": ".",
+      "resolveJsonModule": true,
+      "allowJs": true
+    },
+    "include": ["./src/"],
+    "exclude": []
+  }

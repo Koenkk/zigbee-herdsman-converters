@@ -1,8 +1,8 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require("path");
-const common = require("../lib/ota/common");
-const otaImages = require("./stub/otaImages");
+const common = require('../src/lib/ota/common');
+const otaImages = require('./stub/otaImages');
 
 describe("ota/common.js", () => {
     it.each(otaImages)("Can correctly parse OTA image file %s", (_, otaImage) => {

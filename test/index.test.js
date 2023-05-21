@@ -1,6 +1,6 @@
-const index = require('../index');
-const exposes = require('../lib/exposes');
-const tuya = require('../lib/tuya');
+const index = require('../src/index');
+const exposes = require('../src/lib/exposes');
+const tuya = require('../src/lib/tuya');
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 const equals = require('fast-deep-equal/es6');
 const fs = require('fs');
@@ -550,9 +550,9 @@ describe('index.js', () => {
     });
 
     it('Verify imports', () => {
-        const files = fs.readdirSync('devices');
+        const files = fs.readdirSync('src/devices');
         for (const file of files) {
-            const content = fs.readFileSync(`devices/${file}`, {encoding: 'utf-8'});
+            const content = fs.readFileSync(`src/devices/${file}`, {encoding: 'utf-8'});
             expect(content).not.toContain(`require('zigbee-herdsman-converters`);
         }
     });
