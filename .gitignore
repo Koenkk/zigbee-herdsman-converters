@@ -11,6 +11,6 @@ tmp
 .project
 .settings/
 index.*
-converters/*
-devices/*
-lib/*
+converters/
+devices/
+lib/

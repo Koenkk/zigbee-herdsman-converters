@@ -15,5 +15,6 @@
       "resolveJsonModule": true,
       "allowJs": true
     },
-    "include": ["./src/"]
+    "include": ["./src/"],
+    "exclude": []
   }
