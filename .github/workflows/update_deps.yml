@@ -4,13 +4,14 @@ on:
   schedule:
   - cron: "0 0 * * 0"
 
-permissions: {}
+permissions:
+  contents: read
+
 jobs:
   update_deps:
     permissions:
-      contents: write  #  to create branch (peter-evans/create-pull-request)
-      pull-requests: write  #  to create a PR (peter-evans/create-pull-request)
-
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -19,11 +20,8 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-    - run: |
-        npm install -g npm-check-updates
-        ncu -u
-        rm -rf package-lock.json
-        npm install
+    - run: npx npm-check-updates -u
+    - run: npm install
     - uses: peter-evans/create-pull-request@v5
       with:
         commit-message: Update dependencies
