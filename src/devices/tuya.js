@@ -966,6 +966,8 @@ const fzLocal = {
     },
 };
 
+// lasdjfasldfjk
+
 module.exports = [
     {
         zigbeeModel: ['TS0204'],
