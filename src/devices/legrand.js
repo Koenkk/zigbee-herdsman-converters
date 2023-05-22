@@ -258,6 +258,35 @@ module.exports = [
         },
     },
     {
+        zigbeeModel: [' Dimmer switch w/o neutral evo\u0000'],
+        model: '199182',
+        vendor: 'Legrand',
+        description: 'Wired switch without neutral',
+        extend: extend.light_onoff_brightness({noConfigure: true}),
+        fromZigbee: [fz.brightness, fz.identify, fz.on_off, fz.lighting_ballast_configuration, fz.legrand_cluster_fc01,
+            fz.power_on_behavior],
+        toZigbee: [tz.light_onoff_brightness, tz.legrand_settingEnableLedInDark, tz.legrand_settingEnableLedIfOn,
+            tz.legrand_deviceMode, tz.legrand_identify, tz.ballast_config, tz.power_on_behavior],
+        exposes: [e.light_brightness(),
+            exposes.numeric('ballast_minimum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the minimum brightness value'),
+            exposes.numeric('ballast_maximum_level', ea.ALL).withValueMin(1).withValueMax(254)
+                .withDescription('Specifies the maximum brightness value'),
+            exposes.binary('device_mode', ea.ALL, 'dimmer_on', 'dimmer_off').withDescription('Allow the device to change brightness'),
+            exposes.binary('led_in_dark', ea.ALL, 'ON', 'OFF').withDescription(`Enables the LED when the light is turned off, allowing to` +
+                ` see the switch in the dark`),
+            exposes.binary('led_if_on', ea.ALL, 'ON', 'OFF').withDescription('Enables the LED when the light is turned on'),
+            e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genIdentify', 'genOnOff', 'genLevelCtrl',
+                'genBinaryInput', 'lightingBallastCfg']);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
         zigbeeModel: [' Connected outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000'],
         model: '067775/741811',
         vendor: 'Legrand',
