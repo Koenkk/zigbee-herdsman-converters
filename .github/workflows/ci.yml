@@ -36,6 +36,6 @@ jobs:
         npm publish
         version=$(node -p "require('./package.json').version")
         sleep 120
-        curl -XPOST -H "Authorization: token ${{ secrets.TRIGGER_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data '{"event_type": "update_zhc", "client_payload": { "version": "$version"}}'
+        curl -XPOST -H "Authorization: token ${{ secrets.TRIGGER_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_zhc\", \"client_payload\": { \"version\": \"$version\"}}"
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
