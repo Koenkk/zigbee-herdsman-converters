@@ -2,6 +2,7 @@ const exposes = require('../lib/exposes');
 const fz = require('../converters/fromZigbee');
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
+const e = exposes.presets;
 
 module.exports = [
     {
