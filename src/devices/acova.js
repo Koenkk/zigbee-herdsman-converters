@@ -70,7 +70,7 @@ module.exports = [
         zigbeeModel: ['TAFFETAS2 D1.00P1.02Z1.00', 'TAFFETAS2 D1.00P1.01Z1.00'],
         model: 'TAFFETAS2',
         vendor: 'Acova',
-        description: 'Taffetas 2 heater (custom)',
+        description: 'Taffetas 2 heater',
         fromZigbee: [fz.thermostat, fz.hvac_user_interface, fz.occupancy],
         toZigbee: [
             tz.thermostat_local_temperature,
