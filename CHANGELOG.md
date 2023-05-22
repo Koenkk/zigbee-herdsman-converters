@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [15.1.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.1.1...v15.1.2) (2023-05-22)
+
+
+### Bug Fixes
+
+* Fix random issue for PERCALE2 https://github.com/Koenkk/zigbee2mqtt/pull/17750 ([7b8e9ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b8e9ae422d407296027756d8c420047b8eb470b))
+
 ### [15.1.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.1.0...v15.1.1) (2023-05-22)
 
 ## [15.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v15.0.119...v15.1.0) (2023-05-22)
