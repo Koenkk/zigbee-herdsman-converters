@@ -101,7 +101,7 @@ module.exports = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
-            await reporting.occupancy(endpoint2)
+            await reporting.occupancy(endpoint2);
         },
     },
 ];
