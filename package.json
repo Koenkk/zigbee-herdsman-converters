@@ -8,7 +8,8 @@
     "/index.js",
     "/converters",
     "/devices",
-    "/lib"
+    "/lib",
+    "CHANGELOG.md"
   ],
   "repository": {
     "type": "git",
