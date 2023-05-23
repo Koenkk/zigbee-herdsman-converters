@@ -3374,7 +3374,7 @@ module.exports = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_cjbofhxw']),
-        model: 'TS0601_clamp_meter',
+        model: 'PJ-MGW1203',
         vendor: 'TuYa',
         description: 'Clamp meter',
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
