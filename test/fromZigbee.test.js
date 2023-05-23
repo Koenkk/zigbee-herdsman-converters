@@ -6,7 +6,7 @@ const fs = require('fs');
 
 describe('converters/fromZigbee', () => {
     describe('tuya', () => {
-        const meta = {logger: {warn: jest.fn(), info: jest.fn()}, device: {ieeeAddr: "0x123456789abcdef"}};
+        const meta = {logger: {warn: jest.fn(), info: jest.fn(), debug: jest.fn()}, device: {ieeeAddr: "0x123456789abcdef"}};
         describe('wls100z_water_leak', () => {
             it.each([
                 [
