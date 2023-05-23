@@ -655,6 +655,11 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
                 payload.hooks_lock = {0: 'UNLOCK', 1: 'LOCK', 2: 'UNLOCK', 3: 'LOCK'}[value];
             }
             break;
+        case '1065':
+            if (['ZNCLBL01LM'].includes(model.model)) {
+                payload.illuminance_lux = value * 50;
+            }
+            break;
         case '1289':
             payload.dimmer_mode = {3: 'rgbw', 1: 'dual_ct'}[value];
             break;
