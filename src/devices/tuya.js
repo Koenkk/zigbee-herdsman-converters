@@ -1516,6 +1516,7 @@ module.exports = [
             tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', ['_TZ3000_ocjlo4ea']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_2', 'Zigbee water leak sensor + alarm (40dB)', ['_TZ3000_upgcbody']),
+            tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_3', 'Zigbee water leak sensor', ['_TYZB01_sqmd19i1']),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
