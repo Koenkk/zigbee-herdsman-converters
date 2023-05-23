@@ -75,6 +75,13 @@ const configureReadModelID = async (device, coordinatorEndpoint, logger) => {
 
 module.exports = [
     {
+        zigbeeModel: ['GL-SD-003P'],
+        model: 'GL-SD-003P',
+        vendor: 'Gledopto',
+        description: 'Zigbee DIN Rail triac AC dimmer',
+        extend: extend.light_onoff_brightness(),
+    },
+    {
         fingerprint: [
             {type: 'Router', manufacturerName: 'GLEDOPTO', modelID: 'GL-H-001', endpoints: [
                 {ID: 11, profileID: 49246, deviceID: 528, inputClusters: [0, 3, 4, 5, 6, 8, 768], outputClusters: []},
