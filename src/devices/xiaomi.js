@@ -1026,7 +1026,7 @@ module.exports = [
         model: 'WS-USC03',
         vendor: 'Xiaomi',
         description: 'Aqara smart wall switch (neutral, single rocker)',
-        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.aqara_opple],
+        fromZigbee: [fz.on_off, fz.xiaomi_power, fz.xiaomi_multistate_action, fz.aqara_opple],
         toZigbee: [tz.on_off, tz.xiaomi_power, tz.xiaomi_switch_operation_mode_opple, tz.xiaomi_switch_power_outage_memory,
             tz.xiaomi_flip_indicator_light],
         exposes: [e.switch(), e.action(['single', 'double']), e.flip_indicator_light(), e.power_outage_count(),
