@@ -906,6 +906,7 @@ const fzLocal = {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
             const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            const lookup = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
@@ -915,7 +916,10 @@ const fzLocal = {
                         const value = result[key];
                         clearTimeout(globalStore.getValue(msg.endpoint, key));
                         if (value === 0) {
-                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), 5 * 1000));
+                            const configuredReporting = msg.endpoint.configuredReportings.find((c) =>
+                                c.cluster.name === 'haElectricalMeasurement' && c.attribute.name === lookup[key]);
+                            const time = ((configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2) + 1;
+                            globalStore.putValue(msg.endpoint, key, setTimeout(() => publish({[key]: value}), time * 1000));
                             delete result[key];
                         }
                     }
