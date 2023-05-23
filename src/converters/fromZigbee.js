@@ -3788,11 +3788,11 @@ const converters = {
             const action = actionLookup[msg.data[5]];
             if (button) {
                 if (plus == 0) {
-                    return { action: `${button}_${action}` };
+                    return {action: `${button}_${action}`};
                 } else if (plus == 1) {
-                    return { action: `button_1plus_${button}_${action}` };
+                    return {action: `button_1plus_${button}_${action}`};
                 } else if (plus == 2) {
-                    return { action: `button_2plus_${button}_${action}` };
+                    return {action: `button_2plus_${button}_${action}`};
                 }
             }
         },
@@ -6795,7 +6795,7 @@ const converters = {
         cluster: 'ssIasZone',
         type: 'commandStatusChangeNotification',
         convert: (model, msg, publish, options, meta) => {
-            return { action: true };
+            return {action: true};
         },
     },
     CC2530ROUTER_led: {
