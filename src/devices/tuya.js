@@ -3212,7 +3212,7 @@ module.exports = [
             ),
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_wbloefbf'}],
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_in5s3wn1', '_TZ3000_wbloefbf']),
         model: 'TS011F_switch_5_gang',
         description: '2 gang 2 usb 1 wall ac outlet',
         whiteLabel: [{vendor: 'Milfra', model: 'M11Z'}],
