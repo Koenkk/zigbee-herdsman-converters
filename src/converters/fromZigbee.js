@@ -3752,6 +3752,51 @@ const converters = {
             }
         },
     },
+    orvibo_raw_3: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup = {
+                1: 'button_all_open',
+                2: 'button_at_home',
+                21: 'button_sleep',
+                4: 'button_all_close',
+                3: 'button_leave_home',
+                23: 'button_play',
+                5: 'button_1',
+                6: 'button_2',
+                7: 'button_3',
+                8: 'button_4',
+                9: 'button_5',
+                10: 'button_6',
+                11: 'button_7',
+                12: 'button_8',
+                14: 'button_9',
+                15: 'button_0',
+                17: 'button_lock',
+                18: 'button_plus',
+                19: 'button_minus',
+            };
+
+            const actionLookup = {
+                0: 'click',
+                2: 'hold',
+                3: 'release',
+            };
+            const button = buttonLookup[msg.data[3]];
+            const plus = msg.data[4];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                if (plus == 0) {
+                    return { action: `${button}_${action}` };
+                } else if (plus == 1) {
+                    return { action: `button_1plus_${button}_${action}` };
+                } else if (plus == 2) {
+                    return { action: `button_2plus_${button}_${action}` };
+                }
+            }
+        },
+    },
     tint_scene: {
         cluster: 'genBasic',
         type: 'write',
@@ -6744,6 +6789,13 @@ const converters = {
         type: 'commandOn',
         convert: (model, msg, publish, options, meta) => {
             return {action: 'vibration'};
+        },
+    },
+    REJIA_vibration: {
+        cluster: 'ssIasZone',
+        type: 'commandStatusChangeNotification',
+        convert: (model, msg, publish, options, meta) => {
+            return { action: true };
         },
     },
     CC2530ROUTER_led: {

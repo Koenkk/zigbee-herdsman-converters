@@ -57,6 +57,15 @@ module.exports = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ['RemoteControl-22'],
+        model: 'RC808ZB',
+        vendor: 'ORVIBO',
+        description: 'ORVIBO Remote Control',
+        fromZigbee: [fz.orvibo_raw_3, fz.battery],
+        exposes: [e.battery()],
+        toZigbee: [],
+    },
+    {
         zigbeeModel: ['31c989b65ebb45beaf3b67b1361d3965'],
         model: 'T18W3Z',
         vendor: 'ORVIBO',
@@ -78,6 +87,7 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
+
     {
         zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6', '75a4bfe8ef9c4350830a25d13e3ab068'],
         model: 'SM10ZW',
