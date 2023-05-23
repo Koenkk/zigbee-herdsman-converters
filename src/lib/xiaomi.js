@@ -657,7 +657,7 @@ const numericAttributes2Payload = async (msg, meta, model, options, dataObject) 
             break;
         case '1065':
             if (['ZNCLBL01LM'].includes(model.model)) {
-                payload.illuminance_lux = +value * 50;
+                payload.illuminance_lux = value * 50;
             }
             break;
         case '1289':
