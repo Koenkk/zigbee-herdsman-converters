@@ -10,6 +10,9 @@ module.exports = [
         description: 'REJIA vibration sensor',
         fromZigbee: [fz.REJIA_vibration],
         exposes: [e.action(['vibration'])],
+<<<<<<< HEAD
         toZigbee: [],
+=======
+>>>>>>> 03c677b951d8d38912b9eac415632729459adc85
     }
 ];
