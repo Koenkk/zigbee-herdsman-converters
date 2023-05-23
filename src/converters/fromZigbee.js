@@ -2385,7 +2385,7 @@ const converters = {
                 case tuya.dataPoints.config: // Returned by configuration set; ignore
                     break;
                 default: // Unknown code
-                    meta.logger.warn(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                    meta.logger.debug(`TuYa_cover_control: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
                 }
             }
@@ -2638,7 +2638,7 @@ const converters = {
             case tuya.dataPoints.moesSwitchIndicateLight:
                 return {indicate_light: tuya.moesSwitch.indicateLight[value]};
             default:
-                meta.logger.warn(`fromZigbee:moes_switch: NOT RECOGNIZED DP #${
+                meta.logger.debug(`fromZigbee:moes_switch: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
                 break;
             }
@@ -2721,7 +2721,7 @@ const converters = {
                 return {alarm: {0: 'over_temperature', 1: 'over_humidity',
                     2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
             default: // Unknown code
-                meta.logger.warn(`fz.neo_nas_pd07: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fz.neo_nas_pd07: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -2769,7 +2769,7 @@ const converters = {
             case tuya.dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
                 return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
             default: // Unknown code
-                meta.logger.warn(`fz.neo_t_h_alarm: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fz.neo_t_h_alarm: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -2793,7 +2793,7 @@ const converters = {
             case tuya.dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
                 return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
             default: // Unknown code
-                meta.logger.warn(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
+                meta.logger.debug(`Unhandled DP #${dp}: ${JSON.stringify(msg.data)}`);
             }
         },
     },
@@ -2924,7 +2924,7 @@ const converters = {
                     result.battery = value;
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:wls100z_water_leak:` +
+                    meta.logger.debug(`zigbee-herdsman-converters:wls100z_water_leak:` +
                         `NOT RECOGNIZED DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }
@@ -3084,7 +3084,7 @@ const converters = {
                     return null;
                 default:
                     // Unknown dps
-                    meta.logger.warn(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
+                    meta.logger.debug(`livolo_cover_state: Unhandled DP ${dp} for ${meta.device.manufacturerName}: \
                      ${msg.data.toString('hex')}`);
                 }
             }
@@ -4167,7 +4167,7 @@ const converters = {
                 return {programming_mode: pMode.join('  ')};
             }
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
+                meta.logger.debug(`zigbee-herdsman-converters:moesS_thermostat: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
@@ -5010,7 +5010,7 @@ const converters = {
                 return {timer: value / 60};
             }
             default: {
-                meta.logger.warn(`zigbee-herdsman-converters:FrankeverValve: NOT RECOGNIZED DP ` +
+                meta.logger.debug(`zigbee-herdsman-converters:FrankeverValve: NOT RECOGNIZED DP ` +
                     `#${dp} with data ${JSON.stringify(dpValue)}`);
             }
             }
@@ -5077,7 +5077,7 @@ const converters = {
             case tuya.dataPoints.dinrailPowerMeterVoltage:
                 return {voltage: value/10};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
+                meta.logger.debug(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
                     `#${dp} with data ${JSON.stringify(dpValue)}`);
             }
 
@@ -6620,7 +6620,7 @@ const converters = {
                 return tresult;
             }
             default: {
-                meta.logger.warn(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
+                meta.logger.debug(`zigbee-herdsman-converters:RTXZVG1Valve: NOT RECOGNIZED DP ` +
                     `#${dp} with data ${JSON.stringify(dpValue)}`);
             }
             }
@@ -7106,7 +7106,7 @@ const converters = {
             case 1:
                 return {brightness_level: brightnesStateLookup[value]};
             default:
-                meta.logger.warn(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`s_lux_zb_illuminance: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -7146,7 +7146,7 @@ const converters = {
             case tuya.dataPoints.fantemReportingEnable:
                 return {reporting_enable: value};
             default:
-                meta.logger.warn(`fz.ZB003X: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fz.ZB003X: Unhandled DP #${dp}: ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -7203,7 +7203,7 @@ const converters = {
             case tuya.dataPoints.fantemLoadDimmable:
                 return {load_dimmable: {0: 'unknown', 1: 'dimmable', 2: 'not_dimmable'}[value]};
             default:
-                meta.logger.warn(`fz.ZB006X_settings: Unhandled DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`);
+                meta.logger.debug(`fz.ZB006X_settings: Unhandled DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`);
             }
         },
     },
@@ -7597,7 +7597,7 @@ const converters = {
                 result = {luminance_level: value};
                 break;
             default:
-                meta.logger.warn(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fromZigbee.tuya_motion_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
 
             return result;
@@ -7733,7 +7733,7 @@ const converters = {
                 }
                 break;
             default:
-                meta.logger.warn(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fromZigbee.moes_thermostat_tv: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
 
             return result;
@@ -8078,7 +8078,7 @@ const converters = {
             case tuya.dataPoints.AM02TimeTotal: // DP 10: Ignore until need is defined
                 break;
             default: // Unknown code
-                meta.logger.warn(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                meta.logger.debug(`ZMAM02_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
             }
         },
@@ -8093,7 +8093,7 @@ const converters = {
             if (dp === 1) return {contact: value === true ? false : true};
             if (dp === 2) return {battery: value};
             else {
-                meta.logger.warn(`zigbee-herdsman-converters:TM081: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`zigbee-herdsman-converters:TM081: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -8157,7 +8157,7 @@ const converters = {
                 break;
             default:
                 meta.logger
-                    .warn(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                    .debug(`fromZigbee.tuya_smart_human_presense_sensor: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
         },
@@ -8187,7 +8187,7 @@ const converters = {
                     result.illuminance = value;
                     break;
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:ZG204ZL_lms: NOT RECOGNIZED DP #${
+                    meta.logger.debug(`zigbee-herdsman-converters:ZG204ZL_lms: NOT RECOGNIZED DP #${
                         dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }
@@ -8224,7 +8224,7 @@ const converters = {
                 result = {motor_reversal: {0: 'OFF', 1: 'ON'}[value]};
                 break;
             default:
-                meta.logger.warn(`fromZigbee.moes_cover: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`fromZigbee.moes_cover: NOT RECOGNIZED DP ${dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
         },

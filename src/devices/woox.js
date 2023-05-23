@@ -45,7 +45,7 @@ const fzLocal = {
                     break;
                 }
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:Woox Smoke Detector: NOT RECOGNIZED DP #${
+                    meta.logger.debug(`zigbee-herdsman-converters:Woox Smoke Detector: NOT RECOGNIZED DP #${
                         dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }

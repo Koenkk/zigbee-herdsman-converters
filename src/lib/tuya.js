@@ -30,7 +30,7 @@ const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks) => {
 function firstDpValue(msg, meta, converterName) {
     const dpValues = msg.data.dpValues;
     for (let index = 1; index < dpValues.length; index++) {
-        meta.logger.warn(`zigbee-herdsman-converters:${converterName}: Additional DP #${
+        meta.logger.debug(`zigbee-herdsman-converters:${converterName}: Additional DP #${
             dpValues[index].dp} with data ${JSON.stringify(dpValues[index])} will be ignored! ` +
             'Use a for loop in the fromZigbee converter (see ' +
             'https://www.zigbee2mqtt.io/advanced/support-new-devices/02_support_new_tuya_devices.html)');

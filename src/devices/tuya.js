@@ -588,7 +588,7 @@ const fzLocal = {
                     break;
                 }
                 default:
-                    meta.logger.warn(`zigbee-herdsman-converters:SA12IZL: NOT RECOGNIZED DP #${
+                    meta.logger.debug(`zigbee-herdsman-converters:SA12IZL: NOT RECOGNIZED DP #${
                         dp} with data ${JSON.stringify(dpValue)}`);
                 }
             }
@@ -612,7 +612,7 @@ const fzLocal = {
             case tuya.dataPoints.dinrailPowerMeterPower2:
                 return {power: value};
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
+                meta.logger.debug(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
                     `#${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
@@ -639,7 +639,7 @@ const fzLocal = {
                 result = {led_state: value};
                 break;
             default:
-                meta.logger.warn(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
+                meta.logger.debug(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
                     dp} with data ${JSON.stringify(dpValue)}`);
             }
             return result;
@@ -703,7 +703,7 @@ const fzLocal = {
             const value = tuya.getDataValue(dpValue);
             if (dp === 4) return {battery: value};
             else {
-                meta.logger.warn(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
+                meta.logger.debug(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
             }
         },
     },
@@ -765,7 +765,7 @@ const fzLocal = {
                     result.running = (value !== 1) ? true : false;
                     break;
                 default: // Unknown code
-                    meta.logger.warn(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
+                    meta.logger.debug(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
                     ${JSON.stringify(dpValue)}`);
                 }
             }
