@@ -11,5 +11,5 @@ module.exports = [
         fromZigbee: [fz.REJIA_vibration],
         exposes: [e.action(['vibration'])],
         toZigbee: [],
-    }
+    },
 ];
