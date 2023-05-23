@@ -1506,7 +1506,6 @@ module.exports = [
     },
     {
         zigbeeModel: ['TS0207', 'FNB54-WTS08ML1.0'],
-        fingerprint: [{modelID: 'TS0207', manufacturerName: '_TZ3000_upgcbody'}],
         model: 'TS0207_water_leak_detector',
         vendor: 'TuYa',
         description: 'Water leak detector',
@@ -1516,6 +1515,7 @@ module.exports = [
             tuya.whitelabel('Meian', 'SW02', 'Water leak sensor', ['_TZ3000_kyb656no']),
             tuya.whitelabel('Aubess', 'IH-K665', 'Water leak sensor', ['_TZ3000_k4ej3ww2']),
             tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_1', 'Zigbee water flood sensor + 1m probe cable', ['_TZ3000_ocjlo4ea']),
+            tuya.whitelabel('TuYa', 'TS0207_water_leak_detector_2', 'Zigbee water leak sensor + alarm (40dB)', ['_TZ3000_upgcbody']),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
