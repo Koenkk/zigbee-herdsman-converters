@@ -41,6 +41,6 @@ jobs:
           echo "Waiting for publish to complete"
           sleep 5s
         done
-        curl -XPOST -H "Authorization: token ${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_dep\", \"client_payload\": { \"version\": \"$version\", \"package\": \"$package\"}}"
+        curl -XPOST -H "Authorization: token ${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_dep\", \"client_payload\": { \"version\": \"$VERSION\", \"package\": \"$PACKAGE\"}}"
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
