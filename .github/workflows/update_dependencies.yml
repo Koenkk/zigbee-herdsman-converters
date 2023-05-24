@@ -25,5 +25,5 @@ jobs:
     - uses: peter-evans/create-pull-request@v5
       with:
         commit-message: "fix(ignore): update dependencies"
-        branch: "update_dependencies"
+        branch: "deps/all"
         title: Update dependencies
