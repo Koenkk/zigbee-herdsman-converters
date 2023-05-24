@@ -1,12 +1,10 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-    MSG=$(cat $1)
-    if [[ $MSG == feat:* || $MSG == chore* || $MSG == fix:* || $MSG == fix\(detect\):* || $MSG == feat\(device\):* ]]; then
-        exit 0
-    else
-        echo "String does not start with 'chore:', 'feat:', 'fix:', 'fix(detect):', or 'feat(device):'"
-        exit 1
-    fi
+MSG=$(cat $1)
+if [[ $MSG == feat:* || $MSG == chore* || $MSG == fix:* || $MSG == fix\(detect\):* || $MSG == feat\(device\):* ]]; then
+    exit 0
+else
+    echo "Commit message does not start with 'chore:', 'feat:', 'fix:', 'fix(detect):', or 'feat(device):'"
+    exit 1
 fi
