@@ -5,6 +5,8 @@ on:
   push:
     branches-ignore:
       - deps/*
+    tags:
+      - '**'
 
 permissions:
   contents: write
