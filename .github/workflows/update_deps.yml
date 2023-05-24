@@ -1,4 +1,4 @@
-name: update-dependencies
+name: update-deps
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  update_dependencies:
+  update_deps:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

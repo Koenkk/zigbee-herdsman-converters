@@ -32,13 +32,13 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
       run: |
         npm publish
-        PACKAGE=zigbee-herdsman-converters
+        PACKAGE=$(node -p "require('./package.json').name")
         VERSION=$(node -p "require('./package.json').version")
         until [ $(npm view $PACKAGE --json | jq --arg version "$VERSION" -r '.versions[] | select (. == $version)') ];
         do
           echo "Waiting for publish to complete"
           sleep 5s
         done
-        curl -XPOST -H "Authorization: token ${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_dependency\", \"client_payload\": { \"version\": \"$version\", \"package\": \"$package\"}}"
+        curl -XPOST -H "Authorization: token ${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_dep\", \"client_payload\": { \"version\": \"$version\", \"package\": \"$package\"}}"
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
