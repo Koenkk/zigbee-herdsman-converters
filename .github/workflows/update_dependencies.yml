@@ -10,6 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
+  update_dependencies:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
