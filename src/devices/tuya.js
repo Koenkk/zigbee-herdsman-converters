@@ -5305,4 +5305,22 @@ module.exports = [
             tuya.whitelabel('UseeLink', 'SM-O301-AZ', 'AU 4 plug 10A power board + USB', ['_TZ3000_o005nuxx']),
         ],
     },
+    {
+        zigbeeModel: ['SM0202'],
+        model: 'SM0202',
+        vendor: 'TuYa',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout, fz.battery],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.linkquality(), e.battery(), e.battery_voltage()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        whiteLabel: [
+            tuya.whitelabel('Cleverio', 'SS200', 'Motion sensor', ['_TYZB01_z2umiwvq']),
+            tuya.whitelabel('Marmitek', 'SM0202_1', 'Motion sensor', ['_TYZB01_yr95mpib']),
+        ],
+    },
 ];
