@@ -1,16 +1,16 @@
-name: "Close stale issues/pull requests"
+name: stale
+
 on:
   schedule:
   - cron: "0 0 * * *"
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   stale:
-    permissions:
-      issues: write  #  to close stale issues (actions/stale)
-      pull-requests: write  #  to close stale PRs (actions/stale)
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/stale@v8
