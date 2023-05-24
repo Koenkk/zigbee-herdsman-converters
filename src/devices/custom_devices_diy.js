@@ -6,7 +6,7 @@ const extend = require('../lib/extend');
 const constants = require('../lib/constants');
 const e = exposes.presets;
 const ea = exposes.access;
-const {calibrateAndPrecisionRoundOptions} = require('../lib/utils');
+const {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} = require('../lib/utils');
 
 
 const tzLocal = {
@@ -278,7 +278,130 @@ const fzLocal = {
             return result;
         },
     },
+    humidity2: {
+        cluster: 'msRelativeHumidity',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('humidity'), exposes.options.calibration('humidity')],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.humidity'
+            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, it should only publish message
+            // in the 0 - 100 range, don't produce messages beyond these values.
+            if (humidity >= 0 && humidity <= 100) {
+                const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+                const property = (multiEndpoint)? postfixWithEndpointName('humidity', msg, model, meta): 'humidity';
+                return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
+            }
+        },
+    },
+    illuminance2: {
+        cluster: 'msIlluminanceMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.calibration('illuminance', 'percentual'), exposes.options.calibration('illuminance_lux', 'percentual')],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.illuminance'
+            // DEPRECATED: only return lux here (change illuminance_lux -> illuminance)
+            const illuminance = msg.data['measuredValue'];
+            const illuminanceLux = illuminance === 0 ? 0 : Math.pow(10, (illuminance - 1) / 10000);
+            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const property1 = (multiEndpoint)? postfixWithEndpointName('illuminance', msg, model, meta): 'illuminance';
+            const property2 = (multiEndpoint)? postfixWithEndpointName('illuminance_lux', msg, model, meta): 'illuminance_lux';
+            return {
+                [property1]: calibrateAndPrecisionRoundOptions(illuminance, options, 'illuminance'),
+                [property2]: calibrateAndPrecisionRoundOptions(illuminanceLux, options, 'illuminance_lux'),
+            };
+        },
+    },
+    pressure2: {
+        cluster: 'msPressureMeasurement',
+        type: ['attributeReport', 'readResponse'],
+        options: [exposes.options.precision('pressure'), exposes.options.calibration('pressure')],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.pressure'
+            let pressure = 0;
+            if (msg.data.hasOwnProperty('scaledValue')) {
+                const scale = msg.endpoint.getClusterAttributeValue('msPressureMeasurement', 'scale');
+                pressure = msg.data['scaledValue'] / Math.pow(10, scale) / 100.0; // convert to hPa
+            } else {
+                pressure = parseFloat(msg.data['measuredValue']);
+            }
+            const multiEndpoint = model.meta && model.meta.hasOwnProperty('multiEndpoint') && model.meta.multiEndpoint;
+            const property = (multiEndpoint)? postfixWithEndpointName('pressure', msg, model, meta): 'pressure';
+            return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, 'pressure')};
+        },
+    },
 };
+
+function ptvoGetMetaOption(device, key, defaultValue) {
+    if (device != null) {
+        const value = device.meta[key];
+        if (value === undefined) {
+            return defaultValue;
+        } else {
+            return value;
+        }
+    }
+
+    return defaultValue;
+}
+
+function ptvoSetMetaOption(device, key, value) {
+    if (device != null && key != null) {
+        device.meta[key] = value;
+    }
+}
+
+function ptvoAddStandardExposes(endpoint, expose, options) {
+    const epId = endpoint.ID;
+    const epName = `l${epId}`;
+    if (endpoint.supportsInputCluster('lightingColorCtrl')) {
+        expose.push(e.light_brightness_colorxy().withEndpoint('l1').withEndpoint(epName));
+        options['exposed_onoff'] = true;
+        options['exposed_analog'] = true;
+        options['exposed_colorcontrol'] = true;
+    } else if (endpoint.supportsInputCluster('genLevelCtrl')) {
+        expose.push(e.light_brightness().withEndpoint(epName));
+        options['exposed_onoff'] = true;
+        options['exposed_analog'] = true;
+        options['exposed_levelcontrol'] = true;
+    }
+    if (endpoint.supportsInputCluster('genOnOff') || endpoint.supportsOutputCluster('genOnOff')) {
+        if (!options['exposed_onoff']) {
+            expose.push(e.switch().withEndpoint(epName));
+        }
+    }
+    if (endpoint.supportsInputCluster('genAnalogInput') || endpoint.supportsOutputCluster('genAnalogInput')) {
+        if (!options['exposed_analog']) {
+            options['exposed_analog'] = true;
+            expose.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+                .withProperty(epName).withDescription('State or sensor value'));
+        }
+    }
+    if (endpoint.supportsInputCluster('msTemperatureMeasurement')) {
+        expose.push(e.temperature().withEndpoint(epName));
+        options['exposed_temperature'] = true;
+    }
+    if (endpoint.supportsInputCluster('msRelativeHumidity')) {
+        expose.push(e.humidity().withEndpoint(epName));
+        options['exposed_humidity'] = true;
+    }
+    if (endpoint.supportsInputCluster('msPressureMeasurement')) {
+        expose.push(e.pressure().withEndpoint(epName));
+        options['exposed_pressure'] = true;
+    }
+    if (endpoint.supportsInputCluster('msIlluminanceMeasurement')) {
+        expose.push(e.illuminance().withEndpoint(epName));
+        options['exposed_illuminance'] = true;
+    }
+    if (endpoint.supportsInputCluster('genPowerCfg')) {
+        options['expose_battery'] = true;
+    }
+    if (endpoint.supportsInputCluster('genMultistateInput') || endpoint.supportsOutputCluster('genMultistateInput')) {
+        options['expose_action'] = true;
+    }
+}
 
 module.exports = [
     {
@@ -332,25 +455,112 @@ module.exports = [
         vendor: 'Custom devices (DiY)',
         description: '[Multi-channel relay switch](https://ptvo.info/zigbee-switch-configurable-firmware-router-199/)',
         fromZigbee: [fz.on_off, fz.ptvo_multistate_action, fz.legacy.ptvo_switch_buttons, fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report],
+            fz.ptvo_switch_analog_input, fz.brightness, fz.ignore_basic_report, fz.temperature,
+            fzLocal.humidity2, fzLocal.pressure2, fzLocal.illuminance2],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tz.on_off],
-        exposes: [exposes.text('action').withAccess(ea.STATE_SET)].concat(((enpoinsCount) => {
-            const features = [];
-            for (let i = 1; i <= enpoinsCount; i++) {
-                const epName = `l${i}`;
-                features.push(e.switch().withEndpoint(epName));
-                features.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
-                    .withProperty(epName).withDescription('State or sensor value'));
+        exposes: (device, options) => {
+            const expose = [];
+            const exposeOptions = {};
+            const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
+
+            if (deviceConfig === '') {
+                if ( (device != null) && device.endpoints ) {
+                    for (const endpoint of device.endpoints) {
+                        ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                    }
+                } else {
+                    // fallback code
+                    for (let epId = 1; epId <= 8; epId++) {
+                        const epName = `l${epId}`;
+                        expose.push(exposes.text(epName, ea.ALL).withEndpoint(epName)
+                            .withProperty(epName).withDescription('State or sensor value'));
+                        expose.push(e.switch().withEndpoint(epName));
+                    }
+                }
+            } else {
+                for (let i = 0; i < deviceConfig.length; i++) {
+                    const epConfig = deviceConfig.charCodeAt(i);
+                    if (epConfig <= 0x20) {
+                        continue;
+                    }
+                    const epId = i + 1;
+                    const epName = `l${epId}`;
+                    if ((epConfig & 0x01) != 0) {
+                        // GPIO input
+                        exposeOptions['expose_action'] = true;
+                    }
+                    if ((epConfig & 0x02) != 0) {
+                        // GPIO output
+                        exposeOptions['exposed_onoff'] = true;
+                        expose.push(e.switch().withEndpoint(epName));
+                    }
+                    if ((epConfig & 0x04) != 0) {
+                        // reportable analog value
+                        exposeOptions['exposed_analog'] = true;
+                        expose.push(exposes.numeric(epName, ea.STATE).withDescription('State or sensor value'));
+                    } else if ((epConfig & 0x08) != 0) {
+                        // readable analog value
+                        exposeOptions['exposed_analog'] = true;
+                        expose.push(exposes.numeric(epName, ea.STATE_SET)
+                            .withValueMin(-9999999).withValueMax(9999999).withValueStep(1)
+                            .withDescription('State or sensor value'));
+                    }
+                    const endpoint = device.getEndpoint(epId);
+                    if (!endpoint) {
+                        continue;
+                    }
+                    ptvoAddStandardExposes(endpoint, expose, exposeOptions);
+                }
             }
-            return features;
-        })(16)),
+            if (exposeOptions['expose_action']) {
+                expose.push(e.action(['single', 'double', 'triple', 'hold', 'release']));
+            }
+            if (exposeOptions['expose_battery']) {
+                expose.push(e.battery());
+            }
+            expose.push(e.linkquality());
+            return expose;
+        },
         meta: {multiEndpoint: true, tuyaThermostatPreset: fz.legacy /* for subclassed custom converters */},
         endpoint: (device) => {
-            return {
-                l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8,
-                l9: 9, l10: 10, l11: 11, l12: 12, l13: 13, l14: 14, l15: 15, l16: 16,
-                action: 1,
-            };
+            const endpointList = [];
+            const deviceConfig = ptvoGetMetaOption(device, 'device_config', '');
+            if (deviceConfig === '') {
+                if ( (device != null) && device.endpoints ) {
+                    for (const endpoint of device.endpoints) {
+                        const epId = endpoint.ID;
+                        const epName = `l${epId}`;
+                        endpointList[epName] = epId;
+                    }
+                } else {
+                    // fallback code
+                    for (let epId = 1; epId <= 8; epId++) {
+                        const epName = `l${epId}`;
+                        endpointList[epName] = epId;
+                    }
+                }
+            } else {
+                for (let i = 0; i < deviceConfig.length; i++) {
+                    const epConfig = deviceConfig.charCodeAt(i);
+                    if (epConfig === 0x20) {
+                        continue;
+                    }
+                    const epId = i + 1;
+                    const epName = `l${epId}`;
+                    endpointList[epName] = epId;
+                }
+            }
+            endpointList['action'] = 1;
+            return endpointList;
+        },
+        configure: async (device, coordinatorEndpoint, logger, options) => {
+            if (device != null) {
+                const controlEp = device.getEndpoint(1);
+                if (controlEp != null) {
+                    ptvoSetMetaOption(device, 'device_config', (await controlEp.read('genBasic', ['locationDesc'])).locationDesc);
+                    device.save();
+                }
+            }
         },
     },
     {
