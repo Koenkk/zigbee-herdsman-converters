@@ -2,6 +2,8 @@ const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const exposes = require('../lib/exposes');
 const utils = require('../lib/utils');
+const fz = require('../converters/fromZigbee');
+const tz = require('../converters/toZigbee');
 const e = exposes.presets;
 
 const fzLocal = {
@@ -64,6 +66,20 @@ module.exports = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
             await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
+        },
+    },
+    {
+        zigbeeModel: ['HK-ZCC-ZLL-A'],
+        model: '9135',
+        vendor: 'LED Trading',
+        description: 'Curtain motor controller',
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
 ];
