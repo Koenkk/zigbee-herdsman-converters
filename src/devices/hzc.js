@@ -18,4 +18,13 @@ module.exports = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ['HZC Electric motion sensor'],
+        model: 'S902M-ZG',
+        vendor: 'HZC',
+        description: 'Motion sensor',
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.battery_low(), e.battery(), e.illuminance(), e.tamper()],
+    },
 ];
