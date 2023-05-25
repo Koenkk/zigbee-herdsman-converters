@@ -555,7 +555,7 @@ const access = {
 
 const a = access;
 
-export default {
+module.exports = {
     access,
     binary: (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff),
     climate: () => new Climate(),

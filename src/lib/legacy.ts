@@ -4,7 +4,7 @@
 import {isLegacyEnabled, precisionRound} from './utils';
 import fromZigbeeConverters from '../converters/fromZigbee';
 const fromZigbeeStore: KeyValue = {};
-import exposes from './exposes';
+import * as exposes from './exposes';
 import constants from './constants';
 
 // get object property name (key) by it's value
