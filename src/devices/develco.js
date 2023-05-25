@@ -554,6 +554,7 @@ module.exports = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper(), e.temperature()],
         meta: {battery: {voltageToPercentage: '3V_2500'}},
+        ota: ota.zigbeeOTA,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint35 = device.getEndpoint(35);
             const endpoint38 = device.getEndpoint(38);
