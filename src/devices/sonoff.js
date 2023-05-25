@@ -264,7 +264,7 @@ module.exports = [
         model: 'SNZB-01P',
         vendor: 'SONOFF',
         description: 'Wireless button',
-        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(),e.battery_voltage()],
+        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.ewelink_action, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
