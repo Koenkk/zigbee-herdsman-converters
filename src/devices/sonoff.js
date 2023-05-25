@@ -259,4 +259,56 @@ module.exports = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ['SNZB-01P'],
+        model: 'SNZB-01P',
+        vendor: 'SONOFF',
+        description: 'Wireless button',
+        exposes: [e.battery(), e.action(['single', 'double', 'long']), e.battery_low(),e.battery_voltage()],
+        fromZigbee: [fz.ewelink_action, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
+    {
+        zigbeeModel: ['SNZB-02P'],
+        model: 'SNZB-02P',
+        vendor: 'SONOFF',
+        description: 'Temperature and humidity sensor ',
+        exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            try {
+                const endpoint = device.getEndpoint(1);
+                const bindClusters = ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg'];
+                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
+                await reporting.humidity(endpoint);
+                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+            } catch (e) {/* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
+                logger.error(`Configure failed: ${e}`);
+            }
+        },
+    },
+    {
+        zigbeeModel: ['SNZB-04P'],
+        model: 'SNZB-04P',
+        vendor: 'SONOFF',
+        description: 'Contact sensor',
+        exposes: [e.contact(), e.battery_low(), e.battery(), e.battery_voltage()],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+        },
+    },
 ];
