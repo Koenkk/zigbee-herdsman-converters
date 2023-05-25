@@ -6,7 +6,7 @@ import assert from 'assert';
 type Feature = Numeric | Binary | Enum | Composite | List;
 type Range = [number, number];
 
-class Base {
+export class Base {
     name: string;
     access: number;
     type: 'switch' | 'lock' | 'binary' | 'list' | 'numeric' | 'enum' | 'text' | 'composite' | 'light' | 'cover' | 'fan' | 'climate';
@@ -67,7 +67,7 @@ class Base {
     }
 }
 
-class Switch extends Base {
+export class Switch extends Base {
     constructor() {
         super();
         this.type = 'switch';
@@ -86,7 +86,7 @@ class Switch extends Base {
     }
 }
 
-class Lock extends Base {
+export class Lock extends Base {
     constructor() {
         super();
         this.type = 'lock';
@@ -106,7 +106,7 @@ class Lock extends Base {
     }
 }
 
-class Binary extends Base {
+export class Binary extends Base {
     value_on: string|boolean;
     value_off: string|boolean;
     value_toggle?: string;
@@ -127,7 +127,7 @@ class Binary extends Base {
     }
 }
 
-class List extends Base {
+export class List extends Base {
     item_type: Numeric | Binary | Composite | Text;
     length_min?: number;
     length_max?: number;
@@ -153,7 +153,7 @@ class List extends Base {
     }
 }
 
-class Numeric extends Base {
+export class Numeric extends Base {
     unit?: string;
     value_max?: number;
     value_min?: number;
@@ -195,7 +195,7 @@ class Numeric extends Base {
     }
 }
 
-class Enum extends Base {
+export class Enum extends Base {
     values: string[];
 
     constructor(name: string, access: number, values: string[]) {
@@ -208,7 +208,7 @@ class Enum extends Base {
     }
 }
 
-class Text extends Base {
+export class Text extends Base {
     constructor(name: string, access: number) {
         super();
         this.type = 'text';
@@ -218,7 +218,7 @@ class Text extends Base {
     }
 }
 
-class Composite extends Base {
+export class Composite extends Base {
     constructor(name: string, property: string, access: number) {
         super();
         this.type = 'composite';
@@ -235,7 +235,7 @@ class Composite extends Base {
     }
 }
 
-class Light extends Base {
+export class Light extends Base {
     constructor() {
         super();
         this.type = 'light';
@@ -360,7 +360,7 @@ class Light extends Base {
     }
 }
 
-class Cover extends Base {
+export class Cover extends Base {
     constructor() {
         super();
         this.type = 'cover';
@@ -381,7 +381,7 @@ class Cover extends Base {
     }
 }
 
-class Fan extends Base {
+export class Fan extends Base {
     constructor() {
         super();
         this.type = 'fan';
@@ -396,7 +396,7 @@ class Fan extends Base {
     }
 }
 
-class Climate extends Base {
+export class Climate extends Base {
     constructor() {
         super();
         this.type = 'climate';

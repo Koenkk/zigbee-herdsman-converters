@@ -3,6 +3,8 @@ import type {
     Endpoint as ZHEndpoint,
 } from 'zigbee-herdsman/dist/controller/model';
 
+import {Numeric} from './exposes';
+
 declare global {
     interface Logger {
         info: (message: string) => void;
@@ -26,7 +28,7 @@ declare global {
     interface FromZigbeeConverter {
         cluster: string,
         type: string[] | string,
-        options: any[];
+        options: Numeric[];
         convert: (model: Definition, msg: KeyValue, publish: Publish, options: KeyValue, meta: FzMeta) => KeyValue | void
     }
 
