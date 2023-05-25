@@ -1,15 +1,24 @@
-'use strict';
 /* eslint max-len: 0 */
 /* eslint camelcase: 0 */
 
-const assert = require('assert');
-const constants = require('./constants');
+import assert from 'assert';
+
+type Feature = Numeric | Binary | Enum | Composite | List;
+type Range = [number, number];
 
 class Base {
-    withEndpoint(endpointName) {
+    name: string;
+    access: number;
+    type: 'switch' | 'lock' | 'binary' | 'list' | 'numeric' | 'enum' | 'text' | 'composite' | 'light' | 'cover' | 'fan' | 'climate';
+    endpoint?: string;
+    property?: string;
+    description?: string;
+    features?: Feature[];
+
+    withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
 
-        if (this.hasOwnProperty('property')) {
+        if (this.property) {
             this.property = `${this.property}_${this.endpoint}`;
         }
 
@@ -25,23 +34,23 @@ class Base {
         return this;
     }
 
-    withAccess(a) {
+    withAccess(a: number) {
         assert(this.hasOwnProperty('access'), 'Cannot add access if not defined yet');
         this.access = a;
         return this;
     }
 
-    withProperty(property) {
+    withProperty(property: string) {
         this.property = property;
         return this;
     }
 
-    withDescription(description) {
+    withDescription(description: string) {
         this.description = description;
         return this;
     }
 
-    removeFeature(feature) {
+    removeFeature(feature: string) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
         assert(f, `Does not have feature '${feature}'`);
@@ -49,7 +58,7 @@ class Base {
         return this;
     }
 
-    setAccess(feature, a) {
+    setAccess(feature: string, a: number) {
         assert(this.features, 'Does not have any features');
         const f = this.features.find((f) => f.name === feature);
         assert(f.access !== a, `Access mode not changed for '${f.name}'`);
@@ -65,7 +74,7 @@ class Switch extends Base {
         this.features = [];
     }
 
-    withState(property, toggle, description, access=a.ALL, value_on='ON', value_off='OFF') {
+    withState(property: string, toggle: string | boolean, description: string, access=a.ALL, value_on='ON', value_off='OFF') {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const feature = new Binary('state', access, value_on, value_off).withProperty(property).withDescription(description);
         if (toggle) {
@@ -84,13 +93,13 @@ class Lock extends Base {
         this.features = [];
     }
 
-    withState(property, valueOn, valueOff, description, access=a.ALL) {
+    withState(property: string, valueOn: string, valueOff: string, description: string, access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Binary('state', access, valueOn, valueOff).withProperty(property).withDescription(description));
         return this;
     }
 
-    withLockState(property, description) {
+    withLockState(property: string, description: string) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Enum('lock_state', access.STATE, ['not_fully_locked', 'locked', 'unlocked']).withProperty(property).withDescription(description));
         return this;
@@ -98,7 +107,11 @@ class Lock extends Base {
 }
 
 class Binary extends Base {
-    constructor(name, access, valueOn, valueOff) {
+    value_on: string|boolean;
+    value_off: string|boolean;
+    value_toggle?: string;
+
+    constructor(name: string, access: number, valueOn: string|boolean, valueOff: string|boolean) {
         super();
         this.type = 'binary';
         this.name = name;
@@ -108,14 +121,18 @@ class Binary extends Base {
         this.value_off = valueOff;
     }
 
-    withValueToggle(value) {
+    withValueToggle(value: string) {
         this.value_toggle = value;
         return this;
     }
 }
 
 class List extends Base {
-    constructor(name, access, itemType) {
+    item_type: Numeric | Binary | Composite | Text;
+    length_min?: number;
+    length_max?: number;
+
+    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text) {
         super();
         this.type = 'list';
         this.name = name;
@@ -125,19 +142,25 @@ class List extends Base {
         delete this.item_type.property;
     }
 
-    withLengthMin(value) {
+    withLengthMin(value: number) {
         this.length_min = value;
         return this;
     }
 
-    withLengthMax(value) {
+    withLengthMax(value: number) {
         this.length_max = value;
         return this;
     }
 }
 
 class Numeric extends Base {
-    constructor(name, access) {
+    unit?: string;
+    value_max?: number;
+    value_min?: number;
+    value_step?: number;
+    presets?:{name: string, value: number, description: string}[];
+
+    constructor(name: string, access: number) {
         super();
         this.type = 'numeric';
         this.name = name;
@@ -145,27 +168,27 @@ class Numeric extends Base {
         this.access = access;
     }
 
-    withUnit(unit) {
+    withUnit(unit: string) {
         this.unit = unit;
         return this;
     }
 
-    withValueMax(value) {
+    withValueMax(value: number) {
         this.value_max = value;
         return this;
     }
 
-    withValueMin(value) {
+    withValueMin(value: number) {
         this.value_min = value;
         return this;
     }
 
-    withValueStep(value) {
+    withValueStep(value: number) {
         this.value_step = value;
         return this;
     }
 
-    withPreset(name, value, description) {
+    withPreset(name: string, value: number, description: string) {
         if (!this.presets) this.presets = [];
         this.presets.push({name, value, description});
         return this;
@@ -173,7 +196,9 @@ class Numeric extends Base {
 }
 
 class Enum extends Base {
-    constructor(name, access, values) {
+    values: string[];
+
+    constructor(name: string, access: number, values: string[]) {
         super();
         this.type = 'enum';
         this.name = name;
@@ -184,7 +209,7 @@ class Enum extends Base {
 }
 
 class Text extends Base {
-    constructor(name, access) {
+    constructor(name: string, access: number) {
         super();
         this.type = 'text';
         this.name = name;
@@ -194,7 +219,7 @@ class Text extends Base {
 }
 
 class Composite extends Base {
-    constructor(name, property, access) {
+    constructor(name: string, property: string, access: number) {
         super();
         this.type = 'composite';
         this.property = property;
@@ -203,7 +228,7 @@ class Composite extends Base {
         this.access = access;
     }
 
-    withFeature(feature) {
+    withFeature(feature: Feature) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(feature);
         return this;
@@ -262,7 +287,7 @@ class Light extends Base {
         return this;
     }
 
-    withColorTemp(range) {
+    withColorTemp(range: Range) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const rangeProvided = range !== undefined;
         if (range === undefined) {
@@ -273,6 +298,7 @@ class Light extends Base {
             .withDescription('Color temperature of this light');
 
         if (process.env.ZHC_TEST) {
+            // @ts-ignore
             feature._colorTempRangeProvided = rangeProvided;
         }
 
@@ -288,7 +314,7 @@ class Light extends Base {
         return this;
     }
 
-    withColorTempStartup(range) {
+    withColorTempStartup(range: Range) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         if (range === undefined) {
             range = [150, 500];
@@ -310,7 +336,7 @@ class Light extends Base {
         return this;
     }
 
-    withColor(types) {
+    withColor(types: ('xy' | 'hs')[]) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         for (const type of types) {
             if (type === 'xy') {
@@ -363,7 +389,7 @@ class Fan extends Base {
         this.features.push(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
     }
 
-    withModes(modes, access=a.ALL) {
+    withModes(modes: string[], access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
         return this;
@@ -377,7 +403,7 @@ class Climate extends Base {
         this.features = [];
     }
 
-    withSetpoint(property, min, max, step, access=a.ALL) {
+    withSetpoint(property: string, min: number, max: number, step: number, access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         assert(['occupied_heating_setpoint', 'current_heating_setpoint', 'occupied_cooling_setpoint', 'unoccupied_heating_setpoint', 'unoccupied_cooling_setpoint'].includes(property));
         this.features.push(new Numeric(property, access)
@@ -387,7 +413,7 @@ class Climate extends Base {
 
     withLocalTemperature(access=a.STATE_GET, description='Current temperature measured on the device') {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
-        this.features.push(new Numeric('local_temperature', access).withUnit('°C').withDescription('Current temperature measured on the device'));
+        this.features.push(new Numeric('local_temperature', access).withUnit('°C').withDescription(description));
         return this;
     }
 
@@ -399,7 +425,7 @@ class Climate extends Base {
         return this;
     }
 
-    withSystemMode(modes, access=a.ALL, description='Mode of this device') {
+    withSystemMode(modes: string[], access=a.ALL, description='Mode of this device') {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'heat', 'cool', 'auto', 'dry', 'fan_only', 'sleep', 'emergency_heating'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -407,7 +433,7 @@ class Climate extends Base {
         return this;
     }
 
-    withRunningState(modes, access=a.STATE_GET) {
+    withRunningState(modes: string[], access=a.STATE_GET) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['idle', 'heat', 'cool', 'fan_only'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -415,7 +441,7 @@ class Climate extends Base {
         return this;
     }
 
-    withRunningMode(modes, access=a.STATE_GET) {
+    withRunningMode(modes: string[], access=a.STATE_GET) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'cool', 'heat'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -423,7 +449,7 @@ class Climate extends Base {
         return this;
     }
 
-    withFanMode(modes, access=a.ALL) {
+    withFanMode(modes: string[], access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['off', 'low', 'medium', 'high', 'on', 'auto', 'smart'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -431,13 +457,13 @@ class Climate extends Base {
         return this;
     }
 
-    withSwingMode(modes, access=a.ALL) {
+    withSwingMode(modes: string[], access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Enum('swing_mode', access, modes).withDescription('Swing mode'));
         return this;
     }
 
-    withPreset(modes, description='Mode of this device (similar to system_mode)') {
+    withPreset(modes: string[], description='Mode of this device (similar to system_mode)') {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         this.features.push(new Enum('preset', access.STATE_SET, modes).withDescription(description));
         return this;
@@ -449,7 +475,7 @@ class Climate extends Base {
         return this;
     }
 
-    withControlSequenceOfOperation(modes, access=a.STATE) {
+    withControlSequenceOfOperation(modes: string[], access=a.STATE) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['cooling_only', 'cooling_with_reheat', 'heating_only', 'heating_with_reheat', 'cooling_and_heating_4-pipes', 'cooling_and_heating_4-pipes_with_reheat'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -457,7 +483,7 @@ class Climate extends Base {
         return this;
     }
 
-    withAcLouverPosition(positions, access=a.ALL) {
+    withAcLouverPosition(positions: string[], access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'];
         positions.forEach((m) => assert(allowed.includes(m)));
@@ -465,7 +491,7 @@ class Climate extends Base {
         return this;
     }
 
-    withWeeklySchedule(modes, access=a.ALL) {
+    withWeeklySchedule(modes: string[], access=a.ALL) {
         assert(!this.endpoint, 'Cannot add feature after adding endpoint');
         const allowed = ['heat', 'cool'];
         modes.forEach((m) => assert(allowed.includes(m)));
@@ -529,21 +555,21 @@ const access = {
 
 const a = access;
 
-module.exports = {
+export default {
     access,
-    binary: (name, access, valueOn, valueOff) => new Binary(name, access, valueOn, valueOff),
+    binary: (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff),
     climate: () => new Climate(),
-    composite: (name, property, access) => new Composite(name, property, access),
+    composite: (name: string, property: string, access: number) => new Composite(name, property, access),
     cover: () => new Cover(),
-    enum: (name, access, values) => new Enum(name, access, values),
+    enum: (name: string, access: number, values: string[]) => new Enum(name, access, values),
     light: () => new Light(),
-    numeric: (name, access) => new Numeric(name, access),
+    numeric: (name: string, access: number) => new Numeric(name, access),
     switch: () => new Switch(),
-    text: (name, access) => new Text(name, access),
-    list: (name, access, itemType) => new List(name, access, itemType),
+    text: (name: string, access: number) => new Text(name, access),
+    list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
     options: {
-        calibration: (name, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
-        precision: (name) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
+        calibration: (name: string, type='absolute') => new Numeric(`${name}_calibration`, access.SET).withDescription(`Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`),
+        precision: (name: string) => new Numeric(`${name}_precision`, access.SET).withValueMin(0).withValueMax(3).withDescription(`Number of digits after decimal point for ${name}, takes into effect on next report of device.`),
         invert_cover: () => new Binary(`invert_cover`, access.SET, true, false).withDescription(`Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).`),
         color_sync: () => new Binary(`color_sync`, access.SET, true, false).withDescription(`When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).`),
         thermostat_unit: () => new Enum('thermostat_unit', access.SET, ['celsius', 'fahrenheit']).withDescription('Controls the temperature unit of the thermostat (default celsius).'),
@@ -557,7 +583,7 @@ module.exports = {
             .withFeature(new Numeric('interval', access.SET).withValueMin(0).withUnit('ms').withDescription('Interval duration')),
         no_occupancy_since_true: () => new List(`no_occupancy_since`, access.SET, new Numeric('time', access.STATE_SET)).withDescription('Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.'),
         no_occupancy_since_false: () => new List(`no_occupancy_since`, access.SET, new Numeric('time', access.STATE_SET)).withDescription('Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.'),
-        presence_timeout: () => new Numeric(`presence_timeout`).withValueMin(0).withDescription('Time in seconds after which presence is cleared after detecting it (default 100 seconds).'),
+        presence_timeout: () => new Numeric(`presence_timeout`, access.SET).withValueMin(0).withDescription('Time in seconds after which presence is cleared after detecting it (default 100 seconds).'),
         no_position_support: () => new Binary('no_position_support', access.SET, true, false).withDescription('Set to true when your device only reports position 0, 100 and 50 (in this case your device has an older firmware) (default false).'),
         transition: () => new Numeric(`transition`, access.SET).withValueMin(0).withDescription('Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).'),
         legacy: () => new Binary(`legacy`, access.SET, true, false).withDescription(`Set to false to disable the legacy integration (highly recommended), will change structure of the published payload (default true).`),
@@ -567,13 +593,13 @@ module.exports = {
     },
     presets: {
         ac_frequency: () => new Numeric('ac_frequency', access.STATE).withUnit('Hz').withDescription('Measured electrical AC frequency'),
-        action: (values) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
-        action_group: (values) => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
-        angle: (name) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
-        angle_axis: (name) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit('°'),
+        action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
+        action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),
+        angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit('°'),
+        angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit('°'),
         aqi: () => new Numeric('aqi', access.STATE).withDescription('Air quality index'),
         auto_lock: () => new Switch().withState('auto_lock', false, 'Enable/disable auto lock', access.STATE_SET, 'AUTO', 'MANUAL'),
-        auto_off: (offTime) => new Binary('auto_off', access.ALL, true, false).withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
+        auto_off: (offTime: number) => new Binary('auto_off', access.ALL, true, false).withDescription(`Turn the device automatically off when attached device consumes less than 2W for ${offTime} minutes`),
         auto_relock_time: () => new Numeric('auto_relock_time', access.ALL).withValueMin(0).withUnit('s').withDescription('The number of seconds to wait after unlocking a lock before it automatically locks again. 0=disabled'),
         away_mode: () => new Switch().withState('away_mode', false, 'Enable/disable away mode', access.STATE_SET),
         away_preset_days: () => new Numeric('away_preset_days', access.STATE_SET).withDescription('Away preset days').withValueMin(0).withValueMax(100),
@@ -594,7 +620,7 @@ module.exports = {
         cover_position_tilt: () => new Cover().withPosition().withTilt(),
         cover_tilt: () => new Cover().withTilt(),
         cpu_temperature: () => new Numeric('cpu_temperature', access.STATE).withUnit('°C').withDescription('Temperature of the CPU'),
-        cube_side: (name) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
+        cube_side: (name: string) => new Numeric(name, access.STATE).withDescription('Side of the cube').withValueMin(0).withValueMax(6).withValueStep(1),
         current: () => new Numeric('current', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current'),
         current_phase_b: () => new Numeric('current_phase_b', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current on phase B'),
         current_phase_c: () => new Numeric('current_phase_c', access.STATE).withUnit('A').withDescription('Instantaneous measured electrical current on phase C'),
@@ -620,12 +646,12 @@ module.exports = {
         keypad_lockout: () => new Enum('keypad_lockout', access.ALL, ['unlock', 'lock1', 'lock2']).withDescription('Enables/disables physical input on the device'),
         led_disabled_night: () => new Binary('led_disabled_night', access.ALL, true, false).withDescription('Enable/disable the LED at night'),
         light_brightness: () => new Light().withBrightness(),
-        light_brightness_color: (preferHS) => new Light().withBrightness().withColor((preferHS ? ['hs', 'xy'] : ['xy', 'hs'])),
+        light_brightness_color: (preferHS: boolean) => new Light().withBrightness().withColor((preferHS ? ['hs', 'xy'] : ['xy', 'hs'])),
         light_brightness_colorhs: () => new Light().withBrightness().withColor(['hs']),
-        light_brightness_colortemp: (colorTempRange) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange),
-        light_brightness_colortemp_color: (colorTempRange, preferHS) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(preferHS ? ['hs', 'xy'] : ['xy', 'hs']),
-        light_brightness_colortemp_colorhs: (colorTempRange) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['hs']),
-        light_brightness_colortemp_colorxy: (colorTempRange) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['xy']),
+        light_brightness_colortemp: (colorTempRange: Range) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange),
+        light_brightness_colortemp_color: (colorTempRange: Range, preferHS: boolean) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(preferHS ? ['hs', 'xy'] : ['xy', 'hs']),
+        light_brightness_colortemp_colorhs: (colorTempRange: Range) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['hs']),
+        light_brightness_colortemp_colorxy: (colorTempRange: Range) => new Light().withBrightness().withColorTemp(colorTempRange).withColorTempStartup(colorTempRange).withColor(['xy']),
         light_brightness_colorxy: () => new Light().withBrightness().withColor((['xy'])),
         light_colorhs: () => new Light().withColor(['hs']),
         linkquality: () => new Numeric('linkquality', access.STATE).withUnit('lqi').withDescription('Link quality (signal strength)').withValueMin(0).withValueMax(255),
@@ -634,10 +660,10 @@ module.exports = {
         lock_action: () => new Enum('action', access.STATE, ['unknown', 'lock', 'unlock', 'lock_failure_invalid_pin_or_id', 'lock_failure_invalid_schedule', 'unlock_failure_invalid_pin_or_id', 'unlock_failure_invalid_schedule', 'one_touch_lock', 'key_lock', 'key_unlock', 'auto_lock', 'schedule_lock', 'schedule_unlock', 'manual_lock', 'manual_unlock', 'non_access_user_operational_event']).withDescription('Triggered action on the lock'),
         lock_action_source_name: () => new Enum('action_source_name', access.STATE, ['keypad', 'rfid', 'manual', 'rf']).withDescription('Source of the triggered action on the lock'),
         lock_action_user: () => new Numeric('action_user', access.STATE).withDescription('ID of user that triggered the action on the lock'),
-        max_cool_setpoint_limit: (min, max, step) => new Numeric('max_cool_setpoint_limit', access.ALL).withUnit('°C').withDescription('Maximum Cooling set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
-        min_cool_setpoint_limit: (min, max, step) => new Numeric('min_cool_setpoint_limit', access.ALL).withUnit('°C').withDescription('Minimum Cooling point limit').withValueMin(min).withValueMax(max).withValueStep(step),
-        max_heat_setpoint_limit: (min, max, step) => new Numeric('max_heat_setpoint_limit', access.ALL).withUnit('°C').withDescription('Maximum Heating set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
-        min_heat_setpoint_limit: (min, max, step) => new Numeric('min_heat_setpoint_limit', access.ALL).withUnit('°C').withDescription('Minimum Heating set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
+        max_cool_setpoint_limit: (min: number, max: number, step: number) => new Numeric('max_cool_setpoint_limit', access.ALL).withUnit('°C').withDescription('Maximum Cooling set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
+        min_cool_setpoint_limit: (min: number, max: number, step: number) => new Numeric('min_cool_setpoint_limit', access.ALL).withUnit('°C').withDescription('Minimum Cooling point limit').withValueMin(min).withValueMax(max).withValueStep(step),
+        max_heat_setpoint_limit: (min: number, max: number, step: number) => new Numeric('max_heat_setpoint_limit', access.ALL).withUnit('°C').withDescription('Maximum Heating set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
+        min_heat_setpoint_limit: (min: number, max: number, step: number) => new Numeric('min_heat_setpoint_limit', access.ALL).withUnit('°C').withDescription('Minimum Heating set point limit').withValueMin(min).withValueMax(max).withValueStep(step),
         max_temperature: () => new Numeric('max_temperature', access.STATE_SET).withUnit('°C').withDescription('Maximum temperature').withValueMin(15).withValueMax(35),
         max_temperature_limit: () => new Numeric('max_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Maximum temperature limit. Cuts the thermostat out regardless of air temperature if the external floor sensor exceeds this temperature. Only used by the thermostat when in AL sensor mode.').withValueMin(0).withValueMax(35),
         min_temperature_limit: () => new Numeric('min_temperature_limit', access.STATE_SET).withUnit('°C').withDescription('Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the tempreature drops below this.').withValueMin(1).withValueMax(5),
@@ -648,7 +674,7 @@ module.exports = {
         occupancy_level: () => new Numeric('occupancy_level', access.STATE).withDescription('The measured occupancy value'),
         open_window: () => new Binary('open_window', access.STATE_SET, 'ON', 'OFF').withDescription('Enables/disables the status on the device'),
         open_window_temperature: () => new Numeric('open_window_temperature', access.STATE_SET).withUnit('°C').withDescription('Open window temperature').withValueMin(0).withValueMax(35),
-        overload_protection: (min, max) => new Numeric('overload_protection', access.ALL).withUnit('W').withValueMin(min).withValueMax(max).withDescription('Maximum allowed load, turns off if exceeded'),
+        overload_protection: (min: number, max: number) => new Numeric('overload_protection', access.ALL).withUnit('W').withValueMin(min).withValueMax(max).withDescription('Maximum allowed load, turns off if exceeded'),
         pm10: () => new Numeric('pm10', access.STATE).withUnit('µg/m³').withDescription('Measured PM10 (particulate matter) concentration'),
         pm25: () => new Numeric('pm25', access.STATE).withUnit('µg/m³').withDescription('Measured PM2.5 (particulate matter) concentration'),
         position: () => new Numeric('position', access.STATE).withUnit('%').withDescription('Position'),
@@ -665,17 +691,17 @@ module.exports = {
         smoke: () => new Binary('smoke', access.STATE, true, false).withDescription('Indicates whether the device detected smoke'),
         soil_moisture: () => new Numeric('soil_moisture', access.STATE).withUnit('%').withDescription('Measured soil moisture value'),
         sos: () => new Binary('sos', access.STATE, true, false).withDescription('SOS alarm'),
-        sound_volume: () => new Enum('sound_volume', access.ALL, constants.lockSoundVolume).withDescription('Sound volume of the lock'),
+        sound_volume: () => new Enum('sound_volume', access.ALL, ['silent_mode', 'low_volume', 'high_volume']).withDescription('Sound volume of the lock'),
         switch: () => new Switch().withState('state', true, 'On/off state of the switch'),
         switch_type: () => new Enum('switch_type', access.ALL, ['toggle', 'momentary']).withDescription('Wall switch type'),
         tamper: () => new Binary('tamper', access.STATE, true, false).withDescription('Indicates whether the device is tampered'),
         temperature: () => new Numeric('temperature', access.STATE).withUnit('°C').withDescription('Measured temperature value'),
-        temperature_sensor_select: (sensor_names) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use'),
+        temperature_sensor_select: (sensor_names: string[]) => new Enum('sensor', access.STATE_SET, sensor_names).withDescription('Select temperature sensor to use'),
         test: () => new Binary('test', access.STATE, true, false).withDescription('Indicates whether the device is being tested'),
         valve_position: () => new Numeric('position', access.ALL).withValueMin(0).withValueMax(100).withDescription('Position of the valve'),
         valve_switch: () => new Binary('state', access.ALL, 'OPEN', 'CLOSE').withDescription('Valve state if open or closed'),
         valve_state: () => new Binary('valve_state', access.STATE, 'OPEN', 'CLOSED').withDescription('Valve state if open or closed'),
-        valve_detection: () => new Switch().withState('valve_detection', true).setAccess('state', access.STATE_SET),
+        valve_detection: () => new Switch().withState('valve_detection', true, 'Valve detection').setAccess('state', access.STATE_SET),
         vibration: () => new Binary('vibration', access.STATE, true, false).withDescription('Indicates whether the device detected vibration'),
         voc: () => new Numeric('voc', access.STATE).withUnit('µg/m³').withDescription('Measured VOC value'),
         voc_index: () => new Numeric('voc_index', access.STATE).withDescription('VOC index'),

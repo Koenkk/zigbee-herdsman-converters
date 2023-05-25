@@ -6637,41 +6637,6 @@ const converters = {
             return {state: {keypad_lockout: value}};
         },
     },
-    moes_105_dimmer: {
-        key: ['state', 'brightness'],
-        convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`to moes_105_dimmer key=[${key}], value=[${value}]`);
-
-            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
-            const lookupState = {l1: tuya.dataPoints.moes105DimmerState1, l2: tuya.dataPoints.moes105DimmerState2};
-            const lookupBrightness = {l1: tuya.dataPoints.moes105DimmerLevel1, l2: tuya.dataPoints.moes105DimmerLevel2};
-            const stateKeyId = multiEndpoint ? lookupState[meta.endpoint_name] : lookupState.l1;
-            const brightnessKeyId = multiEndpoint ? lookupBrightness[meta.endpoint_name] : lookupBrightness.l1;
-
-            switch (key) {
-            case 'state':
-                await tuya.sendDataPointBool(entity, stateKeyId, value === 'ON', 'dataRequest', 1);
-                break;
-
-            case 'brightness':
-                if (value >= 0 && value <= 254) {
-                    const newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
-                    if (newValue === 0) {
-                        await tuya.sendDataPointBool(entity, stateKeyId, false, 'dataRequest', 1);
-                    } else {
-                        await tuya.sendDataPointBool(entity, stateKeyId, true, 'dataRequest', 1);
-                    }
-                    await tuya.sendDataPointValue(entity, brightnessKeyId, newValue, 'dataRequest', 1);
-                    break;
-                } else {
-                    throw new Error('Dimmer brightness is out of range 0..254');
-                }
-
-            default:
-                throw new Error(`Unsupported Key=[${key}]`);
-            }
-        },
-    },
     tuya_motion_sensor: {
         key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay',
             'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
