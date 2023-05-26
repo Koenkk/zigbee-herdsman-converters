@@ -20,6 +20,34 @@ const tzLocal = {
     },
 };
 
+const fzLocal = {
+    orvibo_raw_3: {
+        cluster: 23,
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup = {0: 'click', 2: 'hold', 3: 'release'};
+            const buttonLookup = {
+                1: 'button_all_open', 2: 'button_at_home', 21: 'button_sleep', 4: 'button_all_close', 3: 'button_leave_home', 23: 'button_play',
+                5: 'button_1', 6: 'button_2', 7: 'button_3', 8: 'button_4', 9: 'button_5', 10: 'button_6', 11: 'button_7', 12: 'button_8',
+                14: 'button_9', 15: 'button_0', 17: 'button_lock', 18: 'button_plus', 19: 'button_minus',
+            };
+
+            const button = buttonLookup[msg.data[3]];
+            const plus = msg.data[4];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                if (plus == 0) {
+                    return {action: `${button}_${action}`};
+                } else if (plus == 1) {
+                    return {action: `button_1_plus_${button}_${action}`};
+                } else if (plus == 2) {
+                    return {action: `button_2_plus_${button}_${action}`};
+                }
+            }
+        },
+    },
+};
+
 module.exports = [
     {
         zigbeeModel: ['ccb9f56837ab41dcad366fb1452096b6'],
@@ -61,7 +89,7 @@ module.exports = [
         model: 'RC808ZB',
         vendor: 'ORVIBO',
         description: 'ORVIBO Remote Control',
-        fromZigbee: [fz.orvibo_raw_3, fz.battery],
+        fromZigbee: [fzLocal.orvibo_raw_3, fz.battery],
         exposes: [e.battery()],
         toZigbee: [],
     },
@@ -87,7 +115,6 @@ module.exports = [
             return {'l1': 1, 'l2': 2, 'l3': 3};
         },
     },
-
     {
         zigbeeModel: ['fdd76effa0e146b4bdafa0c203a37192', 'c670e231d1374dbc9e3c6a9fffbd0ae6', '75a4bfe8ef9c4350830a25d13e3ab068'],
         model: 'SM10ZW',
