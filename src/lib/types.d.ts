@@ -26,7 +26,7 @@ declare global {
     interface FromZigbeeConverter {
         cluster: string,
         type: string[] | string,
-        options: any[];
+        options?: any[] | ((definition: Definition) => any[]);
         convert: (model: Definition, msg: KeyValue, publish: Publish, options: KeyValue, meta: FzMeta) => KeyValue | void
     }
 

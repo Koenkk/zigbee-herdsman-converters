@@ -102,7 +102,7 @@ module.exports = [
         model: '07703L',
         vendor: 'Immax',
         description: 'Radiator valve',
-        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule, fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [tz.etop_thermostat_system_mode, tz.etop_thermostat_away_mode, tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
