@@ -1017,7 +1017,7 @@ const ictcg1 = (model: any, msg: any, publish: any, options: any, action: any) =
     return payload.brightness;
 };
 
-const fromZigbee = {
+const fromZigbee1 = {
     WXKG11LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -2826,65 +2826,6 @@ const fromZigbee = {
                 'commandStop': 'stop',
             };
             return {action: `${msg.endpoint.ID}_cover_${lookup[msg.type]}`};
-        },
-    } as FromZigbeeConverter,
-    tuya_thermostat_weekly_schedule_1: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        options: [exposes.options.legacy()],
-        convert: (model, msg, publish, options, meta) => {
-            if (!utils.isLegacyEnabled(options)) {
-                return fromZigbee.tuya_thermostat_weekly_schedule_2.convert(model, msg, publish, options, meta);
-            }
-
-            const dpValue = firstDpValue(msg, meta, 'tuya_thermostat_weekly_schedule');
-            const dp = dpValue.dp;
-            const value = tuyaGetDataValue(dpValue.datatype, dpValue.data);
-
-            const thermostatMeta = getMetaValue(msg.endpoint, model, 'thermostat');
-            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
-            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
-            let dataOffset = 0;
-            let conversion = 'generic';
-
-            function dataToTransitions(data: any, maxTransitions: any, offset: any) {
-                // Later it is possible to move converter to meta or to other place outside if other type of converter
-                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
-                // see also toZigbee.tuya_thermostat_weekly_schedule()
-                function dataToTransition(data: any, index: any) {
-                    return {
-                        transitionTime: (data[index+0] << 8) + data [index+1],
-                        heatSetpoint: (parseFloat((data[index+2] << 8) + data [index+3]) / 10.0).toFixed(1),
-                    };
-                }
-                const result = [];
-                for (let i = 0; i < maxTransitions; i++) {
-                    result.push(dataToTransition(data, i * 4 + offset));
-                }
-                return result;
-            }
-
-            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
-                conversion = thermostatMeta.weeklyScheduleConversion;
-            }
-            if (conversion == 'saswell') {
-                // Saswell has scheduling mode in the first byte
-                dataOffset = 1;
-            }
-            if (dp >= firstDayDpId && dp < firstDayDpId+7) {
-                const dayOfWeek = dp - firstDayDpId + 1;
-                return {
-                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
-                    weekly_schedule: {
-                        [dayOfWeek]: {
-                            dayofweek: dayOfWeek,
-                            numoftrans: maxTransitions,
-                            mode: 1, // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                            transitions: dataToTransitions(value, maxTransitions, dataOffset),
-                        },
-                    },
-                };
-            }
         },
     } as FromZigbeeConverter,
     hue_dimmer_switch: {
@@ -5219,6 +5160,71 @@ const fromZigbee = {
         },
     } as FromZigbeeConverter,
 };
+
+const fromZigbee2 = {
+    tuya_thermostat_weekly_schedule_1: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        options: [exposes.options.legacy()],
+        convert: (model, msg, publish, options, meta) => {
+            if (!utils.isLegacyEnabled(options)) {
+                // @ts-ignore
+                return fromZigbee1.tuya_thermostat_weekly_schedule_2.convert(model, msg, publish, options, meta);
+            }
+
+            const dpValue = firstDpValue(msg, meta, 'tuya_thermostat_weekly_schedule');
+            const dp = dpValue.dp;
+            const value = tuyaGetDataValue(dpValue.datatype, dpValue.data);
+
+            const thermostatMeta = getMetaValue(msg.endpoint, model, 'thermostat');
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            let dataOffset = 0;
+            let conversion = 'generic';
+
+            function dataToTransitions(data: any, maxTransitions: any, offset: any) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also toZigbee.tuya_thermostat_weekly_schedule()
+                function dataToTransition(data: any, index: any) {
+                    return {
+                        transitionTime: (data[index+0] << 8) + data [index+1],
+                        heatSetpoint: (parseFloat((data[index+2] << 8) + data [index+3]) / 10.0).toFixed(1),
+                    };
+                }
+                const result = [];
+                for (let i = 0; i < maxTransitions; i++) {
+                    result.push(dataToTransition(data, i * 4 + offset));
+                }
+                return result;
+            }
+
+            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+                conversion = thermostatMeta.weeklyScheduleConversion;
+            }
+            if (conversion == 'saswell') {
+                // Saswell has scheduling mode in the first byte
+                dataOffset = 1;
+            }
+            if (dp >= firstDayDpId && dp < firstDayDpId+7) {
+                const dayOfWeek = dp - firstDayDpId + 1;
+                return {
+                    // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
+                    weekly_schedule: {
+                        [dayOfWeek]: {
+                            dayofweek: dayOfWeek,
+                            numoftrans: maxTransitions,
+                            mode: 1, // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
+                            transitions: dataToTransitions(value, maxTransitions, dataOffset),
+                        },
+                    },
+                };
+            }
+        },
+    } as FromZigbeeConverter,
+};
+
+const fromZigbee = {...fromZigbee1, ...fromZigbee2};
 
 const thermostatControlSequenceOfOperations = {
     0: 'cooling only',
