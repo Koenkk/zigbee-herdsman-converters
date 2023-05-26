@@ -278,7 +278,7 @@ module.exports = [
         zigbeeModel: ['SNZB-02P'],
         model: 'SNZB-02P',
         vendor: 'SONOFF',
-        description: 'Temperature and humidity sensor ',
+        description: 'Temperature and humidity sensor',
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_low(), e.battery_voltage()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
