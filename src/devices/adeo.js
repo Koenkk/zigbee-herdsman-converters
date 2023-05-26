@@ -253,4 +253,19 @@ module.exports = [
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
+    {
+        zigbeeModel: ['LDSENK02S'],
+        model: 'LDSENK02S',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN 16A EU smart plug',
+        extend: extend.switch({exposes: [e.power(), e.energy()], fromZigbee: [fz.electrical_measurement, fz.metering]}),
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
+            await reporting.onOff(endpoint);
+            await reporting.activePower(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+        }
+    },
 ];
