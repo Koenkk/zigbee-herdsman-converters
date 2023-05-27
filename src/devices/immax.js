@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
@@ -103,8 +103,8 @@ module.exports = [
         vendor: 'Immax',
         description: 'Radiator valve',
         fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.legacy.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [tz.etop_thermostat_system_mode, tz.etop_thermostat_away_mode, tz.tuya_thermostat_child_lock,
-            tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_weekly_schedule],
+        toZigbee: [tz.legacy.etop_thermostat_system_mode, tz.legacy.etop_thermostat_away_mode, tz.legacy.tuya_thermostat_child_lock,
+            tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
@@ -165,7 +165,7 @@ module.exports = [
         vendor: 'Immax',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.legacy.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
-        toZigbee: [tz.ZB003X],
+        toZigbee: [tz.legacy.ZB003X],
         exposes: [e.occupancy(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux().withUnit('lx'), e.temperature(),
             e.humidity(), exposes.numeric('reporting_time', ea.STATE_SET).withDescription('Reporting interval in minutes')
                 .withValueMin(0).withValueMax(1440),

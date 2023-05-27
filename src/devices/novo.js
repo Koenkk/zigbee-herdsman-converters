@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -11,7 +11,7 @@ module.exports = [
         vendor: 'Novo',
         description: 'Curtain switch',
         fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];

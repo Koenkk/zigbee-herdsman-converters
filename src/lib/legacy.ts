@@ -9,6 +9,7 @@ import fromZigbeeConverters from '../converters/fromZigbee';
 const fromZigbeeStore: KeyValue = {};
 import * as exposes from './exposes';
 import constants from './constants';
+import light from './light';
 
 // get object property name (key) by it's value
 const getKey = (object: KeyValue, value: any) => {
@@ -83,6 +84,119 @@ function logUnexpectedDataType(where: any, msg: any, dpValue: any, meta: any, ex
 function getDataPointNames(dpValue: any) {
     const entries = Object.entries(dataPoints).filter(([dpName, dpId]) => dpId === dpValue.dp);
     return entries.map(([dpName, dpId]) => dpName);
+}
+
+const coverStateOverride: KeyValue = {
+    // Contains all covers which differentiate from the default enum states
+    // Use manufacturerName to identify device!
+    // https://github.com/Koenkk/zigbee2mqtt/issues/5596#issuecomment-759408189
+    '_TZE200_rddyvrci': {close: 1, open: 2, stop: 0},
+    '_TZE200_wmcdj3aq': {close: 0, open: 2, stop: 1},
+    '_TZE200_cowvfni3': {close: 0, open: 2, stop: 1},
+    '_TYST11_cowvfni3': {close: 0, open: 2, stop: 1},
+};
+
+// Gets an array containing which enums have to be used in order for the correct close/open/stop commands to be sent
+function getCoverStateEnums(manufacturerName: string) {
+    if (manufacturerName in coverStateOverride) {
+        return coverStateOverride[manufacturerName];
+    } else {
+        return {close: 2, open: 0, stop: 1}; // defaults
+    }
+}
+
+function convertDecimalValueTo4ByteHexArray(value: number) {
+    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const chunk1 = hexValue.substr(0, 2);
+    const chunk2 = hexValue.substr(2, 2);
+    const chunk3 = hexValue.substr(4, 2);
+    const chunk4 = hexValue.substr(6);
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+}
+
+let gSec: number = undefined;
+async function sendDataPoints(entity: zh.Endpoint | zh.Group, dpValues: any, cmd='dataRequest', seq:number=undefined) {
+    if (seq === undefined) {
+        if (gSec === undefined) {
+            gSec = 0;
+        } else {
+            gSec++;
+            gSec %= 0xFFFF;
+        }
+        seq = gSec;
+    }
+
+    await entity.command(
+        'manuSpecificTuya',
+        cmd || 'dataRequest',
+        {
+            seq,
+            dpValues,
+        },
+        {disableDefaultResponse: true},
+    );
+    return seq;
+}
+
+function convertStringToHexArray(value: string) {
+    const asciiKeys = [];
+    for (let i = 0; i < value.length; i ++) {
+        asciiKeys.push(value[i].charCodeAt(0));
+    }
+    return asciiKeys;
+}
+
+function dpValueFromIntValue(dp: number, value: number) {
+    return {dp, datatype: dataTypes.value, data: convertDecimalValueTo4ByteHexArray(value)};
+}
+
+function dpValueFromBool(dp: number, value: boolean|number) {
+    return {dp, datatype: dataTypes.bool, data: [value ? 1 : 0]};
+}
+
+function dpValueFromEnum(dp: number, value: number) {
+    return {dp, datatype: dataTypes.enum, data: [value]};
+}
+
+function dpValueFromStringBuffer(dp: number, stringBuffer: string) {
+    return {dp, datatype: dataTypes.string, data: stringBuffer};
+}
+
+function dpValueFromRaw(dp: number, rawBuffer: any) {
+    return {dp, datatype: dataTypes.raw, data: rawBuffer};
+}
+
+function dpValueFromBitmap(dp: number, bitmapBuffer: any) {
+    return {dp, datatype: dataTypes.bitmap, data: bitmapBuffer};
+}
+
+// Return `seq` - transaction ID for handling concrete response
+async function sendDataPoint(entity: zh.Endpoint | zh.Group, dpValue: any, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValue], cmd, seq);
+}
+
+async function sendDataPointValue(entity: zh.Endpoint | zh.Group, dp:number, value:any, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromIntValue(dp, value)], cmd, seq);
+}
+
+async function sendDataPointBool(entity: zh.Endpoint | zh.Group, dp:number, value:boolean|number, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
+}
+
+async function sendDataPointEnum(entity: zh.Endpoint | zh.Group, dp:number, value:number, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
+}
+
+async function sendDataPointRaw(entity: zh.Endpoint | zh.Group, dp:number, value:any, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
+}
+
+async function sendDataPointBitmap(entity: zh.Endpoint | zh.Group, dp:number, value:any, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromBitmap(dp, value)], cmd, seq);
+}
+
+async function sendDataPointStringBuffer(entity: zh.Endpoint | zh.Group, dp:number, value:any, cmd?:string, seq:number=undefined) {
+    return await sendDataPoints(entity, [dpValueFromStringBuffer(dp, value)], cmd, seq);
 }
 
 function convertRawToCycleTimer(value: any) {
@@ -315,6 +429,35 @@ const tuyaHPSCheckingResult: KeyValue = {
     5: 'radar_fault',
 };
 
+function convertWeekdaysTo1ByteHexArray(weekdays: string) {
+    let nr = 0;
+    if (weekdays == 'once') {
+        return nr;
+    }
+    if (weekdays.includes('Mo')) {
+        nr |= 0x40;
+    }
+    if (weekdays.includes('Tu')) {
+        nr |= 0x20;
+    }
+    if (weekdays.includes('We')) {
+        nr |= 0x10;
+    }
+    if (weekdays.includes('Th')) {
+        nr |= 0x08;
+    }
+    if (weekdays.includes('Fr')) {
+        nr |= 0x04;
+    }
+    if (weekdays.includes('Sa')) {
+        nr |= 0x02;
+    }
+    if (weekdays.includes('Su')) {
+        nr |= 0x01;
+    }
+    return [nr];
+}
+
 function convertRawToTimer(value: any) {
     let timernr = 0;
     let starttime = '00:00';
@@ -379,6 +522,28 @@ function isCoverInverted(manufacturerName: string) {
     // Return true if cover is listed in coverPositionInvert
     // Return false by default, not inverted
     return coverPositionInvert.includes(manufacturerName);
+}
+
+function convertDecimalValueTo2ByteHexArray(value: any) {
+    const hexValue = Number(value).toString(16).padStart(4, '0');
+    const chunk1 = hexValue.substr(0, 2);
+    const chunk2 = hexValue.substr(2);
+    return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
+}
+
+
+function convertTimeTo2ByteHexArray(time: string) {
+    const timeArray = time.split(':');
+    if (timeArray.length != 2) {
+        throw new Error('Time format incorrect');
+    }
+    const timeHour = parseInt(timeArray[0]);
+    const timeMinute = parseInt(timeArray[1]);
+
+    if (timeHour > 23 || timeMinute > 59) {
+        throw new Error('Time incorrect');
+    }
+    return convertDecimalValueTo2ByteHexArray(timeHour * 60 + timeMinute);
 }
 
 const dataPoints = {
@@ -5224,6 +5389,2054 @@ const fromZigbee2 = {
     } as FromZigbeeConverter,
 };
 
+const toZigbee = {
+    matsee_garage_door_opener: {
+        key: ['trigger'],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.message.hasOwnProperty('trigger') ? meta.message.trigger : true;
+            await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
+            return {state: {trigger: state}};
+        },
+    } as ToZigbeeConverter,
+    connecte_thermostat: {
+        key: [
+            'child_lock', 'current_heating_setpoint', 'local_temperature_calibration', 'max_temperature_protection', 'window_detection',
+            'hysteresis', 'state', 'away_mode', 'sensor', 'system_mode',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'state':
+                await sendDataPointBool(entity, dataPoints.connecteState, value === 'ON');
+                break;
+            case 'child_lock':
+                await sendDataPointBool(entity, dataPoints.connecteChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                // @ts-ignore
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await sendDataPointValue(entity, dataPoints.connecteTempCalibration, value);
+                break;
+            case 'hysteresis':
+                // value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.connecteHysteresis, value);
+                break;
+            case 'max_temperature_protection':
+                // @ts-ignore
+                await sendDataPointValue(entity, dataPoints.connecteMaxProtectTemp, Math.round(value));
+                break;
+            case 'current_heating_setpoint':
+                await sendDataPointValue(entity, dataPoints.connecteHeatingSetpoint, value);
+                break;
+            case 'sensor':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.connecteSensorType,
+                    // @ts-ignore
+                    {'internal': 0, 'external': 1, 'both': 2}[value]);
+                break;
+            case 'system_mode':
+                switch (value) {
+                case 'heat':
+                    await sendDataPointEnum(entity, dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                case 'auto':
+                    await sendDataPointEnum(entity, dataPoints.connecteMode, 1 /* auto */);
+                    break;
+                }
+                break;
+            case 'away_mode':
+                switch (value) {
+                case 'ON':
+                    await sendDataPointEnum(entity, dataPoints.connecteMode, 2 /* auto */);
+                    break;
+                case 'OFF':
+                    await sendDataPointEnum(entity, dataPoints.connecteMode, 0 /* manual */);
+                    break;
+                }
+                break;
+            case 'window_detection':
+                await sendDataPointBool(entity, dataPoints.connecteOpenWindow, value === 'ON');
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key toZigbee.connecte_thermostat ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+
+    moes_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.moesChildLock, value === 'LOCK');
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.device.manufacturerName === '_TZE200_5toc8efa') {
+                // @ts-ignore
+                const temp = Math.round(value*10);
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, temp);
+            } else {
+                await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
+            }
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_deadzone_temperature: {
+        key: ['deadzone_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (value < 0) value = 4096 + value;
+            await sendDataPointValue(entity, dataPoints.moesTempCalibration, value);
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_min_temperature_limit: {
+        key: ['min_temperature_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_max_temperature_limit: {
+        key: ['max_temperature_limit'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_mode: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const hold = value === 'hold' ? 0 : 1;
+            const schedule = value === 'program' ? 0 : 1;
+            await sendDataPointEnum(entity, dataPoints.moesHold, hold);
+            await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.state, value === 'heat');
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_program_schedule: {
+        key: ['program'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (!meta.state.program) {
+                meta.logger.warn(`zigbee-herdsman-converters:Moes BHT-002: existing program state not set.`);
+                return;
+            }
+
+            /* Merge modified value into existing state and send all over in one go */
+            const newProgram = {
+                ...meta.state.program,
+                ...value,
+            };
+
+            const payload = [
+                Math.floor(newProgram.weekdays_p1_hour),
+                Math.floor(newProgram.weekdays_p1_minute),
+                Math.round(newProgram.weekdays_p1_temperature * 2),
+                Math.floor(newProgram.weekdays_p2_hour),
+                Math.floor(newProgram.weekdays_p2_minute),
+                Math.round(newProgram.weekdays_p2_temperature * 2),
+                Math.floor(newProgram.weekdays_p3_hour),
+                Math.floor(newProgram.weekdays_p3_minute),
+                Math.round(newProgram.weekdays_p3_temperature * 2),
+                Math.floor(newProgram.weekdays_p4_hour),
+                Math.floor(newProgram.weekdays_p4_minute),
+                Math.round(newProgram.weekdays_p4_temperature * 2),
+                Math.floor(newProgram.saturday_p1_hour),
+                Math.floor(newProgram.saturday_p1_minute),
+                Math.round(newProgram.saturday_p1_temperature * 2),
+                Math.floor(newProgram.saturday_p2_hour),
+                Math.floor(newProgram.saturday_p2_minute),
+                Math.round(newProgram.saturday_p2_temperature * 2),
+                Math.floor(newProgram.saturday_p3_hour),
+                Math.floor(newProgram.saturday_p3_minute),
+                Math.round(newProgram.saturday_p3_temperature * 2),
+                Math.floor(newProgram.saturday_p4_hour),
+                Math.floor(newProgram.saturday_p4_minute),
+                Math.round(newProgram.saturday_p4_temperature * 2),
+                Math.floor(newProgram.sunday_p1_hour),
+                Math.floor(newProgram.sunday_p1_minute),
+                Math.round(newProgram.sunday_p1_temperature * 2),
+                Math.floor(newProgram.sunday_p2_hour),
+                Math.floor(newProgram.sunday_p2_minute),
+                Math.round(newProgram.sunday_p2_temperature * 2),
+                Math.floor(newProgram.sunday_p3_hour),
+                Math.floor(newProgram.sunday_p3_minute),
+                Math.round(newProgram.sunday_p3_temperature * 2),
+                Math.floor(newProgram.sunday_p4_hour),
+                Math.floor(newProgram.sunday_p4_minute),
+                Math.round(newProgram.sunday_p4_temperature * 2),
+            ];
+            await sendDataPointRaw(entity, dataPoints.moesSchedule, payload);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {system_mode: 'heat'}};
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const lookup: KeyValue = {'programming': 0, 'manual': 1, 'temporary_manual': 2, 'holiday': 3};
+            await sendDataPointEnum(entity, dataPoints.moesSsystemMode, lookup[value]);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value: number, meta) => {
+            const temp = Math.round(value);
+            await sendDataPointValue(entity, dataPoints.moesSheatingSetpoint, temp);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_boost_heating: {
+        key: ['boost_heating'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.moesSboostHeating, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.moesSwindowDetectionFunktion_A2, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.moesSchildLock, value === 'LOCK');
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_boostHeatingCountdownTimeSet: {
+        key: ['boost_heating_countdown_time_set'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.moesSboostHeatingCountdownTimeSet, value);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_temperature_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value: number, meta) => {
+            let temp = Math.round(value * 1);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await sendDataPointValue(entity, dataPoints.moesScompensationTempSet, temp);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_moesSecoMode: {
+        key: ['eco_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.moesSecoMode, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_eco_temperature: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value);
+            await sendDataPointValue(entity, dataPoints.moesSecoModeTempSet, temp);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_max_temperature: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value);
+            await sendDataPointValue(entity, dataPoints.moesSmaxTempSet, temp);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_min_temperature: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value);
+            await sendDataPointValue(entity, dataPoints.moesSminTempSet, temp);
+        },
+    } as ToZigbeeConverter,
+    moesS_thermostat_schedule_programming: {
+        key: ['programming_mode'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const payload = [];
+            const items = value.split('  ');
+            for (let i = 0; i < 12; i++) {
+                const hourTemperature = items[i].split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const h = parseInt(hourMinute[0]);
+                const m = parseInt(hourMinute[1]);
+                const temp = parseInt(hourTemperature[1]);
+                if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp >= 35) {
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                }
+                payload[i*3] = h; payload[i*3+1] = m; payload[i*3+2] = temp * 2;
+            }
+            await sendDataPointRaw(entity, dataPoints.moesSschedule, payload);
+        },
+    } as ToZigbeeConverter,
+    hgkg_thermostat_standby: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.state, value === 'cool');
+        },
+    } as ToZigbeeConverter,
+    moes_switch: {
+        key: ['power_on_behavior', 'indicate_light'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'power_on_behavior':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.moesSwitchPowerOnBehavior,
+                    utils.getKey(moesSwitch.powerOnBehavior, value),
+                );
+                break;
+            case 'indicate_light':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.moesSwitchIndicateLight,
+                    utils.getKey(moesSwitch.indicateLight, value),
+                );
+                break;
+            default:
+                meta.logger.warn(`toZigbee.moes_switch: Unhandled Key ${key}`);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_sensor: {
+        key: ['sensor'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (typeof value === 'string') {
+                value = value.toLowerCase();
+                const lookup: KeyValue = {'in': 0, 'al': 1, 'ou': 2};
+                utils.validateValue(value, Object.keys(lookup));
+                value = lookup[value];
+            }
+            if ((typeof value === 'number') && (value >= 0) && (value <= 2)) {
+                await sendDataPointEnum(entity, dataPoints.moesSensor, value);
+            } else {
+                throw new Error(`Unsupported value: ${value}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_dimmer_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            // Always use same transid as tuya_dimmer_level (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await sendDataPointBool(entity, dataPoints.state, value === 'ON', 'dataRequest', 1);
+        },
+    } as ToZigbeeConverter,
+    tuya_dimmer_level: {
+        key: ['brightness_min', 'min_brightness', 'max_brightness', 'brightness', 'brightness_percent', 'level'],
+        convertSet: async (entity, key, value: any, meta) => {
+            // upscale to 1000
+            let newValue;
+            let dp = dataPoints.dimmerLevel;
+            if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i'].includes(meta.device.manufacturerName)) {
+                dp = dataPoints.eardaDimmerLevel;
+            }
+            if (key === 'brightness_min') {
+                if (value >= 0 && value <= 100) {
+                    newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
+                    dp = dataPoints.dimmerLevel;
+                } else {
+                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                }
+            } else if (key === 'min_brightness') {
+                if (value >= 1 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
+                    dp = dataPoints.dimmerMinLevel;
+                } else {
+                    throw new Error('Dimmer min_brightness is out of range 1..255');
+                }
+            } else if (key === 'max_brightness') {
+                if (value >= 1 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
+                    dp = dataPoints.dimmerMaxLevel;
+                } else {
+                    throw new Error('Dimmer min_brightness is out of range 1..255');
+                }
+            } else if (key === 'level') {
+                if (value >= 0 && value <= 1000) {
+                    newValue = Math.round(Number(value));
+                } else {
+                    throw new Error('Dimmer level is out of range 0..1000');
+                }
+            } else if (key === 'brightness_percent') {
+                if (value >= 0 && value <= 100) {
+                    newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
+                } else {
+                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                }
+            } else { // brightness
+                if (value >= 0 && value <= 254) {
+                    newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..254');
+                }
+            }
+            // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
+            await sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
+        },
+    } as ToZigbeeConverter,
+    tuya_switch_state: {
+        key: ['state'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const lookup: KeyValue = {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6};
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
+            const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
+            await sendDataPointBool(entity, keyid, value === 'ON');
+            return {state: {state: value.toUpperCase()}};
+        },
+    } as ToZigbeeConverter,
+    frankever_threshold: {
+        key: ['threshold'],
+        convertSet: async (entity, key, value: number, meta) => {
+            // input to multiple of 10 with max value of 100
+            const thresh = Math.abs(Math.min(10 * (Math.floor(value / 10)), 100));
+            await sendDataPointValue(entity, dataPoints.frankEverTreshold, thresh, 'dataRequest', 1);
+            return {state: {threshold: value}};
+        },
+    } as ToZigbeeConverter,
+    frankever_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value: number, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await sendDataPointValue(entity, dataPoints.frankEverTimer, timer, 'dataRequest', 1);
+            return {state: {timer: value}};
+        },
+    } as ToZigbeeConverter,
+    ZVG1_timer: {
+        key: ['timer'],
+        convertSet: async (entity, key, value: number, meta) => {
+            // input in minutes with maximum of 600 minutes (equals 10 hours)
+            const timer = 60 * Math.abs(Math.min(value, 600));
+            // sendTuyaDataPoint* functions take care of converting the data to proper format
+            await sendDataPointValue(entity, 11, timer, 'dataRequest', 1);
+            return {state: {timer: value}};
+        },
+    } as ToZigbeeConverter,
+    ZVG1_weather_delay: {
+        key: ['weather_delay'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const lookup: KeyValue = {'disabled': 0, '24h': 1, '48h': 2, '72h': 3};
+            await sendDataPointEnum(entity, 10, lookup[value]);
+        },
+    } as ToZigbeeConverter,
+    ZVG1_cycle_timer: {
+        key: ['cycle_timer_1', 'cycle_timer_2', 'cycle_timer_3', 'cycle_timer_4'],
+        convertSet: async (entity, key, value: string, meta) => {
+            let data = [0];
+            const footer = [0x64];
+            if (value == '') {
+                // delete
+                data.push(0x04);
+                data.push(parseInt(key.substr(-1)));
+                await sendDataPointRaw(entity, 16, data);
+                const ret: KeyValue = {state: {}};
+                ret['state'][key] = value;
+                return ret;
+            } else {
+                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') ||
+                    !meta.state.hasOwnProperty(key)) {
+                    data.push(0x03);
+                } else {
+                    data.push(0x02);
+                    data.push(parseInt(key.substr(-1)));
+                }
+            }
+
+            const tarray = value.replace(/ /g, '').split('/');
+            if (tarray.length < 4) {
+                throw new Error('Please check the format of the timer string');
+            }
+            if (tarray.length < 5) {
+                tarray.push('MoTuWeThFrSaSu');
+            }
+
+            if (tarray.length < 6) {
+                tarray.push('1');
+            }
+
+            const starttime = tarray[0];
+            const endtime = tarray[1];
+            const irrigationDuration = tarray[2];
+            const pauseDuration = tarray[3];
+            const weekdays = tarray[4];
+            const active = parseInt(tarray[5]);
+
+            if (!(active == 0 || active == 1)) {
+                throw new Error('Active value only 0 or 1 allowed');
+            }
+            data.push(active);
+
+            const weekdaysPart = convertWeekdaysTo1ByteHexArray(weekdays);
+            data = data.concat(weekdaysPart);
+
+            data = data.concat(convertTimeTo2ByteHexArray(starttime));
+            data = data.concat(convertTimeTo2ByteHexArray(endtime));
+
+            data = data.concat(convertDecimalValueTo2ByteHexArray(irrigationDuration));
+            data = data.concat(convertDecimalValueTo2ByteHexArray(pauseDuration));
+
+            data = data.concat(footer);
+            await sendDataPointRaw(entity, 16, data);
+            const ret: KeyValue = {state: {}};
+            ret['state'][key] = value;
+            return ret;
+        },
+    } as ToZigbeeConverter,
+    ZVG1_normal_schedule_timer: {
+        key: ['normal_schedule_timer_1', 'normal_schedule_timer_2', 'normal_schedule_timer_3', 'normal_schedule_timer_4'],
+        convertSet: async (entity, key, value: string, meta) => {
+            let data = [0];
+            const footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
+            if (value == '') {
+                // delete
+                data.push(0x04);
+                data.push(parseInt(key.substr(-1)));
+                await sendDataPointRaw(entity, 17, data);
+                const ret: KeyValue = {state: {}};
+                ret['state'][key] = value;
+                return ret;
+            } else {
+                if ((meta.state.hasOwnProperty(key) && meta.state[key] == '') || !meta.state.hasOwnProperty(key)) {
+                    data.push(0x03);
+                } else {
+                    data.push(0x02);
+                    data.push(parseInt(key.substr(-1)));
+                }
+            }
+
+            const tarray = value.replace(/ /g, '').split('/');
+            if (tarray.length < 2) {
+                throw new Error('Please check the format of the timer string');
+            }
+            if (tarray.length < 3) {
+                tarray.push('MoTuWeThFrSaSu');
+            }
+
+            if (tarray.length < 4) {
+                tarray.push('1');
+            }
+
+            const time = tarray[0];
+            const duration = tarray[1];
+            const weekdays = tarray[2];
+            const active = parseInt(tarray[3]);
+
+            if (!(active == 0 || active == 1)) {
+                throw new Error('Active value only 0 or 1 allowed');
+            }
+
+            data = data.concat(convertTimeTo2ByteHexArray(time));
+
+            const durationPart = convertDecimalValueTo2ByteHexArray(duration);
+            data = data.concat(durationPart);
+
+            const weekdaysPart = convertWeekdaysTo1ByteHexArray(weekdays);
+            data = data.concat(weekdaysPart);
+            data = data.concat([64, active]);
+            data = data.concat(footer);
+            await sendDataPointRaw(entity, 17, data);
+            const ret: KeyValue = {state: {}};
+            ret['state'][key] = value;
+            return ret;
+        },
+    } as ToZigbeeConverter,
+    etop_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await sendDataPointBool(entity, dataPoints.state, false);
+                break;
+            case 'heat':
+                await sendDataPointBool(entity, dataPoints.state, true);
+                await utils.sleep(500);
+                await sendDataPointEnum(entity, dataPoints.mode, 0 /* manual */);
+                break;
+            case 'auto':
+                await sendDataPointBool(entity, dataPoints.state, true);
+                await utils.sleep(500);
+                await sendDataPointEnum(entity, dataPoints.mode, 2 /* auto */);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    etop_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'ON':
+                await sendDataPointBool(entity, dataPoints.state, true);
+                await utils.sleep(500);
+                await sendDataPointEnum(entity, dataPoints.mode, 1 /* away */);
+                break;
+            case 'OFF':
+                await sendDataPointEnum(entity, dataPoints.mode, 0 /* manual */);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_weekly_schedule: {
+        key: ['weekly_schedule'],
+        convertSet: async (entity, key, value, meta) => {
+            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
+            const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
+            const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
+            let conversion = 'generic';
+            if (thermostatMeta.hasOwnProperty('weeklyScheduleConversion')) {
+                conversion = thermostatMeta.weeklyScheduleConversion;
+            }
+
+            function transitionToData(transition: KeyValue) {
+                // Later it is possible to move converter to meta or to other place outside if other type of converter
+                // will be needed for other device. Currently this converter is based on ETOP HT-08 thermostat.
+                // see also fromZigbee.tuya_thermostat_weekly_schedule()
+                const minutesSinceMidnight = transition.transitionTime;
+                const heatSetpoint = Math.floor(transition.heatSetpoint * 10);
+                return [
+                    (minutesSinceMidnight & 0xff00) >> 8,
+                    minutesSinceMidnight & 0xff,
+                    (heatSetpoint & 0xff00) >> 8,
+                    heatSetpoint & 0xff,
+                ];
+            }
+
+            for (const [, daySchedule] of Object.entries(value)) {
+                const dayofweek = parseInt(daySchedule.dayofweek);
+                const numoftrans = parseInt(daySchedule.numoftrans);
+                let transitions = [...daySchedule.transitions];
+                const mode = parseInt(daySchedule.mode);
+                if (!supportedModes.includes(mode)) {
+                    throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendly_name}`);
+                }
+                if (numoftrans != transitions.length) {
+                    throw new Error(`Invalid numoftrans provided. Real: ${transitions.length} ` +
+                        `provided ${numoftrans} for device ${meta.options.friendly_name}`);
+                }
+                if (transitions.length > maxTransitions) {
+                    throw new Error(`Too more transitions provided. Provided: ${transitions.length} ` +
+                        `but supports only ${numoftrans} for device ${meta.options.friendly_name}`);
+                }
+                if (transitions.length < maxTransitions) {
+                    meta.logger.warn(`Padding transitions from ${transitions.length} ` +
+                        `to ${maxTransitions} with last item for device ${meta.options.friendly_name}`);
+                    const lastTransition = transitions[transitions.length - 1];
+                    while (transitions.length != maxTransitions) {
+                        transitions = [...transitions, lastTransition];
+                    }
+                }
+                const payload = [];
+                if (conversion == 'saswell') {
+                    // Single data point for setting schedule
+                    // [
+                    //     bitmap of days: |  7|  6|  5|  4|  3|  2|  1|
+                    //                     |Sat|Fri|Thu|Wed|Tue|Mon|Sun|,
+                    //     schedule mode - see tuya.thermostatScheduleMode, currently
+                    //                     no known devices support modes other than "7 day"
+                    //     4 transitions:
+                    //       minutes from midnight high byte
+                    //       minutes from midnight low byte
+                    //       temperature * 10 high byte
+                    //       temperature * 10 low byte
+                    // ]
+                    payload.push(1 << (dayofweek - 1), 4);
+                }
+                transitions.forEach((transition) => {
+                    payload.push(...transitionToData(transition));
+                });
+                if (conversion == 'saswell') {
+                    await sendDataPointRaw(
+                        entity,
+                        dataPoints.saswellScheduleSet,
+                        payload);
+                } else {
+                    await sendDataPointRaw(
+                        entity,
+                        firstDayDpId - 1 + dayofweek,
+                        payload);
+                }
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.childLock, value === 'LOCK');
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointRaw(
+                entity,
+                dataPoints.windowDetection,
+                [value === 'ON' ? 1 : 0]);
+        },
+    } as ToZigbeeConverter,
+    siterwell_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(
+                entity,
+                dataPoints.siterwellWindowDetection,
+                value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_valve_detection: {
+        key: ['valve_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.valveDetection, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value: number, meta) => {
+            const temp = Math.round(value * 10);
+            await sendDataPointValue(entity, dataPoints.heatingSetpoint, temp);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            if (modeId !== null) {
+                await sendDataPointEnum(entity, dataPoints.mode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_preset: {
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
+            if (presetId !== null) {
+                await sendDataPointEnum(entity, dataPoints.mode, parseInt(presetId));
+            } else {
+                throw new Error(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_away_mode: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            // HA has special behavior for the away mode
+            const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
+            const schedulePresetId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'schedule', null, Number,
+            );
+            if (awayPresetId !== null) {
+                if (value == 'ON') {
+                    await sendDataPointEnum(entity, dataPoints.mode, parseInt(awayPresetId));
+                } else if (schedulePresetId != null) {
+                    await sendDataPointEnum(entity, dataPoints.mode, parseInt(schedulePresetId));
+                }
+                // In case 'OFF' tuya_thermostat_preset() should be called with another preset
+            } else {
+                throw new Error(`TRV preset ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(fanModes, value, null, Number);
+            if (modeId !== null) {
+                await sendDataPointEnum(entity, dataPoints.fanMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV fan mode ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_bac_fan_mode: {
+        key: ['fan_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(fanModes, value, null, Number);
+            if (modeId !== null) {
+                await sendDataPointEnum(entity, dataPoints.bacFanMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV fan mode ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_auto_lock: {
+        key: ['auto_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.autoLock, value === 'AUTO');
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value: number, meta) => {
+            let temp = Math.round(value * 10);
+            if (temp < 0) {
+                temp = 0xFFFFFFFF + temp + 1;
+            }
+            await sendDataPointValue(entity, dataPoints.tempCalibration, temp);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_min_temp: {
+        key: ['min_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.minTemp, value);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_max_temp: {
+        key: ['max_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.maxTemp, value);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_boost_time: {
+        key: ['boost_time'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.boostTime, value);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_comfort_temp: {
+        key: ['comfort_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.comfortTemp, value);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_eco_temp: {
+        key: ['eco_temperature'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.ecoTemp, value);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_force: {
+        key: ['force'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(thermostatForceMode, value, null, Number);
+            if (modeId !== null) {
+                await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV force mode ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_force_to_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            if (modeId !== null) {
+                await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
+            } else {
+                throw new Error(`TRV system mode ${value} is not recognized.`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_away_preset: {
+        key: ['away_preset_temperature', 'away_preset_days'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'away_preset_days':
+                await sendDataPointValue(entity, dataPoints.awayDays, value);
+                break;
+            case 'away_preset_temperature':
+                await sendDataPointValue(entity, dataPoints.awayTemp, value);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_window_detect: { // payload example { "detect":"OFF", "temperature":5, "minutes":8}
+        key: ['window_detect'],
+        convertSet: async (entity, key, value: KeyValue, meta) => {
+            const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
+            await sendDataPointRaw(entity, dataPoints.windowDetection, [detect, value.temperature, value.minutes]);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_schedule: { // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
+        key: ['schedule'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const prob = Object.keys(value)[0]; // "workdays" or "holidays"
+            if ((prob === 'workdays') || (prob === 'holidays')) {
+                const dpId =
+                    (prob === 'workdays') ?
+                        dataPoints.scheduleWorkday :
+                        dataPoints.scheduleHoliday;
+                const payload = [];
+                for (let i = 0; i < 6; i++) {
+                    if ((value[prob][i].hour >= 0) && (value[prob][i].hour < 24)) {
+                        payload[i * 3] = value[prob][i].hour;
+                    }
+                    if ((value[prob][i].minute >= 0) && (value[prob][i].minute < 60)) {
+                        payload[i * 3 + 1] = value[prob][i].minute;
+                    }
+                    if ((value[prob][i].temperature >= 5) && (value[prob][i].temperature < 35)) {
+                        payload[i * 3 + 2] = value[prob][i].temperature;
+                    }
+                }
+                await sendDataPointRaw(entity, dpId, payload);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_schedule_programming_mode: { // payload example "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"
+        key: ['workdays_schedule', 'holidays_schedule'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const dpId =
+                (key === 'workdays_schedule') ?
+                    dataPoints.scheduleWorkday :
+                    dataPoints.scheduleHoliday;
+            const payload = [];
+            const items = value.split(' ');
+
+            for (let i = 0; i < 6; i++) {
+                const hourTemperature = items[i].split('/');
+                const hourMinute = hourTemperature[0].split(':', 2);
+                const hour = parseInt(hourMinute[0]);
+                const minute = parseInt(hourMinute[1]);
+                const temperature = parseInt(hourTemperature[1]);
+
+                if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || temperature < 5 || temperature >= 35) {
+                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                }
+
+                payload[i*3] = hour;
+                payload[i*3+1] = minute;
+                payload[i*3+2] = temperature;
+            }
+            await sendDataPointRaw(entity, dpId, payload);
+        },
+    } as ToZigbeeConverter,
+    tuya_thermostat_week: {
+        key: ['week'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const lookup: KeyValue = {'5+2': 0, '6+1': 1, '7': 2};
+            const week = lookup[value];
+            await sendDataPointEnum(entity, dataPoints.weekFormat, week);
+            return {state: {week: value}};
+        },
+    } as ToZigbeeConverter,
+    tuya_cover_control: {
+        key: ['state', 'position'],
+        options: [exposes.options.invert_cover()],
+        convertSet: async (entity, key, value: any, meta) => {
+            // Protocol description
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
+
+            if (key === 'position') {
+                if (value >= 0 && value <= 100) {
+                    const invert = isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
+                    value = invert ? 100 - value : value;
+                    await sendDataPointValue(entity, dataPoints.coverPosition, value);
+                } else {
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                }
+            } else if (key === 'state') {
+                const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+
+                value = value.toLowerCase();
+                switch (value) {
+                case 'close':
+                    await sendDataPointEnum(entity, dataPoints.state, stateEnums.close);
+                    break;
+                case 'open':
+                    await sendDataPointEnum(entity, dataPoints.state, stateEnums.open);
+                    break;
+                case 'stop':
+                    await sendDataPointEnum(entity, dataPoints.state, stateEnums.stop);
+                    break;
+                default:
+                    throw new Error('TuYa_cover_control: Invalid command received');
+                }
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_cover_options: {
+        key: ['options'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (value.reverse_direction != undefined) {
+                if (value.reverse_direction) {
+                    meta.logger.info('Motor direction reverse');
+                    await sendDataPointEnum(entity, dataPoints.motorDirection, 1);
+                } else {
+                    meta.logger.info('Motor direction forward');
+                    await sendDataPointEnum(entity, dataPoints.motorDirection, 0);
+                }
+            }
+
+            if (value.motor_speed != undefined) {
+                if (value.motor_speed < 0 || value.motor_speed > 255) {
+                    throw new Error('TuYa_cover_control: Motor speed is out of range');
+                }
+
+                meta.logger.info(`Setting motor speed to ${value.motor_speed}`);
+                await sendDataPointValue(entity, dataPoints.coverSpeed, value.motor_speed);
+            }
+        },
+    } as ToZigbeeConverter,
+    neo_nas_pd07: {
+        key: ['temperature_max', 'temperature_min', 'humidity_max', 'humidity_min', 'temperature_scale', 'unknown_111', 'unknown_112'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'temperature_max':
+                await sendDataPointValue(entity, dataPoints.neoMaxTemp, value);
+                break;
+            case 'temperature_min':
+                await sendDataPointValue(entity, dataPoints.neoMinTemp, value);
+                break;
+            case 'humidity_max':
+                await sendDataPointValue(entity, dataPoints.neoMaxHumidity, value);
+                break;
+            case 'humidity_min':
+                await sendDataPointValue(entity, dataPoints.neoMinHumidity, value);
+                break;
+            case 'temperature_scale':
+                await sendDataPointBool(entity, dataPoints.neoTempScale, value === '°C');
+                break;
+            case 'unknown_111':
+                await sendDataPointBool(entity, 111, value === 'ON');
+                break;
+            case 'unknown_112':
+                await sendDataPointBool(entity, 112, value === 'ON');
+                break;
+            default: // Unknown key
+                throw new Error(`tz.neo_nas_pd07: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    neo_t_h_alarm: {
+        key: [
+            'alarm', 'melody', 'volume', 'duration',
+            'temperature_max', 'temperature_min', 'humidity_min', 'humidity_max',
+            'temperature_alarm', 'humidity_alarm',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'alarm':
+                await sendDataPointBool(entity, dataPoints.neoAlarm, value);
+                break;
+            case 'melody':
+                await sendDataPointEnum(entity, dataPoints.neoMelody, parseInt(value, 10));
+                break;
+            case 'volume':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.neoVolume,
+                    // @ts-ignore
+                    {'low': 2, 'medium': 1, 'high': 0}[value]);
+                break;
+            case 'duration':
+                await sendDataPointValue(entity, dataPoints.neoDuration, value);
+                break;
+            case 'temperature_max':
+                await sendDataPointValue(entity, dataPoints.neoMaxTemp, value);
+                break;
+            case 'temperature_min':
+                await sendDataPointValue(entity, dataPoints.neoMinTemp, value);
+                break;
+            case 'humidity_max':
+                await sendDataPointValue(entity, dataPoints.neoMaxHumidity, value);
+                break;
+            case 'humidity_min':
+                await sendDataPointValue(entity, dataPoints.neoMinHumidity, value);
+                break;
+            case 'temperature_alarm':
+                await sendDataPointBool(entity, dataPoints.neoTempAlarm, value);
+                break;
+            case 'humidity_alarm':
+                await sendDataPointBool(entity, dataPoints.neoHumidityAlarm, value);
+                break;
+            default: // Unknown key
+                throw new Error(`tz.neo_t_h_alarm: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    neo_alarm: {
+        key: [
+            'alarm', 'melody', 'volume', 'duration',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'alarm':
+                await sendDataPointBool(entity, dataPoints.neoAOAlarm, value);
+                break;
+            case 'melody':
+                await sendDataPointEnum(entity, dataPoints.neoAOMelody, parseInt(value, 10));
+                break;
+            case 'volume':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.neoAOVolume,
+                    // @ts-ignore
+                    {'low': 0, 'medium': 1, 'high': 2}[value]);
+                break;
+            case 'duration':
+                await sendDataPointValue(entity, dataPoints.neoAODuration, value);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    nous_lcd_temperature_humidity_sensor: {
+        key: [
+            'min_temperature', 'max_temperature', 'temperature_sensitivity', 'temperature_unit_convert', 'temperature_report_interval',
+            'min_humidity', 'max_humidity', 'humidity_sensitivity', 'humidity_report_interval',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'temperature_unit_convert':
+                await sendDataPointEnum(entity, dataPoints.nousTempUnitConvert, ['celsius', 'fahrenheit'].indexOf(value));
+                break;
+            case 'min_temperature':
+                await sendDataPointValue(entity, dataPoints.nousMinTemp, Math.round(value * 10));
+                break;
+            case 'max_temperature':
+                await sendDataPointValue(entity, dataPoints.nousMaxTemp, Math.round(value * 10));
+                break;
+            case 'temperature_sensitivity':
+                await sendDataPointValue(entity, dataPoints.nousTempSensitivity, Math.round(value * 10));
+                break;
+            case 'humidity_sensitivity':
+                await sendDataPointValue(entity, dataPoints.nousHumiSensitivity, value);
+                break;
+            case 'min_humidity':
+                await sendDataPointValue(entity, dataPoints.nousMinHumi, Math.round(value));
+                break;
+            case 'max_humidity':
+                await sendDataPointValue(entity, dataPoints.nousMaxHumi, Math.round(value));
+                break;
+            case 'temperature_report_interval':
+                await sendDataPointValue(entity, dataPoints.nousTempReportInterval, value);
+                break;
+            case 'humidity_report_interval':
+                await sendDataPointValue(entity, dataPoints.nousHumiReportInterval, value);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 10);
+            await sendDataPointValue(entity, dataPoints.saswellHeatingSetpoint, temp);
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const schedule = (value === 'auto');
+            const enable = !(value === 'off');
+            await sendDataPointBool(entity, dataPoints.saswellState, enable);
+            // Older versions of Saswell TRVs need the delay to work reliably
+            await utils.sleep(3000);
+            await sendDataPointBool(entity, dataPoints.saswellScheduleEnable, schedule);
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_away: {
+        key: ['away_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value == 'ON') {
+                await sendDataPointBool(entity, dataPoints.saswellAwayMode, true);
+            } else {
+                await sendDataPointBool(entity, dataPoints.saswellAwayMode, false);
+            }
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            // It seems that currently child lock can be sent and device responds,
+            // but it's not entering lock state
+            await sendDataPointBool(entity, dataPoints.saswellChildLock, value === 'LOCK');
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_window_detection: {
+        key: ['window_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.saswellWindowDetection, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_frost_detection: {
+        key: ['frost_detection'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.saswellFrostDetection, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_anti_scaling: {
+        key: ['anti_scaling'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.saswellAntiScaling, value === 'ON');
+        },
+    } as ToZigbeeConverter,
+    saswell_thermostat_calibration: {
+        key: ['local_temperature_calibration'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (value < 0) value = 0xFFFFFFFF + value + 1;
+            await sendDataPointValue(entity, dataPoints.saswellTempCalibration, value);
+        },
+    } as ToZigbeeConverter,
+    evanell_thermostat_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 10);
+            await sendDataPointValue(entity, dataPoints.evanellHeatingSetpoint, temp);
+        },
+    } as ToZigbeeConverter,
+    evanell_thermostat_system_mode: {
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (value) {
+            case 'off':
+                await sendDataPointEnum(entity, dataPoints.evanellMode, 3 /* off */);
+                break;
+            case 'heat':
+                await sendDataPointEnum(entity, dataPoints.evanellMode, 2 /* manual */);
+                break;
+            case 'auto':
+                await sendDataPointEnum(entity, dataPoints.evanellMode, 0 /* auto */);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    evanell_thermostat_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.evanellChildLock, value === 'LOCK');
+        },
+    } as ToZigbeeConverter,
+    silvercrest_smart_led_string: {
+        key: ['color', 'brightness', 'effect'],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (key === 'effect') {
+                await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.effect);
+
+                let data: any = [];
+                const effect = silvercrestEffects[value.effect];
+                data = data.concat(convertStringToHexArray(effect));
+                let speed = utils.mapNumberRange(value.speed, 0, 100, 0, 64);
+
+                // Max speed what the gateways sends is 64.
+                if (speed > 64) {
+                    speed = 64;
+                }
+
+                // Make it a string and attach a leading zero (0x30)
+                let speedString = String(speed);
+                if (speedString.length === 1) {
+                    speedString = '0' + speedString;
+                }
+                if (!speedString) {
+                    speedString = '00';
+                }
+
+                data = data.concat(convertStringToHexArray(speedString));
+                let colors = value.colors;
+                if (!colors && meta.state && meta.state.effect && meta.state.effect.colors) {
+                    colors = meta.state.effect.colors;
+                }
+
+                if (colors) {
+                    for (const color of colors) {
+                        let r = '00';
+                        let g = '00';
+                        let b = '00';
+
+                        if (color.r) {
+                            r = color.r.toString(16);
+                        }
+                        if (r.length === 1) {
+                            r = '0' + r;
+                        }
+
+                        if (color.g) {
+                            g = color.g.toString(16);
+                        }
+                        if (g.length === 1) {
+                            g = '0' + g;
+                        }
+
+                        if (color.b) {
+                            b = color.b.toString(16);
+                        }
+                        if (b.length === 1) {
+                            b = '0' + b;
+                        }
+
+                        data = data.concat(convertStringToHexArray(r));
+                        data = data.concat(convertStringToHexArray(g));
+                        data = data.concat(convertStringToHexArray(b));
+                    }
+                }
+
+                await sendDataPointStringBuffer(entity, dataPoints.silvercrestSetEffect, data);
+            } else if (key === 'brightness') {
+                await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.white);
+                // It expects 2 leading zero's.
+                let data = [0x00, 0x00];
+
+                // Scale it to what the device expects (0-1000 instead of 0-255)
+                const scaled = utils.mapNumberRange(value, 0, 255, 0, 1000);
+                data = data.concat(convertDecimalValueTo2ByteHexArray(scaled));
+
+                await sendDataPoint(
+                    entity,
+                    {dp: dataPoints.silvercrestSetBrightness, datatype: dataTypes.value, data: data},
+                );
+            } else if (key === 'color') {
+                await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.color);
+
+                const make4sizedString = (v: string) => {
+                    if (v.length >= 4) {
+                        return v;
+                    } else if (v.length === 3) {
+                        return '0' + v;
+                    } else if (v.length === 2) {
+                        return '00' + v;
+                    } else if (v.length === 1) {
+                        return '000' + v;
+                    } else {
+                        return '0000';
+                    }
+                };
+
+                const fillInHSB = (h: any, s: any, b: any, state: any) => {
+                    // Define default values. Device expects leading zero in string.
+                    const hsb = {
+                        h: '0168', // 360
+                        s: '03e8', // 1000
+                        b: '03e8', // 1000
+                    };
+
+                    if (h) {
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
+                        hsb.h = make4sizedString(h.toString(16));
+                    } else if (state.color && state.color.h) {
+                        hsb.h = make4sizedString(state.color.h.toString(16));
+                    }
+
+                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    // The device expects a round number, otherwise everything breaks
+                    if (s) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+                    } else if (state.color && state.color.s) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.s, 0, 100, 0, 1000).toString(16));
+                    }
+
+                    // Scale 0-255 to 0-1000 what the device expects.
+                    if (b) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+                    } else if (state.brightness) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+                    }
+
+                    return hsb;
+                };
+
+                let hsb: KeyValue = {};
+
+                if (value.hasOwnProperty('hsb')) {
+                    const splitted = value.hsb.split(',').map((i: string) => parseInt(i));
+                    hsb = fillInHSB(splitted[0], splitted[1], splitted[2], meta.state);
+                } else {
+                    hsb = fillInHSB(
+                        value.h || value.hue || null,
+                        value.s || value.saturation || null,
+                        value.b || value.brightness || null,
+                        meta.state);
+                }
+
+                let data: any = [];
+                data = data.concat(convertStringToHexArray(hsb.h));
+                data = data.concat(convertStringToHexArray(hsb.s));
+                data = data.concat(convertStringToHexArray(hsb.b));
+
+                await sendDataPointStringBuffer(entity, dataPoints.silvercrestSetColor, data);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_data_point_test: {
+        key: ['tuya_data_point_test'],
+        convertSet: async (entity, key, value: string, meta) => {
+            const args = value.split(',');
+            const mode = args[0];
+            const dp = parseInt(args[1]);
+            const data = [];
+
+            switch (mode) {
+            case 'raw':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendDataPointRaw(entity, dp, data);
+                break;
+            case 'bool':
+                await sendDataPointBool(entity, dp, args[2] === '1');
+                break;
+            case 'value':
+                await sendDataPointValue(entity, dp, parseInt(args[2]));
+                break;
+            case 'enum':
+                await sendDataPointEnum(entity, dp, parseInt(args[2]));
+                break;
+            case 'bitmap':
+                for (let i = 2; i < args.length; i++) {
+                    data.push(parseInt(args[i]));
+                }
+                await sendDataPointBitmap(entity, dp, data);
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    hy_thermostat: {
+        key: [
+            'child_lock', 'current_heating_setpoint', 'local_temperature_calibration',
+            'max_temperature_protection', 'min_temperature_protection', 'state',
+            'hysteresis', 'hysteresis_for_protection',
+            'max_temperature_for_protection', 'min_temperature_for_protection',
+            'max_temperature', 'min_temperature',
+            'sensor_type', 'power_on_behavior', 'week', 'system_mode',
+            'away_preset_days', 'away_preset_temperature',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'max_temperature_protection':
+                await sendDataPointBool(entity, dataPoints.hyMaxTempProtection, value === 'ON');
+                break;
+            case 'min_temperature_protection':
+                await sendDataPointBool(entity, dataPoints.hyMinTempProtection, value === 'ON');
+                break;
+            case 'state':
+                await sendDataPointBool(entity, dataPoints.hyState, value === 'ON');
+                break;
+            case 'child_lock':
+                await sendDataPointBool(entity, dataPoints.hyChildLock, value === 'LOCK');
+                break;
+            case 'away_preset_days':
+                await sendDataPointValue(entity, dataPoints.hyAwayDays, value);
+                break;
+            case 'away_preset_temperature':
+                await sendDataPointValue(entity, dataPoints.hyAwayTemp, value);
+                break;
+            case 'local_temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await sendDataPointValue(entity, dataPoints.hyTempCalibration, value);
+                break;
+            case 'hysteresis':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.hyHysteresis, value);
+                break;
+            case 'hysteresis_for_protection':
+                await sendDataPointValue(entity, dataPoints.hyProtectionHysteresis, value);
+                break;
+            case 'max_temperature_for_protection':
+                await sendDataPointValue(entity, dataPoints.hyProtectionMaxTemp, value);
+                break;
+            case 'min_temperature_for_protection':
+                await sendDataPointValue(entity, dataPoints.hyProtectionMinTemp, value);
+                break;
+            case 'max_temperature':
+                await sendDataPointValue(entity, dataPoints.hyMaxTemp, value);
+                break;
+            case 'min_temperature':
+                await sendDataPointValue(entity, dataPoints.hyMinTemp, value);
+                break;
+            case 'current_heating_setpoint':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.hyHeatingSetpoint, value);
+                break;
+            case 'sensor_type':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.hySensor,
+                    // @ts-ignore
+                    {'internal': 0, 'external': 1, 'both': 2}[value]);
+                break;
+            case 'power_on_behavior':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.hyPowerOnBehavior,
+                    // @ts-ignore
+                    {'restore': 0, 'off': 1, 'on': 2}[value]);
+                break;
+            case 'week':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.hyWeekFormat,
+                    utils.getKey(thermostatWeekFormat, value, value, Number));
+                break;
+            case 'system_mode':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.hyMode,
+                    // @ts-ignore
+                    {'manual': 0, 'auto': 1, 'away': 2}[value]);
+                break;
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    ZB003X: {
+        key: [
+            'reporting_time', 'temperature_calibration', 'humidity_calibration',
+            'illuminance_calibration', 'pir_enable', 'led_enable',
+            'reporting_enable', 'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'reporting_time':
+                await sendDataPointValue(entity, dataPoints.fantemReportingTime, value, 'sendData');
+                break;
+            case 'temperature_calibration':
+                value = Math.round(value * 10);
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await sendDataPointValue(entity, dataPoints.fantemTempCalibration, value, 'sendData');
+                break;
+            case 'humidity_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await sendDataPointValue(entity, dataPoints.fantemHumidityCalibration, value, 'sendData');
+                break;
+            case 'illuminance_calibration':
+                if (value < 0) value = 0xFFFFFFFF + value + 1;
+                await sendDataPointValue(entity, dataPoints.fantemLuxCalibration, value, 'sendData');
+                break;
+            case 'pir_enable':
+                await sendDataPointBool(entity, dataPoints.fantemMotionEnable, value, 'sendData');
+                break;
+            case 'led_enable':
+                await sendDataPointBool(entity, dataPoints.fantemLedEnable, value === false, 'sendData');
+                break;
+            case 'reporting_enable':
+                await sendDataPointBool(entity, dataPoints.fantemReportingEnable, value, 'sendData');
+                break;
+            case 'sensitivity':
+                // @ts-ignore
+                await entity.write('ssIasZone', {currentZoneSensitivityLevel: {'low': 0, 'medium': 1, 'high': 2}[value]});
+                break;
+            case 'keep_time':
+                // @ts-ignore
+                await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3,
+                    '240': 4, '480': 5}[value], type: 0x20}});
+                break;
+            default: // Unknown key
+                throw new Error(`tz.ZB003X: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    ZB006X_settings: {
+        key: ['switch_type', 'load_detection_mode', 'control_mode'],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'switch_type':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.fantemExtSwitchType, {'unknown': 0, 'toggle': 1,
+                    'momentary': 2, 'rotary': 3, 'auto_config': 4}[value], 'sendData');
+                break;
+            case 'load_detection_mode':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.fantemLoadDetectionMode, {'none': 0, 'first_power_on': 1,
+                    'every_power_on': 2}[value], 'sendData');
+                break;
+            case 'control_mode':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.fantemControlMode, {'ext_switch': 0, 'remote': 1,
+                    'both': 2}[value], 'sendData');
+                break;
+            default: // Unknown key
+                throw new Error(`tz.ZB006X_settings: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_motion_sensor: {
+        key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay',
+            'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'o_sensitivity':
+                await sendDataPointEnum(entity, dataPoints.msOSensitivity, utils.getKey(msLookups.OSensitivity, value));
+                break;
+            case 'v_sensitivity':
+                await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value));
+                break;
+            case 'led_status':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.msLedStatus, {'on': 0, 'off': 1}[value.toLowerCase()]);
+                break;
+            case 'vacancy_delay':
+                await sendDataPointValue(entity, dataPoints.msVacancyDelay, value);
+                break;
+            case 'light_on_luminance_prefer':
+                await sendDataPointValue(entity, dataPoints.msLightOnLuminancePrefer, value);
+                break;
+            case 'light_off_luminance_prefer':
+                await sendDataPointValue(entity, dataPoints.msLightOffLuminancePrefer, value);
+                break;
+            case 'mode':
+                await sendDataPointEnum(entity, dataPoints.msMode, utils.getKey(msLookups.Mode, value));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    javis_microwave_sensor: {
+        key: [
+            'illuminance_calibration', 'led_enable',
+            'sensitivity', 'keep_time',
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'illuminance_calibration':// (10--100) sensor illuminance sensitivity
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await sendDataPointRaw(entity, 102, [value]);
+                    break;
+                } else {
+                    await sendDataPointRaw(entity, 105, [value]);
+                    break;
+                }
+            case 'led_enable':// OK (value true/false or 1/0)
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await sendDataPointRaw(entity, 107, [value ? 1 : 0]);
+                    break;
+                } else {
+                    await sendDataPointRaw(entity, 103, [value ? 1 : 0]);
+                    break;
+                }
+
+            case 'sensitivity':// value: 25, 50, 75, 100
+                await sendDataPointRaw(entity, 2, [value]);
+                break;
+            case 'keep_time': // value 0 --> 7 corresponding 5s, 30s, 1, 3, 5, 10, 20, 30 min
+                if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await sendDataPointRaw(entity, 106, [value]);
+                    break;
+                } else {
+                    await sendDataPointRaw(entity, 102, [value]);
+                    break;
+                }
+            default: // Unknown key
+                throw new Error(`Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    moes_thermostat_tv: {
+        key: [
+            'system_mode', 'window_detection', 'frost_detection', 'child_lock',
+            'current_heating_setpoint', 'local_temperature_calibration',
+            'holiday_temperature', 'comfort_temperature', 'eco_temperature',
+            'open_window_temperature', 'heating_stop', 'preset',
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'system_mode':
+                if (value != 'off') {
+                    await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
+                    await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatMode, value));
+                } else {
+                    await sendDataPointBool(entity, dataPoints.tvHeatingStop, 1);
+                }
+                break;
+            case 'window_detection':
+                await sendDataPointBool(entity, dataPoints.tvWindowDetection, value);
+                break;
+            case 'frost_detection':
+                if (value == false) {
+                    await sendDataPointBool(entity, dataPoints.tvFrostDetection, 0);
+                    await sendDataPointEnum(entity, dataPoints.tvMode, 1);
+                } else {
+                    await sendDataPointBool(entity, dataPoints.tvFrostDetection, 1);
+                }
+                break;
+            case 'child_lock':
+                await sendDataPointBool(entity, dataPoints.tvChildLock, value === 'LOCK');
+                break;
+            case 'local_temperature_calibration':
+                value = Math.round(value * 10);
+                value = (value < 0) ? 0xFFFFFFFF + value + 1 : value;
+                await sendDataPointValue(entity, dataPoints.tvTempCalibration, value);
+                break;
+            case 'current_heating_setpoint':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.tvHeatingSetpoint, value);
+                break;
+            case 'holiday_temperature':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.tvHolidayTemp, value);
+                break;
+            case 'comfort_temperature':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.tvComfortTemp, value);
+                break;
+            case 'eco_temperature':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.tvEcoTemp, value);
+                break;
+            case 'heating_stop':
+                if (value == true) {
+                    await sendDataPointBool(entity, dataPoints.tvHeatingStop, 1);
+                } else {
+                    await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
+                    await sendDataPointEnum(entity, dataPoints.tvMode, 1);
+                }
+                break;
+            // case 'boost_mode':
+            //     // set 300sec boost time
+            //     await sendDataPointValue(entity, dataPoints.tvBoostTime, 300);
+            //     await sendDataPointEnum(entity, dataPoints.tvBoostMode, (value) ? 0 : 1);
+            //     break;
+            case 'open_window_temperature':
+                value = Math.round(value * 10);
+                await sendDataPointValue(entity, dataPoints.tvOpenWindowTemp, value);
+                break;
+            case 'preset':
+                await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
+                await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatPreset, value));
+                break;
+            default: // Unknown key
+                meta.logger.warn(`toZigbee.moes_thermostat_tv: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_light_wz5: {
+        key: ['color', 'color_temp', 'brightness', 'white_brightness'],
+        convertSet: async (entity, key, value: any, meta) => {
+            const separateWhite = (meta.mapped.meta && meta.mapped.meta.separateWhite);
+            if (key == 'white_brightness' || (!separateWhite && (key == 'brightness'))) {
+                // upscale to 1000
+                let newValue;
+                if (value >= 0 && value <= 255) {
+                    newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
+                } else {
+                    throw new Error('Dimmer brightness is out of range 0..255');
+                }
+                await sendDataPoints(entity, [
+                    dpValueFromEnum(dataPoints.silvercrestChangeMode, silvercrestModes.white),
+                    dpValueFromIntValue(dataPoints.dimmerLevel, newValue),
+                ], 'dataRequest');
+
+                return {state: (key == 'white_brightness') ? {white_brightness: value} : {brightness: value}};
+            } else if (key == 'color_temp') {
+                const [colorTempMin, colorTempMax] = [250, 454];
+                const preset: KeyValue = {
+                    'warmest': colorTempMax,
+                    'warm': 454,
+                    'neutral': 370,
+                    'cool': 250,
+                    'coolest': colorTempMin,
+                };
+                // @ts-ignore
+                if (typeof value === 'string' && isNaN(value)) {
+                    const presetName = value.toLowerCase();
+                    if (presetName in preset) {
+                        value = preset[presetName];
+                    } else {
+                        throw new Error(`Unknown preset '${value}'`);
+                    }
+                } else {
+                    value = light.clampColorTemp(Number(value), colorTempMin, colorTempMax, meta.logger);
+                }
+                const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
+
+                await sendDataPoints(entity, [
+                    dpValueFromEnum(dataPoints.silvercrestChangeMode, silvercrestModes.white),
+                    dpValueFromIntValue(dataPoints.silvercrestSetColorTemp, data),
+                ], 'dataRequest');
+
+                return {state: {color_temp: value}};
+            } else if (key == 'color' || (separateWhite && (key == 'brightness'))) {
+                const newState: KeyValue = {};
+                if (key == 'brightness') {
+                    newState.brightness = value;
+                } else if (key == 'color') {
+                    newState.color = value;
+                    newState.color_mode = 'hs';
+                }
+
+                const make4sizedString = (v: string) => {
+                    if (v.length >= 4) {
+                        return v;
+                    } else if (v.length === 3) {
+                        return '0' + v;
+                    } else if (v.length === 2) {
+                        return '00' + v;
+                    } else if (v.length === 1) {
+                        return '000' + v;
+                    } else {
+                        return '0000';
+                    }
+                };
+
+                const fillInHSB = (h: number, s: number, b: number, state: KeyValue) => {
+                    // Define default values. Device expects leading zero in string.
+                    const hsb = {
+                        h: '0168', // 360
+                        s: '03e8', // 1000
+                        b: '03e8', // 1000
+                    };
+
+                    if (h) {
+                        // The device expects 0-359
+                        if (h >= 360) {
+                            h = 359;
+                        }
+                        hsb.h = make4sizedString(h.toString(16));
+                    } else if (state.color && state.color.hue) {
+                        hsb.h = make4sizedString(state.color.hue.toString(16));
+                    }
+
+                    // Device expects 0-1000, saturation normally is 0-100 so we expect that from the user
+                    // The device expects a round number, otherwise everything breaks
+                    if (s) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
+                    } else if (state.color && state.color.saturation) {
+                        hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
+                    }
+
+                    // Scale 0-255 to 0-1000 what the device expects.
+                    if (b != null) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(b, 0, 255, 0, 1000).toString(16));
+                    } else if (state.brightness != null) {
+                        hsb.b = make4sizedString(utils.mapNumberRange(state.brightness, 0, 255, 0, 1000).toString(16));
+                    }
+                    return hsb;
+                };
+
+                const hsb = fillInHSB(
+                    value.h || value.hue || null,
+                    value.s || value.saturation || null,
+                    value.b || value.brightness || (key == 'brightness') ? value : null,
+                    meta.state,
+                );
+
+
+                let data: any = [];
+                data = data.concat(convertStringToHexArray(hsb.h));
+                data = data.concat(convertStringToHexArray(hsb.s));
+                data = data.concat(convertStringToHexArray(hsb.b));
+
+                const commands = [
+                    dpValueFromEnum(dataPoints.silvercrestChangeMode, silvercrestModes.color),
+                    dpValueFromStringBuffer(dataPoints.silvercrestSetColor, data),
+                ];
+
+                await sendDataPoints(entity, commands, 'dataRequest');
+
+                return {state: newState};
+            }
+        },
+    } as ToZigbeeConverter,
+    ZMAM02_cover: {
+        key: ['state', 'position', 'mode', 'motor_direction', 'border', 'motor_working_mode'],
+        options: [exposes.options.invert_cover()],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (key === 'position') {
+                if (value >= 0 && value <= 100) {
+                    const invert = isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+
+                    value = invert ? 100 - value : value;
+                    await sendDataPointValue(entity, dataPoints.coverPosition, value);
+                } else {
+                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
+                }
+            } else if (key === 'state') {
+                const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
+                meta.logger.debug(`ZMAM02: Using state enums for ${meta.device.manufacturerName}:
+                ${JSON.stringify(stateEnums)}`);
+                value = value.toLowerCase();
+                switch (value) {
+                case 'close':
+                    await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.close);
+                    break;
+                case 'open':
+                    await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.open);
+                    break;
+                case 'stop':
+                    await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.stop);
+                    break;
+                default:
+                    throw new Error('ZMAM02: Invalid command received');
+                }
+            }
+            switch (key) {
+            case 'mode':
+                await sendDataPointEnum(entity, dataPoints.AM02Mode, utils.getKey(ZMLookups.AM02Mode, value));
+                break;
+            case 'motor_direction':
+                await sendDataPointEnum(entity, dataPoints.AM02Direction, utils.getKey(ZMLookups.AM02Direction, value));
+                break;
+            case 'border':
+                await sendDataPointEnum(entity, dataPoints.AM02Border, utils.getKey(ZMLookups.AM02Border, value));
+                break;
+            case 'motor_working_mode':
+                await sendDataPointEnum(
+                    entity,
+                    dataPoints.AM02MotorWorkingMode,
+                    utils.getKey(ZMLookups.AM02MotorWorkingMode,
+                        value));
+                break;
+            }
+        },
+    } as ToZigbeeConverter,
+    tuya_smart_human_presense_sensor: {
+        key: ['radar_sensitivity', 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time'],
+        convertSet: async (entity, key, value:any, meta) => {
+            switch (key) {
+            case 'radar_sensitivity':
+                await sendDataPointValue(entity, dataPoints.tshpscSensitivity, value);
+                break;
+            case 'minimum_range':
+                await sendDataPointValue(entity, dataPoints.tshpsMinimumRange, value*100);
+                break;
+            case 'maximum_range':
+                await sendDataPointValue(entity, dataPoints.tshpsMaximumRange, value*100);
+                break;
+            case 'detection_delay':
+                await sendDataPointValue(entity, dataPoints.tshpsDetectionDelay, value*10);
+                break;
+            case 'fading_time':
+                await sendDataPointValue(entity, dataPoints.tshpsFadingTime, value*10);
+                break;
+            default: // Unknown Key
+                meta.logger.warn(`toZigbee.tuya_smart_human_presense_sensor: Unhandled Key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    ZG204ZL_lms: {
+        key: ['sensitivity', 'keep_time'],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+            case 'sensitivity':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.lmsSensitivity, {'low': 0, 'medium': 1, 'high': 2}[value]);
+                break;
+            case 'keep_time':
+                // @ts-ignore
+                await sendDataPointEnum(entity, dataPoints.lmsKeepTime, {'10': 0, '30': 1, '60': 2, '120': 3}[value]);
+                break;
+            default: // Unknown key
+                meta.logger.warn(`tz.ZG204ZL_lms: Unhandled key ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+            case 'sensitivity':
+                await sendDataPointEnum(entity, dataPoints.lmsSensitivity, 0, 'dataQuery' );
+                break;
+            case 'keep_time':
+                await sendDataPointEnum(entity, dataPoints.lmsKeepTime, 0, 'dataQuery' );
+                break;
+            default: // Unknown key
+                meta.logger.warn(`Unhandled key toZigbee.ZG204ZL_lms.convertGet ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
+    moes_cover: {
+        key: ['backlight', 'calibration', 'motor_reversal', 'state', 'position'],
+        options: [exposes.options.invert_cover()],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'position':
+                if (value >= 0 && value <= 100) {
+                    const invert = !isCoverInverted(meta.device.manufacturerName) ?
+                        !meta.options.invert_cover : meta.options.invert_cover;
+                    const position = invert ? 100 - value : value;
+                    await sendDataPointValue(entity, dataPoints.coverPosition, position);
+                    return {state: {position: value}};
+                }
+                break;
+            case 'state': {
+                // @ts-ignore
+                const state = {'OPEN': 0, 'STOP': 1, 'CLOSE': 2}[value.toUpperCase()];
+                await sendDataPointEnum(entity, dataPoints.state, state);
+                break;
+            }
+            case 'backlight': {
+                const backlight = value.toUpperCase() === 'ON' ? true : false;
+                await sendDataPointBool(entity, dataPoints.moesCoverBacklight, backlight);
+                return {state: {backlight: value}};
+            }
+            case 'calibration': {
+                const calibration = value.toUpperCase() === 'ON' ? 0 : 1;
+                await sendDataPointEnum(entity, dataPoints.moesCoverCalibration, calibration);
+                break;
+            }
+            case 'motor_reversal': {
+                const motorReversal = value.toUpperCase() === 'ON' ? 1 : 0;
+                await sendDataPointEnum(entity, dataPoints.moesCoverMotorReversal, motorReversal);
+                return {state: {motor_reversal: value}};
+            }
+            }
+        },
+    } as ToZigbeeConverter,
+    hoch_din: {
+        key: ['state',
+            'child_lock',
+            'countdown_timer',
+            'power_on_behavior',
+            'trip',
+            'clear_device_data',
+            /* TODO: Add the below keys when toZigbee converter work has been completed
+            'voltage_setting',
+            'current_setting',
+            'temperature_setting',
+            'leakage_current_setting'*/
+        ],
+        convertSet: async (entity, key, value: any, meta) => {
+            if (key === 'state') {
+                await sendDataPointBool(entity, dataPoints.state, value === 'ON');
+                return {state: {state: value}};
+            } else if (key === 'child_lock') {
+                await sendDataPointBool(entity, dataPoints.hochChildLock, value === 'ON');
+                return {state: {child_lock: value}};
+            } else if (key === 'countdown_timer') {
+                await sendDataPointValue(entity, dataPoints.hochCountdownTimer, value);
+                return {state: {countdown_timer: value}};
+            } else if (key === 'power_on_behavior') {
+                const lookup: KeyValue = {'off': 0, 'on': 1, 'previous': 2};
+                await sendDataPointEnum(entity, dataPoints.hochRelayStatus, lookup[value], 'sendData');
+                return {state: {power_on_behavior: value}};
+            } else if (key === 'trip') {
+                if (value === 'clear') {
+                    await sendDataPointBool(entity, dataPoints.hochLocking, true, 'sendData');
+                }
+                return {state: {trip: 'clear'}};
+            } else if (key === 'clear_device_data') {
+                await sendDataPointBool(entity, dataPoints.hochClearEnergy, true, 'sendData');
+            /* TODO: Release the below with other toZigbee converters for device composites
+            } else if (key === 'temperature_setting') {
+                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
+                    const payload = [];
+                    payload.push(value.over_temperature_threshold < 1
+                        ? ((value.over_temperature_threshold * -1) + 128)
+                        : value.over_temperature_threshold);
+                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
+                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
+                    await sendDataPointRaw(entity, dataPoints.hochTemperatureThreshold, payload, 'sendData');
+                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
+                        over_temperature_trip: value.over_temperature_trip,
+                        over_temperature_alarm: value.over_temperature_alarm}};
+                }*/
+            } else {
+                throw new Error(`Not supported: '${key}'`);
+            }
+        },
+    } as ToZigbeeConverter,
+};
+
 const fromZigbee = {...fromZigbee1, ...fromZigbee2};
 
 const thermostatControlSequenceOfOperations = {
@@ -5249,6 +7462,7 @@ const thermostatSystemModes = {
 
 export {
     fromZigbee,
+    toZigbee,
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
 };

@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -32,9 +32,9 @@ module.exports = [
         whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}, {vendor: 'Hama', model: '00176592'},
             {vendor: 'RTX', model: 'ZB-RT1'}, {vendor: 'SETTI+', model: 'TRV001'}],
         fromZigbee: [fz.legacy.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule_1],
-        toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
-            tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
-            tz.saswell_thermostat_calibration, tz.saswell_thermostat_anti_scaling, tz.tuya_thermostat_weekly_schedule],
+        toZigbee: [tz.legacy.saswell_thermostat_current_heating_setpoint, tz.legacy.saswell_thermostat_mode, tz.legacy.saswell_thermostat_away,
+            tz.legacy.saswell_thermostat_child_lock, tz.legacy.saswell_thermostat_window_detection, tz.legacy.saswell_thermostat_frost_detection,
+            tz.legacy.saswell_thermostat_calibration, tz.legacy.saswell_thermostat_anti_scaling, tz.legacy.tuya_thermostat_weekly_schedule],
         onEvent: (type, data, device) => !['_TZE200_c88teujp'].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
         meta: {
             thermostat: {

@@ -1,5 +1,5 @@
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const exposes = require('../lib/exposes');
 const tuya = require('../lib/tuya');
 const e = exposes.presets;
@@ -17,7 +17,8 @@ module.exports = [
         description: 'Zigbee smart water valve',
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.legacy.ZVG1, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_switch_state, tz.ZVG1_weather_delay, tz.ZVG1_timer, tz.ZVG1_cycle_timer, tz.ZVG1_normal_schedule_timer],
+        toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.ZVG1_weather_delay, tz.legacy.ZVG1_timer, tz.legacy.ZVG1_cycle_timer,
+            tz.legacy.ZVG1_normal_schedule_timer],
         exposes: [e.switch().setAccess('state', ea.STATE_SET), e.battery(),
             exposes.enum('weather_delay', ea.STATE_SET, ['disabled', '24h', '48h', '72h']),
             exposes.enum('timer_state', ea.STATE, ['disabled', 'active', 'enabled']),

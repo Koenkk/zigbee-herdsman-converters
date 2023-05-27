@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const e = exposes.presets;
@@ -147,7 +147,7 @@ module.exports = [
         vendor: 'Zemismart',
         description: 'Zigbee/RF curtain converter',
         fromZigbee: [fz.legacy.ZMAM02_cover],
-        toZigbee: [tz.ZMAM02_cover],
+        toZigbee: [tz.legacy.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.composite('options', 'options', ea.STATE)
                 .withFeature(exposes.numeric('motor_speed', ea.STATE)
@@ -174,7 +174,7 @@ module.exports = [
         vendor: 'Zemismart',
         description: 'Roller shade driver',
         fromZigbee: [fz.legacy.ZMAM02_cover],
-        toZigbee: [tz.ZMAM02_cover],
+        toZigbee: [tz.legacy.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
             exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
@@ -186,7 +186,7 @@ module.exports = [
         vendor: 'Zemismart',
         description: 'Tubular motor',
         fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options, tz.tuya_data_point_test],
+        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options, tz.legacy.tuya_data_point_test],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
@@ -195,7 +195,7 @@ module.exports = [
         vendor: 'Zemismart',
         description: 'Tubular motor',
         fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
+        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
@@ -208,7 +208,7 @@ module.exports = [
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+        toZigbee: [tz.legacy.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
@@ -234,7 +234,7 @@ module.exports = [
             e.switch().withEndpoint('l5').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l6').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.tuya_switch_state],
+        toZigbee: [tz.legacy.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1, 'l5': 1, 'l6': 1};

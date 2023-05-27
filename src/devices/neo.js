@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require('../lib/tuya');
@@ -13,7 +13,7 @@ module.exports = [
         vendor: 'Neo',
         description: 'Temperature & humidity sensor and alarm',
         fromZigbee: [fz.legacy.neo_t_h_alarm, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [tz.neo_t_h_alarm],
+        toZigbee: [tz.legacy.neo_t_h_alarm],
         exposes: [
             e.temperature(), e.humidity(), exposes.binary('humidity_alarm', ea.STATE_SET, true, false), e.battery_low(),
             exposes.binary('temperature_alarm', ea.STATE_SET, true, false),
@@ -41,7 +41,7 @@ module.exports = [
         vendor: 'Neo',
         description: 'Alarm',
         fromZigbee: [fz.legacy.neo_alarm, fz.ignore_basic_report],
-        toZigbee: [tz.neo_alarm],
+        toZigbee: [tz.legacy.neo_alarm],
         exposes: [
             e.battery_low(),
             exposes.binary('alarm', ea.STATE_SET, true, false),
@@ -63,7 +63,7 @@ module.exports = [
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
         fromZigbee: [fz.legacy.neo_nas_pd07, fz.ignore_tuya_set_time],
-        toZigbee: [tz.neo_nas_pd07],
+        toZigbee: [tz.legacy.neo_nas_pd07],
         onEvent: tuya.onEventSetTime,
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),
             exposes.enum('power_type', ea.STATE, ['battery_full', 'battery_high', 'battery_medium', 'battery_low', 'usb']),

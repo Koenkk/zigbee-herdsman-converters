@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -12,7 +12,7 @@ module.exports = [
         vendor: 'Connecte',
         description: 'Smart thermostat',
         fromZigbee: [fz.legacy.connecte_thermostat],
-        toZigbee: [tz.connecte_thermostat],
+        toZigbee: [tz.legacy.connecte_thermostat],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [

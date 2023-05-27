@@ -116,73 +116,6 @@ function logUnexpectedDataValue(where, msg, dpValue, meta, valueKind, expectedMi
     }
 }
 
-function convertRawToCycleTimer(value) {
-    let timernr = 0;
-    let starttime = '00:00';
-    let endtime = '00:00';
-    let irrigationDuration = 0;
-    let pauseDuration = 0;
-    let weekdays = 'once';
-    let timeractive = 0;
-    if (value.length > 11) {
-        timernr = value[1];
-        timeractive = value[2];
-        if (value[3] > 0) {
-            weekdays = (value[3] & 0x40 ? 'Sa' : '') +
-            (value[3] & 0x20 ? 'Fr' : '') +
-            (value[3] & 0x10 ? 'Th' : '') +
-            (value[3] & 0x08 ? 'We' : '') +
-            (value[3] & 0x04 ? 'Tu' : '') +
-            (value[3] & 0x02 ? 'Mo' : '') +
-            (value[3] & 0x01 ? 'Su' : '');
-        } else {
-            weekdays = 'once';
-        }
-        let minsincemidnight = value[4] * 256 + value[5];
-        starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
-        minsincemidnight = value[6] * 256 + value[7];
-        endtime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
-        irrigationDuration = value[8] * 256 + value[9];
-        pauseDuration = value[10] * 256 + value[11];
-    }
-    return {
-        timernr: timernr,
-        starttime: starttime,
-        endtime: endtime,
-        irrigationDuration: irrigationDuration,
-        pauseDuration: pauseDuration,
-        weekdays: weekdays,
-        active: timeractive,
-    };
-}
-
-function convertRawToTimer(value) {
-    let timernr = 0;
-    let starttime = '00:00';
-    let duration = 0;
-    let weekdays = 'once';
-    let timeractive = '';
-    if (value.length > 12) {
-        timernr = value[1];
-        const minsincemidnight = value[2] * 256 + value[3];
-        starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
-        duration = value[4] * 256 + value[5];
-        if (value[6] > 0) {
-            weekdays = (value[6] & 0x40 ? 'Sa' : '') +
-            (value[6] & 0x20 ? 'Fr' : '') +
-            (value[6] & 0x10 ? 'Th' : '') +
-            (value[6] & 0x08 ? 'We' : '') +
-            (value[6] & 0x04 ? 'Tu' : '') +
-            (value[6] & 0x02 ? 'Mo' : '') +
-            (value[6] & 0x01 ? 'Su' : '');
-        } else {
-            weekdays = 'once';
-        }
-        timeractive = value[8];
-    }
-    return {timernr: timernr, time: starttime, duration: duration, weekdays: weekdays, active: timeractive};
-}
-
 function convertTimeTo2ByteHexArray(time) {
     const timeArray = time.split(':');
     if (timeArray.length != 2) {
@@ -2030,8 +1963,6 @@ module.exports = {
     dpValueFromStringBuffer,
     dpValueFromRaw,
     dpValueFromBitmap,
-    convertRawToCycleTimer,
-    convertRawToTimer,
     convertTimeTo2ByteHexArray,
     convertWeekdaysTo1ByteHexArray,
     convertDecimalValueTo4ByteHexArray,

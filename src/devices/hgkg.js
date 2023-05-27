@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -18,16 +18,16 @@ module.exports = [
         ],
         onEvent: tuya.onEventSetLocalTime,
         toZigbee: [
-            tz.moes_thermostat_child_lock,
-            tz.moes_thermostat_current_heating_setpoint,
-            tz.moes_thermostat_mode,
-            tz.hgkg_thermostat_standby,
-            tz.moes_thermostat_sensor,
-            tz.moes_thermostat_calibration,
-            tz.tuya_thermostat_schedule,
-            tz.tuya_thermostat_week,
-            tz.tuya_thermostat_schedule_programming_mode,
-            tz.tuya_thermostat_bac_fan_mode,
+            tz.legacy.moes_thermostat_child_lock,
+            tz.legacy.moes_thermostat_current_heating_setpoint,
+            tz.legacy.moes_thermostat_mode,
+            tz.legacy.hgkg_thermostat_standby,
+            tz.legacy.moes_thermostat_sensor,
+            tz.legacy.moes_thermostat_calibration,
+            tz.legacy.tuya_thermostat_schedule,
+            tz.legacy.tuya_thermostat_week,
+            tz.legacy.tuya_thermostat_schedule_programming_mode,
+            tz.legacy.tuya_thermostat_bac_fan_mode,
         ],
         exposes: [
             // e.switch(),

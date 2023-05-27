@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 const extend = require('../lib/extend');
@@ -17,7 +17,7 @@ module.exports = [
         extend: extend.light_onoff_brightness({noConfigure: true}),
         fromZigbee: [...extend.light_onoff_brightness({noConfigure: true}).fromZigbee,
             fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.legacy.ZB006X_settings],
-        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tz.ZB006X_settings],
+        toZigbee: [...extend.light_onoff_brightness({noConfigure: true}).toZigbee, tz.legacy.ZB006X_settings],
         exposes: [e.light_brightness(),
             e.action(['on', 'off', 'brightness_move_down', 'brightness_move_up', 'brightness_stop']),
             exposes.enum('control_mode', ea.STATE_SET, ['ext_switch', 'remote', 'both']).withDescription('Control mode'),
@@ -54,7 +54,7 @@ module.exports = [
         vendor: 'Fantem',
         description: '4 in 1 multi sensor',
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.illuminance, fz.legacy.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
-        toZigbee: [tz.ZB003X],
+        toZigbee: [tz.legacy.ZB003X],
         exposes: [e.occupancy(), e.tamper(), e.illuminance_lux(), e.illuminance(), e.temperature(), e.humidity(),
             e.battery(), e.battery_voltage(),
             exposes.numeric('battery2', ea.STATE).withUnit('%').withDescription('Remaining battery 2 in %'),

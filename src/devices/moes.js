@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
@@ -104,10 +104,10 @@ module.exports = [
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
         fromZigbee: [fz.legacy.moes_thermostat],
-        toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
-            tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
-            tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit, tz.moes_thermostat_min_temperature_limit,
-            tz.moes_thermostat_program_schedule],
+        toZigbee: [tz.legacy.moes_thermostat_child_lock, tz.legacy.moes_thermostat_current_heating_setpoint, tz.legacy.moes_thermostat_mode,
+            tz.legacy.moes_thermostat_standby, tz.legacy.moes_thermostat_sensor, tz.legacy.moes_thermostat_calibration,
+            tz.legacy.moes_thermostat_deadzone_temperature, tz.legacy.moes_thermostat_max_temperature_limit,
+            tz.legacy.moes_thermostat_min_temperature_limit, tz.legacy.moes_thermostat_program_schedule],
         exposes: [e.child_lock(), e.deadzone_temperature(), e.max_temperature_limit(), e.min_temperature_limit(),
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 1, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
@@ -165,7 +165,7 @@ module.exports = [
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.legacy.tuya_switch, fz.legacy.moes_switch],
-        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
@@ -186,7 +186,7 @@ module.exports = [
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
-        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -214,7 +214,7 @@ module.exports = [
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
-        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -244,7 +244,7 @@ module.exports = [
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
         fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
-        toZigbee: [tz.tuya_switch_state, tz.moes_switch],
+        toZigbee: [tz.legacy.tuya_switch_state, tz.legacy.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -278,13 +278,13 @@ module.exports = [
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.legacy.moesS_thermostat],
-        toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
-            tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
-            tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
-            tz.moesS_thermostat_eco_temperature, tz.moesS_thermostat_max_temperature,
-            tz.moesS_thermostat_min_temperature, tz.moesS_thermostat_moesSecoMode,
-            tz.moesS_thermostat_preset, tz.moesS_thermostat_schedule_programming,
-            tz.moesS_thermostat_system_mode],
+        toZigbee: [tz.legacy.moesS_thermostat_current_heating_setpoint, tz.legacy.moesS_thermostat_child_lock,
+            tz.legacy.moesS_thermostat_window_detection, tz.legacy.moesS_thermostat_temperature_calibration,
+            tz.legacy.moesS_thermostat_boost_heating, tz.legacy.moesS_thermostat_boostHeatingCountdownTimeSet,
+            tz.legacy.moesS_thermostat_eco_temperature, tz.legacy.moesS_thermostat_max_temperature,
+            tz.legacy.moesS_thermostat_min_temperature, tz.legacy.moesS_thermostat_moesSecoMode,
+            tz.legacy.moesS_thermostat_preset, tz.legacy.moesS_thermostat_schedule_programming,
+            tz.legacy.moesS_thermostat_system_mode],
         exposes: [
             e.battery(), e.child_lock(), e.eco_mode(),
             e.eco_temperature().withValueMin(5), e.max_temperature().withValueMax(45), e.min_temperature().withValueMin(5),
@@ -340,7 +340,7 @@ module.exports = [
         description: 'Zigbee + RF curtain switch',
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.legacy.moes_cover, fz.ignore_basic_report],
-        toZigbee: [tz.moes_cover],
+        toZigbee: [tz.legacy.moes_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],
     },

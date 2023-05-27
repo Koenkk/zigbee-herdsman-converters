@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -11,7 +11,7 @@ module.exports = [
         vendor: 'BSEED',
         description: 'Zigbee curtain switch',
         fromZigbee: [fz.legacy.tuya_cover],
-        toZigbee: [tz.tuya_cover_control],
+        toZigbee: [tz.legacy.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
 ];

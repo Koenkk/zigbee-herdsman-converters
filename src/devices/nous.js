@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -24,7 +24,7 @@ module.exports = [
         vendor: 'Nous',
         description: 'Temperature and humidity sensor with clock',
         fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
+        toZigbee: [tz.legacy.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -61,7 +61,7 @@ module.exports = [
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',
         fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
+        toZigbee: [tz.legacy.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);

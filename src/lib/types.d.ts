@@ -1,6 +1,7 @@
 import type {
     Device as ZHDevice,
     Endpoint as ZHEndpoint,
+    Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
 
 declare global {
@@ -30,9 +31,28 @@ declare global {
         convert: (model: Definition, msg: KeyValue, publish: Publish, options: KeyValue, meta: FzMeta) => KeyValue | void
     }
 
+    interface ToZigbeeMeta {
+        logger: Logger,
+        message: KeyValue,
+        device: zh.Device,
+        mapped: Definition,
+        options: KeyValue,
+        state: KeyValue,
+        endpoint_name: string,
+    }
+
+    interface ToZigbeeConverter {
+        key: string[],
+        options?: any[] | ((definition: Definition) => any[]);
+        convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: ToZigbeeMeta)
+            => Promise<{state: KeyValue} | void>,
+        convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: ToZigbeeMeta) => Promise<void>,
+    }
+
     namespace zh {
         type Endpoint = ZHEndpoint;
         type Device = ZHDevice;
+        type Group = ZHGroup;
     }
 
     namespace tuya {

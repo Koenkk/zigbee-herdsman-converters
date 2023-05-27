@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
 const ea = exposes.access;
@@ -15,7 +15,7 @@ module.exports = [
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
         fromZigbee: [fz.legacy.tuya_light_wz5],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
+        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state',
                 ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
@@ -30,7 +30,7 @@ module.exports = [
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (CCT mode)',
         fromZigbee: [fz.legacy.tuya_light_wz5],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
+        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state',
                 ea.STATE_SET).setAccess('brightness', ea.STATE_SET).withColorTemp([250, 454]).setAccess('color_temp', ea.STATE_SET),
@@ -45,7 +45,7 @@ module.exports = [
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
         fromZigbee: [fz.legacy.tuya_light_wz5],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
+        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
                 ea.STATE_SET).withColor(['hs']).setAccess('color_hs', ea.STATE_SET),
@@ -67,7 +67,7 @@ module.exports = [
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGBW mode)',
         fromZigbee: [fz.legacy.tuya_light_wz5],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
+        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
                 ea.STATE_SET).withColor(['hs']).setAccess('color_hs', ea.STATE_SET),
@@ -85,7 +85,7 @@ module.exports = [
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',
         fromZigbee: [fz.legacy.tuya_light_wz5],
-        toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
+        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
                 ea.STATE_SET).withColor(['hs']).withColorTemp([250, 454]).setAccess('color_temp',

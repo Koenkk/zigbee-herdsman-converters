@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const tuya = require('../lib/tuya');
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,10 +23,11 @@ module.exports = [
         fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes4, tuyaThermostatPreset: tuya.thermostatPresets,
             tuyaThermostatPresetToSystemMode: tuya.thermostatSystemModes4},
-        toZigbee: [tz.tuya_thermostat_child_lock, tz.siterwell_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
-            tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode, tz.tuya_thermostat_auto_lock,
-            tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp, tz.tuya_thermostat_boost_time,
-            tz.tuya_thermostat_comfort_temp, tz.tuya_thermostat_eco_temp, tz.tuya_thermostat_force, tz.tuya_thermostat_preset],
+        toZigbee: [tz.legacy.tuya_thermostat_child_lock, tz.legacy.siterwell_thermostat_window_detection, tz.legacy.tuya_thermostat_valve_detection,
+            tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_system_mode, tz.legacy.tuya_thermostat_auto_lock,
+            tz.legacy.tuya_thermostat_calibration, tz.legacy.tuya_thermostat_min_temp, tz.legacy.tuya_thermostat_max_temp,
+            tz.legacy.tuya_thermostat_comfort_temp, tz.legacy.tuya_thermostat_eco_temp, tz.legacy.tuya_thermostat_force,
+            tz.legacy.tuya_thermostat_preset, tz.legacy.tuya_thermostat_boost_time],
         whiteLabel: [{vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
             {vendor: 'TuYa', description: 'Głowica termostatyczna', model: 'GTZ02'},
             {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},

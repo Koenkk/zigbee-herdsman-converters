@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const reporting = require('../lib/reporting');
 const extend = require('../lib/extend');
 const tuya = require('../lib/tuya');
@@ -66,7 +66,7 @@ module.exports = [
         extend: extend.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
-        toZigbee: [tz.tuya_switch_state],
+        toZigbee: [tz.legacy.tuya_switch_state],
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_dhdstcqc'}],
@@ -77,7 +77,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
-        toZigbee: [tz.tuya_switch_state],
+        toZigbee: [tz.legacy.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -93,7 +93,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
         fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
-        toZigbee: [tz.tuya_switch_state],
+        toZigbee: [tz.legacy.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state

@@ -1,6 +1,6 @@
 const exposes = require('../lib/exposes');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = require('../converters/toZigbee');
+const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -25,7 +25,7 @@ module.exports = [
         vendor: 'JAVIS',
         description: 'Microwave sensor',
         fromZigbee: [fz.legacy.javis_microwave_sensor, fz.ignore_basic_report],
-        toZigbee: [tz.javis_microwave_sensor],
+        toZigbee: [tz.legacy.javis_microwave_sensor],
         exposes: [e.occupancy(), e.illuminance_lux(),
             exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),
             exposes.enum('keep_time', ea.STATE_SET, ['0', '1', '2', '3', '4', '5', '6', '7'])
