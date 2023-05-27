@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
@@ -103,7 +103,7 @@ module.exports = [
         model: 'BHT-002-GCLZB',
         vendor: 'Moes',
         description: 'Moes BHT series Thermostat',
-        fromZigbee: [fz.moes_thermostat],
+        fromZigbee: [fz.legacy.moes_thermostat],
         toZigbee: [tz.moes_thermostat_child_lock, tz.moes_thermostat_current_heating_setpoint, tz.moes_thermostat_mode,
             tz.moes_thermostat_standby, tz.moes_thermostat_sensor, tz.moes_thermostat_calibration,
             tz.moes_thermostat_deadzone_temperature, tz.moes_thermostat_max_temperature_limit, tz.moes_thermostat_min_temperature_limit,
@@ -164,7 +164,7 @@ module.exports = [
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
-        fromZigbee: [fz.tuya_switch, fz.moes_switch],
+        fromZigbee: [fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -185,7 +185,7 @@ module.exports = [
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
@@ -213,7 +213,7 @@ module.exports = [
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
@@ -243,7 +243,7 @@ module.exports = [
                 .withDescription('Indicator light status'),
             exposes.enum('power_on_behavior', ea.STATE_SET, Object.values(tuya.moesSwitch.powerOnBehavior))
                 .withDescription('Controls the behavior when the device is powered on')],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch, fz.moes_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch, fz.legacy.moes_switch],
         toZigbee: [tz.tuya_switch_state, tz.moes_switch],
         onEvent: tuya.onEventSetLocalTime,
         meta: {multiEndpoint: true},
@@ -277,7 +277,7 @@ module.exports = [
         description: 'Thermostatic radiator valve',
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.moesS_thermostat],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.legacy.moesS_thermostat],
         toZigbee: [tz.moesS_thermostat_current_heating_setpoint, tz.moesS_thermostat_child_lock,
             tz.moesS_thermostat_window_detection, tz.moesS_thermostat_temperature_calibration,
             tz.moesS_thermostat_boost_heating, tz.moesS_thermostat_boostHeatingCountdownTimeSet,
@@ -339,7 +339,7 @@ module.exports = [
         vendor: 'Moes',
         description: 'Zigbee + RF curtain switch',
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.moes_cover, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.moes_cover, fz.ignore_basic_report],
         toZigbee: [tz.moes_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET), exposes.enum('backlight', ea.STATE_SET, ['OFF', 'ON']),
             exposes.enum('calibration', ea.STATE_SET, ['OFF', 'ON']), exposes.enum('motor_reversal', ea.STATE_SET, ['OFF', 'ON'])],

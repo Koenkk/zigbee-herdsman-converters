@@ -12,7 +12,7 @@ module.exports = [
         model: 'FK_V02',
         vendor: 'FrankEver',
         description: 'Zigbee smart water valve',
-        fromZigbee: [fz.frankever_valve],
+        fromZigbee: [fz.legacy.frankever_valve],
         toZigbee: [tz.tuya_switch_state, tz.frankever_threshold, tz.frankever_timer],
         exposes: [e.switch().setAccess('state', ea.STATE_SET),
             exposes.numeric('threshold', exposes.access.STATE_SET).withValueMin(0).withValueMax(100).withUnit('%')

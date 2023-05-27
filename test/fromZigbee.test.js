@@ -1,4 +1,5 @@
 const fz = require('../src/converters/fromZigbee');
+const fzLegacy = require('../src/lib/legacy').fromZigbee;
 const tuya = require('../src/lib/tuya');
 
 jest.mock('fs');
@@ -37,7 +38,7 @@ describe('converters/fromZigbee', () => {
                 ],
             ])
             ("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(fz.wls100z_water_leak.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
+                expect(fzLegacy.wls100z_water_leak.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });
         describe('tuya_smart_vibration_sensor', () => {
@@ -63,7 +64,7 @@ describe('converters/fromZigbee', () => {
                 ],
             ])
             ("Receives '%s' indication", (_name, dpValues, result) => {
-                expect(fz.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
+                expect(fzLegacy.tuya_smart_vibration_sensor.convert(null, {data: {dpValues}}, null, null, meta)).toEqual(result);
             });
         });
         describe('tuya_data_point_dump', () => {
@@ -85,7 +86,7 @@ describe('converters/fromZigbee', () => {
                         ],
                     },
                 };
-                expect(fz.tuya_data_point_dump.convert(null, msg, null, null, meta)).toEqual(undefined);
+                expect(fzLegacy.tuya_data_point_dump.convert(null, msg, null, null, meta)).toEqual(undefined);
                 expect(meta.logger.info).nthCalledWith(1, expect.stringMatching(/Received Tuya DataPoint #1 from 0x123456789abcdef with raw data '\{"dp":1,"datatype":0,"data":\[0,1\]\}': type='commandDataResponse', datatype='raw', value='0,1', known DP# usage: \[.*"state"/));
                 expect(meta.logger.info).nthCalledWith(2, expect.stringMatching(/Received Tuya DataPoint #2 from 0x123456789abcdef with raw data '\{"dp":2,"datatype":1,"data":\[1\]\}': type='commandDataResponse', datatype='bool', value='true', known DP# usage: \[.*"heatingSetpoint"/));
                 expect(meta.logger.info).nthCalledWith(3, expect.stringMatching(/Received Tuya DataPoint #3 from 0x123456789abcdef with raw data '\{"dp":3,"datatype":2,"data":\[0,0,0,97\]\}': type='commandDataResponse', datatype='value', value='97', known DP# usage: \[.*"occupancy"/));

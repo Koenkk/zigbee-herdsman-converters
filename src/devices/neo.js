@@ -12,7 +12,7 @@ module.exports = [
         model: 'NAS-AB02B0',
         vendor: 'Neo',
         description: 'Temperature & humidity sensor and alarm',
-        fromZigbee: [fz.neo_t_h_alarm, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.neo_t_h_alarm, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [tz.neo_t_h_alarm],
         exposes: [
             e.temperature(), e.humidity(), exposes.binary('humidity_alarm', ea.STATE_SET, true, false), e.battery_low(),
@@ -40,7 +40,7 @@ module.exports = [
         model: 'NAS-AB02B2',
         vendor: 'Neo',
         description: 'Alarm',
-        fromZigbee: [fz.neo_alarm, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.neo_alarm, fz.ignore_basic_report],
         toZigbee: [tz.neo_alarm],
         exposes: [
             e.battery_low(),
@@ -62,7 +62,7 @@ module.exports = [
         model: 'NAS-PD07',
         vendor: 'Neo',
         description: 'Motion, temperature & humidity sensor',
-        fromZigbee: [fz.neo_nas_pd07, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [tz.neo_nas_pd07],
         onEvent: tuya.onEventSetTime,
         exposes: [e.occupancy(), e.humidity(), e.temperature(), e.tamper(), e.battery_low(),

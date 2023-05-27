@@ -10,7 +10,7 @@ module.exports = [
         model: 'BSEED_TS0601_cover',
         vendor: 'BSEED',
         description: 'Zigbee curtain switch',
-        fromZigbee: [fz.tuya_cover],
+        fromZigbee: [fz.legacy.tuya_cover],
         toZigbee: [tz.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },

@@ -14,7 +14,7 @@ module.exports = [
         model: 'WZ5_dim_1',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (DIM mode)',
-        fromZigbee: [fz.tuya_light_wz5],
+        fromZigbee: [fz.legacy.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state',
@@ -29,7 +29,7 @@ module.exports = [
         model: 'WZ5_cct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (CCT mode)',
-        fromZigbee: [fz.tuya_light_wz5],
+        fromZigbee: [fz.legacy.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state',
@@ -44,7 +44,7 @@ module.exports = [
         model: 'WZ5_rgb',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB mode)',
-        fromZigbee: [fz.tuya_light_wz5],
+        fromZigbee: [fz.legacy.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
@@ -66,7 +66,7 @@ module.exports = [
         model: 'WZ5_rgbw',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGBW mode)',
-        fromZigbee: [fz.tuya_light_wz5],
+        fromZigbee: [fz.legacy.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',
@@ -84,7 +84,7 @@ module.exports = [
         model: 'WZ5_rgbcct',
         vendor: 'Skydance',
         description: 'Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)',
-        fromZigbee: [fz.tuya_light_wz5],
+        fromZigbee: [fz.legacy.tuya_light_wz5],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_light_wz5],
         exposes: [
             exposes.light().withBrightness().setAccess('state', ea.STATE_SET).setAccess('brightness',

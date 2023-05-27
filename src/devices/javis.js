@@ -24,7 +24,7 @@ module.exports = [
         model: 'JS-MC-SENSOR-ZB',
         vendor: 'JAVIS',
         description: 'Microwave sensor',
-        fromZigbee: [fz.javis_microwave_sensor, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.javis_microwave_sensor, fz.ignore_basic_report],
         toZigbee: [tz.javis_microwave_sensor],
         exposes: [e.occupancy(), e.illuminance_lux(),
             exposes.binary('led_enable', ea.STATE_SET, true, false).withDescription('Enabled LED'),

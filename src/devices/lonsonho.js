@@ -65,7 +65,7 @@ module.exports = [
         description: '1 gang switch',
         extend: extend.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
     },
     {
@@ -76,7 +76,7 @@ module.exports = [
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -92,7 +92,7 @@ module.exports = [
         extend: extend.switch(),
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {

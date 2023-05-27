@@ -1040,7 +1040,7 @@ module.exports = [
         model: 'TS0601_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.tuya_temperature_humidity_sensor],
+        fromZigbee: [fz.legacy.tuya_temperature_humidity_sensor],
         toZigbee: [],
         exposes: (device, options) => {
             const exps = [e.temperature(), e.humidity(), e.battery()];
@@ -1078,7 +1078,7 @@ module.exports = [
         model: 'TS0601_illuminance_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Illuminance, temperature & humidity sensor',
-        fromZigbee: [fz.tuya_illuminance_temperature_humidity_sensor],
+        fromZigbee: [fz.legacy.tuya_illuminance_temperature_humidity_sensor],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.illuminance_lux(), e.battery()],
     },
@@ -1090,7 +1090,7 @@ module.exports = [
         model: 'TS0601_air_quality_sensor',
         vendor: 'TuYa',
         description: 'Air quality sensor',
-        fromZigbee: [fz.tuya_air_quality],
+        fromZigbee: [fz.legacy.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd()],
     },
@@ -1099,7 +1099,7 @@ module.exports = [
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'TuYa',
         description: 'Smart air house keeper',
-        fromZigbee: [fz.tuya_air_quality],
+        fromZigbee: [fz.legacy.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('Âµg/mÂ³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
@@ -1109,7 +1109,7 @@ module.exports = [
         model: 'TS0601_co2_sensor',
         vendor: 'TuYa',
         description: 'NDIR co2 sensor',
-        fromZigbee: [fz.tuya_air_quality],
+        fromZigbee: [fz.legacy.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2()],
     },
@@ -1118,7 +1118,7 @@ module.exports = [
         model: 'TS0601_smart_CO_air_box',
         vendor: 'TuYa',
         description: 'Smart air box (carbon monoxide)',
-        fromZigbee: [fz.tuya_CO],
+        fromZigbee: [fz.legacy.tuya_CO],
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.co()],
     },
@@ -1579,7 +1579,7 @@ module.exports = [
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -1767,7 +1767,7 @@ module.exports = [
         model: 'S-LUX-ZB',
         vendor: 'TuYa',
         description: 'Light sensor',
-        fromZigbee: [fz.SLUXZB],
+        fromZigbee: [fz.legacy.SLUXZB],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1811,7 +1811,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         whiteLabel: [
@@ -1841,7 +1841,7 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -1915,7 +1915,7 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 gang switch',
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         whiteLabel: [
             tuya.whitelabel('Shawader', 'SMKG-1KNL-US/TZB-W', '1 gang switch', ['_TZE204_ojtqawav']),
@@ -1936,7 +1936,7 @@ module.exports = [
         description: '2 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1962,7 +1962,7 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.tuya_switch],
+        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
         toZigbee: [tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2290,7 +2290,7 @@ module.exports = [
         model: 'TS0601_water_sensor',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
         whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
@@ -2300,7 +2300,7 @@ module.exports = [
         model: 'WLS-100z',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, fz.wls100z_water_leak],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, fz.legacy.wls100z_water_leak],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -2588,7 +2588,7 @@ module.exports = [
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
             tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj']),
         ],
-        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control, tz.tuya_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
@@ -2609,7 +2609,7 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Zemismart', model: 'BCM100DB'},
         ],
-        fromZigbee: [fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
         toZigbee: [tz.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
@@ -2679,7 +2679,7 @@ module.exports = [
         meta: {tuyaThermostatPreset: tuya.thermostatPresets, tuyaThermostatSystemMode: tuya.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [tz.tuya_thermostat_child_lock, tz.tuya_thermostat_window_detection, tz.tuya_thermostat_valve_detection,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_auto_lock,
             tz.tuya_thermostat_calibration, tz.tuya_thermostat_min_temp, tz.tuya_thermostat_max_temp,
@@ -2978,7 +2978,7 @@ module.exports = [
         model: 'HT-08',
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.legacy.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [tz.etop_thermostat_system_mode, tz.etop_thermostat_away_mode, tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
@@ -2999,7 +2999,7 @@ module.exports = [
         model: 'HT-10',
         vendor: 'ETOP',
         description: 'Radiator valve',
-        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.legacy.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [tz.etop_thermostat_system_mode, tz.etop_thermostat_away_mode, tz.tuya_thermostat_child_lock,
             tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
@@ -3534,7 +3534,7 @@ module.exports = [
         model: 'TS0601_din',
         vendor: 'TuYa',
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
-        fromZigbee: [fz.tuya_dinrail_switch],
+        fromZigbee: [fz.legacy.tuya_dinrail_switch],
         toZigbee: [tz.tuya_switch_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -3784,7 +3784,7 @@ module.exports = [
         model: 'gq8b1uv',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [fz.tuya_dimmer, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_dimmer, fz.ignore_basic_report],
         toZigbee: [tz.tuya_dimmer_state, tz.tuya_dimmer_level],
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3816,7 +3816,7 @@ module.exports = [
         model: 'SNTZ009',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.tuya_water_leak, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
     },
@@ -3921,7 +3921,7 @@ module.exports = [
             .withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)],
-        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report, fz.tuya_dimmer],
+        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.legacy.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
         toZigbee: [tz.tuya_thermostat_current_heating_setpoint, tz.tuya_thermostat_system_mode,
             tz.tuya_thermostat_fan_mode, tz.tuya_dimmer_state],
@@ -3970,7 +3970,7 @@ module.exports = [
         model: 'HY08WE',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.hy_thermostat, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.hy_thermostat, fz.ignore_basic_report],
         toZigbee: [tz.hy_thermostat],
         onEvent: tuya.onEventSetTime,
         exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
@@ -4105,7 +4105,7 @@ module.exports = [
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
         description: 'Garage door opener',
-        fromZigbee: [fz.matsee_garage_door_opener, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.matsee_garage_door_opener, fz.ignore_basic_report],
         toZigbee: [tz.matsee_garage_door_opener, tz.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4121,7 +4121,7 @@ module.exports = [
         model: 'GDC311ZBQ1',
         vendor: 'TuYa',
         description: 'LoraTap garage door opener with wireless sensor',
-        fromZigbee: [fz.matsee_garage_door_opener, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.matsee_garage_door_opener, fz.ignore_basic_report],
         toZigbee: [tz.matsee_garage_door_opener, tz.tuya_data_point_test],
         whiteLabel: [{vendor: 'LoraTap', model: 'GDC311ZBQ1'}],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4167,7 +4167,7 @@ module.exports = [
         model: 'TS0601_motion_sensor',
         vendor: 'TuYa',
         description: 'Human presence sensor AIR',
-        fromZigbee: [fz.tuya_motion_sensor],
+        fromZigbee: [fz.legacy.tuya_motion_sensor],
         toZigbee: [tz.tuya_motion_sensor],
         exposes: [
             e.occupancy(),
@@ -4299,7 +4299,7 @@ module.exports = [
             {vendor: 'WDYK', model: 'ZJSBL7-100Z'},
         ],
         description: 'DIN mount RCBO with smart energy metering',
-        fromZigbee: [fz.hoch_din],
+        fromZigbee: [fz.legacy.hoch_din],
         toZigbee: [tz.hoch_din],
         exposes: [
             exposes.text('meter_number', ea.STATE),
@@ -4360,7 +4360,7 @@ module.exports = [
         model: 'TS0601_vibration_sensor',
         vendor: 'TuYa',
         description: 'Smart vibration sensor',
-        fromZigbee: [fz.tuya_smart_vibration_sensor],
+        fromZigbee: [fz.legacy.tuya_smart_vibration_sensor],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.vibration()],
     },
@@ -4369,7 +4369,7 @@ module.exports = [
         model: `XFY-CGQ-ZIGB`,
         vendor: `TuYa`,
         description: `Illuminance sensor`,
-        fromZigbee: [fz.tuya_illuminance_sensor],
+        fromZigbee: [fz.legacy.tuya_illuminance_sensor],
         toZigbee: [],
         exposes: [e.illuminance_lux(), e.brightness_state()],
     },
@@ -4378,7 +4378,7 @@ module.exports = [
         model: 'TM001-ZA/TM081',
         vendor: 'TuYa',
         description: 'Door and window sensor',
-        fromZigbee: [fz.tm081],
+        fromZigbee: [fz.legacy.tm081],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },
@@ -4390,7 +4390,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold',
                 '4_single', '4_double', '4_hold', '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
-        fromZigbee: [fz.tuya_remote],
+        fromZigbee: [fz.legacy.tuya_remote],
         toZigbee: [],
     },
     {
@@ -4413,7 +4413,7 @@ module.exports = [
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',
-        fromZigbee: [fz.tuya_smart_human_presense_sensor],
+        fromZigbee: [fz.legacy.tuya_smart_human_presense_sensor],
         toZigbee: [tz.tuya_smart_human_presense_sensor],
         exposes: [
             e.illuminance_lux(), e.presence(),
@@ -4472,7 +4472,7 @@ module.exports = [
         model: 'JM-TRH-ZGB-V1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with clock',
-        fromZigbee: [fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4503,7 +4503,7 @@ module.exports = [
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',
-        fromZigbee: [fz.ZG204ZL_lms],
+        fromZigbee: [fz.legacy.ZG204ZL_lms],
         toZigbee: [tz.ZG204ZL_lms],
         exposes: [
             e.occupancy(), e.illuminance().withUnit('lx'), e.battery(),
