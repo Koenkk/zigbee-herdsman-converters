@@ -11,7 +11,7 @@ module.exports = [
         model: 'BW-IS3',
         vendor: 'BlitzWolf',
         description: 'Rechargeable Zigbee PIR motion sensor',
-        fromZigbee: [fz.blitzwolf_occupancy_with_timeout],
+        fromZigbee: [fz.legacy.blitzwolf_occupancy_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy()],
     },

@@ -11,7 +11,7 @@ module.exports = [
         model: '4500994',
         vendor: 'Connecte',
         description: 'Smart thermostat',
-        fromZigbee: [fz.connecte_thermostat],
+        fromZigbee: [fz.legacy.connecte_thermostat],
         toZigbee: [tz.connecte_thermostat],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,

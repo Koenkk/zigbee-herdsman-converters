@@ -31,7 +31,7 @@ module.exports = [
         description: 'Thermostatic radiator valve',
         whiteLabel: [{vendor: 'HiHome', model: 'WZB-TRVL'}, {vendor: 'Hama', model: '00176592'},
             {vendor: 'RTX', model: 'ZB-RT1'}, {vendor: 'SETTI+', model: 'TRV001'}],
-        fromZigbee: [fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule],
+        fromZigbee: [fz.legacy.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, fz.legacy.tuya_thermostat_weekly_schedule_1],
         toZigbee: [tz.saswell_thermostat_current_heating_setpoint, tz.saswell_thermostat_mode, tz.saswell_thermostat_away,
             tz.saswell_thermostat_child_lock, tz.saswell_thermostat_window_detection, tz.saswell_thermostat_frost_detection,
             tz.saswell_thermostat_calibration, tz.saswell_thermostat_anti_scaling, tz.tuya_thermostat_weekly_schedule],

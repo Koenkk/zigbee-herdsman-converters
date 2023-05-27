@@ -23,7 +23,7 @@ module.exports = [
         model: 'SZ-T04',
         vendor: 'Nous',
         description: 'Temperature and humidity sensor with clock',
-        fromZigbee: [fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -60,7 +60,7 @@ module.exports = [
         model: 'E6',
         vendor: 'Nous',
         description: 'Temperature & humidity LCD sensor',
-        fromZigbee: [fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [tz.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {

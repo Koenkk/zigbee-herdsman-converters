@@ -14,7 +14,7 @@ module.exports = [
         description: 'Smart water/gas valve',
         extend: extend.switch(),
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
         toZigbee: [tz.tuya_switch_state],
     },
 ];

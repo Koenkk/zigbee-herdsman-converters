@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const reporting = require('../lib/reporting');
 const e = exposes.presets;
@@ -693,7 +693,7 @@ module.exports = [
         vendor: 'Lidl',
         description: 'Melinera smart LED string lights',
         toZigbee: [tz.on_off, tz.silvercrest_smart_led_string],
-        fromZigbee: [fz.on_off, fz.silvercrest_smart_led_string],
+        fromZigbee: [fz.on_off, fz.legacy.silvercrest_smart_led_string],
         exposes: [e.light_brightness_colorhs().setAccess('brightness', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
     },
     {

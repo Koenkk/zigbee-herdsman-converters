@@ -12,7 +12,7 @@ module.exports = [
         vendor: 'HKGK',
         description: 'BAC series thermostat',
         fromZigbee: [
-            fz.moes_thermostat,
+            fz.legacy.moes_thermostat,
             fz.ignore_basic_report,
             fz.ignore_tuya_set_time,
         ],

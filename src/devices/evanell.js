@@ -1,5 +1,5 @@
 const exposes = require('../lib/exposes');
-const fz = require('../converters/fromZigbee');
+const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = require('../converters/toZigbee');
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
@@ -12,7 +12,7 @@ module.exports = [
         model: 'EZ200',
         vendor: 'Evanell',
         description: 'Thermostatic radiator valve',
-        fromZigbee: [fz.evanell_thermostat],
+        fromZigbee: [fz.legacy.evanell_thermostat],
         toZigbee: [tz.evanell_thermostat_current_heating_setpoint, tz.evanell_thermostat_system_mode,
             tz.evanell_thermostat_child_lock],
         onEvent: tuya.onEventSetTime,

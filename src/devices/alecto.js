@@ -68,7 +68,7 @@ module.exports = [
         model: 'SMART-HEAT10',
         vendor: 'Alecto',
         description: 'Radiator valve with thermostat',
-        fromZigbee: [fz.tuya_thermostat, fz.ignore_basic_report],
+        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report],
         meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes4, tuyaThermostatPreset: tuya.thermostatPresets,
             tuyaThermostatPresetToSystemMode: tuya.thermostatSystemModes4},
         toZigbee: [tz.tuya_thermostat_child_lock, tz.siterwell_thermostat_window_detection,
