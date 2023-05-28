@@ -178,6 +178,8 @@ module.exports = [
             await reporting.temperature(endpoint, {min: 5, max: constants.repInterval.MINUTES_30, change: 20});
             await reporting.humidity(endpoint);
             await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+            device.powerSource = 'Battery';
+            device.save();
         },
     },
     {
