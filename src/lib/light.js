@@ -10,13 +10,13 @@ async function readColorTempMinMax(endpoint) {
 
 function readColorAttributes(entity, meta, additionalAttributes=[]) {
     /**
-      * Not all bulbs suport the same features, we need to take care we read what is supported.
+      * Not all bulbs support the same features, we need to take care we read what is supported.
       * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
       * `enhancedHue` indicates support for enhancedCurrentHue
       *
       * e.g. IKEA Tådfri LED1624G9 only supports XY (https://github.com/Koenkk/zigbee-herdsman-converters/issues/1340)
       *
-      * Additionally when we get a get payload, only request the fields included.
+      * Additionally when we get a "get payload", only request the fields included.
      */
     const attributes = ['colorMode'];
     if (meta && meta.message) {
