@@ -1057,4 +1057,35 @@ module.exports = [
         toZigbee: [],
         exposes: [],
     },
+    {
+        zigbeeModel: ['b-parasite'],
+        model: 'b-parasite',
+        vendor: 'Custom devices (DiY)',
+        description: '[b-parasite open source soil moisture sensor](https://github.com/rbaron/b-parasite)',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture, fz.illuminance],
+        toZigbee: [],
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.soil_moisture(),
+            e.illuminance_lux()],
+        configure: async (device, coordinatorEndpoint, _logger) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(
+                endpoint,
+                coordinatorEndpoint, [
+                    'genPowerCfg',
+                    'msTemperatureMeasurement',
+                    'msRelativeHumidity',
+                    'msSoilMoisture',
+                    'msIlluminanceMeasurement',
+                ]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.soil_moisture(endpoint);
+            await reporting.illuminance(endpoint);
+        },
+    },
 ];
