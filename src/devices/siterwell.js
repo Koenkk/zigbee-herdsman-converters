@@ -1,7 +1,7 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
-const tuya = require('../lib/tuya');
+const legacy = require('../lib/legacy');
+const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};
+const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -21,8 +21,8 @@ module.exports = [
         vendor: 'Siterwell',
         description: 'Radiator valve with thermostat',
         fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report],
-        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes4, tuyaThermostatPreset: tuya.thermostatPresets,
-            tuyaThermostatPresetToSystemMode: tuya.thermostatSystemModes4},
+        meta: {tuyaThermostatSystemMode: legacy.thermostatSystemModes4, tuyaThermostatPreset: legacy.thermostatPresets,
+            tuyaThermostatPresetToSystemMode: legacy.thermostatSystemModes4},
         toZigbee: [tz.legacy.tuya_thermostat_child_lock, tz.legacy.siterwell_thermostat_window_detection, tz.legacy.tuya_thermostat_valve_detection,
             tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_system_mode, tz.legacy.tuya_thermostat_auto_lock,
             tz.legacy.tuya_thermostat_calibration, tz.legacy.tuya_thermostat_min_temp, tz.legacy.tuya_thermostat_max_temp,

@@ -1,6 +1,7 @@
 const exposes = require('../lib/exposes');
-const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
+const legacy = require('../lib/legacy');
+const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};
+const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
 const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
 const reporting = require('../lib/reporting');
@@ -4429,7 +4430,7 @@ module.exports = [
             exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
-            exposes.enum('self_test', ea.STATE, Object.values(tuya.tuyaHPSCheckingResult))
+            exposes.enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
     },

@@ -71,94 +71,6 @@ function getDataPointNames(dpValue) {
     return entries.map(([dpName, dpId]) => dpName);
 }
 
-function logDataPoint(where, msg, dpValue, meta) {
-    meta.logger.info(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${
-        dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': type='${
-        msg.type}', datatype='${getTypeName(dpValue)}', value='${
-        getDataValue(dpValue)}', known DP# usage: ${JSON.stringify(getDataPointNames(dpValue))}`);
-}
-
-function logUnexpectedDataPoint(where, msg, dpValue, meta) {
-    meta.logger.warn(`zigbee-herdsman-converters:${where}: Received unexpected Tuya DataPoint #${
-        dpValue.dp} from ${meta.device.ieeeAddr} with raw data '${JSON.stringify(dpValue)}': type='${
-        msg.type}', datatype='${getTypeName(dpValue)}', value='${
-        getDataValue(dpValue)}', known DP# usage: ${JSON.stringify(getDataPointNames(dpValue))}`);
-}
-
-function logUnexpectedDataType(where, msg, dpValue, meta, expectedDataType) {
-    meta.logger.warn(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${
-        dpValue.dp} with unexpected datatype from ${meta.device.ieeeAddr} with raw data '${
-        JSON.stringify(dpValue)}': type='${msg.type}', datatype='${
-        getTypeName(dpValue)}' (instead of '${expectedDataType}'), value='${
-        getDataValue(dpValue)}', known DP# usage: ${JSON.stringify(getDataPointNames(dpValue))}`);
-}
-
-function logUnexpectedDataValue(where, msg, dpValue, meta, valueKind, expectedMinValue=null, expectedMaxValue=null) {
-    if (expectedMinValue === null) {
-        if (expectedMaxValue === null) {
-            meta.logger.warn(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${dpValue.dp
-            } with invalid value ${getDataValue(dpValue)} for ${valueKind} from ${meta.device.ieeeAddr}`);
-        } else {
-            meta.logger.warn(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${dpValue.dp
-            } with invalid value ${getDataValue(dpValue)} for ${valueKind} from ${meta.device.ieeeAddr
-            } which is higher than the expected maximum of ${expectedMaxValue}`);
-        }
-    } else {
-        if (expectedMaxValue === null) {
-            meta.logger.warn(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${dpValue.dp
-            } with invalid value ${getDataValue(dpValue)} for ${valueKind} from ${meta.device.ieeeAddr
-            } which is lower than the expected minimum of ${expectedMinValue}`);
-        } else {
-            meta.logger.warn(`zigbee-herdsman-converters:${where}: Received Tuya DataPoint #${dpValue.dp
-            } with invalid value ${getDataValue(dpValue)} for ${valueKind} from ${meta.device.ieeeAddr
-            } which is outside the expected range from ${expectedMinValue} to ${expectedMaxValue}`);
-        }
-    }
-}
-
-function convertTimeTo2ByteHexArray(time) {
-    const timeArray = time.split(':');
-    if (timeArray.length != 2) {
-        throw new Error('Time format incorrect');
-    }
-    const timeHour = parseInt(timeArray[0]);
-    const timeMinute = parseInt(timeArray[1]);
-
-    if (timeHour > 23 || timeMinute > 59) {
-        throw new Error('Time incorrect');
-    }
-    return convertDecimalValueTo2ByteHexArray(timeHour * 60 + timeMinute);
-}
-
-function convertWeekdaysTo1ByteHexArray(weekdays) {
-    let nr = 0;
-    if (weekdays == 'once') {
-        return nr;
-    }
-    if (weekdays.includes('Mo')) {
-        nr |= 0x40;
-    }
-    if (weekdays.includes('Tu')) {
-        nr |= 0x20;
-    }
-    if (weekdays.includes('We')) {
-        nr |= 0x10;
-    }
-    if (weekdays.includes('Th')) {
-        nr |= 0x08;
-    }
-    if (weekdays.includes('Fr')) {
-        nr |= 0x04;
-    }
-    if (weekdays.includes('Sa')) {
-        nr |= 0x02;
-    }
-    if (weekdays.includes('Su')) {
-        nr |= 0x01;
-    }
-    return [nr];
-}
-
 function convertDecimalValueTo4ByteHexArray(value) {
     const hexValue = Number(value).toString(16).padStart(8, '0');
     const chunk1 = hexValue.substr(0, 2);
@@ -325,12 +237,6 @@ const thermostatSystemModes3 = {
     0: 'auto',
     1: 'heat',
     2: 'off',
-};
-
-const thermostatSystemModes4 = {
-    0: 'off',
-    1: 'auto',
-    2: 'heat',
 };
 
 const dataPoints = {
@@ -780,12 +686,6 @@ const thermostatWeekFormat = {
     2: '7',
 };
 
-const thermostatForceMode = {
-    0: 'normal',
-    1: 'open',
-    2: 'close',
-};
-
 const thermostatPresets = {
     0: 'away',
     1: 'schedule',
@@ -803,59 +703,11 @@ const thermostatScheduleMode = {
     4: '7day', // 7 day schedule
 };
 
-const silvercrestModes = {
-    white: 0,
-    color: 1,
-    effect: 2,
-};
-
-const silvercrestEffects = {
-    steady: '00',
-    snow: '01',
-    rainbow: '02',
-    snake: '03',
-    twinkle: '04',
-    firework: '08',
-    horizontal_flag: '06',
-    waves: '07',
-    updown: '08',
-    vintage: '09',
-    fading: '0a',
-    collide: '0b',
-    strobe: '0c',
-    sparkles: '0d',
-    carnaval: '0e',
-    glow: '0f',
-};
-
 const fanModes = {
     0: 'low',
     1: 'medium',
     2: 'high',
     3: 'auto',
-};
-
-// Radar sensor lookups
-const tuyaRadar = {
-    radarScene: {
-        0: 'default',
-        1: 'area',
-        2: 'toilet',
-        3: 'bedroom',
-        4: 'parlour',
-        5: 'office',
-        6: 'hotel',
-    },
-    motionDirection: {
-        0: 'standing_still',
-        1: 'moving_forward',
-        2: 'moving_backward',
-    },
-    fallDown: {
-        0: 'none',
-        1: 'maybe_fall',
-        2: 'fall',
-    },
 };
 
 // Motion sensor lookups
@@ -878,18 +730,6 @@ const msLookups = {
     },
 };
 
-const tvThermostatMode = {
-    0: 'off',
-    1: 'heat',
-    2: 'auto',
-};
-
-
-const tvThermostatPreset = {
-    0: 'auto',
-    1: 'manual',
-    3: 'holiday',
-};
 // Zemismart ZM_AM02 Roller Shade Converter
 const ZMLookups = {
     AM02Mode: {
@@ -937,14 +777,6 @@ const moesSwitch = {
         2: 'position',
         3: 'freeze',
     },
-};
-const tuyaHPSCheckingResult = {
-    0: 'checking',
-    1: 'check_success',
-    2: 'check_failure',
-    3: 'others',
-    4: 'comm_fault',
-    5: 'radar_fault',
 };
 
 // Return `seq` - transaction ID for handling concrete response
@@ -1951,10 +1783,6 @@ module.exports = {
     getDataValue,
     getTypeName,
     getDataPointNames,
-    logDataPoint,
-    logUnexpectedDataPoint,
-    logUnexpectedDataType,
-    logUnexpectedDataValue,
     dataTypes,
     dataPoints,
     dpValueFromIntValue,
@@ -1963,8 +1791,6 @@ module.exports = {
     dpValueFromStringBuffer,
     dpValueFromRaw,
     dpValueFromBitmap,
-    convertTimeTo2ByteHexArray,
-    convertWeekdaysTo1ByteHexArray,
     convertDecimalValueTo4ByteHexArray,
     convertDecimalValueTo2ByteHexArray,
     onEventSetTime,
@@ -1973,22 +1799,14 @@ module.exports = {
     convertStringToHexArray,
     isCoverInverted,
     getCoverStateEnums,
-    thermostatSystemModes4,
     thermostatSystemModes3,
     thermostatSystemModes2,
     thermostatSystemModes,
     thermostatWeekFormat,
-    thermostatForceMode,
     thermostatPresets,
     thermostatScheduleMode,
-    silvercrestModes,
-    silvercrestEffects,
     fanModes,
     msLookups,
-    tvThermostatMode,
-    tvThermostatPreset,
-    tuyaRadar,
     ZMLookups,
     moesSwitch,
-    tuyaHPSCheckingResult,
 };

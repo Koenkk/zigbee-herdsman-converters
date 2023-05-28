@@ -1183,6 +1183,41 @@ const ictcg1 = (model: any, msg: any, publish: any, options: any, action: any) =
 };
 
 const fromZigbee1 = {
+    tuya_alecto_smoke: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataResponse', 'commandDataReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const dpValue = firstDpValue(msg, meta, 'tuya_alecto_smoke');
+            const dp = dpValue.dp;
+            const value = getDataValue(dpValue);
+            switch (dp) {
+            case dataPoints.alectoSmokeState:
+                // @ts-ignore
+                return {smoke_state: {0: 'alarm', 1: 'normal'}[value]};
+            case dataPoints.alectoSmokeValue:
+                return {smoke_value: value};
+            case dataPoints.alectoSelfChecking:
+                return {self_checking: value};
+            case dataPoints.alectoCheckingResult:
+                // @ts-ignore
+                return {checking_result: {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'}[value]};
+            case dataPoints.alectoSmokeTest:
+                return {smoke_test: value};
+            case dataPoints.alectoLifecycle:
+                return {lifecycle: value};
+            case dataPoints.alectoBatteryPercentage:
+                return {battery: value};
+            case dataPoints.alectoBatteryState:
+                // @ts-ignore
+                return {battery_state: {0: 'low', 1: 'middle', 2: 'high'}[value]};
+            case dataPoints.alectoSilence:
+                return {silence: value};
+            default:
+                meta.logger.warn(`zigbee-herdsman-converters:tuya_alecto_smoke: Unrecognized ` +
+                    `DP #${ dp} with data ${JSON.stringify(msg.data)}`);
+            }
+        },
+    } as FromZigbeeConverter,
     WXKG11LM_click: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -5390,6 +5425,21 @@ const fromZigbee2 = {
 };
 
 const toZigbee = {
+    tuya_alecto_smoke: {
+        key: ['self_checking', 'silence'],
+        convertSet: async (entity, key, value: any, meta) => {
+            switch (key) {
+            case 'self_checking':
+                await sendDataPointBool(entity, dataPoints.alectoSelfChecking, value);
+                break;
+            case 'silence':
+                await sendDataPointBool(entity, dataPoints.alectoSilence, value);
+                break;
+            default: // Unknown key
+                throw new Error(`zigbee-herdsman-converters:tuya_alecto_smoke: Unhandled key ${key}`);
+            }
+        },
+    } as ToZigbeeConverter,
     matsee_garage_door_opener: {
         key: ['trigger'],
         convertSet: async (entity, key, value, meta) => {
@@ -7465,4 +7515,7 @@ export {
     toZigbee,
     thermostatControlSequenceOfOperations,
     thermostatSystemModes,
+    tuyaHPSCheckingResult,
+    thermostatSystemModes4,
+    thermostatPresets,
 };
