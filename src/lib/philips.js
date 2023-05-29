@@ -82,7 +82,7 @@ const extend = {
     light_onoff_brightness_color: (options={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
-        const result = extendDontUse.light_onoff_brightness_color({supportsHS: true, ...options});
+        const result = extendDontUse.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
@@ -99,7 +99,7 @@ const extend = {
     light_onoff_brightness_colortemp_color: (options={}) => {
         options = {disableHueEffects: false, ...options};
         if (!options.disableHueEffects) options.disableEffect = true;
-        const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHS: true, ...options});
+        const result = extendDontUse.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
         result['toZigbee'] = result['toZigbee'].concat([philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error]);
@@ -114,7 +114,7 @@ const extend = {
         return result;
     },
     light_onoff_brightness_colortemp_color_gradient: (options={}) => {
-        options = {supportsHS: true, disableEffect: true, extraEffects: [], ...options};
+        options = {supportsHueAndSaturation: true, disableEffect: true, extraEffects: [], ...options};
         const result = extendDontUse.light_onoff_brightness_colortemp_color({noConfigure: true, ...options});
         result['ota'] = ota.zigbeeOTA;
         result['meta'] = {turnsOffAtBrightness1: true};
