@@ -1,4 +1,5 @@
 const exposes = require('../lib/exposes');
+const legacy = require('../lib/legacy');
 const fz = {...require('../converters/fromZigbee'), legacy: require('../lib/legacy').fromZigbee};
 const tz = {...require('../converters/toZigbee'), legacy: require('../lib/legacy').toZigbee};
 const reporting = require('../lib/reporting');
@@ -6,25 +7,6 @@ const extend = require('../lib/extend');
 const e = exposes.presets;
 const tuya = require('../lib/tuya');
 const ea = exposes.access;
-
-const fzLocal = {
-    ZMRM02: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse', 'commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'ZMRM02');
-            if (dpValue.dp === 10) {
-                return {battery: tuya.getDataValue(dpValue)};
-            } else {
-                const button = dpValue.dp;
-                const actionValue = tuya.getDataValue(dpValue);
-                const lookup = {0: 'single', 1: 'double', 2: 'hold'};
-                const action = lookup[actionValue];
-                return {action: `button_${button}_${action}`};
-            }
-        },
-    },
-};
 
 module.exports = [
     {
@@ -112,7 +94,7 @@ module.exports = [
         model: 'ZM-RM02',
         vendor: 'Zemismart',
         description: 'Smart 6 key scene switch',
-        fromZigbee: [fzLocal.ZMRM02],
+        fromZigbee: [legacy.fromZigbee.ZMRM02],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         exposes: [e.battery(), e.action([
@@ -154,11 +136,11 @@ module.exports = [
                     .withValueMin(0)
                     .withValueMax(255)
                     .withDescription('Motor speed')),
-            exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02MotorWorkingMode)),
+            exposes.enum('motor_working_mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02MotorWorkingMode)),
             exposes.numeric('percent_state', ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
-            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Mode)),
-            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
-            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
+            exposes.enum('mode', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Mode)),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
         // ---------------------------------------------------------------------------------
         // DP exists, but not used at the moment
         // exposes.numeric('percent_control', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%'),
@@ -176,8 +158,8 @@ module.exports = [
         fromZigbee: [fz.legacy.ZMAM02_cover],
         toZigbee: [tz.legacy.ZMAM02_cover],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.enum('motor_direction', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Direction)),
-            exposes.enum('border', ea.STATE_SET, Object.values(tuya.ZMLookups.AM02Border)),
+            exposes.enum('motor_direction', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
+            exposes.enum('border', ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
         ],
     },
     {

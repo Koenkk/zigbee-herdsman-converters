@@ -174,24 +174,6 @@ const tzLocal = {
             return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
     },
-    SA12IZL_silence_siren: {
-        key: ['silence_siren'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, 16, value);
-        },
-    },
-    SA12IZL_alarm: {
-        key: ['alarm'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointEnum(entity, 20, {true: 0, false: 1}[value]);
-        },
-    },
-    hpsz: {
-        key: ['led_state'],
-        convertSet: async (entity, key, value, meta) => {
-            await tuya.sendDataPointBool(entity, tuya.dataPoints.HPSZLEDState, value);
-        },
-    },
     TS0504B_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
@@ -232,198 +214,6 @@ const tzLocal = {
                 await entity.write('ssIasWd', {0x0002: {value: lookup[value], type: 0x0a}}, utils.getOptions(meta.mapped, entity));
             }
             return {state: {[key]: value}};
-        },
-    },
-    zb_sm_cover: {
-        key: ['state', 'position', 'reverse_direction', 'top_limit', 'bottom_limit', 'favorite_position', 'goto_positon', 'report'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'position': {
-                const invert = (meta.state) ? !meta.state.invert_cover : false;
-                value = invert ? 100 - value : value;
-                if (value >= 0 && value <= 100) {
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.coverPosition, value);
-                } else {
-                    throw new Error('TuYa_cover_control: Curtain motor position is out of range');
-                }
-                break;
-            }
-            case 'state': {
-                const stateEnums = tuya.getCoverStateEnums(meta.device.manufacturerName);
-                meta.logger.debug(`TuYa_cover_control: Using state enums for ${meta.device.manufacturerName}:
-                ${JSON.stringify(stateEnums)}`);
-
-                value = value.toLowerCase();
-                switch (value) {
-                case 'close':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.close);
-                    break;
-                case 'open':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.open);
-                    break;
-                case 'stop':
-                    await tuya.sendDataPointEnum(entity, tuya.dataPoints.state, stateEnums.stop);
-                    break;
-                default:
-                    throw new Error('TuYa_cover_control: Invalid command received');
-                }
-                break;
-            }
-            case 'reverse_direction': {
-                meta.logger.info(`Motor direction ${(value) ? 'reverse' : 'forward'}`);
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.motorDirection, (value) ? 1 : 0);
-                break;
-            }
-            case 'top_limit': {
-                await tuya.sendDataPointEnum(entity, 104, {'SET': 0, 'CLEAR': 1}[value]);
-                break;
-            }
-            case 'bottom_limit': {
-                await tuya.sendDataPointEnum(entity, 103, {'SET': 0, 'CLEAR': 1}[value]);
-                break;
-            }
-            case 'favorite_position': {
-                await tuya.sendDataPointValue(entity, 115, value);
-                break;
-            }
-            case 'goto_positon': {
-                if (value == 'FAVORITE') {
-                    value = (meta.state) ? meta.state.favorite_position : null;
-                } else {
-                    value = parseInt(value);
-                }
-                return tz.tuya_cover_control.convertSet(entity, 'position', value, meta);
-            }
-            case 'report': {
-                await tuya.sendDataPointBool(entity, 116, 0);
-                break;
-            }
-            }
-        },
-    },
-    x5h_thermostat: {
-        key: ['system_mode', 'current_heating_setpoint', 'sensor', 'brightness_state', 'sound', 'frost_protection', 'week', 'factory_reset',
-            'local_temperature_calibration', 'heating_temp_limit', 'deadzone_temperature', 'upper_temp', 'preset', 'child_lock',
-            'schedule'],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-            case 'system_mode':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hState, value === 'heat');
-                break;
-            case 'preset': {
-                value = value.toLowerCase();
-                const lookup = {manual: 0, program: 1};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hMode, value);
-                break;
-            }
-            case 'upper_temp':
-                if (value >= 35 && value <= 95) {
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTempCeiling, value);
-                    const setpoint = globalStore.getValue(entity, 'currentHeatingSetpoint', 20);
-                    const setpointRaw = Math.round(setpoint * 10);
-                    await new Promise((r) => setTimeout(r, 500));
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTemp, setpointRaw);
-                } else {
-                    throw new Error('Supported values are in range [35, 95]');
-                }
-                break;
-            case 'deadzone_temperature':
-                if (value >= 0.5 && value <= 9.5) {
-                    value = Math.round(value * 10);
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempDiff, value);
-                } else {
-                    throw new Error('Supported values are in range [0.5, 9.5]');
-                }
-                break;
-            case 'heating_temp_limit':
-                if (value >= 5 && value <= 60) {
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hProtectionTempLimit, value);
-                } else {
-                    throw new Error('Supported values are in range [5, 60]');
-                }
-                break;
-            case 'local_temperature_calibration':
-                if (value >= -9.9 && value <= 9.9) {
-                    value = Math.round(value * 10);
-
-                    if (value < 0) {
-                        value = 0xFFFFFFFF + value + 1;
-                    }
-
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hTempCorrection, value);
-                } else {
-                    throw new Error('Supported values are in range [-9.9, 9.9]');
-                }
-                break;
-            case 'factory_reset':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFactoryReset, value === 'ON');
-                break;
-            case 'week':
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hWorkingDaySetting,
-                    utils.getKey(tuya.thermostatWeekFormat, value, value, Number));
-                break;
-            case 'frost_protection':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hFrostProtection, value === 'ON');
-                break;
-            case 'sound':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hSound, value === 'ON');
-                break;
-            case 'brightness_state': {
-                value = value.toLowerCase();
-                const lookup = {off: 0, low: 1, medium: 2, high: 3};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hBackplaneBrightness, value);
-                break;
-            }
-            case 'sensor': {
-                value = value.toLowerCase();
-                const lookup = {'internal': 0, 'external': 1, 'both': 2};
-                utils.validateValue(value, Object.keys(lookup));
-                value = lookup[value];
-                await tuya.sendDataPointEnum(entity, tuya.dataPoints.x5hSensorSelection, value);
-                break;
-            }
-            case 'current_heating_setpoint':
-                if (value >= 5 && value <= 60) {
-                    value = Math.round(value * 10);
-                    await tuya.sendDataPointValue(entity, tuya.dataPoints.x5hSetTemp, value);
-                } else {
-                    throw new Error(`Unsupported value: ${value}`);
-                }
-                break;
-            case 'child_lock':
-                await tuya.sendDataPointBool(entity, tuya.dataPoints.x5hChildLock, value === 'LOCK');
-                break;
-            case 'schedule': {
-                const periods = value.split(' ');
-                const periodsNumber = 8;
-                const payload = [];
-
-                for (let i = 0; i < periodsNumber; i++) {
-                    const timeTemp = periods[i].split('/');
-                    const hm = timeTemp[0].split(':', 2);
-                    const h = parseInt(hm[0]);
-                    const m = parseInt(hm[1]);
-                    const temp = parseFloat(timeTemp[1]);
-
-                    if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp > 60) {
-                        throw new Error('Invalid hour, minute or temperature of: ' + periods[i]);
-                    }
-
-                    const tempHexArray = tuya.convertDecimalValueTo2ByteHexArray(Math.round(temp * 10));
-                    // 1 byte for hour, 1 byte for minutes, 2 bytes for temperature
-                    payload.push(h, m, ...tempHexArray);
-                }
-
-                await tuya.sendDataPointRaw(entity, tuya.dataPoints.x5hWeeklyProcedure, payload);
-                break;
-            }
-            default:
-                break;
-            }
         },
     },
     temperature_unit: {
@@ -565,87 +355,6 @@ const fzLocal = {
             return result;
         },
     },
-    SA12IZL: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case tuya.dataPoints.state:
-                    result.smoke = value === 0;
-                    break;
-                case 15:
-                    result.battery = value;
-                    break;
-                case 16:
-                    result.silence_siren = value;
-                    break;
-                case 20: {
-                    const alarm = {0: true, 1: false};
-                    result.alarm = alarm[value];
-                    break;
-                }
-                default:
-                    meta.logger.debug(`zigbee-herdsman-converters:SA12IZL: NOT RECOGNIZED DP #${
-                        dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-    tuya_dinrail_switch2: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'tuya_dinrail_switch2');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            const state = value ? 'ON' : 'OFF';
-
-            switch (dp) {
-            case tuya.dataPoints.state: // DPID that we added to common
-                return {state: state};
-            case tuya.dataPoints.dinrailPowerMeterTotalEnergy2:
-                return {energy: value/100};
-            case tuya.dataPoints.dinrailPowerMeterPower2:
-                return {power: value};
-            default:
-                meta.logger.debug(`zigbee-herdsman-converters:TuyaDinRailSwitch: NOT RECOGNIZED DP ` +
-                    `#${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-    hpsz: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'hpsz');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            let result = null;
-            switch (dp) {
-            case tuya.dataPoints.HPSZInductionState:
-                result = {presence: value === 1};
-                break;
-            case tuya.dataPoints.HPSZPresenceTime:
-                result = {duration_of_attendance: value};
-                break;
-            case tuya.dataPoints.HPSZLeavingTime:
-                result = {duration_of_absence: value};
-                break;
-            case tuya.dataPoints.HPSZLEDState:
-                result = {led_state: value};
-                break;
-            default:
-                meta.logger.debug(`zigbee-herdsman-converters:hpsz: NOT RECOGNIZED DP #${
-                    dp} with data ${JSON.stringify(dpValue)}`);
-            }
-            return result;
-        },
-    },
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -670,215 +379,6 @@ const fzLocal = {
                 msg.data['measuredValue'] *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
-        },
-    },
-    TS0222: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-                switch (dp) {
-                case 2:
-                    result.illuminance = value;
-                    result.illuminance_lux = value;
-                    break;
-                case 4:
-                    result.battery = value;
-                    break;
-                default:
-                    meta.logger.warn(`zigbee-herdsman-converters:TS0222 Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-    ZM35HQ_battery: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'ZM35HQ');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-            if (dp === 4) return {battery: value};
-            else {
-                meta.logger.debug(`zigbee-herdsman-converters:ZM35HQ: NOT RECOGNIZED DP #${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-        },
-    },
-    zb_sm_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = {};
-            for (const dpValue of msg.data.dpValues) {
-                const dp = dpValue.dp;
-                const value = tuya.getDataValue(dpValue);
-
-                switch (dp) {
-                case tuya.dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
-                case tuya.dataPoints.coverArrived: { // Arrived at position
-                    const invert = (meta.state) ? !meta.state.invert_cover : false;
-                    const position = invert ? 100 - (value & 0xFF) : (value & 0xFF);
-                    if (position > 0 && position <= 100) {
-                        result.position = position;
-                        result.state = 'OPEN';
-                    } else if (position == 0) { // Report fully closed
-                        result.position = position;
-                        result.state = 'CLOSE';
-                    }
-                    break;
-                }
-                case 1: // report state
-                    result.state = {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value];
-                    break;
-                case tuya.dataPoints.motorDirection: // reverse direction
-                    result.reverse_direction = (value == 1);
-                    break;
-                case 10: // cycle time
-                    result.cycle_time = value;
-                    break;
-                case 101: // model
-                    result.motor_type = {0: '', 1: 'AM0/6-28R-Sm', 2: 'AM0/10-19R-Sm',
-                        3: 'AM1/10-13R-Sm', 4: 'AM1/20-13R-Sm', 5: 'AM1/30-13R-Sm'}[value];
-                    break;
-                case 102: // cycles
-                    result.cycle_count = value;
-                    break;
-                case 103: // set or clear bottom limit
-                    result.bottom_limit = {0: 'SET', 1: 'CLEAR'}[value];
-                    break;
-                case 104: // set or clear top limit
-                    result.top_limit = {0: 'SET', 1: 'CLEAR'}[value];
-                    break;
-                case 109: // active power
-                    result.active_power = value;
-                    break;
-                case 115: // favorite_position
-                    result.favorite_position = (value != 101) ? value : null;
-                    break;
-                case 116: // report confirmation
-                    break;
-                case 121: // running state
-                    result.motor_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
-                    result.running = (value !== 1) ? true : false;
-                    break;
-                default: // Unknown code
-                    meta.logger.debug(`zb_sm_tuya_cover: Unhandled DP #${dp} for ${meta.device.manufacturerName}:
-                    ${JSON.stringify(dpValue)}`);
-                }
-            }
-            return result;
-        },
-    },
-    x5h_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => {
-            const dpValue = tuya.firstDpValue(msg, meta, 'x5h_thermostat');
-            const dp = dpValue.dp;
-            const value = tuya.getDataValue(dpValue);
-
-            switch (dp) {
-            case tuya.dataPoints.x5hState: {
-                return {system_mode: value ? 'heat' : 'off'};
-            }
-            case tuya.dataPoints.x5hWorkingStatus: {
-                return {running_state: value ? 'heat' : 'idle'};
-            }
-            case tuya.dataPoints.x5hSound: {
-                return {sound: value ? 'ON' : 'OFF'};
-            }
-            case tuya.dataPoints.x5hFrostProtection: {
-                return {frost_protection: value ? 'ON' : 'OFF'};
-            }
-            case tuya.dataPoints.x5hWorkingDaySetting: {
-                return {week: tuya.thermostatWeekFormat[value]};
-            }
-            case tuya.dataPoints.x5hFactoryReset: {
-                if (value) {
-                    clearTimeout(globalStore.getValue(msg.endpoint, 'factoryResetTimer'));
-                    const timer = setTimeout(() => publish({factory_reset: 'OFF'}), 60 * 1000);
-                    globalStore.putValue(msg.endpoint, 'factoryResetTimer', timer);
-                    meta.logger.info('The thermostat is resetting now. It will be available in 1 minute.');
-                }
-
-                return {factory_reset: value ? 'ON' : 'OFF'};
-            }
-            case tuya.dataPoints.x5hTempDiff: {
-                return {deadzone_temperature: parseFloat((value / 10).toFixed(1))};
-            }
-            case tuya.dataPoints.x5hProtectionTempLimit: {
-                return {heating_temp_limit: value};
-            }
-            case tuya.dataPoints.x5hBackplaneBrightness: {
-                const lookup = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};
-
-                if (value >= 0 && value <= 3) {
-                    globalStore.putValue(msg.endpoint, 'brightnessState', value);
-                    return {brightness_state: lookup[value]};
-                }
-
-                // Sometimes, for example on thermostat restart, it sends message like:
-                // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
-                // It doesn't represent any brightness value and brightness remains the previous value
-                const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState') || 1;
-                return {brightness_state: lookup[lastValue]};
-            }
-            case tuya.dataPoints.x5hWeeklyProcedure: {
-                const periods = [];
-                const periodSize = 4;
-                const periodsNumber = 8;
-
-                for (let i = 0; i < periodsNumber; i++) {
-                    const hours = value[i * periodSize];
-                    const minutes = value[i * periodSize + 1];
-                    const tempHexArray = [value[i * periodSize + 2], value[i * periodSize + 3]];
-                    const tempRaw = Buffer.from(tempHexArray).readUIntBE(0, tempHexArray.length);
-                    const strHours = hours.toString().padStart(2, '0');
-                    const strMinutes = minutes.toString().padStart(2, '0');
-                    const temp = parseFloat((tempRaw / 10).toFixed(1));
-                    periods.push(`${strHours}:${strMinutes}/${temp}`);
-                }
-
-                const schedule = periods.join(' ');
-                return {schedule};
-            }
-            case tuya.dataPoints.x5hChildLock: {
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
-            }
-            case tuya.dataPoints.x5hSetTemp: {
-                const setpoint = parseFloat((value / 10).toFixed(1));
-                globalStore.putValue(msg.endpoint, 'currentHeatingSetpoint', setpoint);
-                return {current_heating_setpoint: setpoint};
-            }
-            case tuya.dataPoints.x5hSetTempCeiling: {
-                return {upper_temp: value};
-            }
-            case tuya.dataPoints.x5hCurrentTemp: {
-                const temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
-                return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
-            }
-            case tuya.dataPoints.x5hTempCorrection: {
-                return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
-            }
-            case tuya.dataPoints.x5hMode: {
-                const lookup = {0: 'manual', 1: 'program'};
-                return {preset: lookup[value]};
-            }
-            case tuya.dataPoints.x5hSensorSelection: {
-                const lookup = {0: 'internal', 1: 'external', 2: 'both'};
-                return {sensor: lookup[value]};
-            }
-            case tuya.dataPoints.x5hOutputReverse: {
-                return {output_reverse: value};
-            }
-            default: {
-                meta.logger.warn(`fromZigbee:x5h_thermostat: Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`);
-            }
-            }
         },
     },
     humidity10: {
@@ -1487,7 +987,7 @@ module.exports = [
         model: 'ZM-35H-Q',
         vendor: 'TuYa',
         description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, fzLocal.ZM35HQ_battery],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, legacy.fromZigbee.ZM35HQ_battery],
         toZigbee: [tz.ZM35HQ_attr],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(),
             exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
@@ -2680,7 +2180,7 @@ module.exports = [
             {vendor: 'Immax', model: '07732B'},
             {vendor: 'Evolveo', model: 'Heat M30'},
         ],
-        meta: {tuyaThermostatPreset: tuya.thermostatPresets, tuyaThermostatSystemMode: tuya.thermostatSystemModes3},
+        meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
@@ -2938,8 +2438,8 @@ module.exports = [
         model: 'TS0601_thermostat_3',
         vendor: 'TuYa',
         description: 'Thermostatic radiator valve',
-        fromZigbee: [tuya.fzDataPoints],
-        toZigbee: [tuya.tzDataPoints],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         whiteLabel: [{vendor: 'Avatto', model: 'ME167'}],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -2990,7 +2490,7 @@ module.exports = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
+                weeklyScheduleFirstDayDpId: legacy.dataPoints.schedule,
             },
         },
         exposes: [e.child_lock(), e.away_mode(), exposes.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
@@ -3012,7 +2512,7 @@ module.exports = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: tuya.dataPoints.schedule,
+                weeklyScheduleFirstDayDpId: legacy.dataPoints.schedule,
             },
         },
         exposes: [
@@ -3035,8 +2535,8 @@ module.exports = [
             {vendor: 'Unknown/id3.pl', model: 'GTZ06'},
         ],
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fzDataPoints],
-        toZigbee: [tuya.tzDataPoints],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(), e.child_lock(), e.max_temperature(), e.min_temperature(),
@@ -3375,8 +2875,8 @@ module.exports = [
         vendor: 'TuYa',
         description: 'Smart smoke alarm',
         meta: {timeout: 30000, disableDefaultResponse: true},
-        fromZigbee: [fzLocal.SA12IZL],
-        toZigbee: [tzLocal.SA12IZL_silence_siren, tzLocal.SA12IZL_alarm],
+        fromZigbee: [legacy.fromZigbee.SA12IZL],
+        toZigbee: [legacy.toZigbee.SA12IZL_silence_siren, legacy.toZigbee.SA12IZL_alarm],
         exposes: [e.battery(),
             exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
             exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
@@ -3926,7 +3426,7 @@ module.exports = [
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)],
         fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.legacy.tuya_dimmer],
-        meta: {tuyaThermostatSystemMode: tuya.thermostatSystemModes2, tuyaThermostatPreset: tuya.thermostatPresets},
+        meta: {tuyaThermostatSystemMode: legacy.thermostatSystemModes2, tuyaThermostatPreset: legacy.thermostatPresets},
         toZigbee: [tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_system_mode,
             tz.legacy.tuya_thermostat_fan_mode, tz.legacy.tuya_dimmer_state],
     },
@@ -3986,8 +3486,8 @@ module.exports = [
         model: 'X5H-GB-B',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.ignore_basic_report, fzLocal.x5h_thermostat],
-        toZigbee: [tzLocal.x5h_thermostat],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.x5h_thermostat],
+        toZigbee: [legacy.toZigbee.x5h_thermostat],
         whiteLabel: [{vendor: 'Beok', model: 'TGR85-ZB'}],
         exposes: [
             exposes.climate().withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
@@ -4038,7 +3538,7 @@ module.exports = [
         model: 'TS0222',
         vendor: 'TuYa',
         description: 'Light intensity sensor',
-        fromZigbee: [fz.battery, fz.illuminance, fzLocal.TS0222],
+        fromZigbee: [fz.battery, fz.illuminance, legacy.fromZigbee.TS0222],
         toZigbee: [],
         exposes: [e.battery(), e.illuminance(), e.illuminance_lux()],
         configure: tuya.configureMagicPacket,
@@ -4175,8 +3675,8 @@ module.exports = [
         toZigbee: [tz.legacy.tuya_motion_sensor],
         exposes: [
             e.occupancy(),
-            exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
-            exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(tuya.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
+            exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
+            exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
             exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
             exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay').withValueMin(0)
                 .withValueMax(1000),
@@ -4184,7 +3684,7 @@ module.exports = [
                 .withValueMin(0).withValueMax(10000),
             exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer')
                 .withValueMin(0).withValueMax(10000),
-            exposes.enum('mode', ea.STATE_SET, Object.values(tuya.msLookups.Mode)).withDescription('Working mode'),
+            exposes.enum('mode', ea.STATE_SET, Object.values(legacy.msLookups.Mode)).withDescription('Working mode'),
             exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
             exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),
             exposes.numeric('vacant_confirm_time', ea.STATE).withDescription('Vacant confirm time'),
@@ -4199,7 +3699,7 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.sendDataPointEnum(endpoint, tuya.dataPoints.trsfTumbleSwitch, false);
+            await tuya.sendDataPointEnum(endpoint, legacy.dataPoints.trsfTumbleSwitch, false);
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
         },
         exposes: [
@@ -4556,8 +4056,8 @@ module.exports = [
         model: 'ZB-Sm',
         vendor: 'TuYa',
         description: 'Tubular motor',
-        fromZigbee: [fzLocal.zb_sm_cover, fz.ignore_basic_report],
-        toZigbee: [tzLocal.zb_sm_cover],
+        fromZigbee: [legacy.fromZigbee.zb_sm_cover, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.zb_sm_cover],
         onEvent: tuya.onEventSetTime,
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
@@ -4613,8 +4113,8 @@ module.exports = [
         model: 'TS0601_human_presence_sensor',
         vendor: 'TuYa',
         description: 'Human presence sensor Zigbee',
-        fromZigbee: [fzLocal.hpsz],
-        toZigbee: [tzLocal.hpsz],
+        fromZigbee: [legacy.fromZigbee.hpsz],
+        toZigbee: [legacy.toZigbee.hpsz],
         onEvent: tuya.onEventSetLocalTime,
         exposes: [e.presence(),
             exposes.numeric('duration_of_attendance', ea.STATE).withUnit('min')
