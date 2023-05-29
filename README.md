@@ -29,7 +29,7 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one. (default: false)
 - `applyRedFix`: see toZigbee.light_color (default: false)
 - `supportsEnhancedHue`: see toZigbee.light_color (default: true)
-- `supportsHueAndSaturation`: see toZigbee.light_color (default: false)
+- `supportsHueAndSaturation`: see toZigbee.light_color (default: true), usually set by light_* extends via options.
 - `timeout`: timeout for commands to this device used in toZigbee. (default: 10000)
 - `coverInverted`: Set to true for cover controls that report position=100 as open (default: false)
 - `coverStateFromTilt`: Set cover state based on tilt
