@@ -79,10 +79,10 @@ const extend = {
     },
     light_onoff_brightness_color: (options={}) => {
         options = {
-            disableEffect: false, supportsHueAndSaturation: false, preferHS: false, disablePowerOnBehavior: false,
+            disableEffect: false, supportsHueAndSaturation: false, preferHueAndSaturation: false, disablePowerOnBehavior: false,
             toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
-        const exposes = [(options.supportsHueAndSaturation ? e.light_brightness_color(options.preferHS) : e.light_brightness_colorxy()),
+        const exposes = [(options.supportsHueAndSaturation ? e.light_brightness_color(options.preferHueAndSaturation) : e.light_brightness_colorxy()),
             ...(!options.disableEffect ? [e.effect()] : []), ...options.exposes];
         const fromZigbee = [fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.ignore_basic_report, ...options.fromZigbee];
         const toZigbee = [tz.light_onoff_brightness, tz.light_color, tz.ignore_transition, tz.ignore_rate, tz.light_brightness_move,
@@ -106,11 +106,11 @@ const extend = {
     },
     light_onoff_brightness_colortemp_color: (options={}) => {
         options = {
-            disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHS: false, disablePowerOnBehavior: false,
-            toZigbee: [], fromZigbee: [], exposes: [], ...options,
+            disableEffect: false, supportsHueAndSaturation: false, disableColorTempStartup: false, preferHueAndSaturation: false,
+            disablePowerOnBehavior: false, toZigbee: [], fromZigbee: [], exposes: [], ...options,
         };
         const exposes = [
-            (options.supportsHueAndSaturation ? e.light_brightness_colortemp_color(options.colorTempRange, options.preferHS) :
+            (options.supportsHueAndSaturation ? e.light_brightness_colortemp_color(options.colorTempRange, options.preferHueAndSaturation) :
                 e.light_brightness_colortemp_colorxy(options.colorTempRange)), ...(!options.disableEffect ? [e.effect()] : []),
             ...options.exposes,
         ];

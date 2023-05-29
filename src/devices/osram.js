@@ -267,7 +267,7 @@ module.exports = [
         model: '4058075047853',
         vendor: 'OSRAM',
         description: 'Smart+ gardenpole 4W RGBW',
-        extend: extend.ledvance.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, preferHS: true}),
+        extend: extend.ledvance.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, preferHueAndSaturation: true}),
         meta: {disableDefaultResponse: true},
         ota: ota.ledvance,
     },

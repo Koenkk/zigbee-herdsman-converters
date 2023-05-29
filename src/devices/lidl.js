@@ -833,7 +833,9 @@ module.exports = [
         model: 'HG08633',
         vendor: 'Lidl',
         description: 'Livarno gardenspot RGB',
-        extend: tuya.extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, preferHS: true, colorTempRange: [153, 500]}),
+        extend: tuya.extend.light_onoff_brightness_colortemp_color({
+            supportsHueAndSaturation: true, preferHueAndSaturation: true, colorTempRange: [153, 500],
+        }),
     },
     {
         fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE200_chyvmhay'}],
