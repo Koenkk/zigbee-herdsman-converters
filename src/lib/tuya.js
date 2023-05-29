@@ -1716,7 +1716,7 @@ const tuyaExtend = {
             disableColorTempStartup: true, disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
             exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
         };
-        const meta = {applyRedFix: true, enhancedHue: false};
+        const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_colortemp_color(options), meta};
     },
     light_onoff_brightness_colortemp: (options={}) => {
@@ -1733,7 +1733,7 @@ const tuyaExtend = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb, tuyaTz.color_power_on_behavior],
             exposes: [tuyaExposes.doNotDisturb(), tuyaExposes.colorPowerOnBehavior()], ...options,
         };
-        const meta = {applyRedFix: true, enhancedHue: false};
+        const meta = {applyRedFix: true, supportsEnhancedHue: false};
         return {...extend.light_onoff_brightness_color(options), meta};
     },
     light_onoff_brightness: (options={}) => {

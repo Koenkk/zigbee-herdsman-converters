@@ -120,7 +120,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 251 C'],
@@ -128,7 +128,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'E14 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
     {
@@ -198,7 +198,7 @@ module.exports = [
         vendor: 'Innr',
         description: 'E27 bulb RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
-        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ['RB 286 C'],
@@ -348,7 +348,7 @@ module.exports = [
         description: 'GU10 spot 350 lm, dimmable, RGBW',
         extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 555], supportsHueAndSaturation: true}),
         exposes: [e.light_brightness_colortemp_color()],
-        meta: {enhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
+        meta: {supportsEnhancedHue: false, applyRedFix: true, turnsOffAtBrightness1: true},
         ota: ota.zigbeeOTA,
     },
     {

@@ -1096,14 +1096,14 @@ const converters = {
                 zclData.colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                 command = 'moveToColor';
             } else if (newColor.isHSV()) {
-                const enhancedHue = utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true);
+                const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true);
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
                 newState.color_mode = constants.colorModeLookup[0];
                 newState.color = hsv.toObject(false);
 
                 if (hsv.hue !== null) {
-                    if (enhancedHue) {
+                    if (supportsEnhancedHue) {
                         zclData.enhancehue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
                     } else {
                         zclData.hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
@@ -1121,13 +1121,13 @@ const converters = {
                 }
 
                 if (hsv.hue !== null && hsv.saturation !== null) {
-                    if (enhancedHue) {
+                    if (supportsEnhancedHue) {
                         command = 'enhancedMoveToHueAndSaturation';
                     } else {
                         command = 'moveToHueAndSaturation';
                     }
                 } else if (hsv.hue !== null) {
-                    if (enhancedHue) {
+                    if (supportsEnhancedHue) {
                         command = 'enhancedMoveToHue';
                     } else {
                         command = 'moveToHue';
@@ -4413,7 +4413,7 @@ const converters = {
                         state['color'] = newColor.xy.toObject();
                     } else if (newColor.isHSV()) {
                         const hsvCorrected = newColor.hsv.colorCorrected(meta);
-                        if (utils.getMetaValue(entity, meta.mapped, 'enhancedHue', 'allEqual', true)) {
+                        if (utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true)) {
                             const hScaled = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
                             const sScaled = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
                             extensionfieldsets.push(

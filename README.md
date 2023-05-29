@@ -28,7 +28,7 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `multiEndpointEnforce`: enforce a certain endpoint for an attribute, e.g. {"power": 4} see utils.enforceEndpoint()
 - `disableDefaultResponse`: used by toZigbee converters to disable the default response of some devices as they don't provide one. (default: false)
 - `applyRedFix`: see toZigbee.light_color (default: false)
-- `enhancedHue`: see toZigbee.light_color (default: true)
+- `supportsEnhancedHue`: see toZigbee.light_color (default: true)
 - `supportsHueAndSaturation`: see toZigbee.light_color (default: false)
 - `timeout`: timeout for commands to this device used in toZigbee. (default: 10000)
 - `coverInverted`: Set to true for cover controls that report position=100 as open (default: false)

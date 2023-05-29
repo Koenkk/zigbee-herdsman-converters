@@ -11,7 +11,7 @@ module.exports = [
         description: 'GU10 GRBWC built from AliExpress',
         extend: extendData,
         toZigbee: [tz.on_off].concat(extendData.toZigbee),
-        meta: {applyRedFix: true, enhancedHue: false},
+        meta: {applyRedFix: true, supportsEnhancedHue: false},
     },
 ];
 
