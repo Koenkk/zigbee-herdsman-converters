@@ -1038,7 +1038,7 @@ module.exports = [
             {modelID: 'TS0601', manufacturerName: '_TZE200_vs0skpuc'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_9yapgbuv'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_zl1kmjqx'}],
-        model: 'TS0601_temperature_humidity_sensor',
+        model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
         fromZigbee: [fz.legacy.tuya_temperature_humidity_sensor],
@@ -1052,6 +1052,28 @@ module.exports = [
             exps.push(e.linkquality());
             return exps;
         },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq', '_TZE200_9yapgbuv']),
+        model: 'TS0601_temperature_humidity_sensor_2',
+        vendor: 'TuYa',
+        description: 'Temperature and humidity sensor',
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), e.battery_low()],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw],
+                [3, 'battery_state', tuya.valueConverter.batteryState],
+                // [9, 'temperature_unit', tuya.valueConverter.raw], This DP is not properly supported by the device
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel('TuYa', 'ZTH01', 'Temperature and humidity sensor', ['_TZE200_yjjdcqsq']),
+            tuya.whitelabel('TuYa', 'ZTH02', 'Temperature and humidity sensor', ['_TZE200_9yapgbuv']),
+        ],
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_nvups4nh']),
@@ -2143,24 +2165,6 @@ module.exports = [
         fromZigbee: [fz.battery, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-    },
-    {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_yjjdcqsq']),
-        model: 'ZTH01',
-        vendor: 'TuYa',
-        description: 'Temperature and humidity sensor',
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), e.battery_low()],
-        meta: {
-            tuyaDatapoints: [
-                [1, 'temperature', tuya.valueConverter.divideBy10],
-                [2, 'humidity', tuya.valueConverter.raw],
-                [3, 'battery_state', tuya.valueConverter.batteryState],
-                // [9, 'temperature_unit', tuya.valueConverter.raw], This DP is not properly supported by the device
-            ],
-        },
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_3zofvcaa'}],
