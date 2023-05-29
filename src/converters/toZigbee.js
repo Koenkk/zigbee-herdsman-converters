@@ -1077,7 +1077,13 @@ const converters = {
 
             const zclData = {transtime: utils.getTransition(entity, key, meta).time};
 
-            if (newColor.isRGB() || newColor.isXY()) {
+            const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true);
+            const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true);
+
+            if (newColor.isHSV() && !supportsHueAndSaturation) {
+                // The color we got is HSV but the bulb does not support Hue/Saturation mode
+                throw new Error('This light does not support Hue/Saturation, please use X/Y instead.');
+            } else if (newColor.isRGB() || newColor.isXY()) {
                 // Convert RGB to XY color mode because Zigbee doesn't support RGB (only x/y and hue/saturation)
                 const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
 
@@ -1096,7 +1102,6 @@ const converters = {
                 zclData.colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
                 command = 'moveToColor';
             } else if (newColor.isHSV()) {
-                const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true);
                 const hsv = newColor.hsv;
                 const hsvCorrected = hsv.colorCorrected(meta);
                 newState.color_mode = constants.colorModeLookup[0];
