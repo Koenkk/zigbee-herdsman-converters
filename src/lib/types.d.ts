@@ -20,16 +20,23 @@ declare global {
     type Publish = (payload: KeyValue) => void;
     interface FzMeta {state: KeyValue, logger: Logger, device: zh.Device}
     interface Definition {
+        zigbeeModel?: string[],
+        fingerprint?: {modelID?: string, manufacturerName?: string}[]
         vendor: string,
+        description: string,
         model: string,
-        meta: {
+        whiteLabel?: {vendor: string, model: string, description?: string}[],
+        meta?: {
             separateWhite?: boolean,
-            multiEndpoint: true,
-            publishDuplicateTransaction: boolean,
-            tuyaDatapoints: tuya.MetaTuyaDataPoints,
+            multiEndpoint?: boolean,
+            publishDuplicateTransaction?: boolean,
+            tuyaDatapoints?: tuya.MetaTuyaDataPoints,
         },
-        endpoint: (device: zh.Device) => {[s: string]: number},
-        configure: (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>,
+        endpoint?: (device: zh.Device) => {[s: string]: number},
+        configure?: (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>,
+        fromZigbee: FromZigbeeConverter[],
+        toZigbee: tz.Converter[],
+        exposes: Expose[],
     }
     type OnEventType = 'start' | 'stop' | 'message' | 'deviceJoined' | 'deviceInterview' | 'deviceAnnounce' |
         'deviceNetworkAddressChanged' | 'deviceOptionsChanged';
@@ -80,16 +87,17 @@ declare global {
     namespace tuya {
         interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
         interface ValueConverterSingle {
-            to: (value: string|number, meta: tz.Meta) => string|number|boolean,
-            from: (value: string|number, meta: FzMeta, options: KeyValue, publish: Publish) => string|number,
+            to?: (value: string|number|boolean, meta?: tz.Meta) => string|number|boolean,
+            from?: (value: string|number|boolean|Buffer|number[], meta?: FzMeta, options?: KeyValue, publish?: Publish) => string|number|boolean,
         }
         interface ValueConverterMulti {
-            to: (value: string|number, meta: tz.Meta) => string|number|boolean|tuyaLib.Enum|tuyaLib.Bitmap,
-            from: (value: string|number, meta: FzMeta, options: KeyValue, publish: Publish) => KeyValue,
+            to?: (value: string|number|boolean, meta?: tz.Meta) => string|number|boolean|tuyaLib.Enum|tuyaLib.Bitmap,
+            from?: (value: string|number|boolean|Buffer|number[], meta?: FzMeta, options?: KeyValue, publish?: Publish) => KeyValue,
         }
         interface MetaTuyaDataPointsMeta {skip: (meta: tz.Meta) => boolean, optimistic?: boolean}
-        type MetaTuyaDataPoints = (
-            [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?]|[number, null, tuya.ValueConverterMulti, MetaTuyaDataPointsMeta?])[]
+        type MetaTuyaDataPointsSingle = [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
+        type MetaTuyaDataPointsMulti = [number, null, tuya.ValueConverterMulti, MetaTuyaDataPointsMeta?];
+        type MetaTuyaDataPoints = (MetaTuyaDataPointsSingle|MetaTuyaDataPointsMulti)[];
     }
 }
 

@@ -196,9 +196,9 @@ export class Numeric extends Base {
 }
 
 export class Enum extends Base {
-    values: string[];
+    values: (string|number)[];
 
-    constructor(name: string, access: number, values: string[]) {
+    constructor(name: string, access: number, values: (string|number)[]) {
         super();
         this.type = 'enum';
         this.name = name;
@@ -597,7 +597,7 @@ export const presets = {
     climate: () => new Climate(),
     composite: (name: string, property: string, access: number) => new Composite(name, property, access),
     cover: () => new Cover(),
-    enum: (name: string, access: number, values: string[]) => new Enum(name, access, values),
+    enum: (name: string, access: number, values: (string|number)[]) => new Enum(name, access, values),
     light: () => new Light(),
     numeric: (name: string, access: number) => new Numeric(name, access),
     text: (name: string, access: number) => new Text(name, access),

@@ -37,6 +37,10 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
+function isMetaTuyaDataPointsSingle(meta: tuya.MetaTuyaDataPointsSingle | tuya.MetaTuyaDataPointsMulti): meta is tuya.MetaTuyaDataPointsSingle {
+    return typeof meta[1] === 'string';
+}
+
 function getDataValue(dpValue: tuya.DpValue) {
     let dataString = '';
     switch (dpValue.datatype) {
@@ -280,15 +284,16 @@ const tuyaExposes = {
     colorPowerOnBehavior: () => e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'cutomized'])
         .withDescription('Power on behavior state'),
 };
+export {tuyaExposes as exposes};
 
-const skip = {
+export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
     // https://github.com/Koenkk/zigbee2mqtt/issues/13800#issuecomment-1263592783
     stateOnAndBrightnessPresent: (meta: tz.Meta) => meta.message.hasOwnProperty('brightness') && meta.state.state === 'ON',
 };
 
-const configureMagicPacket = async (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => {
+export const configureMagicPacket = async (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => {
     try {
         const endpoint = device.endpoints[0];
         // @ts-expect-error
@@ -304,13 +309,13 @@ const configureMagicPacket = async (device: zh.Device, coordinatorEndpoint: zh.E
     }
 };
 
-const fingerprint = (modelID: string, manufacturerNames: string[]) => {
+export const fingerprint = (modelID: string, manufacturerNames: string[]) => {
     return manufacturerNames.map((manufacturerName) => {
         return {modelID, manufacturerName};
     });
 };
 
-const whitelabel = (vendor: string, model: string, description: string, manufacturerNames: string[]) => {
+export const whitelabel = (vendor: string, model: string, description: string, manufacturerNames: string[]) => {
     const fingerprint = manufacturerNames.map((manufacturerName) => {
         return {manufacturerName};
     });
@@ -341,7 +346,7 @@ export class Bitmap extends Base {
     }
 }
 
-const valueConverterBasic = {
+export const valueConverterBasic = {
     lookup: (map: {[s: string]: number | boolean}) => {
         return {
             to: (v: string) => {
@@ -372,7 +377,7 @@ const valueConverterBasic = {
     },
 };
 
-const valueConverter = {
+export const valueConverter = {
     trueFalse0: valueConverterBasic.trueFalse(0),
     trueFalse1: valueConverterBasic.trueFalse(1),
     trueFalseInvert: {
@@ -492,6 +497,7 @@ const valueConverter = {
         },
         to: (v: string) => {
             const numberPattern = /\d+/g;
+            // @ts-ignore
             return v.match(numberPattern).join([]).toString();
         },
     },
@@ -592,6 +598,7 @@ const valueConverter = {
                 schedule.push(
                     String(parseInt(v[index+0])).padStart(2, '0') + ':' +
                     String(parseInt(v[index+1])).padStart(2, '0') + '/' +
+                    // @ts-ignore
                     (parseFloat((v[index+2] << 8) + v[index+3]) / 10.0).toFixed(1),
                 );
             }
@@ -823,6 +830,7 @@ const tuyaTz = {
         },
     } as ToZigbeeConverter,
 };
+export {tuyaTz as tz};
 
 const tuyaFz = {
     gateway_connection_status: {
@@ -963,12 +971,7 @@ const tuyaFz = {
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
                 if (dpEntry) {
                     const value = getDataValue(dpValue);
-                    if (dpEntry[2] === null) {
-                        result = {...result, ...dpEntry[2].from(value, meta, options, publish)};
-                    }
-
-
-                    if (dpEntry[1]) {
+                    if (isMetaTuyaDataPointsSingle(dpEntry)) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
                     } else if (dpEntry[2]) {
                         result = {...result, ...dpEntry[2].from(value, meta, options, publish)};
@@ -990,6 +993,7 @@ const tuyaFz = {
         },
     } as FromZigbeeConverter,
 };
+export {tuyaFz as fz};
 
 const tuyaExtend = {
     switch: (options:{
@@ -1106,6 +1110,7 @@ const tuyaExtend = {
         return result;
     },
 };
+export {tuyaExtend as extend};
 
 module.exports = {
     exposes: tuyaExposes,

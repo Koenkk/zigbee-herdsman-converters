@@ -1,28 +1,31 @@
-const exposes = require('../lib/exposes');
-const legacy = require('../lib/legacy');
-const fz = {...require('../converters/fromZigbee'), legacy: legacy.fromZigbee};
-const tz = {...require('../converters/toZigbee'), legacy: legacy.toZigbee};
-const ota = require('../lib/ota');
-const tuya = require('../lib/tuya');
-const reporting = require('../lib/reporting');
-const extend = require('../lib/extend');
+import * as exposes from '../lib/exposes';
+import * as legacy from '../lib/legacy';
+import * as tuya from '../lib/tuya';
+import ota from '../lib/ota';
+import reporting from '../lib/reporting';
+import extend from '../lib/extend';
+import libColor from '../lib/color';
+import utils from '../lib/utils';
+import zosung from '../lib/zosung';
+import globalStore from '../lib/store';
+import {ColorMode, colorModeLookup} from '../lib/constants';
+import fz from '../converters/fromZigbee';
+import tz from '../converters/toZigbee';
+
 const e = exposes.presets;
 const ea = exposes.access;
-const libColor = require('../lib/color');
-const utils = require('../lib/utils');
-const zosung = require('../lib/zosung');
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
-const globalStore = require('../lib/store');
-const {ColorMode, colorModeLookup} = require('../lib/constants');
+
 
 const tzLocal = {
     led_control: {
         key: ['brightness', 'color', 'color_temp', 'transition'],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, _key, _value, meta) => {
-            const newState = {};
+            const newState: KeyValue = {};
 
             // The color mode encodes whether the light is using its white LEDs or its color LEDs
             let colorMode = meta.state.color_mode ?? colorModeLookup[ColorMode.ColorTemp];
@@ -37,7 +40,7 @@ const tzLocal = {
 
                 // To switch between white mode and color mode, we have to send a special command:
                 const rgbMode = (colorMode == colorModeLookup[ColorMode.HS]);
-                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode}, {}, {disableDefaultResponse: true});
+                await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: rgbMode});
             }
 
             // A transition time of 0 would be treated as about 1 second, probably some kind of fallback/default
@@ -116,7 +119,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read('lightingColorCtrl', ['currentHue', 'currentSaturation', 'currentLevel', 'tuyaRgbMode', 'colorTemperature']);
         },
-    },
+    } as ToZigbeeConverter,
     TS110E_options: {
         key: ['min_brightness', 'max_brightness', 'light_type', 'switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -138,7 +141,7 @@ const tzLocal = {
             if (key === 'light_type' || key === 'switch_type') id = 64514;
             await entity.read('genLevelCtrl', [id]);
         },
-    },
+    } as ToZigbeeConverter,
     TS110E_onoff_brightness: {
         key: ['state', 'brightness'],
         options: [],
@@ -161,7 +164,7 @@ const tzLocal = {
             if (key === 'state') await tz.on_off.convertGet(entity, key, meta);
             if (key === 'brightness') await entity.read('genLevelCtrl', [61440]);
         },
-    },
+    } as ToZigbeeConverter,
     TS110E_light_onoff_brightness: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
@@ -173,12 +176,11 @@ const tzLocal = {
             }
             return tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
-    },
+    } as ToZigbeeConverter,
     TS0504B_color: {
         key: ['color'],
         convertSet: async (entity, key, value, meta) => {
             const color = libColor.Color.fromConverterArg(value);
-            console.log(color);
             const enableWhite =
                 (color.isRGB() && (color.rgb.red === 1 && color.rgb.green === 1 && color.rgb.blue === 1)) ||
                 // Zigbee2MQTT frontend white value
@@ -188,7 +190,7 @@ const tzLocal = {
 
             if (enableWhite) {
                 await entity.command('lightingColorCtrl', 'tuyaRgbMode', {enable: false});
-                const newState = {color_mode: 'xy'};
+                const newState: KeyValue = {color_mode: 'xy'};
                 if (color.isXY()) {
                     newState.color = color.xy;
                 } else {
@@ -199,7 +201,7 @@ const tzLocal = {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
         },
-    },
+    } as ToZigbeeConverter,
     TS0224: {
         key: ['light', 'duration', 'volume'],
         convertSet: async (entity, key, value, meta) => {
@@ -208,14 +210,14 @@ const tzLocal = {
             } else if (key === 'duration') {
                 await entity.write('ssIasWd', {'maxDuration': value}, utils.getOptions(meta.mapped, entity));
             } else if (key === 'volume') {
-                const lookup = {'mute': 0, 'low': 10, 'medium': 30, 'high': 50};
+                const lookup: KeyValue = {'mute': 0, 'low': 10, 'medium': 30, 'high': 50};
                 value = value.toLowerCase();
                 utils.validateValue(value, Object.keys(lookup));
                 await entity.write('ssIasWd', {0x0002: {value: lookup[value], type: 0x0a}}, utils.getOptions(meta.mapped, entity));
             }
             return {state: {[key]: value}};
         },
-    },
+    } as ToZigbeeConverter,
     temperature_unit: {
         key: ['temperature_unit'],
         convertSet: async (entity, key, value, meta) => {
@@ -228,7 +230,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    },
+    } as ToZigbeeConverter,
     TS011F_threshold: {
         key: [
             'temperature_threshold', 'temperature_breaker', 'power_threshold', 'power_breaker',
@@ -301,7 +303,7 @@ const tzLocal = {
                 meta.logger.warn(`Unhandled key ${key}`);
             }
         },
-    },
+    } as ToZigbeeConverter,
 };
 
 const fzLocal = {
@@ -312,12 +314,12 @@ const fzLocal = {
             result.humidity *= 10;
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     TS110E: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('64515')) {
                 result['min_brightness'] = utils.mapNumberRange(msg.data['64515'], 0, 1000, 1, 255);
             }
@@ -329,32 +331,32 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     TS110E_light_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('64514')) {
-                const lookup = {0: 'led', 1: 'incandescent', 2: 'halogen'};
+                const lookup: KeyValue = {0: 'led', 1: 'incandescent', 2: 'halogen'};
                 result['light_type'] = lookup[msg.data['64514']];
             }
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     TS110E_switch_type: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const result = {};
+            const result: KeyValue = {};
             if (msg.data.hasOwnProperty('64514')) {
-                const lookup = {0: 'momentary', 1: 'toggle', 2: 'state'};
+                const lookup: KeyValue = {0: 'momentary', 1: 'toggle', 2: 'state'};
                 const propertyName = utils.postfixWithEndpointName('switch_type', msg, model, meta);
                 result[propertyName] = lookup[msg.data['64514']];
             }
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     scenes_recall_scene_65029: {
         cluster: '65029',
         type: ['raw', 'attributeReport'],
@@ -362,7 +364,7 @@ const fzLocal = {
             const id = meta.device.modelID === '005f0c3b' ? msg.data[0] : msg.data[msg.data.length - 1];
             return {action: `scene_${id}`};
         },
-    },
+    } as FromZigbeeConverter,
     TS0201_battery: {
         cluster: 'genPowerCfg',
         type: ['attributeReport', 'readResponse'],
@@ -371,7 +373,7 @@ const fzLocal = {
             if (msg.data.batteryPercentageRemaining == 200 && msg.data.batteryVoltage < 30) return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
-    },
+    } as FromZigbeeConverter,
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -380,7 +382,7 @@ const fzLocal = {
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
-    },
+    } as FromZigbeeConverter,
     humidity10: {
         cluster: 'msRelativeHumidity',
         type: ['attributeReport', 'readResponse'],
@@ -391,7 +393,7 @@ const fzLocal = {
                 return {humidity: utils.calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
             }
         },
-    },
+    } as FromZigbeeConverter,
     temperature_unit: {
         cluster: 'manuSpecificTuya_2',
         type: ['attributeReport', 'readResponse'],
@@ -402,11 +404,11 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            const result: KeyValue = fz.electrical_measurement.convert(model, msg, publish, options, meta);
             const lookup = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
@@ -428,13 +430,13 @@ const fzLocal = {
             }
             return result;
         },
-    },
+    } as FromZigbeeConverter,
     TS011F_threshold: {
         cluster: 'manuSpecificTuya_3',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            const splitToAttributes = (value) => {
-                const result = {};
+            const splitToAttributes = (value: Buffer) => {
+                const result: KeyValue = {};
                 const len = value.length;
                 let i = 0;
                 while (i < len) {
@@ -444,7 +446,7 @@ const fzLocal = {
                 }
                 return result;
             };
-            const lookup = {0: 'OFF', 1: 'ON'};
+            const lookup: KeyValue = {0: 'OFF', 1: 'ON'};
             const command = msg.data[2];
             const data = msg.data.slice(3);
             if (command == 0xE6) {
@@ -468,10 +470,10 @@ const fzLocal = {
                 };
             }
         },
-    },
+    } as FromZigbeeConverter,
 };
 
-module.exports = [
+const definitions: Definition[] = [
     {
         zigbeeModel: ['TS0204'],
         model: 'TS0204',
@@ -504,7 +506,7 @@ module.exports = [
         model: 'TS0218',
         vendor: 'TuYa',
         description: 'Button',
-        fromZigbee: [fz.legacy.TS0218_click, fz.battery],
+        fromZigbee: [legacy.fromZigbee.TS0218_click, fz.battery],
         exposes: [e.battery(), e.action(['click'])],
         toZigbee: [],
     },
@@ -540,13 +542,13 @@ module.exports = [
         model: 'TS0601_temperature_humidity_sensor_1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor',
-        fromZigbee: [fz.legacy.tuya_temperature_humidity_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_temperature_humidity_sensor],
         toZigbee: [],
         exposes: (device, options) => {
             const exps = [e.temperature(), e.humidity(), e.battery()];
             if (!device || device.manufacturerName === '_TZE200_qyflbnbj') {
                 exps.push(e.battery_low());
-                exps.push(exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
+                exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
             }
             exps.push(e.linkquality());
             return exps;
@@ -600,7 +602,7 @@ module.exports = [
         model: 'TS0601_illuminance_temperature_humidity_sensor',
         vendor: 'TuYa',
         description: 'Illuminance, temperature & humidity sensor',
-        fromZigbee: [fz.legacy.tuya_illuminance_temperature_humidity_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_illuminance_temperature_humidity_sensor],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.illuminance_lux(), e.battery()],
     },
@@ -612,7 +614,7 @@ module.exports = [
         model: 'TS0601_air_quality_sensor',
         vendor: 'TuYa',
         description: 'Air quality sensor',
-        fromZigbee: [fz.legacy.tuya_air_quality],
+        fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd()],
     },
@@ -621,7 +623,7 @@ module.exports = [
         model: 'TS0601_smart_air_house_keeper',
         vendor: 'TuYa',
         description: 'Smart air house keeper',
-        fromZigbee: [fz.legacy.tuya_air_quality],
+        fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit('ppm'), e.formaldehyd().withUnit('Âµg/mÂ³'),
             e.pm25().withValueMin(0).withValueMax(999).withValueStep(1)],
@@ -631,7 +633,7 @@ module.exports = [
         model: 'TS0601_co2_sensor',
         vendor: 'TuYa',
         description: 'NDIR co2 sensor',
-        fromZigbee: [fz.legacy.tuya_air_quality],
+        fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.temperature(), e.humidity(), e.co2()],
     },
@@ -640,7 +642,7 @@ module.exports = [
         model: 'TS0601_smart_CO_air_box',
         vendor: 'TuYa',
         description: 'Smart air box (carbon monoxide)',
-        fromZigbee: [fz.legacy.tuya_CO],
+        fromZigbee: [legacy.fromZigbee.tuya_CO],
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.co()],
     },
@@ -674,7 +676,7 @@ module.exports = [
         exposes: [
             e.gas(), tuya.exposes.gasValue().withUnit('LEL'), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(),
             tuya.exposes.silence(),
-            exposes.enum('alarm_ringtone', ea.STATE_SET, ['1', '2', '3', '4', '5']).withDescription('Ringtone of the alarm'),
+            e.enum('alarm_ringtone', ea.STATE_SET, ['1', '2', '3', '4', '5']).withDescription('Ringtone of the alarm'),
             exposes.numeric('alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1)
                 .withUnit('s').withDescription('Alarm time'),
             exposes.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
@@ -900,7 +902,7 @@ module.exports = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.battery(), e.battery_voltage(), e.occupancy(), e.action(['single', 'double', 'hold']),
-            exposes.enum('light', ea.STATE, ['dark', 'bright'])],
+            e.enum('light', ea.STATE, ['dark', 'bright'])],
         meta: {
             tuyaDatapoints: [
                 [102, 'light', tuya.valueConverterBasic.lookup({'dark': false, 'bright': true})],
@@ -990,8 +992,8 @@ module.exports = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ZM35HQ_attr, legacy.fromZigbee.ZM35HQ_battery],
         toZigbee: [tz.ZM35HQ_attr],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(),
-            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
+            e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+            e.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
         configure: tuya.configureMagicPacket,
         whiteLabel: [
@@ -1006,8 +1008,8 @@ module.exports = [
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
         toZigbee: [tz.ZM35HQ_attr],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage(),
-            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
-            exposes.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
+            e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high']).withDescription('PIR sensor sensitivity'),
+            e.enum('keep_time', ea.ALL, [30, 60, 120]).withDescription('PIR keep time in seconds'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1101,8 +1103,8 @@ module.exports = [
         model: 'TS0601_dimmer',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [fz.legacy.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_dimmer_level],
+        fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -1289,14 +1291,14 @@ module.exports = [
         model: 'S-LUX-ZB',
         vendor: 'TuYa',
         description: 'Light sensor',
-        fromZigbee: [fz.legacy.SLUXZB],
+        fromZigbee: [legacy.fromZigbee.SLUXZB],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
         },
         exposes: [e.battery(), e.illuminance_lux(), e.linkquality(),
-            exposes.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
+            e.enum('brightness_level', ea.STATE, ['LOW', 'MEDIUM', 'HIGH'])],
     },
     {
         zigbeeModel: ['TS130F'],
@@ -1312,9 +1314,9 @@ module.exports = [
             tuya.whitelabel('Zemismart', 'ZN-LC1E', 'Smart curtain/shutter switch', ['_TZ3000_74hsp7qy']),
             tuya.whitelabel('Nous', 'L12Z', 'Smart ZigBee Curtain Module L12Z', ['_TZ3000_jwv3cwak']),
         ],
-        exposes: [e.cover_position(), exposes.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
+        exposes: [e.cover_position(), e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN']),
             exposes.binary('calibration', ea.ALL, 'ON', 'OFF'), exposes.binary('motor_reversal', ea.ALL, 'ON', 'OFF'),
-            exposes.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']),
+            e.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']),
             exposes.numeric('calibration_time', ea.STATE).withUnit('S').withDescription('Calibration time')],
     },
     {
@@ -1333,8 +1335,8 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET), e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
         whiteLabel: [
             {vendor: 'Norklmes', model: 'MKS-CM-W5'},
@@ -1363,8 +1365,8 @@ module.exports = [
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l4').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1437,8 +1439,8 @@ module.exports = [
         vendor: 'TuYa',
         description: '1 gang switch',
         exposes: [e.switch().setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         whiteLabel: [
             tuya.whitelabel('Shawader', 'SMKG-1KNL-US/TZB-W', '1 gang switch', ['_TZE204_ojtqawav']),
         ],
@@ -1458,8 +1460,8 @@ module.exports = [
         description: '2 gang switch',
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -1484,8 +1486,8 @@ module.exports = [
         exposes: [e.switch().withEndpoint('l1').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l2').setAccess('state', ea.STATE_SET),
             e.switch().withEndpoint('l3').setAccess('state', ea.STATE_SET)],
-        fromZigbee: [fz.ignore_basic_report, fz.legacy.tuya_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -1794,7 +1796,7 @@ module.exports = [
         model: 'TS0601_water_sensor',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.legacy.tuya_water_leak, fz.ignore_basic_report],
+        fromZigbee: [legacy.fromZigbee.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
         whiteLabel: [{vendor: 'Neo', model: 'NAS-WS02B0'}],
@@ -1804,7 +1806,7 @@ module.exports = [
         model: 'WLS-100z',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, fz.legacy.wls100z_water_leak],
+        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, legacy.fromZigbee.wls100z_water_leak],
         toZigbee: [],
         onEvent: tuya.onEventSetTime,
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1835,7 +1837,7 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), tuya.exposes.switchType(),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
+            e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage')],
     },
     {
         fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_irrmjcgi'}],
@@ -2092,8 +2094,8 @@ module.exports = [
             tuya.whitelabel('Shenzhen Golden Security Technology', 'GM46', 'Curtain motor', ['_TZE204_guvc7pdy']),
             tuya.whitelabel('Zemismart', 'ZM85EL-2Z', 'Roman Rod I type U curtains track', ['_TZE200_cf1sl3tj']),
         ],
-        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_cover_control, tz.legacy.tuya_cover_options],
+        fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
             exposes.composite('options', 'options', ea.STATE_SET)
@@ -2113,8 +2115,8 @@ module.exports = [
         whiteLabel: [
             {vendor: 'Zemismart', model: 'BCM100DB'},
         ],
-        fromZigbee: [fz.legacy.tuya_cover, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_cover_control],
+        fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.tuya_cover_control],
         exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
     },
     {
@@ -2130,10 +2132,10 @@ module.exports = [
             exposes.text('work_state', ea.STATE),
             e.cover_position().setAccess('position', ea.STATE_SET),
             e.battery(),
-            exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            exposes.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
-            exposes.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
-            exposes.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
+            e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
+            e.enum('motor_direction', ea.STATE_SET, ['left', 'right']).withDescription('Motor side'),
+            e.enum('set_upper_limit', ea.STATE_SET, ['start', 'stop']).withDescription('Learning'),
+            e.enum('factory_reset', ea.STATE_SET, ['SET']).withDescription('Remove limits'),
         ],
         whiteLabel: [
             tuya.whitelabel('TuYa', 'LY-108', 'Cover', ['_TZE200_cpbo62rn']),
@@ -2183,14 +2185,14 @@ module.exports = [
         meta: {tuyaThermostatPreset: legacy.thermostatPresets, tuyaThermostatSystemMode: legacy.thermostatSystemModes3},
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [tz.legacy.tuya_thermostat_child_lock, tz.legacy.tuya_thermostat_window_detection, tz.legacy.tuya_thermostat_valve_detection,
-            tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_auto_lock,
-            tz.legacy.tuya_thermostat_calibration, tz.legacy.tuya_thermostat_min_temp, tz.legacy.tuya_thermostat_max_temp,
-            tz.legacy.tuya_thermostat_boost_time, tz.legacy.tuya_thermostat_comfort_temp, tz.legacy.tuya_thermostat_eco_temp,
-            tz.legacy.tuya_thermostat_force_to_mode, tz.legacy.tuya_thermostat_force, tz.legacy.tuya_thermostat_preset,
-            tz.legacy.tuya_thermostat_window_detect, tz.legacy.tuya_thermostat_schedule, tz.legacy.tuya_thermostat_week,
-            tz.legacy.tuya_thermostat_schedule_programming_mode, tz.legacy.tuya_thermostat_away_mode, tz.legacy.tuya_thermostat_away_preset],
+        fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        toZigbee: [legacy.toZigbee.tuya_thermostat_child_lock, legacy.toZigbee.tuya_thermostat_window_detection, legacy.toZigbee.tuya_thermostat_valve_detection,
+            legacy.toZigbee.tuya_thermostat_current_heating_setpoint, legacy.toZigbee.tuya_thermostat_auto_lock,
+            legacy.toZigbee.tuya_thermostat_calibration, legacy.toZigbee.tuya_thermostat_min_temp, legacy.toZigbee.tuya_thermostat_max_temp,
+            legacy.toZigbee.tuya_thermostat_boost_time, legacy.toZigbee.tuya_thermostat_comfort_temp, legacy.toZigbee.tuya_thermostat_eco_temp,
+            legacy.toZigbee.tuya_thermostat_force_to_mode, legacy.toZigbee.tuya_thermostat_force, legacy.toZigbee.tuya_thermostat_preset,
+            legacy.toZigbee.tuya_thermostat_window_detect, legacy.toZigbee.tuya_thermostat_schedule, legacy.toZigbee.tuya_thermostat_week,
+            legacy.toZigbee.tuya_thermostat_schedule_programming_mode, legacy.toZigbee.tuya_thermostat_away_mode, legacy.toZigbee.tuya_thermostat_away_preset],
         exposes: [
             e.child_lock(), e.window_detection(),
             exposes.binary('window_open', ea.STATE).withDescription('Window open?'),
@@ -2223,9 +2225,9 @@ module.exports = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(), e.cover_position(),
-            exposes.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
-            exposes.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
-            exposes.enum('click_control', ea.STATE_SET, ['up', 'down']).withDescription('Single motor steps'),
+            e.enum('reverse_direction', ea.STATE_SET, ['forward', 'back']).withDescription('Reverse the motor direction'),
+            e.enum('border', ea.STATE_SET, ['up', 'down', 'up_delete', 'down_delete', 'remove_top_bottom']),
+            e.enum('click_control', ea.STATE_SET, ['up', 'down']).withDescription('Single motor steps'),
             exposes.binary('motor_fault', ea.STATE, true, false),
         ],
         whiteLabel: [
@@ -2256,11 +2258,11 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
+            e.enum('motor_direction', ea.STATE_SET, ['normal', 'reversed']).withDescription('Set the motor direction'),
             exposes.numeric('motor_speed', ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription('Motor speed').withUnit('rpm'),
-            exposes.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
-            exposes.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
-            exposes.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
+            e.enum('opening_mode', ea.STATE_SET, ['tilt', 'lift']).withDescription('Opening mode'),
+            e.enum('set_upper_limit', ea.STATE_SET, ['SET']).withDescription('Set the upper limit, to reset limits use factory_reset'),
+            e.enum('set_bottom_limit', ea.STATE_SET, ['SET']).withDescription('Set the bottom limit, to reset limits use factory_reset'),
             exposes.binary('factory_reset', ea.STATE_SET, true, false).withDescription('Factory reset the device'),
         ],
         whiteLabel: [
@@ -2328,11 +2330,11 @@ module.exports = [
                 '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes`. ' +
                 'For example: `2022/10/01 16:30 | 2022/10/21 18:10`. After the end of holiday mode, it switches to "auto" ' +
                 'mode and uses schedule.'),
-            exposes.enum('working_day', ea.STATE_SET, ['mon_sun', 'mon_fri+sat+sun', 'separate']).withDescription('`mon_sun` ' +
+            e.enum('working_day', ea.STATE_SET, ['mon_sun', 'mon_fri+sat+sun', 'separate']).withDescription('`mon_sun` ' +
                 '- schedule for Monday used for each day (define it only for Monday). `mon_fri+sat+sun` - schedule for ' +
                 'workdays used from Monday (define it only for Monday), Saturday and Sunday are defined separately. `separate` ' +
                 '- schedule for each day is defined separately.'),
-            exposes.composite('schedule', 'schedule', ea.SET).withFeature(exposes.enum('week_day', ea.SET, ['monday', 'tuesday',
+            exposes.composite('schedule', 'schedule', ea.SET).withFeature(e.enum('week_day', ea.SET, ['monday', 'tuesday',
                 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])).withFeature(exposes.text('schedule', ea.SET))
                 .withDescription('Schedule will work with "auto" preset. In this mode, the device executes ' +
                 'a preset week programming temperature time and temperature. Before using these properties, check `working_day` ' +
@@ -2482,9 +2484,9 @@ module.exports = [
         model: 'HT-08',
         vendor: 'ETOP',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.legacy.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [tz.legacy.etop_thermostat_system_mode, tz.legacy.etop_thermostat_away_mode, tz.legacy.tuya_thermostat_child_lock,
-            tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_weekly_schedule],
+        fromZigbee: [legacy.fromZigbee.tuya_thermostat_weekly_schedule_1, legacy.fromZigbee.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        toZigbee: [legacy.toZigbee.etop_thermostat_system_mode, legacy.toZigbee.etop_thermostat_away_mode, legacy.toZigbee.tuya_thermostat_child_lock,
+            legacy.toZigbee.tuya_thermostat_current_heating_setpoint, legacy.toZigbee.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
         meta: {
             thermostat: {
@@ -2503,9 +2505,9 @@ module.exports = [
         model: 'HT-10',
         vendor: 'ETOP',
         description: 'Radiator valve',
-        fromZigbee: [fz.legacy.tuya_thermostat_weekly_schedule_1, fz.legacy.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [tz.legacy.etop_thermostat_system_mode, tz.legacy.etop_thermostat_away_mode, tz.legacy.tuya_thermostat_child_lock,
-            tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_weekly_schedule],
+        fromZigbee: [legacy.fromZigbee.tuya_thermostat_weekly_schedule_1, legacy.fromZigbee.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        toZigbee: [legacy.toZigbee.etop_thermostat_system_mode, legacy.toZigbee.etop_thermostat_away_mode, legacy.toZigbee.tuya_thermostat_child_lock,
+            legacy.toZigbee.tuya_thermostat_current_heating_setpoint, legacy.toZigbee.tuya_thermostat_weekly_schedule],
         onEvent: tuya.onEventSetTime,
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
@@ -2635,9 +2637,9 @@ module.exports = [
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         exposes: [e.switch(), e.power(), e.current(), e.voltage(),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+            e.energy(), e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off']).withDescription('LED indicator mode')],
+            e.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off']).withDescription('LED indicator mode')],
         onEvent: tuya.onEventMeasurementPoll,
     },
     {
@@ -2879,7 +2881,7 @@ module.exports = [
         toZigbee: [legacy.toZigbee.SA12IZL_silence_siren, legacy.toZigbee.SA12IZL_alarm],
         exposes: [e.battery(),
             exposes.binary('smoke', ea.STATE, true, false).withDescription('Smoke alarm status'),
-            exposes.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
+            e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'),
             exposes.binary('alarm', ea.STATE_SET, true, false).withDescription('Enable the alarm'),
             exposes.binary('silence_siren', ea.STATE_SET, true, false).withDescription('Silence the siren')],
         onEvent: tuya.onEventsetTime,
@@ -2941,15 +2943,15 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [tuya.exposes.switch(), e.energy(), e.power(), e.voltage(), e.current(),
-            exposes.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
+            e.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
                 'over_voltage threshold', 'wrong_frequency_threshold']).withDescription('Fault status of the device (clear = nothing)'),
-            exposes.enum('threshold_1', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
+            e.enum('threshold_1', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
                 .withDescription('State of threshold_1'),
             exposes.binary('threshold_1_protection', ea.STATE, 'ON', 'OFF')
                 .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
             exposes.numeric('threshold_1_value', ea.STATE)
                 .withDescription('Can be in Volt or Ampere depending on threshold setting. Setup the value on the device'),
-            exposes.enum('threshold_2', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
+            e.enum('threshold_2', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
                 .withDescription('State of threshold_2'),
             exposes.binary('threshold_2_protection', ea.STATE, 'ON', 'OFF')
                 .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
@@ -2992,15 +2994,15 @@ module.exports = [
         configure: tuya.configureMagicPacket,
         whiteLabel: [{vendor: 'XOCA', model: 'DAC2161C'}],
         exposes: [tuya.exposes.switch(), e.energy(), e.produced_energy(), e.power(), e.voltage(), e.current(),
-            exposes.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
+            e.enum('fault', ea.STATE, ['clear', 'over_current_threshold', 'over_power_threshold',
                 'over_voltage threshold', 'wrong_frequency_threshold']).withDescription('Fault status of the device (clear = nothing)'),
-            exposes.enum('threshold_1', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
+            e.enum('threshold_1', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
                 .withDescription('State of threshold_1'),
             exposes.binary('threshold_1_protection', ea.STATE, 'ON', 'OFF')
                 .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
             exposes.numeric('threshold_1_value', ea.STATE)
                 .withDescription('Can be in Volt or Ampere depending on threshold setting. Setup the value on the device'),
-            exposes.enum('threshold_2', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
+            e.enum('threshold_2', ea.STATE, ['not_set', 'over_current_threshold', 'over_voltage_threshold'])
                 .withDescription('State of threshold_2'),
             exposes.binary('threshold_2_protection', ea.STATE, 'ON', 'OFF')
                 .withDescription('OFF - alarm only, ON - relay will be off when threshold reached'),
@@ -3038,8 +3040,8 @@ module.exports = [
         model: 'TS0601_din',
         vendor: 'TuYa',
         description: 'Zigbee smart energy meter DDS238-2 Zigbee',
-        fromZigbee: [fz.legacy.tuya_dinrail_switch],
-        toZigbee: [tz.legacy.tuya_switch_state],
+        fromZigbee: [legacy.fromZigbee.tuya_dinrail_switch],
+        toZigbee: [legacy.toZigbee.tuya_switch_state],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
@@ -3288,8 +3290,8 @@ module.exports = [
         model: 'gq8b1uv',
         vendor: 'TuYa',
         description: 'Zigbee smart dimmer',
-        fromZigbee: [fz.legacy.tuya_dimmer, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.tuya_dimmer_state, tz.legacy.tuya_dimmer_level],
+        fromZigbee: [legacy.fromZigbee.tuya_dimmer, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.tuya_dimmer_state, legacy.toZigbee.tuya_dimmer_level],
         exposes: [e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET)],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3320,7 +3322,7 @@ module.exports = [
         model: 'SNTZ009',
         vendor: 'TuYa',
         description: 'Water leak sensor',
-        fromZigbee: [fz.legacy.tuya_water_leak, fz.ignore_basic_report],
+        fromZigbee: [legacy.fromZigbee.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
     },
@@ -3392,7 +3394,7 @@ module.exports = [
         model: 'U86KWF-ZPSJ',
         vendor: 'TuYa',
         description: 'Environment controller',
-        fromZigbee: [fz.legacy.thermostat_att_report, fz.fan],
+        fromZigbee: [legacy.fromZigbee.thermostat_att_report, fz.fan],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupancy, tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
@@ -3425,10 +3427,10 @@ module.exports = [
             .withLocalTemperature(ea.STATE)
             .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
             .withRunningState(['idle', 'heat', 'cool'], ea.STATE)],
-        fromZigbee: [fz.legacy.tuya_thermostat, fz.ignore_basic_report, fz.legacy.tuya_dimmer],
+        fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, legacy.fromZigbee.tuya_dimmer],
         meta: {tuyaThermostatSystemMode: legacy.thermostatSystemModes2, tuyaThermostatPreset: legacy.thermostatPresets},
-        toZigbee: [tz.legacy.tuya_thermostat_current_heating_setpoint, tz.legacy.tuya_thermostat_system_mode,
-            tz.legacy.tuya_thermostat_fan_mode, tz.legacy.tuya_dimmer_state],
+        toZigbee: [legacy.toZigbee.tuya_thermostat_current_heating_setpoint, legacy.toZigbee.tuya_thermostat_system_mode,
+            legacy.toZigbee.tuya_thermostat_fan_mode, legacy.toZigbee.tuya_dimmer_state],
     },
     {
         zigbeeModel: ['E220-KR4N0Z0-HA', 'JZ-ZB-004'],
@@ -3474,8 +3476,8 @@ module.exports = [
         model: 'HY08WE',
         vendor: 'TuYa',
         description: 'Wall-mount thermostat',
-        fromZigbee: [fz.legacy.hy_thermostat, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.hy_thermostat],
+        fromZigbee: [legacy.fromZigbee.hy_thermostat, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.hy_thermostat],
         onEvent: tuya.onEventSetTime,
         exposes: [exposes.climate().withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
             .withLocalTemperature(ea.STATE)
@@ -3501,7 +3503,7 @@ module.exports = [
                 'For example: `06:00/20.5 08:00/15 11:30/15 13:30/15 17:00/22 22:00/15 06:00/20 22:00/15`. ' +
                 'The thermostat doesn\'t report the schedule by itself even if you change it manually from device'),
             e.child_lock(), e.week(),
-            exposes.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
+            e.enum('brightness_state', ea.STATE_SET, ['off', 'low', 'medium', 'high'])
                 .withDescription('Screen brightness'),
             exposes.binary('sound', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription('Switches beep sound when interacting with thermostat'),
@@ -3556,7 +3558,7 @@ module.exports = [
         description: 'Vibration sensor',
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
-        exposes: [e.battery(), e.battery_voltage(), e.vibration(), exposes.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])],
+        exposes: [e.battery(), e.battery_voltage(), e.vibration(), e.enum('sensitivity', ea.STATE_SET, ['low', 'medium', 'high'])],
     },
     {
         fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_8bxrzyxz'},
@@ -3581,9 +3583,9 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage(),
-            e.energy(), exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+            e.energy(), e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
+            e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
     },
     {
@@ -3599,9 +3601,9 @@ module.exports = [
             device.save();
         },
         exposes: [e.switch(),
-            exposes.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
+            e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore'])
                 .withDescription('Recover state after power outage'),
-            exposes.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
+            e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off', 'off_on'])
                 .withDescription('Relay LED indicator mode')],
     },
     {
@@ -3609,8 +3611,8 @@ module.exports = [
         model: 'PJ-ZGD01',
         vendor: 'TuYa',
         description: 'Garage door opener',
-        fromZigbee: [fz.legacy.matsee_garage_door_opener, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.matsee_garage_door_opener, tz.legacy.tuya_data_point_test],
+        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'MatSee Plus', model: 'PJ-ZGD01'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3625,8 +3627,8 @@ module.exports = [
         model: 'GDC311ZBQ1',
         vendor: 'TuYa',
         description: 'LoraTap garage door opener with wireless sensor',
-        fromZigbee: [fz.legacy.matsee_garage_door_opener, fz.ignore_basic_report],
-        toZigbee: [tz.legacy.matsee_garage_door_opener, tz.legacy.tuya_data_point_test],
+        fromZigbee: [legacy.fromZigbee.matsee_garage_door_opener, fz.ignore_basic_report],
+        toZigbee: [legacy.toZigbee.matsee_garage_door_opener, legacy.toZigbee.tuya_data_point_test],
         whiteLabel: [{vendor: 'LoraTap', model: 'GDC311ZBQ1'}],
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
@@ -3660,9 +3662,9 @@ module.exports = [
                 .withValueMin(0).withValueMax(100),
             exposes.numeric('alarm_humidity_min', ea.STATE_SET).withUnit('%').withDescription('Alarm humidity min')
                 .withValueMin(0).withValueMax(100),
-            exposes.enum('alarm_humidity', ea.STATE, ['below_min_humdity', 'over_humidity', 'off'])
+            e.enum('alarm_humidity', ea.STATE, ['below_min_humdity', 'over_humidity', 'off'])
                 .withDescription('Alarm humidity status'),
-            exposes.enum('alarm_temperature', ea.STATE, ['below_min_temperature', 'over_temperature', 'off'])
+            e.enum('alarm_temperature', ea.STATE, ['below_min_temperature', 'over_temperature', 'off'])
                 .withDescription('Alarm temperature status'),
         ],
     },
@@ -3671,20 +3673,20 @@ module.exports = [
         model: 'TS0601_motion_sensor',
         vendor: 'TuYa',
         description: 'Human presence sensor AIR',
-        fromZigbee: [fz.legacy.tuya_motion_sensor],
-        toZigbee: [tz.legacy.tuya_motion_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_motion_sensor],
+        toZigbee: [legacy.toZigbee.tuya_motion_sensor],
         exposes: [
             e.occupancy(),
-            exposes.enum('o_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
-            exposes.enum('v_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
-            exposes.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
+            e.enum('o_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.OSensitivity)).withDescription('O-Sensitivity mode'),
+            e.enum('v_sensitivity', ea.STATE_SET, Object.values(legacy.msLookups.VSensitivity)).withDescription('V-Sensitivity mode'),
+            e.enum('led_status', ea.STATE_SET, ['ON', 'OFF']).withDescription('Led status switch'),
             exposes.numeric('vacancy_delay', ea.STATE_SET).withUnit('sec').withDescription('Vacancy delay').withValueMin(0)
                 .withValueMax(1000),
             exposes.numeric('light_on_luminance_prefer', ea.STATE_SET).withDescription('Light-On luminance prefer')
                 .withValueMin(0).withValueMax(10000),
             exposes.numeric('light_off_luminance_prefer', ea.STATE_SET).withDescription('Light-Off luminance prefer')
                 .withValueMin(0).withValueMax(10000),
-            exposes.enum('mode', ea.STATE_SET, Object.values(legacy.msLookups.Mode)).withDescription('Working mode'),
+            e.enum('mode', ea.STATE_SET, Object.values(legacy.msLookups.Mode)).withDescription('Working mode'),
             exposes.numeric('luminance_level', ea.STATE).withDescription('Luminance level'),
             exposes.numeric('reference_luminance', ea.STATE).withDescription('Reference luminance'),
             exposes.numeric('vacant_confirm_time', ea.STATE).withDescription('Vacant confirm time'),
@@ -3705,18 +3707,18 @@ module.exports = [
         exposes: [
             e.illuminance_lux(), e.presence(), e.occupancy(),
             exposes.numeric('motion_speed', ea.STATE).withDescription('Speed of movement'),
-            exposes.enum('motion_direction', ea.STATE, ['standing_still', 'moving_forward', 'moving_backward'])
+            e.enum('motion_direction', ea.STATE, ['standing_still', 'moving_forward', 'moving_backward'])
                 .withDescription('direction of movement from the point of view of the radar'),
             exposes.numeric('radar_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1)
                 .withDescription('Sensitivity of the radar'),
-            exposes.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
+            e.enum('radar_scene', ea.STATE_SET, ['default', 'area', 'toilet', 'bedroom', 'parlour', 'office', 'hotel'])
                 .withDescription('Presets for sensitivity for presence and movement'),
-            exposes.enum('tumble_switch', ea.STATE_SET, ['ON', 'OFF']).withDescription('Tumble status switch'),
+            e.enum('tumble_switch', ea.STATE_SET, ['ON', 'OFF']).withDescription('Tumble status switch'),
             exposes.numeric('fall_sensitivity', ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1)
                 .withDescription('Fall sensitivity of the radar'),
             exposes.numeric('tumble_alarm_time', ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1)
                 .withUnit('min').withDescription('Tumble alarm time'),
-            exposes.enum('fall_down_status', ea.STATE, ['none', 'maybe_fall', 'fall'])
+            e.enum('fall_down_status', ea.STATE, ['none', 'maybe_fall', 'fall'])
                 .withDescription('Fall down status'),
             exposes.text('static_dwell_alarm', ea.STATE).withDescription('Static dwell alarm'),
         ],
@@ -3773,7 +3775,7 @@ module.exports = [
                 '1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold',
                 '3_single', '3_double', '3_hold', '4_single', '4_double', '4_hold',
             ]),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop,
@@ -3803,22 +3805,22 @@ module.exports = [
             {vendor: 'WDYK', model: 'ZJSBL7-100Z'},
         ],
         description: 'DIN mount RCBO with smart energy metering',
-        fromZigbee: [fz.legacy.hoch_din],
-        toZigbee: [tz.legacy.hoch_din],
+        fromZigbee: [legacy.fromZigbee.hoch_din],
+        toZigbee: [legacy.toZigbee.hoch_din],
         exposes: [
             exposes.text('meter_number', ea.STATE),
             exposes.binary('state', ea.STATE_SET, 'ON', 'OFF'),
             exposes.text('alarm', ea.STATE),
             exposes.binary('trip', ea.STATE_SET, 'trip', 'clear'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF'),
-            exposes.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
+            e.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous']),
             exposes.numeric('countdown_timer', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s'),
             exposes.numeric('voltage_rms', ea.STATE).withUnit('V'),
             exposes.numeric('current', ea.STATE).withUnit('A'),
             exposes.numeric('current_average', ea.STATE).withUnit('A'),
             e.power(), e.voltage(), e.energy(), e.temperature(),
             exposes.numeric('energy_consumed', ea.STATE).withUnit('kWh'),
-            exposes.enum('clear_device_data', ea.SET, ['']),
+            e.enum('clear_device_data', ea.SET, ['']),
         ],
     },
     {
@@ -3842,7 +3844,7 @@ module.exports = [
             exposes.numeric('action_transition_time', ea.STATE).withUnit('s'),
             exposes.numeric('action_rate', ea.STATE).withValueMin(0).withValueMax(255),
             e.battery(),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -3864,7 +3866,7 @@ module.exports = [
         model: 'TS0601_vibration_sensor',
         vendor: 'TuYa',
         description: 'Smart vibration sensor',
-        fromZigbee: [fz.legacy.tuya_smart_vibration_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_smart_vibration_sensor],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.vibration()],
     },
@@ -3873,7 +3875,7 @@ module.exports = [
         model: `XFY-CGQ-ZIGB`,
         vendor: `TuYa`,
         description: `Illuminance sensor`,
-        fromZigbee: [fz.legacy.tuya_illuminance_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_illuminance_sensor],
         toZigbee: [],
         exposes: [e.illuminance_lux(), e.brightness_state()],
     },
@@ -3882,7 +3884,7 @@ module.exports = [
         model: 'TM001-ZA/TM081',
         vendor: 'TuYa',
         description: 'Door and window sensor',
-        fromZigbee: [fz.legacy.tm081],
+        fromZigbee: [legacy.fromZigbee.tm081],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },
@@ -3894,7 +3896,7 @@ module.exports = [
         exposes: [e.battery(),
             e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold', '3_single', '3_double', '3_hold',
                 '4_single', '4_double', '4_hold', '5_single', '5_double', '5_hold', '6_single', '6_double', '6_hold'])],
-        fromZigbee: [fz.legacy.tuya_remote],
+        fromZigbee: [legacy.fromZigbee.tuya_remote],
         toZigbee: [],
     },
     {
@@ -3917,8 +3919,8 @@ module.exports = [
         model: 'TS0601_smart_human_presence_sensor_1',
         vendor: 'TuYa',
         description: 'Smart Human presence sensor',
-        fromZigbee: [fz.legacy.tuya_smart_human_presense_sensor],
-        toZigbee: [tz.legacy.tuya_smart_human_presense_sensor],
+        fromZigbee: [legacy.fromZigbee.tuya_smart_human_presense_sensor],
+        toZigbee: [legacy.toZigbee.tuya_smart_human_presense_sensor],
         exposes: [
             e.illuminance_lux(), e.presence(),
             exposes.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('m'),
@@ -3933,7 +3935,7 @@ module.exports = [
             exposes.numeric('fading_time', ea.STATE_SET).withValueMin(0).withValueMax(1500).withValueStep(1)
                 .withDescription('Fading time').withUnit('s'),
             // exposes.text('cli', ea.STATE).withDescription('not recognize'),
-            exposes.enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
+            e.enum('self_test', ea.STATE, Object.values(legacy.tuyaHPSCheckingResult))
                 .withDescription('Self_test, possible resuts: checking, check_success, check_failure, others, comm_fault, radar_fault.'),
         ],
     },
@@ -3976,8 +3978,8 @@ module.exports = [
         model: 'JM-TRH-ZGB-V1',
         vendor: 'TuYa',
         description: 'Temperature & humidity sensor with clock',
-        fromZigbee: [fz.legacy.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
-        toZigbee: [tz.legacy.nous_lcd_temperature_humidity_sensor],
+        fromZigbee: [legacy.fromZigbee.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
+        toZigbee: [legacy.toZigbee.nous_lcd_temperature_humidity_sensor],
         onEvent: tuya.onEventSetLocalTime,
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -3987,14 +3989,14 @@ module.exports = [
             e.temperature(), e.humidity(), e.battery(),
             exposes.numeric('temperature_report_interval', ea.STATE_SET).withUnit('min').withValueMin(5).withValueMax(60).withValueStep(5)
                 .withDescription('Temperature Report interval'),
-            exposes.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
-            exposes.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
+            e.enum('temperature_unit_convert', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+            e.enum('temperature_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Temperature alarm status'),
             exposes.numeric('max_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature max'),
             exposes.numeric('min_temperature', ea.STATE_SET).withUnit('Â°C').withValueMin(-20).withValueMax(60)
                 .withDescription('Alarm temperature min'),
-            exposes.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
+            e.enum('humidity_alarm', ea.STATE, ['canceled', 'lower_alarm', 'upper_alarm'])
                 .withDescription('Humidity alarm status'),
             exposes.numeric('max_humidity', ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100)
                 .withDescription('Alarm humidity max'),
@@ -4007,13 +4009,13 @@ module.exports = [
         model: 'ZG-204ZL',
         vendor: 'TuYa',
         description: 'Luminance motion sensor',
-        fromZigbee: [fz.legacy.ZG204ZL_lms],
-        toZigbee: [tz.legacy.ZG204ZL_lms],
+        fromZigbee: [legacy.fromZigbee.ZG204ZL_lms],
+        toZigbee: [legacy.toZigbee.ZG204ZL_lms],
         exposes: [
             e.occupancy(), e.illuminance().withUnit('lx'), e.battery(),
-            exposes.enum('sensitivity', ea.ALL, ['low', 'medium', 'high'])
+            e.enum('sensitivity', ea.ALL, ['low', 'medium', 'high'])
                 .withDescription('PIR sensor sensitivity (refresh and update only while active)'),
-            exposes.enum('keep_time', ea.ALL, ['10', '30', '60', '120'])
+            e.enum('keep_time', ea.ALL, ['10', '30', '60', '120'])
                 .withDescription('PIR keep time in seconds (refresh and update only while active)'),
         ],
     },
@@ -4034,7 +4036,7 @@ module.exports = [
                 'brightness_step_up', 'brightness_step_down', 'on', 'off',
             ]),
             e.battery(),
-            exposes.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
+            e.enum('operation_mode', ea.ALL, ['command', 'event']).withDescription(
                 'Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -4061,18 +4063,18 @@ module.exports = [
         onEvent: tuya.onEventSetTime,
         exposes: [
             e.cover_position().setAccess('position', ea.STATE_SET),
-            exposes.enum('goto_positon', ea.SET, ['25', '50', '75', 'FAVORITE']),
-            exposes.enum('motor_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
+            e.enum('goto_positon', ea.SET, ['25', '50', '75', 'FAVORITE']),
+            e.enum('motor_state', ea.STATE, ['OPENING', 'CLOSING', 'STOPPED']),
             exposes.numeric('active_power', ea.STATE).withDescription('Active power').withUnit('mWt'),
             exposes.numeric('cycle_count', ea.STATE).withDescription('Cycle count'),
             exposes.numeric('cycle_time', ea.STATE).withDescription('Cycle time').withUnit('ms'),
-            exposes.enum('top_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear top limit'),
-            exposes.enum('bottom_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear bottom limit'),
+            e.enum('top_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear top limit'),
+            e.enum('bottom_limit', ea.STATE_SET, ['SET', 'CLEAR']).withDescription('Setup or clear bottom limit'),
             exposes.numeric('favorite_position', ea.STATE_SET).withValueMin(0).withValueMax(100)
                 .withDescription('Favorite position of this cover'),
             exposes.binary(`reverse_direction`, ea.STATE_SET, true, false).withDescription(`Inverts the cover direction`),
             exposes.text('motor_type', ea.STATE),
-            exposes.enum('report', ea.SET, ['']),
+            e.enum('report', ea.SET, ['']),
         ],
     },
     {
@@ -4097,7 +4099,7 @@ module.exports = [
         onEvent: tuya.onEventSetLocalTime,
         exposes: [
             e.temperature(), e.humidity(), e.battery(), e.battery_voltage(),
-            exposes.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
+            e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Current display unit'),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -4395,7 +4397,7 @@ module.exports = [
             exposes.binary('light', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the light of the alarm ON/OFF'),
             exposes.numeric('duration', ea.STATE_SET).withValueMin(60).withValueMax(3600).withValueStep(1).withUnit('s')
                 .withDescription('Duration of the alarm'),
-            exposes.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high'])
+            e.enum('volume', ea.STATE_SET, ['mute', 'low', 'medium', 'high'])
                 .withDescription('Volume of the alarm'),
         ],
     },
@@ -4584,9 +4586,9 @@ module.exports = [
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.cover_position(),
-            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
         meta: {
@@ -4616,9 +4618,9 @@ module.exports = [
         exposes: [
             e.cover_position(),
             tuya.exposes.switch().withEndpoint('l1'),
-            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
         endpoint: (device) => {
@@ -4654,9 +4656,9 @@ module.exports = [
             e.cover_position(),
             tuya.exposes.switch().withEndpoint('l1'),
             tuya.exposes.switch().withEndpoint('l2'),
-            exposes.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
+            e.enum('calibration', ea.STATE_SET, ['START', 'END']).withDescription('Calibration'),
             exposes.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
-            exposes.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
+            e.enum('motor_steering', ea.STATE_SET, ['FORWARD', 'BACKWARD']).withDescription('Motor Steering'),
             exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
         ],
         endpoint: (device) => {
@@ -4697,7 +4699,7 @@ module.exports = [
                 [1, 'energy', tuya.valueConverter.divideBy100],
                 [2, 'produced_energy', tuya.valueConverter.divideBy100],
                 [6, null, {
-                    from: (v) => {
+                    from: (v: Buffer) => {
                         return {
                             voltage: v.readUint16BE(0)/10,
                             current: ((v.readUint8(2)<<16)+(v.readUint8(3)<<8)+v.readUint8(4))/1000,
@@ -4828,3 +4830,5 @@ module.exports = [
         ],
     },
 ];
+
+module.exports = definitions;
