@@ -668,7 +668,7 @@ export const valueConverter = {
         },
     },
     TV02FrostProtection: {
-        to: async (v: 'ON' | 'OFF', meta: tz.Meta) => {
+        to: async (v: unknown, meta: tz.Meta) => {
             const entity = meta.device.endpoints[0];
             if (v === 'ON') {
                 await sendDataPointBool(entity, 10, true, 'dataRequest', 1);
@@ -676,7 +676,7 @@ export const valueConverter = {
                 await sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
             }
         },
-        from: (v: boolean) => {
+        from: (v: unknown) => {
             return {frost_protection: v === false ? 'OFF' : 'ON'};
         },
     },
@@ -1009,7 +1009,6 @@ const tuyaExtend = {
     }={}) => {
         const exposes: Expose[] = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
         const fromZigbee: fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
-        // @ts-expect-error
         const toZigbee: tz.Converter[] = [tz.on_off];
         if (options.powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred

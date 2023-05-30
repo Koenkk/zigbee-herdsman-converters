@@ -530,27 +530,27 @@ export const access = {
     /**
      * Bit 0: The property can be found in the published state of this device
      */
-    STATE: 0b001,
+    STATE: 0b001 as Access,
     /**
      * Bit 1: The property can be set with a /set command
      */
-    SET: 0b010,
+    SET: 0b010 as Access,
     /**
      * Bit 2: The property can be retrieved with a /get command
      */
-    GET: 0b100,
+    GET: 0b100 as Access,
     /**
      * Bitwise inclusive OR of STATE and SET : 0b001 | 0b010
      */
-    STATE_SET: 0b011,
+    STATE_SET: 0b011 as Access,
     /**
      * Bitwise inclusive OR of STATE and GET : 0b001 | 0b100
      */
-    STATE_GET: 0b101,
+    STATE_GET: 0b101 as Access,
     /**
      * Bitwise inclusive OR of STATE and GET and SET : 0b001 | 0b100 | 0b010
      */
-    ALL: 0b111,
+    ALL: 0b111 as Access,
 };
 
 const a = access;

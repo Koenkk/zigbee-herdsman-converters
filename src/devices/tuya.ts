@@ -12,7 +12,7 @@ import globalStore from '../lib/store';
 import {ColorMode, colorModeLookup} from '../lib/constants';
 import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
-import { assertString } from 'src/lib/utils2';
+import {assertString, assertNumber, getFromLookup} from 'src/lib/utils2';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -47,7 +47,7 @@ const tzLocal = {
 
             // A transition time of 0 would be treated as about 1 second, probably some kind of fallback/default
             // transition time, so for "no transition" we use 1 (tenth of a second).
-            const transtime = 'transition' in meta.message ? meta.message.transition * 10 : 1;
+            const transtime = typeof meta.message.transition === 'number' ? (meta.message.transition * 10) : 0.1;
 
             if (colorMode == colorModeLookup[ColorMode.ColorTemp]) {
                 if ('brightness' in meta.message) {
@@ -71,7 +71,9 @@ const tzLocal = {
                     // Load current state or defaults
                     const newSettings = {
                         brightness: meta.state.brightness ?? 254, //      full brightness
+                        // @ts-expect-error
                         hue: (meta.state.color ?? {}).hue ?? 0, //          red
+                        // @ts-expect-error
                         saturation: (meta.state.color ?? {}).saturation ?? 100, // full saturation
                     };
 
@@ -101,6 +103,7 @@ const tzLocal = {
                     }
 
                     // Convert to device specific format and send
+                    assertNumber(newSettings.brightness, 'brightness');
                     const zclData = {
                         brightness: utils.mapNumberRange(newSettings.brightness, 0, 254, 0, 1000),
                         hue: newSettings.hue,
@@ -128,6 +131,7 @@ const tzLocal = {
             let payload = null;
             if (key === 'min_brightness' || key == 'max_brightness') {
                 const id = key === 'min_brightness' ? 64515 : 64516;
+                assertNumber(value, key);
                 payload = {[id]: {value: utils.mapNumberRange(value, 1, 255, 0, 1000), type: 0x21}};
             } else if (key === 'light_type' || key === 'switch_type') {
                 assertString(value, 'light_type/switch_type');
@@ -158,6 +162,7 @@ const tzLocal = {
                     await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
                 }
 
+                assertNumber(message.brightness, 'brightness');
                 const level = utils.mapNumberRange(message.brightness, 0, 254, 0, 1000);
                 await entity.command('genLevelCtrl', 'moveToLevelTuya', {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
                 return {state: {state: 'ON', brightness: message.brightness}};
@@ -172,7 +177,7 @@ const tzLocal = {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
             const {message} = meta;
-            if (message.state === 'ON' || message.brightness > 1) {
+            if (message.state === 'ON' || (typeof message.brightness === 'number' && message.brightness > 1)) {
                 // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
                 await entity.command('genOnOff', 'on', {}, utils.getOptions(meta.mapped, entity));
@@ -199,7 +204,8 @@ const tzLocal = {
                 } else {
                     newState.color = color.rgb.gammaCorrected().toXY().rounded(4);
                 }
-                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger)};
+                // @ts-expect-error
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options, meta.logger) as KeyValue};
             } else {
                 return await tz.light_color.convertSet(entity, key, value, meta);
             }
@@ -209,14 +215,17 @@ const tzLocal = {
         key: ['light', 'duration', 'volume'],
         convertSet: async (entity, key, value, meta) => {
             if (key === 'light') {
+                assertString(value, 'light');
                 await entity.command('genOnOff', value.toLowerCase() === 'on' ? 'on' : 'off', {}, utils.getOptions(meta.mapped, entity));
             } else if (key === 'duration') {
                 await entity.write('ssIasWd', {'maxDuration': value}, utils.getOptions(meta.mapped, entity));
             } else if (key === 'volume') {
                 const lookup: KeyValue = {'mute': 0, 'low': 10, 'medium': 30, 'high': 50};
+                assertString(value, 'volume');
+                const lookupValue = lookup[value];
                 value = value.toLowerCase();
                 utils.validateValue(value, Object.keys(lookup));
-                await entity.write('ssIasWd', {0x0002: {value: lookup[value], type: 0x0a}}, utils.getOptions(meta.mapped, entity));
+                await entity.write('ssIasWd', {0x0002: {value: lookupValue, type: 0x0a}}, utils.getOptions(meta.mapped, entity));
             }
             return {state: {[key]: value}};
         },
@@ -242,64 +251,75 @@ const tzLocal = {
             'under_voltage_threshold', 'under_voltage_breaker',
         ],
         convertSet: async (entity, key, value, meta) => {
+            const onOffLookup = {'on': 1, 'off': 0};
             switch (key) {
             case 'temperature_threshold': {
+                assertNumber(value, 'temperature_threshold');
                 const state = meta.state['temperature_breaker'];
-                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                const buf = Buffer.from([5, getFromLookup(state, onOffLookup), 0, value]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'temperature_breaker': {
                 const threshold = meta.state['temperature_threshold'];
-                const buf = Buffer.from([5, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                assertNumber(threshold, 'temperature_threshold');
+                const buf = Buffer.from([5, getFromLookup(value, onOffLookup), 0, threshold]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'power_threshold': {
                 const state = meta.state['power_breaker'];
-                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                assertNumber(value, 'power_breaker');
+                const buf = Buffer.from([7, getFromLookup(state, onOffLookup), 0, value]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'power_breaker': {
                 const threshold = meta.state['power_threshold'];
-                const buf = Buffer.from([7, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                assertNumber(threshold, 'power_breaker');
+                const buf = Buffer.from([7, getFromLookup(value, onOffLookup), 0, threshold]);
                 await entity.command('manuSpecificTuya_3', 'setOptions2', {data: buf});
                 break;
             }
             case 'over_current_threshold': {
                 const state = meta.state['over_current_breaker'];
-                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                assertNumber(value, 'over_current_threshold');
+                const buf = Buffer.from([1, getFromLookup(state, onOffLookup), 0, value]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_current_breaker': {
                 const threshold = meta.state['over_current_threshold'];
-                const buf = Buffer.from([1, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                assertNumber(threshold, 'over_current_threshold');
+                const buf = Buffer.from([1, getFromLookup(value, onOffLookup), 0, threshold]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_voltage_threshold': {
                 const state = meta.state['over_voltage_breaker'];
-                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                assertNumber(value, 'over_voltage_breaker');
+                const buf = Buffer.from([3, getFromLookup(state, onOffLookup), 0, value]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'over_voltage_breaker': {
                 const threshold = meta.state['over_voltage_threshold'];
-                const buf = Buffer.from([3, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                assertNumber(threshold, 'over_voltage_threshold');
+                const buf = Buffer.from([3, getFromLookup(value, onOffLookup), 0, threshold]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'under_voltage_threshold': {
                 const state = meta.state['under_voltage_breaker'];
-                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[state], 0, value]);
+                assertNumber(value, 'under_voltage_threshold');
+                const buf = Buffer.from([4, getFromLookup(state, onOffLookup), 0, value]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
             case 'under_voltage_breaker': {
                 const threshold = meta.state['under_voltage_threshold'];
-                const buf = Buffer.from([4, {'ON': 1, 'OFF': 0}[value], 0, threshold]);
+                assertNumber(threshold, 'under_voltage_breaker');
+                const buf = Buffer.from([4, getFromLookup(value, onOffLookup), 0, threshold]);
                 await entity.command('manuSpecificTuya_3', 'setOptions3', {data: buf});
                 break;
             }
@@ -404,7 +424,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data.hasOwnProperty('57355')) {
-                result.temperature_unit = {'0': 'celsius', '1': 'fahrenheit'}[msg.data['57355']];
+                result.temperature_unit = getFromLookup(msg.data['57355'], {'0': 'celsius', '1': 'fahrenheit'});
             }
             return result;
         },
@@ -412,8 +432,8 @@ const fzLocal = {
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = fz.electrical_measurement.convert(model, msg, publish, options, meta);
-            const lookup = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
+            const result: KeyValueAny = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+            const lookup: KeyValueString = {power: 'activePower', current: 'rmsCurrent', voltage: 'rmsVoltage'};
 
             // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
             // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
@@ -439,7 +459,7 @@ const fzLocal = {
         cluster: 'manuSpecificTuya_3',
         type: 'raw',
         convert: (model, msg, publish, options, meta) => {
-            const splitToAttributes = (value: Buffer) => {
+            const splitToAttributes = (value: Buffer): KeyValueAny => {
                 const result: KeyValue = {};
                 const len = value.length;
                 let i = 0;
@@ -549,7 +569,7 @@ const definitions: Definition[] = [
         fromZigbee: [legacy.fromZigbee.tuya_temperature_humidity_sensor],
         toZigbee: [],
         exposes: (device, options) => {
-            const exps = [e.temperature(), e.humidity(), e.battery()];
+            const exps: Expose[] = [e.temperature(), e.humidity(), e.battery()];
             if (!device || device.manufacturerName === '_TZE200_qyflbnbj') {
                 exps.push(e.battery_low());
                 exps.push(e.enum('battery_level', ea.STATE, ['low', 'middle', 'high']).withDescription('Battery level state'));
@@ -750,7 +770,7 @@ const definitions: Definition[] = [
         model: 'ZN231392',
         vendor: 'TuYa',
         description: 'Smart water/gas valve',
-        extend: tuya.extend.switch({powerOnBehavior: true}),
+        extend: tuya.extend.switch(),
         configure: async (device, coordinatorEndpoint, logger) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint, logger);
             const endpoint = device.getEndpoint(1);
@@ -853,7 +873,7 @@ const definitions: Definition[] = [
         vendor: 'TuYa',
         description: 'Zigbee RGBW light',
         extend: tuya.extend.light_onoff_brightness_color(),
-        exposes: [e.light_brightness_color({disablePowerOnBehavior: true})
+        exposes: [e.light_brightness_color(false)
             .setAccess('color_xy', ea.STATE_SET).setAccess('color_hs', ea.STATE_SET)],
         toZigbee: utils.replaceInArray(tuya.extend.light_onoff_brightness_color().toZigbee, [tz.light_color], [tzLocal.TS0504B_color]),
         meta: {applyRedFix: true},
@@ -1598,6 +1618,7 @@ const definitions: Definition[] = [
         model: 'TS0505A_led',
         vendor: 'TuYa',
         description: 'RGB+CCT LED',
+        // @ts-expect-error
         toZigbee: [tz.on_off, tz.tuya_led_control],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature('color_temp_startup')],
@@ -1855,6 +1876,7 @@ const definitions: Definition[] = [
         meta: {multiEndpoint: true, multiEndpointSkip: ['energy', 'current', 'voltage', 'power']},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
+            // @ts-expect-error
             await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -2190,18 +2212,18 @@ const definitions: Definition[] = [
         ota: ota.zigbeeOTA,
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
-        toZigbee: [legacy.toZigbee.tuya_thermostat_child_lock, legacy.toZigbee.tuya_thermostat_window_detection, 
+        toZigbee: [legacy.toZigbee.tuya_thermostat_child_lock, legacy.toZigbee.tuya_thermostat_window_detection,
             legacy.toZigbee.tuya_thermostat_valve_detection,
             legacy.toZigbee.tuya_thermostat_current_heating_setpoint, legacy.toZigbee.tuya_thermostat_auto_lock,
             legacy.toZigbee.tuya_thermostat_calibration, legacy.toZigbee.tuya_thermostat_min_temp, legacy.toZigbee.tuya_thermostat_max_temp,
             legacy.toZigbee.tuya_thermostat_boost_time, legacy.toZigbee.tuya_thermostat_comfort_temp, legacy.toZigbee.tuya_thermostat_eco_temp,
             legacy.toZigbee.tuya_thermostat_force_to_mode, legacy.toZigbee.tuya_thermostat_force, legacy.toZigbee.tuya_thermostat_preset,
             legacy.toZigbee.tuya_thermostat_window_detect, legacy.toZigbee.tuya_thermostat_schedule, legacy.toZigbee.tuya_thermostat_week,
-            legacy.toZigbee.tuya_thermostat_schedule_programming_mode, legacy.toZigbee.tuya_thermostat_away_mode, 
+            legacy.toZigbee.tuya_thermostat_schedule_programming_mode, legacy.toZigbee.tuya_thermostat_away_mode,
             legacy.toZigbee.tuya_thermostat_away_preset],
         exposes: [
             e.child_lock(), e.window_detection(),
-            e.binary('window_open', ea.STATE).withDescription('Window open?'),
+            e.binary('window_open', ea.STATE, true, false).withDescription('Window open?'),
             e.battery_low(), e.valve_detection(), e.position(),
             e.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE).withSystemMode(['heat', 'auto', 'off'], ea.STATE_SET,
@@ -2499,7 +2521,7 @@ const definitions: Definition[] = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: legacy.dataPoints.schedule,
+                weeklyScheduleFirstDayDpId: 101,
             },
         },
         exposes: [e.child_lock(), e.away_mode(), e.climate().withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
@@ -2522,7 +2544,7 @@ const definitions: Definition[] = [
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
-                weeklyScheduleFirstDayDpId: legacy.dataPoints.schedule,
+                weeklyScheduleFirstDayDpId: 101,
             },
         },
         exposes: [

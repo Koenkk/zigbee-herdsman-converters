@@ -15,6 +15,7 @@ declare global {
     }
 
     interface KeyValue {[s: string]: unknown}
+    interface KeyValueString {[s: string]: string}
     // eslint-disable-next-line
     interface KeyValueAny {[s: string]: any}
     type Publish = (payload: KeyValue) => void;
@@ -44,6 +45,10 @@ declare global {
             weeklyScheduleSupportedModes: number[],
             weeklyScheduleFirstDayDpId: number,
         },
+        applyRedFix?: boolean,
+        turnsOffAtBrightness1?: boolean;
+        tuyaThermostatPreset?: {[s: number]: string},
+        tuyaThermostatSystemMode?: {[s: number]: string},
     }
 
     type Configure = (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>;
@@ -60,15 +65,18 @@ declare global {
         meta?: DefinitionMeta,
         onEvent?: (type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue, state: KeyValue) => Promise<void>,
     } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
-      & ({ extend: Extend } | { fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[] });
+      & ({ extend: Extend } |
+        { fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: (Expose[] | ((device: zh.Device, options: KeyValue) => Expose[])) });
 
     namespace fz {
+        interface Message {
+            data: KeyValueAny, endpoint: zh.Endpoint, device: zh.Device, meta: {zclTransactionSequenceNumber: number}, groupID: number, type: string}
         interface Meta {state: KeyValue, logger: Logger, device: zh.Device}
         interface Converter {
             cluster: string,
             type: string[] | string,
             options?: Option[] | ((definition: Definition) => Option[]);
-            convert: (model: Definition, msg: KeyValueAny, publish: Publish, options: KeyValue, meta: fz.Meta) => KeyValueAny | void | Promise<void>;
+            convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: fz.Meta) => KeyValueAny | void | Promise<void>;
         }
     }
 
@@ -85,7 +93,8 @@ declare global {
         interface Converter {
             key: string[],
             options?: Option[] | ((definition: Definition) => Option[]);
-            convertSet?: (entity: zh.Endpoint | zh.Group, key: string, value: unknown, meta: tz.Meta) => Promise<{state: KeyValue} | void>,
+            convertSet?: (entity: zh.Endpoint | zh.Group, key: string, value: unknown, meta: tz.Meta) =>
+                Promise<{state?: KeyValue, readAfterWriteTime?: number} | void>,
             convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) => Promise<void>,
         }
     }
