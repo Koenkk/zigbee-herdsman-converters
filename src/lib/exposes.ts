@@ -592,6 +592,17 @@ export const options = {
 };
 
 export const presets = {
+    // Generic
+    binary: (name: string, access: number, valueOn: string | boolean, valueOff: string | boolean) => new Binary(name, access, valueOn, valueOff),
+    climate: () => new Climate(),
+    composite: (name: string, property: string, access: number) => new Composite(name, property, access),
+    cover: () => new Cover(),
+    enum: (name: string, access: number, values: string[]) => new Enum(name, access, values),
+    light: () => new Light(),
+    numeric: (name: string, access: number) => new Numeric(name, access),
+    text: (name: string, access: number) => new Text(name, access),
+    list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    // Specific
     ac_frequency: () => new Numeric('ac_frequency', access.STATE).withUnit('Hz').withDescription('Measured electrical AC frequency'),
     action: (values: string[]) => new Enum('action', access.STATE, values).withDescription('Triggered action (e.g. a button click)'),
     action_group: () => new Numeric('action_group', access.STATE).withDescription('Group where the action was triggered on'),

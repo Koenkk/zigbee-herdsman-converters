@@ -4,6 +4,9 @@ import type {
     Group as ZHGroup,
 } from 'zigbee-herdsman/dist/controller/model';
 
+import * as exposes from './exposes';
+import * as tuyaLib from './tuya';
+
 declare global {
     interface Logger {
         info: (message: string) => void;
@@ -19,10 +22,19 @@ declare global {
     interface Definition {
         vendor: string,
         model: string,
-        meta: {separateWhite?: boolean, multiEndpoint: true, publishDuplicateTransaction: boolean},
+        meta: {
+            separateWhite?: boolean,
+            multiEndpoint: true,
+            publishDuplicateTransaction: boolean,
+            tuyaDatapoints: tuya.MetaTuyaDataPoints,
+        },
         endpoint: (device: zh.Device) => {[s: string]: number},
         configure: (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>,
     }
+    type OnEventType = 'start' | 'stop' | 'message' | 'deviceJoined' | 'deviceInterview' | 'deviceAnnounce' |
+        'deviceNetworkAddressChanged' | 'deviceOptionsChanged';
+    type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
+    type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch | exposes.Lock;
 
     interface FromZigbeeConverter {
         cluster: string,
@@ -31,22 +43,32 @@ declare global {
         convert: (model: Definition, msg: KeyValue, publish: Publish, options: KeyValue, meta: FzMeta) => KeyValue | void
     }
 
-    interface ToZigbeeMeta {
-        logger: Logger,
-        message: KeyValue,
-        device: zh.Device,
-        mapped: Definition,
-        options: KeyValue,
-        state: KeyValue,
-        endpoint_name: string,
-    }
-
     interface ToZigbeeConverter {
         key: string[],
         options?: any[] | ((definition: Definition) => any[]);
-        convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: ToZigbeeMeta)
+        convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: tz.Meta)
             => Promise<{state: KeyValue} | void>,
-        convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: ToZigbeeMeta) => Promise<void>,
+        convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) => Promise<void>,
+    }
+
+    namespace tz {
+        type Value = number | string | KeyValue | boolean;
+        interface Meta {
+            logger: Logger,
+            message: KeyValue,
+            device: zh.Device,
+            mapped: Definition,
+            options: KeyValue,
+            state: KeyValue,
+            endpoint_name: string,
+        }
+        interface Converter {
+            key: string[],
+            options?: exposes.Numeric[] | ((definition: Definition) => exposes.Numeric[]);
+            convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: tz.Meta)
+                => Promise<{state: KeyValue} | void>,
+            convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) => Promise<void>,
+        }
     }
 
     namespace zh {
@@ -56,7 +78,18 @@ declare global {
     }
 
     namespace tuya {
-        interface ValueConverter {to: (value: string|number) => string|number, from: (value: string|number) => string|number}
+        interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
+        interface ValueConverterSingle {
+            to: (value: string|number, meta: tz.Meta) => string|number|boolean,
+            from: (value: string|number, meta: FzMeta, options: KeyValue, publish: Publish) => string|number,
+        }
+        interface ValueConverterMulti {
+            to: (value: string|number, meta: tz.Meta) => string|number|boolean|tuyaLib.Enum|tuyaLib.Bitmap,
+            from: (value: string|number, meta: FzMeta, options: KeyValue, publish: Publish) => KeyValue,
+        }
+        interface MetaTuyaDataPointsMeta {skip: (meta: tz.Meta) => boolean, optimistic?: boolean}
+        type MetaTuyaDataPoints = (
+            [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?]|[number, null, tuya.ValueConverterMulti, MetaTuyaDataPointsMeta?])[]
     }
 }
 
