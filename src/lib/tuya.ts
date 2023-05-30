@@ -1,9 +1,8 @@
 /* eslint @typescript-eslint/no-unused-vars: 0 */
-
 import constants from './constants';
 import globalStore from './store';
 import * as exposes from './exposes';
-import {getFromLookup} from './utils2';
+import {getFromLookup, assertNumber, assertString} from './utils2';
 import tz from '../converters/toZigbee';
 import fz from '../converters/fromZigbee';
 import utils from './utils';
@@ -79,7 +78,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
 }
 
-async function onEventMeasurementPoll(type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue,
+export async function onEventMeasurementPoll(type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue,
     electricalMeasurement=true, metering=false) {
     const endpoint = device.getEndpoint(1);
     if (type === 'stop') {
@@ -87,6 +86,7 @@ async function onEventMeasurementPoll(type: OnEventType, data: KeyValue, device:
         globalStore.clearValue(device, 'measurement_poll');
     } else if (!globalStore.hasValue(device, 'measurement_poll')) {
         const seconds = options && options.measurement_poll_interval ? options.measurement_poll_interval : 60;
+        assertNumber(seconds, 'measurement_poll_interval');
         if (seconds === -1) return;
         const setTimer = () => {
             const timer = setTimeout(async () => {
@@ -106,7 +106,7 @@ async function onEventMeasurementPoll(type: OnEventType, data: KeyValue, device:
     }
 }
 
-async function onEventSetTime(type: OnEventType, data: KeyValue, device: zh.Device) {
+export async function onEventSetTime(type: OnEventType, data: KeyValue, device: zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
     if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
@@ -133,7 +133,7 @@ async function onEventSetTime(type: OnEventType, data: KeyValue, device: zh.Devi
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
-async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: zh.Device) {
+export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
     //  Actually, there are two ways to set time on TuYa MCU devices:
@@ -210,7 +210,7 @@ async function sendDataPointBool(entity: zh.Group | zh.Endpoint, dp: number, val
     return await sendDataPoints(entity, [dpValueFromBool(dp, value)], cmd, seq);
 }
 
-async function sendDataPointEnum(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd: string, seq?: number) {
+export async function sendDataPointEnum(entity: zh.Group | zh.Endpoint, dp: number, value: number, cmd: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
@@ -339,6 +339,8 @@ export class Enum extends Base {
         super(value);
     }
 }
+const enumConstructor = (value: number) => new Enum(value);
+export {enumConstructor as enum};
 
 export class Bitmap extends Base {
     constructor(value: number) {
@@ -347,7 +349,7 @@ export class Bitmap extends Base {
 }
 
 export const valueConverterBasic = {
-    lookup: (map: {[s: string]: number | boolean}) => {
+    lookup: (map: {[s: (string)]: number | boolean | Enum | string}) => {
         return {
             to: (v: string) => {
                 if (map[v] === undefined) throw new Error(`Value '${v}' is not allowed, expected one of ${Object.keys(map)}`);
@@ -367,7 +369,7 @@ export const valueConverterBasic = {
         };
     },
     raw: () => {
-        return {to: (v: unknown) => v, from: (v: unknown) => v};
+        return {to: (v: string|number|boolean) => v, from: (v: string|number|boolean) => v};
     },
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
@@ -408,7 +410,7 @@ export const valueConverter = {
         to: async (v: number, meta: tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
-        from: (v: number, meta: FzMeta, options: KeyValue) => {
+        from: (v: number, meta: fz.Meta, options: KeyValue) => {
             return options.invert_cover ? 100 - v : v;
         },
     },
@@ -532,6 +534,7 @@ export const valueConverter = {
                 friday: 16, saturday: 32, sunday: 64,
             };
             const weekDay = v.week_day;
+            assertString(weekDay, 'week_day');
             if (Object.keys(dayByte).indexOf(weekDay) === -1) {
                 throw new Error('Invalid "week_day" property value: ' + weekDay);
             }
@@ -559,6 +562,7 @@ export const valueConverter = {
 
             // day splitted to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
+            assertString(v.schedule, 'schedule');
             const schedule = v.schedule.split(' ');
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error('There cannot be more than 10 periods in the schedule: ' + v);
@@ -698,7 +702,7 @@ const tuyaTz = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['moesStartUpOnOff']),
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     power_on_behavior_2: {
         key: ['power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -707,7 +711,7 @@ const tuyaTz = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['powerOnBehavior']),
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     switch_type: {
         key: ['switch_type'],
         convertSet: async (entity, key, value, meta) => {
@@ -716,7 +720,7 @@ const tuyaTz = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => await entity.read('manuSpecificTuya_3', ['switchType']),
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     backlight_indicator_mode_1: {
         key: ['backlight_mode', 'indicator_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -727,7 +731,7 @@ const tuyaTz = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightMode']),
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     backlight_indicator_mode_2: {
         key: ['backlight_mode'],
         convertSet: async (entity, key, value, meta) => {
@@ -736,17 +740,18 @@ const tuyaTz = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => await entity.read('genOnOff', ['tuyaBacklightSwitch']),
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     child_lock: {
         key: ['child_lock'],
         convertSet: async (entity, key, value, meta) => {
             const v = getFromLookup(value, {'lock': true, 'unlock': false});
             await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
         },
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     min_brightness: {
         key: ['min_brightness'],
         convertSet: async (entity, key, value, meta) => {
+            assertNumber(value, `min_brightness`);
             const minValueHex = value.toString(16);
             const maxValueHex = 'ff';
             const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
@@ -757,7 +762,7 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             await entity.read('genLevelCtrl', [0xfc00]);
         },
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     color_power_on_behavior: {
         key: ['color_power_on_behavior'],
         convertSet: async (entity, key, value, meta) => {
@@ -765,7 +770,7 @@ const tuyaTz = {
             await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v*256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     datapoints: {
         key: [
             'temperature_unit', 'temperature_calibration', 'humidity_calibration', 'alarm_switch',
@@ -821,14 +826,14 @@ const tuyaTz = {
             }
             return {state};
         },
-    } as ToZigbeeConverter,
+    } as tz.Converter,
     do_not_disturb: {
         key: ['do_not_disturb'],
         convertSet: async (entity, key, value, meta) => {
             await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
             return {state: {do_not_disturb: value}};
         },
-    } as ToZigbeeConverter,
+    } as tz.Converter,
 };
 export {tuyaTz as tz};
 
@@ -844,7 +849,7 @@ const tuyaFz = {
             const payload = {payloadSize: 1, payload: 1};
             await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     power_on_behavior_1: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -855,7 +860,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     power_on_behavior_2: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -867,7 +872,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     power_outage_memory: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -878,7 +883,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data['moesStartUpOnOff']]};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     switch_type: {
         cluster: 'manuSpecificTuya_3',
         type: ['attributeReport', 'readResponse'],
@@ -888,7 +893,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data['switchType']]};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     backlight_mode_low_medium_high: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -899,7 +904,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     backlight_mode_off_normal_inverted: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -908,7 +913,7 @@ const tuyaFz = {
                 return {backlight_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     backlight_mode_off_on: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -917,7 +922,7 @@ const tuyaFz = {
                 return {backlight_mode: getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     indicator_mode: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -926,7 +931,7 @@ const tuyaFz = {
                 return {indicator_mode: getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     child_lock: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],
@@ -936,7 +941,7 @@ const tuyaFz = {
                 return {child_lock: value ? 'LOCK' : 'UNLOCK'};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     min_brightness: {
         cluster: 'genLevelCtrl',
         type: ['attributeReport', 'readResponse'],
@@ -947,7 +952,7 @@ const tuyaFz = {
                 return {[property]: value};
             }
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
     datapoints: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
@@ -969,11 +974,11 @@ const tuyaFz = {
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
                 const dpEntry = datapoints.find((d) => d[0] === dpId);
-                if (dpEntry) {
+                if (dpEntry?.[2].from) {
                     const value = getDataValue(dpValue);
                     if (isMetaTuyaDataPointsSingle(dpEntry)) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish);
-                    } else if (dpEntry[2]) {
+                    } else {
                         result = {...result, ...dpEntry[2].from(value, meta, options, publish)};
                     }
                 } else {
@@ -991,7 +996,7 @@ const tuyaFz = {
             }
             return result;
         },
-    } as FromZigbeeConverter,
+    } as fz.Converter,
 };
 export {tuyaFz as fz};
 
@@ -999,11 +1004,11 @@ const tuyaExtend = {
     switch: (options:{
         endpoints?: string[], powerOutageMemory?: boolean, powerOnBehavior2?: boolean, switchType?: boolean, backlightModeLowMediumHigh?: boolean,
         indicatorMode?: boolean, backlightModeOffNormalInverted?: boolean, backlightModeOffOn?: boolean, electricalMeasurements?: boolean,
-        electricalMeasurementsFzConverter?: FromZigbeeConverter, childLock?: boolean, fromZigbee?: FromZigbeeConverter[], toZigbee?: tz.Converter[],
+        electricalMeasurementsFzConverter?: fz.Converter, childLock?: boolean, fromZigbee?: fz.Converter[], toZigbee?: tz.Converter[],
         exposes?: Expose[],
     }={}) => {
         const exposes: Expose[] = options.endpoints ? options.endpoints.map((ee) => e.switch().withEndpoint(ee)) : [e.switch()];
-        const fromZigbee: FromZigbeeConverter[] = [fz.on_off, fz.ignore_basic_report];
+        const fromZigbee: fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
         // @ts-expect-error
         const toZigbee: tz.Converter[] = [tz.on_off];
         if (options.powerOutageMemory) {
@@ -1091,7 +1096,7 @@ const tuyaExtend = {
     },
     light_onoff_brightness: (options:{
         endpoints?: string[], disablePowerOnBehavior?: boolean, minBrightness?: boolean,
-        toZigbee?:ToZigbeeConverter[], exposes?: Expose[],
+        toZigbee?:tz.Converter[], exposes?: Expose[],
     }={}) => {
         options = {
             disablePowerOnBehavior: true, toZigbee: [tuyaTz.do_not_disturb], exposes: [tuyaExposes.doNotDisturb()],

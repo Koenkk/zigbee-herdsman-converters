@@ -3,7 +3,7 @@
 
 import assert from 'assert';
 
-type Feature = Numeric | Binary | Enum | Composite | List;
+type Feature = Numeric | Binary | Enum | Composite | List | Text;
 type Range = [number, number];
 
 export class Base {
@@ -555,6 +555,7 @@ export const access = {
 
 const a = access;
 
+// TODO: remove this once TS refactor is completed
 module.exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
 module.exports.climate = () => new Climate();
 module.exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);

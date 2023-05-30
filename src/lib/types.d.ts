@@ -5,7 +5,6 @@ import type {
 } from 'zigbee-herdsman/dist/controller/model';
 
 import * as exposes from './exposes';
-import * as tuyaLib from './tuya';
 
 declare global {
     interface Logger {
@@ -15,51 +14,65 @@ declare global {
         debug: (message: string) => void;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    interface KeyValue {[s: string]: any}
+    interface KeyValue {[s: string]: unknown}
+    // eslint-disable-next-line
+    interface KeyValueAny {[s: string]: any}
     type Publish = (payload: KeyValue) => void;
-    interface FzMeta {state: KeyValue, logger: Logger, device: zh.Device}
-    interface Definition {
-        zigbeeModel?: string[],
-        fingerprint?: {modelID?: string, manufacturerName?: string}[]
-        vendor: string,
-        description: string,
-        model: string,
-        whiteLabel?: {vendor: string, model: string, description?: string}[],
-        meta?: {
-            separateWhite?: boolean,
-            multiEndpoint?: boolean,
-            publishDuplicateTransaction?: boolean,
-            tuyaDatapoints?: tuya.MetaTuyaDataPoints,
-        },
-        endpoint?: (device: zh.Device) => {[s: string]: number},
-        configure?: (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>,
-        fromZigbee: FromZigbeeConverter[],
-        toZigbee: tz.Converter[],
-        exposes: Expose[],
-    }
     type OnEventType = 'start' | 'stop' | 'message' | 'deviceJoined' | 'deviceInterview' | 'deviceAnnounce' |
         'deviceNetworkAddressChanged' | 'deviceOptionsChanged';
     type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
-    type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch | exposes.Lock;
+    type Expose = exposes.Numeric | exposes.Binary | exposes.Enum | exposes.Composite | exposes.List | exposes.Light | exposes.Switch |
+        exposes.Lock | exposes.Cover | exposes.Climate | exposes.Text;
+    type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum;
+    interface Fingerprint {modelID?: string, manufacturerName?: string;}
+    type WhiteLabel =
+        {vendor: string, model: string, description: string, fingerprint: Fingerprint[]} |
+        {vendor: string, model: string, description?: string};
 
-    interface FromZigbeeConverter {
-        cluster: string,
-        type: string[] | string,
-        options?: any[] | ((definition: Definition) => any[]);
-        convert: (model: Definition, msg: KeyValue, publish: Publish, options: KeyValue, meta: FzMeta) => KeyValue | void
+    interface DefinitionMeta {
+        separateWhite?: boolean,
+        multiEndpoint?: boolean,
+        publishDuplicateTransaction?: boolean,
+        tuyaDatapoints?: tuya.MetaTuyaDataPoints,
+        disableDefaultResponse?: boolean,
+        coverInverted?: boolean,
+        timeout?: number,
+        multiEndpointSkip?: string[],
+        tuyaSendCommand?: 'dataRequest',
+        thermostat?: {
+            weeklyScheduleMaxTransitions: number,
+            weeklyScheduleSupportedModes: number[],
+            weeklyScheduleFirstDayDpId: number,
+        },
     }
 
-    interface ToZigbeeConverter {
-        key: string[],
-        options?: any[] | ((definition: Definition) => any[]);
-        convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: tz.Meta)
-            => Promise<{state: KeyValue} | void>,
-        convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) => Promise<void>,
+    type Configure = (device: zh.Device, coordinatorEndpoint: zh.Endpoint, logger: Logger) => Promise<void>;
+    interface Extend {fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[], configure?: Configure}
+
+    type Definition = {
+        model: string;
+        vendor: string;
+        description: string;
+        whiteLabel?: WhiteLabel[];
+        endpoint?: (device: zh.Device) => {[s: string]: number},
+        configure?: Configure,
+        options?: Option[],
+        meta?: DefinitionMeta,
+        onEvent?: (type: OnEventType, data: KeyValue, device: zh.Device, options: KeyValue, state: KeyValue) => Promise<void>,
+    } & ({ zigbeeModel: string[] } | { fingerprint: Fingerprint[] })
+      & ({ extend: Extend } | { fromZigbee: fz.Converter[], toZigbee: tz.Converter[], exposes: Expose[] });
+
+    namespace fz {
+        interface Meta {state: KeyValue, logger: Logger, device: zh.Device}
+        interface Converter {
+            cluster: string,
+            type: string[] | string,
+            options?: Option[] | ((definition: Definition) => Option[]);
+            convert: (model: Definition, msg: KeyValueAny, publish: Publish, options: KeyValue, meta: fz.Meta) => KeyValueAny | void | Promise<void>;
+        }
     }
 
     namespace tz {
-        type Value = number | string | KeyValue | boolean;
         interface Meta {
             logger: Logger,
             message: KeyValue,
@@ -71,9 +84,8 @@ declare global {
         }
         interface Converter {
             key: string[],
-            options?: exposes.Numeric[] | ((definition: Definition) => exposes.Numeric[]);
-            convertSet: (entity: zh.Endpoint | zh.Group, key: string, value: number | string | KeyValue, meta: tz.Meta)
-                => Promise<{state: KeyValue} | void>,
+            options?: Option[] | ((definition: Definition) => Option[]);
+            convertSet?: (entity: zh.Endpoint | zh.Group, key: string, value: unknown, meta: tz.Meta) => Promise<{state: KeyValue} | void>,
             convertGet?: (entity: zh.Endpoint | zh.Group, key: string, meta: tz.Meta) => Promise<void>,
         }
     }
@@ -87,12 +99,12 @@ declare global {
     namespace tuya {
         interface DpValue {dp: number, datatype: number, data: Buffer | number[]}
         interface ValueConverterSingle {
-            to?: (value: string|number|boolean, meta?: tz.Meta) => string|number|boolean,
-            from?: (value: string|number|boolean|Buffer|number[], meta?: FzMeta, options?: KeyValue, publish?: Publish) => string|number|boolean,
+            to?: (value: unknown, meta?: tz.Meta) => unknown,
+            from?: (value: unknown, meta?: fz.Meta, options?: KeyValue, publish?: Publish) => number|string|boolean,
         }
         interface ValueConverterMulti {
-            to?: (value: string|number|boolean, meta?: tz.Meta) => string|number|boolean|tuyaLib.Enum|tuyaLib.Bitmap,
-            from?: (value: string|number|boolean|Buffer|number[], meta?: FzMeta, options?: KeyValue, publish?: Publish) => KeyValue,
+            to?: (value: unknown, meta?: tz.Meta) => unknown,
+            from?: (value: unknown, meta?: fz.Meta, options?: KeyValue, publish?: Publish) => KeyValue,
         }
         interface MetaTuyaDataPointsMeta {skip: (meta: tz.Meta) => boolean, optimistic?: boolean}
         type MetaTuyaDataPointsSingle = [number, string, tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
