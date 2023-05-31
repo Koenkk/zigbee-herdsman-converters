@@ -197,10 +197,10 @@ module.exports = [
         model: '3RVS01031Z',
         vendor: 'Third Reality',
         description: 'Zigbee vibration sensor',
-        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fz.thirdreality_acceleration],
         toZigbee: [],
         ota: ota.zigbeeOTA,
-        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage()],
+        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
