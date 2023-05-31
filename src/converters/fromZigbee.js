@@ -6067,6 +6067,31 @@ const converters = {
             }
         },
     },
+    thirdreality_vibration: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data['65280']) {
+                const x = msg.data['65280'];
+            }
+            if (msg.data['68281']) {
+                const y = msg.data['68281'];
+            }
+            if (msg.data['68282']) {
+                const z = msg.data['68282'];
+                // calculate angle
+                result.angle_x = Math.round(Math.atan(x/Math.sqrt(y*y+z*z)) * 180 / Math.PI);
+                result.angle_y = Math.round(Math.atan(y/Math.sqrt(x*x+z*z)) * 180 / Math.PI);
+                result.angle_z = Math.round(Math.atan(z/Math.sqrt(x*x+y*y)) * 180 / Math.PI);
+                // calculate absolulte angle
+                const R = Math.sqrt(x * x + y * y + z * z);
+                result.angle_x_absolute = Math.round((Math.acos(x / R)) * 180 / Math.PI);
+                result.angle_y_absolute = Math.round((Math.acos(y / R)) * 180 / Math.PI);
+            }
+            return result;
+        },
+    },
     // #endregion
 
     // #region Ignore converters (these message dont need parsing).
